@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.javafx;
 
 import fr.hardel.asset_editor.client.javafx.layout.Splash;
 import javafx.application.Platform;
-import org.scenicview.ScenicView;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -31,7 +30,8 @@ public final class VoxelStudioWindow {
     private ResizeZone activeZone = ResizeZone.NONE;
 
     public static void open() {
-        if (instance == null) instance = new VoxelStudioWindow();
+        if (instance == null)
+            instance = new VoxelStudioWindow();
         instance.show();
     }
 
@@ -51,8 +51,12 @@ public final class VoxelStudioWindow {
             return;
         }
         Platform.runLater(() -> {
-            if (stage == null) createWindow();
-            else { stage.show(); stage.toFront(); }
+            if (stage == null)
+                createWindow();
+            else {
+                stage.show();
+                stage.toFront();
+            }
         });
     }
 
@@ -73,23 +77,22 @@ public final class VoxelStudioWindow {
                 VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm());
 
         attachResizeHandlers(scene);
-        scene.setOnKeyPressed(e -> {
-            if (e.getCode() == javafx.scene.input.KeyCode.F12) ScenicView.show(scene);
-        });
-
         stage.setScene(scene);
         stage.show();
     }
 
     private void rebuildScene() {
-        if (stage == null) return;
+        if (stage == null)
+            return;
         stage.getScene().setRoot(new Splash(stage));
     }
 
     private void loadRubikFont() {
         try (var stream = VoxelStudioWindow.class.getResourceAsStream(RUBIK_FONT_PATH)) {
-            if (stream != null) Font.loadFont(stream, 12);
-        } catch (Exception ignored) {}
+            if (stream != null)
+                Font.loadFont(stream, 12);
+        } catch (Exception ignored) {
+        }
     }
 
     private void attachResizeHandlers(Scene scene) {
@@ -111,7 +114,8 @@ public final class VoxelStudioWindow {
         });
 
         scene.setOnMouseDragged(e -> {
-            if (activeZone == ResizeZone.NONE || stage.isMaximized()) return;
+            if (activeZone == ResizeZone.NONE || stage.isMaximized())
+                return;
             double dx = e.getScreenX() - resizeDragX;
             double dy = e.getScreenY() - resizeDragY;
             activeZone.apply(stage, dx, dy, resizeDragW, resizeDragH, resizeDragStageX, resizeDragStageY,
@@ -126,80 +130,144 @@ public final class VoxelStudioWindow {
         boolean s = y > h - RESIZE_MARGIN;
         boolean west = x < RESIZE_MARGIN;
         boolean east = x > w - RESIZE_MARGIN;
-        if (n && west) return ResizeZone.NW;
-        if (n && east) return ResizeZone.NE;
-        if (s && west) return ResizeZone.SW;
-        if (s && east) return ResizeZone.SE;
-        if (n) return ResizeZone.N;
-        if (s) return ResizeZone.S;
-        if (west) return ResizeZone.W;
-        if (east) return ResizeZone.E;
+        if (n && west)
+            return ResizeZone.NW;
+        if (n && east)
+            return ResizeZone.NE;
+        if (s && west)
+            return ResizeZone.SW;
+        if (s && east)
+            return ResizeZone.SE;
+        if (n)
+            return ResizeZone.N;
+        if (s)
+            return ResizeZone.S;
+        if (west)
+            return ResizeZone.W;
+        if (east)
+            return ResizeZone.E;
         return ResizeZone.NONE;
     }
 
     private enum ResizeZone {
         NONE {
-            @Override public Cursor cursor() { return Cursor.DEFAULT; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {}
+            @Override
+            public Cursor cursor() {
+                return Cursor.DEFAULT;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
+            }
         },
         N {
-            @Override public Cursor cursor() { return Cursor.N_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.N_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 double newH = Math.max(mh, oh - dy);
                 s.setY(oy + (oh - newH));
                 s.setHeight(newH);
             }
         },
         S {
-            @Override public Cursor cursor() { return Cursor.S_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.S_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 s.setHeight(Math.max(mh, oh + dy));
             }
         },
         W {
-            @Override public Cursor cursor() { return Cursor.W_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.W_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 double newW = Math.max(mw, ow - dx);
                 s.setX(ox + (ow - newW));
                 s.setWidth(newW);
             }
         },
         E {
-            @Override public Cursor cursor() { return Cursor.E_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.E_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 s.setWidth(Math.max(mw, ow + dx));
             }
         },
         NW {
-            @Override public Cursor cursor() { return Cursor.NW_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.NW_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 N.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         NE {
-            @Override public Cursor cursor() { return Cursor.NE_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.NE_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 N.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         SW {
-            @Override public Cursor cursor() { return Cursor.SW_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.SW_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 S.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         SE {
-            @Override public Cursor cursor() { return Cursor.SE_RESIZE; }
-            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
+            @Override
+            public Cursor cursor() {
+                return Cursor.SE_RESIZE;
+            }
+
+            @Override
+            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
+                    double mh) {
                 S.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         };
 
         public abstract Cursor cursor();
+
         public abstract void apply(Stage stage, double dx, double dy, double origW, double origH,
                 double origX, double origY, double minW, double minH);
     }
