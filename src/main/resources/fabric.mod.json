@@ -11,10 +11,10 @@
     "environment": "*",
     "entrypoints": {
         "client": [
-            "fr.hardel.asset_editor.client.Asset_editorClient"
+            "fr.hardel.asset_editor.client.AssetEditorClient"
         ],
         "main": [
-            "fr.hardel.asset_editor.Asset_editor"
+            "fr.hardel.asset_editor.AssetEditor"
         ]
     },
     "mixins": [

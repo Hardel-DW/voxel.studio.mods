@@ -1,0 +1,104 @@
+/* ============================================================
+   Voxel Studio – Splash / TitleBar styles
+   Tailwind reference values:
+     zinc-200 #e4e4e7  zinc-400 #a1a1aa  zinc-500 #71717a
+     zinc-600 #52525b  zinc-800 #27272a  zinc-900 #18181b
+     red-400  #f87171
+   ============================================================ */
+
+/* ---------- Scene root ---------- */
+.root {
+    -fx-background-color: black;
+    -fx-font-family: "Rubik", "Segoe UI", system;
+}
+
+/* ---------- TitleBar ---------- */
+.title-bar-logo-label {
+    -fx-text-fill: #a1a1aa;          /* zinc-400 */
+    -fx-font-size: 12;               /* text-xs */
+    -fx-font-weight: 500;            /* font-medium */
+}
+
+.title-bar-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-pref-height: 32;
+    -fx-min-height: 32;
+    -fx-max-height: 32;
+    -fx-pref-width: 36;
+}
+
+.title-separator {
+    -fx-background-color: linear-gradient(to right, #18181b, #27272a, #18181b);
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-opacity: 0.25;
+}
+
+/* ---------- Dashed frame ---------- */
+.dashed-frame {
+    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-style: dashed;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+}
+
+/* ---------- Corner L-decorations (white/40) ---------- */
+.corner-decoration {
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+    -fx-min-width: 16;
+    -fx-min-height: 16;
+    -fx-max-width: 16;
+    -fx-max-height: 16;
+}
+.corner-tl { -fx-border-width: 1 0 0 1; }
+.corner-tr { -fx-border-width: 1 1 0 0; }
+.corner-bl { -fx-border-width: 0 0 1 1; }
+.corner-br { -fx-border-width: 0 1 1 0; }
+
+/* ---------- Frame dot decorations ---------- */
+.dot { -fx-pref-width: 4; -fx-pref-height: 4; -fx-min-width: 4; -fx-min-height: 4; -fx-max-width: 4; -fx-max-height: 4; }
+.dot-1 { -fx-background-color: #71717a; }
+.dot-2 { -fx-background-color: rgba(113, 113, 122, 0.5); }
+.dot-3 { -fx-background-color: rgba(113, 113, 122, 0.2); }
+
+/* ---------- Frame labels ---------- */
+.build-label {
+    -fx-text-fill: #52525b;
+    -fx-font-size: 10;
+    -fx-font-family: "Consolas", monospace;
+    -fx-letter-spacing: 0.1em;
+}
+
+.help-label {
+    -fx-text-fill: #52525b;
+    -fx-font-size: 10;
+    -fx-font-family: "Consolas", monospace;
+    -fx-letter-spacing: 0.1em;
+    -fx-cursor: hand;
+}
+.help-label:hover { -fx-text-fill: #a1a1aa; }
+
+/* ---------- Center content ---------- */
+.splash-title {
+    -fx-font-size: 36;
+    -fx-font-weight: 800;
+    /* gradient fill set in code */
+}
+
+.splash-subtitle {
+    -fx-text-fill: #71717a;
+    -fx-font-size: 12;
+    -fx-font-weight: 500;
+    -fx-letter-spacing: 0.3em;
+}
+
+.loading-label {
+    -fx-text-fill: #a1a1aa;
+    -fx-font-size: 10;
+    -fx-font-family: "Consolas", monospace;
+    -fx-letter-spacing: 0.1em;
+}
