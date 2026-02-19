@@ -12,7 +12,6 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -32,18 +31,16 @@ public final class Splash extends StackPane {
     private static final Identifier LOGO   = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier GITHUB = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/github.svg");
 
-    public Splash(Stage stage, String fontFamily) {
+    public Splash(Stage stage) {
         setStyle("-fx-background-color: black;");
 
-        TitleBar titleBar = new TitleBar(stage, fontFamily);
+        TitleBar titleBar = new TitleBar(stage);
         StackPane.setAlignment(titleBar, Pos.TOP_LEFT);
 
         StackPane frame = buildDashedFrame();
         StackPane.setMargin(frame, new Insets(48, 24, 24, 24));
 
-        StackPane center = buildCenterContent(fontFamily);
-
-        getChildren().addAll(new GridBackground(), frame, center, titleBar);
+        getChildren().addAll(new GridBackground(), frame, buildCenterContent(), titleBar);
     }
 
     private StackPane buildDashedFrame() {
@@ -117,8 +114,8 @@ public final class Splash extends StackPane {
         return bottom;
     }
 
-    private StackPane buildCenterContent(String fontFamily) {
-        VBox column = buildCenterColumn(fontFamily);
+    private StackPane buildCenterContent() {
+        VBox column = buildCenterColumn();
         column.setMouseTransparent(true);
 
         Label loading = buildLoadingLabel();
@@ -130,19 +127,17 @@ public final class Splash extends StackPane {
         return wrapper;
     }
 
-    private VBox buildCenterColumn(String fontFamily) {
+    private VBox buildCenterColumn() {
         StackPane logoGroup = buildLogoGroup();
 
-        Text title = new Text("VOXEL");
+        Text title = new Text(I18n.get("tauri:splash.title"));
         title.getStyleClass().add("splash-title");
-        title.setFont(Font.font(fontFamily, FontWeight.EXTRA_BOLD, 36));
         title.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.WHITE),
                 new Stop(1, VoxelColors.ZINC_400)));
 
         Label subtitle = new Label(I18n.get("tauri:splash.subtitle").toUpperCase());
         subtitle.getStyleClass().add("splash-subtitle");
-        subtitle.setFont(Font.font(fontFamily, FontWeight.MEDIUM, 12));
         subtitle.setTextFill(VoxelColors.ZINC_500);
 
         VBox titleGroup = new VBox(4, title, subtitle);

@@ -22,12 +22,14 @@ loom {
 }
 
 
+configurations {
+    developmentOnly
+    compileClasspath.extendsFrom(developmentOnly)
+    runtimeClasspath.extendsFrom(developmentOnly)
+}
+
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    mavenCentral()
 }
 
 dependencies {
@@ -41,6 +43,12 @@ dependencies {
     implementation "org.openjfx:javafx-base:21.0.7:win"
     implementation "org.openjfx:javafx-graphics:21.0.7:win"
     implementation "org.openjfx:javafx-controls:21.0.7:win"
+
+    developmentOnly "org.openjfx:javafx-fxml:21.0.7:win"
+    developmentOnly "org.openjfx:javafx-media:21.0.7:win"
+    developmentOnly "org.openjfx:javafx-web:21.0.7:win"
+    developmentOnly "org.openjfx:javafx-swing:21.0.7:win"
+    developmentOnly fileTree(dir: 'libs', include: ['scenicview*.jar'])
 }
 
 processResources {

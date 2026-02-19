@@ -11,8 +11,6 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.SVGPath;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import net.minecraft.client.resources.language.I18n;
@@ -28,18 +26,18 @@ public final class TitleBar extends VBox {
 
     private double dragOffsetX, dragOffsetY;
 
-    public TitleBar(Stage stage, String fontFamily) {
-        getChildren().addAll(buildBar(stage, fontFamily), buildSeparator());
+    public TitleBar(Stage stage) {
+        getChildren().addAll(buildBar(stage), buildSeparator());
     }
 
-    private HBox buildBar(Stage stage, String fontFamily) {
+    private HBox buildBar(Stage stage) {
         HBox bar = new HBox();
         bar.setPrefHeight(32);
         bar.setMinHeight(32);
         bar.setMaxHeight(32);
         bar.setStyle("-fx-background-color: transparent;");
 
-        HBox left = buildLeft(fontFamily);
+        HBox left = buildLeft();
         Region drag = new Region();
         HBox.setHgrow(drag, Priority.ALWAYS);
         HBox controls = buildControls(stage);
@@ -62,12 +60,11 @@ public final class TitleBar extends VBox {
         return bar;
     }
 
-    private HBox buildLeft(String fontFamily) {
+    private HBox buildLeft() {
         SvgIcon logo = new SvgIcon(LOGO, 16, Color.WHITE);
 
         Text title = new Text(I18n.get("tauri:app.title"));
         title.getStyleClass().add("title-bar-logo-label");
-        title.setFont(Font.font(fontFamily, FontWeight.MEDIUM, 12));
         title.setFill(VoxelColors.ZINC_400);
 
         HBox left = new HBox(8, logo, title);

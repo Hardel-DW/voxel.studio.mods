@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx;
 
 import fr.hardel.asset_editor.client.javafx.layout.Splash;
 import javafx.application.Platform;
+import org.scenicview.ScenicView;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.paint.Color;
@@ -22,7 +23,6 @@ public final class VoxelStudioWindow {
 
     private static VoxelStudioWindow instance;
     private Stage stage;
-    private String fontFamily = "Segoe UI";
     private boolean platformStarted = false;
 
     private double resizeDragX, resizeDragY;
@@ -58,7 +58,7 @@ public final class VoxelStudioWindow {
 
     private void createWindow() {
         ResourceLoader.update(Minecraft.getInstance().getResourceManager());
-        fontFamily = loadRubikFont();
+        loadRubikFont();
 
         stage = new Stage(StageStyle.UNDECORATED);
         stage.setTitle("Voxel Studio");
@@ -67,12 +67,15 @@ public final class VoxelStudioWindow {
         stage.setMinWidth(640);
         stage.setMinHeight(400);
 
-        Scene scene = new Scene(new Splash(stage, fontFamily));
+        Scene scene = new Scene(new Splash(stage));
         scene.setFill(Color.BLACK);
         scene.getStylesheets().add(
                 VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm());
 
         attachResizeHandlers(scene);
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.F12) ScenicView.show(scene);
+        });
 
         stage.setScene(scene);
         stage.show();
@@ -80,17 +83,13 @@ public final class VoxelStudioWindow {
 
     private void rebuildScene() {
         if (stage == null) return;
-        stage.getScene().setRoot(new Splash(stage, fontFamily));
+        stage.getScene().setRoot(new Splash(stage));
     }
 
-    private String loadRubikFont() {
+    private void loadRubikFont() {
         try (var stream = VoxelStudioWindow.class.getResourceAsStream(RUBIK_FONT_PATH)) {
-            if (stream == null) return "Segoe UI";
-            Font font = Font.loadFont(stream, 12);
-            return font != null ? font.getFamily() : "Segoe UI";
-        } catch (Exception e) {
-            return "Segoe UI";
-        }
+            if (stream != null) Font.loadFont(stream, 12);
+        } catch (Exception ignored) {}
     }
 
     private void attachResizeHandlers(Scene scene) {

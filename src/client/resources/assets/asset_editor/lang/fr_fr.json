@@ -2,6 +2,7 @@
     "key.asset_editor.open_studio": "Ouvrir Voxel Studio",
     "key.category.asset_editor": "Éditeur d'Assets",
     "tauri:app.title": "Voxel Studio Pro",
+    "tauri:splash.title": "VOXEL",
     "tauri:splash.subtitle": "Studio Pro",
     "tauri:splash.loading": "Chargement...",
     "tauri:splash.help": "Besoin d'aide ?"

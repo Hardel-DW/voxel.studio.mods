@@ -1,22 +1,16 @@
-/* ============================================================
-   Voxel Studio – Splash / TitleBar styles
-   Tailwind reference values:
-     zinc-200 #e4e4e7  zinc-400 #a1a1aa  zinc-500 #71717a
-     zinc-600 #52525b  zinc-800 #27272a  zinc-900 #18181b
-     red-400  #f87171
-   ============================================================ */
+/* Voxel Studio – Splash / TitleBar styles (JavaFX CSS dialect, -fx-* are not vendor prefixes) */
 
 /* ---------- Scene root ---------- */
 .root {
     -fx-background-color: black;
-    -fx-font-family: "Rubik", "Segoe UI", system;
+    -fx-font-family: "Rubik Variable", "Rubik", "Segoe UI", system;
 }
 
 /* ---------- TitleBar ---------- */
 .title-bar-logo-label {
-    -fx-text-fill: #a1a1aa;          /* zinc-400 */
-    -fx-font-size: 12;               /* text-xs */
-    -fx-font-weight: 500;            /* font-medium */
+    -fx-text-fill: #a1a1aa;
+    -fx-font-size: 12;
+    -fx-font-weight: 500;
 }
 
 .title-bar-button {
@@ -70,14 +64,13 @@
     -fx-text-fill: #52525b;
     -fx-font-size: 10;
     -fx-font-family: "Consolas", monospace;
-    -fx-letter-spacing: 0.1em;
+    -fx-letter-spacing: 0.1em; /* tracking-widest */
 }
 
 .help-label {
     -fx-text-fill: #52525b;
     -fx-font-size: 10;
     -fx-font-family: "Consolas", monospace;
-    -fx-letter-spacing: 0.1em;
     -fx-cursor: hand;
 }
 .help-label:hover { -fx-text-fill: #a1a1aa; }
@@ -86,6 +79,7 @@
 .splash-title {
     -fx-font-size: 36;
     -fx-font-weight: 800;
+    -fx-letter-spacing: -0.025em; /* tracking-tight */
     /* gradient fill set in code */
 }
 
@@ -100,5 +94,5 @@
     -fx-text-fill: #a1a1aa;
     -fx-font-size: 10;
     -fx-font-family: "Consolas", monospace;
-    -fx-letter-spacing: 0.1em;
+    -fx-letter-spacing: 0.1em; /* tracking-widest */
 }
