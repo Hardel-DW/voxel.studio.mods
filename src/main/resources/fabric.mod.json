@@ -1,0 +1,32 @@
+{
+    "schemaVersion": 1,
+    "id": "asset_editor",
+    "version": "${version}",
+    "name": "asset_editor",
+    "description": "",
+    "authors": [],
+    "contact": {},
+    "license": "All-Rights-Reserved",
+    "icon": "assets/asset_editor/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "client": [
+            "fr.hardel.asset_editor.client.Asset_editorClient"
+        ],
+        "main": [
+            "fr.hardel.asset_editor.Asset_editor"
+        ]
+    },
+    "mixins": [
+        "asset_editor.mixins.json",
+        {
+            "config": "asset_editor.client.mixins.json",
+            "environment": "client"
+        }
+    ],
+    "depends": {
+        "fabricloader": ">=${loader_version}",
+        "fabric-api": "*",
+        "minecraft": "${minecraft_version}"
+    }
+}
