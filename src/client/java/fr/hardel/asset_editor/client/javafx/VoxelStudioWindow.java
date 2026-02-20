@@ -9,6 +9,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
 
 /**
  * Manages the JavaFX Stage lifecycle.
@@ -18,7 +20,6 @@ import net.minecraft.client.Minecraft;
 public final class VoxelStudioWindow {
 
     private static final int RESIZE_MARGIN = 6;
-    private static final String RUBIK_FONT_PATH = "/assets/asset_editor/fonts/Rubik-VariableFont_wght.ttf";
 
     private static VoxelStudioWindow instance;
     private Stage stage;
@@ -65,7 +66,7 @@ public final class VoxelStudioWindow {
         loadRubikFont();
 
         stage = new Stage(StageStyle.UNDECORATED);
-        stage.setTitle("Voxel Studio");
+        stage.setTitle(I18n.get("tauri:app.title"));
         stage.setWidth(900);
         stage.setHeight(600);
         stage.setMinWidth(640);
@@ -88,10 +89,11 @@ public final class VoxelStudioWindow {
     }
 
     private void loadRubikFont() {
-        try (var stream = VoxelStudioWindow.class.getResourceAsStream(RUBIK_FONT_PATH)) {
-            if (stream != null)
-                Font.loadFont(stream, 12);
-        } catch (Exception ignored) {
+        for (VoxelFonts.Rubik weight : VoxelFonts.Rubik.values()) {
+            Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + weight.fileName + ".ttf");
+            try (var is = ResourceLoader.open(id)) {
+                VoxelFonts.register(weight, Font.loadFont(is, 12));
+            } catch (Exception ignored) {}
         }
     }
 

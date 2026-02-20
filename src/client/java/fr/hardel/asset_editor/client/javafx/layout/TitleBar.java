@@ -7,9 +7,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -120,16 +117,6 @@ public final class TitleBar extends VBox {
     private Region buildSeparator() {
         Region sep = new Region();
         sep.getStyleClass().add("title-separator");
-        sep.setPrefHeight(1);
-        sep.setMinHeight(1);
-        sep.setMaxHeight(1);
-        sep.setBackground(new Background(new BackgroundFill(
-                new LinearGradient(0, 0, 1, 0, true, CycleMethod.NO_CYCLE,
-                        new Stop(0, VoxelColors.ZINC_900),
-                        new Stop(0.5, VoxelColors.ZINC_800),
-                        new Stop(1, VoxelColors.ZINC_900)),
-                null, null)));
-        sep.setOpacity(0.25);
         return sep;
     }
 }

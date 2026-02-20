@@ -8,7 +8,9 @@ import javafx.scene.paint.*;
 
 /**
  * Matches the GridBackground component from Splash.tsx.
- * squaring-zinc-800 opacity-20 + radial mask + radial overlay.
+ * Layer 1 – Canvas: squaring-zinc-800 opacity-20 with elliptical mask
+ *   (mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%))
+ * Layer 2 – Region: bg-radial-at-c from-zinc-900/50 via-black to-black
  */
 public final class GridBackground extends StackPane {
 
@@ -23,7 +25,7 @@ public final class GridBackground extends StackPane {
         grid.widthProperty().addListener((obs, ov, nv) -> drawGrid(grid));
         grid.heightProperty().addListener((obs, ov, nv) -> drawGrid(grid));
 
-        getChildren().addAll(grid, buildMaskOverlay(), buildRadialOverlay());
+        getChildren().add(grid);
     }
 
     private void drawGrid(Canvas canvas) {
@@ -33,32 +35,29 @@ public final class GridBackground extends StackPane {
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, w, h);
-        gc.setStroke(VoxelColors.ZINC_800);
+
+        gc.setStroke(VoxelColors.ZINC_950);
         gc.setLineWidth(1);
-        gc.setGlobalAlpha(0.20);
+        gc.setGlobalAlpha(1.0);
+        for (double x = 0; x <= w; x += CELL_SIZE) gc.strokeLine(snap(x), 0, snap(x), h);
+        for (double y = 0; y <= h; y += CELL_SIZE) gc.strokeLine(0, snap(y), w, snap(y));
 
-        for (double x = 0; x <= w; x += CELL_SIZE) gc.strokeLine(x, 0, x, h);
-        for (double y = 0; y <= h; y += CELL_SIZE) gc.strokeLine(0, y, w, y);
+        // Elliptical mask: CSS mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%)
+        gc.setGlobalAlpha(1.0);
+        double rx = 0.6 * w;
+        double ry = 0.5 * h;
+        gc.save();
+        gc.transform(rx, 0, 0, ry, w / 2, h / 2);
+        Color dim = new Color(0, 0, 0, 0.6);
+        gc.setFill(new RadialGradient(0, 0, 0, 0, 1.0, false, CycleMethod.NO_CYCLE,
+                new Stop(0.0, Color.TRANSPARENT),
+                new Stop(0.4, Color.TRANSPARENT),
+                new Stop(1.0, dim)));
+        gc.fillRect(-w / (2 * rx), -h / (2 * ry), w / rx, h / ry);
+        gc.restore();
     }
 
-    private Region buildMaskOverlay() {
-        Region mask = new Region();
-        mask.setBackground(new Background(new BackgroundFill(
-                new RadialGradient(0, 0, 0.5, 0.5, 0.9, true, CycleMethod.NO_CYCLE,
-                        new Stop(0.7, Color.TRANSPARENT),
-                        new Stop(1.0, Color.BLACK)),
-                null, null)));
-        return mask;
-    }
-
-    private Region buildRadialOverlay() {
-        Region overlay = new Region();
-        overlay.setBackground(new Background(new BackgroundFill(
-                new RadialGradient(0, 0, 0.5, 0.5, 1.0, true, CycleMethod.NO_CYCLE,
-                        new Stop(0.0, VoxelColors.ZINC_900_50),
-                        new Stop(0.5, Color.BLACK),
-                        new Stop(1.0, Color.BLACK)),
-                null, null)));
-        return overlay;
+    private static double snap(double v) {
+        return Math.floor(v) + 0.5;
     }
 }

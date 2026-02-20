@@ -2,14 +2,16 @@ package fr.hardel.asset_editor.client.javafx.layout;
 
 import fr.hardel.asset_editor.client.AssetEditorClient;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import fr.hardel.asset_editor.client.javafx.ui.SpacedText;
 import fr.hardel.asset_editor.client.javafx.ui.SvgIcon;
 import javafx.animation.FadeTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -40,7 +42,24 @@ public final class Splash extends StackPane {
         StackPane frame = buildDashedFrame();
         StackPane.setMargin(frame, new Insets(48, 24, 24, 24));
 
-        getChildren().addAll(new GridBackground(), frame, buildCenterContent(), titleBar);
+        VBox centerColumn = buildCenterColumn();
+        centerColumn.setMouseTransparent(true);
+
+        SpacedText loading = buildLoadingText();
+        loading.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(loading, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(loading, new Insets(0, 0, 80, 0));
+
+        GridBackground grid = new GridBackground();
+        Rectangle clip = new Rectangle();
+        grid.layoutBoundsProperty().addListener((obs, ov, nv) -> {
+            clip.setWidth(nv.getWidth());
+            clip.setHeight(nv.getHeight());
+        });
+        grid.setClip(clip);
+        StackPane.setMargin(grid, new Insets(48, 24, 24, 24));
+
+        getChildren().addAll(grid, frame, centerColumn, loading, titleBar);
     }
 
     private StackPane buildDashedFrame() {
@@ -66,11 +85,6 @@ public final class Splash extends StackPane {
 
         StackPane frame = new StackPane(content, cornerTL, cornerTR, cornerBL, cornerBR);
         frame.getStyleClass().add("dashed-frame");
-        frame.setBorder(new Border(new BorderStroke(
-                VoxelColors.WHITE_5,
-                BorderStrokeStyle.DASHED,
-                CornerRadii.EMPTY,
-                new BorderWidths(1))));
         frame.setMouseTransparent(true);
         return frame;
     }
@@ -79,10 +93,11 @@ public final class Splash extends StackPane {
         HBox dots = new HBox(4, dot("dot-1"), dot("dot-2"), dot("dot-3"));
         dots.setAlignment(Pos.CENTER_LEFT);
 
-        Label build = new Label("BUILD " + AssetEditorClient.BUILD_VERSION);
-        build.getStyleClass().add("build-label");
-        build.setFont(Font.font("Consolas", 10));
-        build.setTextFill(VoxelColors.ZINC_600);
+        SpacedText build = new SpacedText(
+                "BUILD " + AssetEditorClient.BUILD_VERSION,
+                Font.font("Consolas", 10),
+                VoxelColors.ZINC_600,
+                0.1);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -96,7 +111,6 @@ public final class Splash extends StackPane {
     private HBox buildFrameBottom() {
         Label help = new Label(I18n.get("tauri:splash.help"));
         help.getStyleClass().add("help-label");
-        help.setFont(Font.font("Consolas", 10));
         help.setTextFill(VoxelColors.ZINC_600);
         help.setOnMouseEntered(e -> help.setTextFill(VoxelColors.ZINC_400));
         help.setOnMouseExited(e -> help.setTextFill(VoxelColors.ZINC_600));
@@ -114,31 +128,21 @@ public final class Splash extends StackPane {
         return bottom;
     }
 
-    private StackPane buildCenterContent() {
-        VBox column = buildCenterColumn();
-        column.setMouseTransparent(true);
-
-        Label loading = buildLoadingLabel();
-        StackPane.setAlignment(loading, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(loading, new Insets(0, 0, 80, 0));
-
-        StackPane wrapper = new StackPane(column, loading);
-        wrapper.setMouseTransparent(true);
-        return wrapper;
-    }
-
     private VBox buildCenterColumn() {
         StackPane logoGroup = buildLogoGroup();
 
         Text title = new Text(I18n.get("tauri:splash.title"));
-        title.getStyleClass().add("splash-title");
+        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.EXTRA_BOLD, 36));
         title.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.WHITE),
                 new Stop(1, VoxelColors.ZINC_400)));
 
-        Label subtitle = new Label(I18n.get("tauri:splash.subtitle").toUpperCase());
-        subtitle.getStyleClass().add("splash-subtitle");
-        subtitle.setTextFill(VoxelColors.ZINC_500);
+        SpacedText subtitle = new SpacedText(
+                I18n.get("tauri:splash.subtitle").toUpperCase(),
+                VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 12),
+                VoxelColors.ZINC_500,
+                0.3);
+        subtitle.setAlignment(Pos.CENTER);
 
         VBox titleGroup = new VBox(4, title, subtitle);
         titleGroup.setAlignment(Pos.CENTER);
@@ -149,15 +153,6 @@ public final class Splash extends StackPane {
     }
 
     private StackPane buildLogoGroup() {
-        Region glow = new Region();
-        glow.setPrefSize(96, 96);
-        glow.setMaxSize(96, 96);
-        glow.setBackground(new Background(new BackgroundFill(
-                VoxelColors.WHITE_10,
-                new CornerRadii(48),
-                null)));
-        glow.setEffect(new GaussianBlur(40));
-
         SvgIcon logo = new SvgIcon(LOGO, 96, Color.WHITE);
 
         FadeTransition pulse = new FadeTransition(Duration.seconds(2), logo);
@@ -167,14 +162,16 @@ public final class Splash extends StackPane {
         pulse.setAutoReverse(true);
         pulse.play();
 
-        return new StackPane(glow, logo);
+        return new StackPane(logo);
     }
 
-    private Label buildLoadingLabel() {
-        Label loading = new Label(I18n.get("tauri:splash.loading").toUpperCase());
-        loading.getStyleClass().add("loading-label");
-        loading.setFont(Font.font("Consolas", 10));
-        loading.setTextFill(VoxelColors.ZINC_400);
+    private SpacedText buildLoadingText() {
+        SpacedText loading = new SpacedText(
+                I18n.get("tauri:splash.loading").toUpperCase(),
+                Font.font("Consolas", 10),
+                VoxelColors.ZINC_400,
+                0.1);
+        loading.setMaxWidth(Region.USE_PREF_SIZE);
 
         FadeTransition pulse = new FadeTransition(Duration.seconds(1.5), loading);
         pulse.setFromValue(1.0);

@@ -1,14 +1,15 @@
-/* Voxel Studio – Splash / TitleBar styles (JavaFX CSS dialect, -fx-* are not vendor prefixes) */
+/* Voxel Studio – Splash / TitleBar styles (JavaFX CSS dialect) */
 
 /* ---------- Scene root ---------- */
 .root {
     -fx-background-color: black;
-    -fx-font-family: "Rubik Variable", "Rubik", "Segoe UI", system;
+    -fx-font-family: "Rubik", "Segoe UI", system;
+    -fx-font-smoothing-type: lcd;
 }
 
 /* ---------- TitleBar ---------- */
 .title-bar-logo-label {
-    -fx-text-fill: #a1a1aa;
+    -fx-text-fill: #a8a8b2;
     -fx-font-size: 12;
     -fx-font-weight: 500;
 }
@@ -23,24 +24,22 @@
 }
 
 .title-separator {
-    -fx-background-color: linear-gradient(to right, #18181b, #27272a, #18181b);
+    -fx-background-color: linear-gradient(to right, #0e0e10, #151518, #0e0e10);
     -fx-pref-height: 1;
     -fx-min-height: 1;
     -fx-max-height: 1;
-    -fx-opacity: 0.25;
 }
 
 /* ---------- Dashed frame ---------- */
 .dashed-frame {
-    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-color: #151518;
     -fx-border-style: dashed;
     -fx-border-width: 1;
-    -fx-padding: 16;
 }
 
 /* ---------- Corner L-decorations (white/40) ---------- */
 .corner-decoration {
-    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-color: #787878;
     -fx-pref-width: 16;
     -fx-pref-height: 16;
     -fx-min-width: 16;
@@ -55,44 +54,14 @@
 
 /* ---------- Frame dot decorations ---------- */
 .dot { -fx-pref-width: 4; -fx-pref-height: 4; -fx-min-width: 4; -fx-min-height: 4; -fx-max-width: 4; -fx-max-height: 4; }
-.dot-1 { -fx-background-color: #71717a; }
-.dot-2 { -fx-background-color: rgba(113, 113, 122, 0.5); }
-.dot-3 { -fx-background-color: rgba(113, 113, 122, 0.2); }
+.dot-1 { -fx-background-color: #7a7a85; }
+.dot-2 { -fx-background-color: #404048; }
+.dot-3 { -fx-background-color: #1e1e21; }
 
-/* ---------- Frame labels ---------- */
-.build-label {
-    -fx-text-fill: #52525b;
-    -fx-font-size: 10;
-    -fx-font-family: "Consolas", monospace;
-    -fx-letter-spacing: 0.1em; /* tracking-widest */
-}
-
+/* ---------- Help label (hover handled in code) ---------- */
 .help-label {
-    -fx-text-fill: #52525b;
+    -fx-text-fill: #5c5c66;
     -fx-font-size: 10;
     -fx-font-family: "Consolas", monospace;
     -fx-cursor: hand;
-}
-.help-label:hover { -fx-text-fill: #a1a1aa; }
-
-/* ---------- Center content ---------- */
-.splash-title {
-    -fx-font-size: 36;
-    -fx-font-weight: 800;
-    -fx-letter-spacing: -0.025em; /* tracking-tight */
-    /* gradient fill set in code */
-}
-
-.splash-subtitle {
-    -fx-text-fill: #71717a;
-    -fx-font-size: 12;
-    -fx-font-weight: 500;
-    -fx-letter-spacing: 0.3em;
-}
-
-.loading-label {
-    -fx-text-fill: #a1a1aa;
-    -fx-font-size: 10;
-    -fx-font-family: "Consolas", monospace;
-    -fx-letter-spacing: 0.1em; /* tracking-widest */
 }
