@@ -25,7 +25,6 @@ public final class SvgIcon extends Pane {
         setMinSize(size, size);
         setMaxSize(size, size);
         setClip(new Rectangle(size, size));
-        setMouseTransparent(true);
 
         try (InputStream is = ResourceLoader.open(location)) {
             var doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);

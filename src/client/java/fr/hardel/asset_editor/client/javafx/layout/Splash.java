@@ -9,6 +9,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
@@ -37,6 +38,7 @@ public final class Splash extends StackPane {
         setStyle("-fx-background-color: black;");
 
         TitleBar titleBar = new TitleBar(stage);
+        titleBar.setMaxHeight(Region.USE_PREF_SIZE);
         StackPane.setAlignment(titleBar, Pos.TOP_LEFT);
 
         StackPane frame = buildDashedFrame();
@@ -47,6 +49,7 @@ public final class Splash extends StackPane {
 
         SpacedText loading = buildLoadingText();
         loading.setMaxHeight(Region.USE_PREF_SIZE);
+        loading.setMouseTransparent(true);
         StackPane.setAlignment(loading, Pos.BOTTOM_CENTER);
         StackPane.setMargin(loading, new Insets(0, 0, 80, 0));
 
@@ -59,12 +62,13 @@ public final class Splash extends StackPane {
         grid.setClip(clip);
         StackPane.setMargin(grid, new Insets(48, 24, 24, 24));
 
-        getChildren().addAll(grid, frame, centerColumn, loading, titleBar);
+        getChildren().addAll(grid, centerColumn, loading, frame, titleBar);
     }
 
     private StackPane buildDashedFrame() {
         BorderPane content = new BorderPane();
         content.setPadding(new Insets(16));
+        content.setPickOnBounds(false);
         content.setTop(buildFrameTop());
         content.setBottom(buildFrameBottom());
 
@@ -85,7 +89,7 @@ public final class Splash extends StackPane {
 
         StackPane frame = new StackPane(content, cornerTL, cornerTR, cornerBL, cornerBR);
         frame.getStyleClass().add("dashed-frame");
-        frame.setMouseTransparent(true);
+        frame.setPickOnBounds(false);
         return frame;
     }
 
@@ -112,12 +116,16 @@ public final class Splash extends StackPane {
         Label help = new Label(I18n.get("tauri:splash.help"));
         help.getStyleClass().add("help-label");
         help.setTextFill(VoxelColors.ZINC_600);
+        help.setCursor(Cursor.HAND);
         help.setOnMouseEntered(e -> help.setTextFill(VoxelColors.ZINC_400));
         help.setOnMouseExited(e -> help.setTextFill(VoxelColors.ZINC_600));
+        help.setOnMouseClicked(e -> openBrowser("https://github.com"));
 
         SvgIcon github = new SvgIcon(GITHUB, 16, Color.WHITE);
+        github.setCursor(Cursor.HAND);
         github.setOnMouseEntered(e -> github.setOpacity(0.7));
         github.setOnMouseExited(e -> github.setOpacity(1.0));
+        github.setOnMouseClicked(e -> openBrowser("https://github.com"));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -126,6 +134,14 @@ public final class Splash extends StackPane {
         bottom.setAlignment(Pos.BOTTOM_LEFT);
         bottom.getChildren().addAll(help, spacer, github);
         return bottom;
+    }
+
+    private static void openBrowser(String url) {
+        try {
+            Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(Splash.class).error("Failed to open browser: {}", url, e);
+        }
     }
 
     private VBox buildCenterColumn() {
