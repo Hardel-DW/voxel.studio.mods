@@ -9,8 +9,6 @@
     -fx-min-width: 64;
     -fx-max-width: 64;
     -fx-background-color: #101011;
-    -fx-border-color: transparent #1f1f22 transparent transparent;
-    -fx-border-width: 0 1 0 0;
     -fx-alignment: top-center;
 }
 
@@ -102,11 +100,20 @@
 
 /* ===== CONTENT SURFACE (rounded-tl-3xl border-t border-l) ===== */
 .studio-content-surface {
-    -fx-background-color: #17171a;
+    -fx-background-color: transparent;
+}
+
+.studio-content-body {
+    -fx-background-color:
+            linear-gradient(from 0% 0% to 0% 100%, #1b1b20 0%, #17171a 20%, #17171a 100%);
     -fx-border-color: #202024 transparent transparent #202024;
     -fx-border-width: 1 0 0 1;
-    -fx-background-radius: 24 0 0 0;
-    -fx-border-radius: 24 0 0 0;
+}
+
+.studio-content-frame {
+    -fx-fill: transparent;
+    -fx-stroke: #2a2a2f;
+    -fx-stroke-width: 1.25;
 }
 
 /* ===== ENCHANTMENT LAYOUT ===== */

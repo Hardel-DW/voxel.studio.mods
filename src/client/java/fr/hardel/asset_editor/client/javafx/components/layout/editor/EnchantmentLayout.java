@@ -21,12 +21,14 @@ public final class EnchantmentLayout extends HBox {
     public EnchantmentLayout(StudioContext context) {
         this.context = context;
         getStyleClass().add("enchantment-layout");
+        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         overviewPage = new EnchantmentOverviewPage(context);
         mainPage = new EnchantmentMainPage(context);
 
         EnchantmentSidebar sidebar = new EnchantmentSidebar(context);
         VBox main = new VBox(new EnchantmentHeader(context), outlet);
+        main.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         main.getStyleClass().add("enchantment-main");
         VBox.setVgrow(outlet, Priority.ALWAYS);
         HBox.setHgrow(main, Priority.ALWAYS);
