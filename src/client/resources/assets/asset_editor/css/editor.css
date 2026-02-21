@@ -266,6 +266,22 @@
     -fx-font-size: 11;
 }
 
+.enchantment-breadcrumb-segment {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 10;
+    -fx-font-weight: 500;
+}
+
+.enchantment-breadcrumb-back {
+    -fx-cursor: hand;
+}
+
+.enchantment-breadcrumb-back-label {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 11;
+    -fx-font-weight: 500;
+}
+
 .enchantment-breadcrumb-leaf {
     -fx-text-fill: #d9d9dd;
     -fx-background-color: #151418;
@@ -550,6 +566,15 @@
 
 /* ===== MAIN EDITING PAGE ===== */
 .enchantment-main-page {
+    -fx-background-color: transparent;
+}
+
+.enchantment-main-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.enchantment-main-scroll > .viewport {
     -fx-background-color: transparent;
 }
 

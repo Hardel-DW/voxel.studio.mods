@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.editor.StudioContext;
 import fr.hardel.asset_editor.client.javafx.editor.state.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.editor.state.StudioViewMode;
+import fr.hardel.asset_editor.client.javafx.ui.SvgIcon;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -15,14 +16,20 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.SVGPath;
-import javafx.scene.transform.Scale;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public final class EnchantmentHeader extends VBox {
 
-    private static final String GRID_ICON = "M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z";
-    private static final String LIST_ICON = "M1 4h14v2H1zM1 8h14v2H1zM1 12h14v2H1z";
+    private static final Identifier GRID_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/tools/overview/grid.svg");
+    private static final Identifier LIST_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/tools/overview/list.svg");
+    private static final Identifier BACK_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/back.svg");
 
     private final StudioContext context;
     private final HBox row = new HBox();
@@ -62,28 +69,63 @@ public final class EnchantmentHeader extends VBox {
 
     private HBox breadcrumb() {
         HBox breadcrumb = new HBox(8);
+        breadcrumb.setAlignment(Pos.CENTER_LEFT);
         breadcrumb.getStyleClass().add("enchantment-breadcrumb");
 
         if (!context.router().currentRoute().isOverview()) {
-            Button back = new Button(I18n.get("back"));
-            back.getStyleClass().add("enchantment-breadcrumb-back");
-            back.setOnAction(e -> context.router().navigate(StudioRoute.ENCHANTMENT_OVERVIEW));
-            breadcrumb.getChildren().add(back);
+            SvgIcon backIcon = new SvgIcon(BACK_ICON, 14, VoxelColors.ZINC_400);
+            backIcon.setOpacity(0.5);
+            Label backLabel = new Label(I18n.get("back"));
+            backLabel.getStyleClass().add("enchantment-breadcrumb-back-label");
+            HBox backBtn = new HBox(6, backIcon, backLabel);
+            backBtn.setAlignment(Pos.CENTER_LEFT);
+            backBtn.getStyleClass().add("enchantment-breadcrumb-back");
+            backBtn.setCursor(Cursor.HAND);
+            backBtn.setOnMouseEntered(e -> {
+                backIcon.setOpacity(1.0);
+                backLabel.setStyle("-fx-text-fill: white;");
+            });
+            backBtn.setOnMouseExited(e -> {
+                backIcon.setOpacity(0.5);
+                backLabel.setStyle("");
+            });
+            backBtn.setOnMouseClicked(e -> context.router().navigate(StudioRoute.ENCHANTMENT_OVERVIEW));
+            breadcrumb.getChildren().add(backBtn);
         }
 
         Label root = new Label(I18n.get("studio.concept.enchantment").toUpperCase());
         root.getStyleClass().add("enchantment-breadcrumb-root");
         breadcrumb.getChildren().add(root);
 
-        String tail = breadcrumbTail();
-        if (!tail.isBlank()) {
+        List<String> segments = buildSegments();
+        for (int i = 0; i < segments.size(); i++) {
             Label sep = new Label("/");
             sep.getStyleClass().add("enchantment-breadcrumb-separator");
-            Label leaf = new Label(tail.toUpperCase());
-            leaf.getStyleClass().add("enchantment-breadcrumb-leaf");
-            breadcrumb.getChildren().addAll(sep, leaf);
+            String text = segments.get(i).replace("_", " ").toUpperCase();
+            Label segment = new Label(text);
+            segment.getStyleClass().add(i == segments.size() - 1
+                    ? "enchantment-breadcrumb-leaf"
+                    : "enchantment-breadcrumb-segment");
+            breadcrumb.getChildren().addAll(sep, segment);
         }
         return breadcrumb;
+    }
+
+    private List<String> buildSegments() {
+        if (context.router().currentRoute().isOverview()) {
+            String filterPath = context.uiState().filterPath();
+            return filterPath.isBlank() ? List.of() : Arrays.asList(filterPath.split("/"));
+        }
+        String id = context.tabsState().currentElementId();
+        if (id.isBlank())
+            return List.of();
+        int sep = id.indexOf(':');
+        if (sep < 0)
+            return List.of(id);
+        List<String> parts = new ArrayList<>();
+        parts.add(id.substring(0, sep));
+        parts.addAll(Arrays.asList(id.substring(sep + 1).split("/")));
+        return parts;
     }
 
     private HBox actions() {
@@ -102,22 +144,23 @@ public final class EnchantmentHeader extends VBox {
                 viewButton(StudioViewMode.GRID, GRID_ICON),
                 viewButton(StudioViewMode.LIST, LIST_ICON));
         toggle.getStyleClass().add("enchantment-header-view-toggle");
+        toggle.setAlignment(Pos.CENTER);
 
         actions.getChildren().addAll(simulation, toggle);
         return actions;
     }
 
-    private StackPane viewButton(StudioViewMode mode, String svgContent) {
+    private StackPane viewButton(StudioViewMode mode, Identifier icon) {
         boolean active = context.uiState().viewMode() == mode;
+        SvgIcon svgIcon = new SvgIcon(icon, 14, active ? VoxelColors.ZINC_200 : VoxelColors.ZINC_500);
 
-        SVGPath icon = new SVGPath();
-        icon.setContent(svgContent);
-        icon.setFill(active ? VoxelColors.ZINC_200 : VoxelColors.ZINC_500);
-        icon.getTransforms().add(new Scale(0.75, 0.75, 0, 0));
-
-        StackPane pane = new StackPane(icon);
+        StackPane pane = new StackPane(svgIcon);
         pane.getStyleClass().add("enchantment-header-view-button");
-        if (active) pane.getStyleClass().add("enchantment-header-view-button-active");
+        if (active)
+            pane.getStyleClass().add("enchantment-header-view-button-active");
+        pane.setPrefSize(28, 28);
+        pane.setMinSize(28, 28);
+        pane.setMaxSize(28, 28);
         pane.setCursor(Cursor.HAND);
         pane.setOnMouseClicked(e -> context.uiState().setViewMode(mode));
         return pane;
@@ -136,16 +179,5 @@ public final class EnchantmentHeader extends VBox {
             return I18n.get("studio.concept.enchantment");
         int sep = id.indexOf(':');
         return (sep >= 0 && sep + 1 < id.length()) ? id.substring(sep + 1) : id;
-    }
-
-    private String breadcrumbTail() {
-        if (context.router().currentRoute().isOverview()) {
-            String filterPath = context.uiState().filterPath();
-            if (filterPath.isBlank())
-                return "";
-            String[] parts = filterPath.split("/");
-            return parts[parts.length - 1];
-        }
-        return context.tabsState().currentElementId();
     }
 }

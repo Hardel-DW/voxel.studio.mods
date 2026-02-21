@@ -84,6 +84,7 @@ public final class EnchantmentSidebar extends VBox {
     private VBox buildDiscordSection() {
         Label text = new Label(I18n.get("common.help.discord"));
         text.getStyleClass().add("enchantment-sidebar-discord-text");
+        text.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(text, Priority.ALWAYS);
 
         SvgIcon discordIcon = new SvgIcon(DISCORD_ICON, 16, Color.WHITE); // size-4

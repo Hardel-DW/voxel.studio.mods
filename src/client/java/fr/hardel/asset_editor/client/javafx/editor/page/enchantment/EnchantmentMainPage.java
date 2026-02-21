@@ -17,16 +17,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.transform.Scale;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 public final class EnchantmentMainPage extends VBox {
 
-    private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
+    private static final Identifier LOGO  = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
+    private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
     private static final String[] ADVANTAGES = {"early_access", "submit_ideas", "discord_role", "live_voxel"};
 
     private final StudioContext context;
@@ -39,6 +36,7 @@ public final class EnchantmentMainPage extends VBox {
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.getStyleClass().add("enchantment-main-scroll");
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
 
@@ -168,18 +166,9 @@ public final class EnchantmentMainPage extends VBox {
     }
 
     private HBox advantageItem(String key) {
-        SVGPath check = new SVGPath();
-        check.setContent("M2 9L6.5 13L14 4.5");
-        check.setFill(Color.TRANSPARENT);
-        check.setStroke(Color.WHITE);
-        check.setStrokeWidth(1.5);
-        check.setStrokeLineCap(StrokeLineCap.ROUND);
-        check.setStrokeLineJoin(StrokeLineJoin.ROUND);
-        check.getTransforms().add(new Scale(0.875, 0.875, 0, 0));
-
+        SvgIcon check = new SvgIcon(CHECK, 16, Color.WHITE);
         Label text = new Label(I18n.get(key));
         text.getStyleClass().add("enchantment-support-benefit");
-
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;
