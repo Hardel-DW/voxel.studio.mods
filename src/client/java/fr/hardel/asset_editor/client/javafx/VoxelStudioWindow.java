@@ -1,13 +1,18 @@
 package fr.hardel.asset_editor.client.javafx;
 
+import fr.hardel.asset_editor.client.javafx.editor.StudioEditorRoot;
 import fr.hardel.asset_editor.client.javafx.layout.Splash;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.scene.Parent;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
@@ -23,7 +28,10 @@ public final class VoxelStudioWindow {
 
     private static VoxelStudioWindow instance;
     private Stage stage;
+    private Scene scene;
+    private StudioEditorRoot editorRoot;
     private boolean platformStarted = false;
+    private boolean splashPlayed = false;
 
     private double resizeDragX, resizeDragY;
     private double resizeDragW, resizeDragH;
@@ -64,6 +72,7 @@ public final class VoxelStudioWindow {
     private void createWindow() {
         ResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadRubikFont();
+        loadMinecraftFonts();
 
         stage = new Stage(StageStyle.UNDECORATED);
         stage.setTitle(I18n.get("tauri:app.title"));
@@ -72,20 +81,46 @@ public final class VoxelStudioWindow {
         stage.setMinWidth(640);
         stage.setMinHeight(400);
 
-        Scene scene = new Scene(new Splash(stage));
+        scene = new Scene(initialRoot());
         scene.setFill(Color.BLACK);
         scene.getStylesheets().add(
                 VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm());
+        scene.getStylesheets().add(
+                VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
         attachResizeHandlers(scene);
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ESCAPE)
+                stage.hide();
+        });
         stage.setScene(scene);
         stage.show();
     }
 
     private void rebuildScene() {
-        if (stage == null)
+        if (stage == null || scene == null)
             return;
-        stage.getScene().setRoot(new Splash(stage));
+        if (!splashPlayed)
+            return;
+        editorRoot = new StudioEditorRoot(stage);
+        scene.setRoot(editorRoot);
+    }
+
+    private Parent initialRoot() {
+        if (splashPlayed) {
+            editorRoot = new StudioEditorRoot(stage);
+            return editorRoot;
+        }
+        Splash splash = new Splash(stage);
+        PauseTransition delay = new PauseTransition(Duration.seconds(3));
+        delay.setOnFinished(e -> {
+            splashPlayed = true;
+            editorRoot = new StudioEditorRoot(stage);
+            if (scene != null)
+                scene.setRoot(editorRoot);
+        });
+        delay.play();
+        return splash;
     }
 
     private void loadRubikFont() {
@@ -93,6 +128,15 @@ public final class VoxelStudioWindow {
             Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + weight.fileName + ".ttf");
             try (var is = ResourceLoader.open(id)) {
                 VoxelFonts.register(weight, Font.loadFont(is, 12));
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private void loadMinecraftFonts() {
+        for (VoxelFonts.Minecraft font : VoxelFonts.Minecraft.values()) {
+            Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + font.fileName + ".ttf");
+            try (var is = ResourceLoader.open(id)) {
+                VoxelFonts.registerMinecraft(font, Font.loadFont(is, 12));
             } catch (Exception ignored) {}
         }
     }

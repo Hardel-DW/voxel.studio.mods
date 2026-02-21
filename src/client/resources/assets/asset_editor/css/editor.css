@@ -1,0 +1,656 @@
+/* ===== STUDIO ROOT ===== */
+.studio-root {
+    -fx-background-color: #101011;
+}
+
+/* ===== PRIMARY SIDEBAR (w-16 = 64px) ===== */
+.studio-primary-sidebar {
+    -fx-pref-width: 64;
+    -fx-min-width: 64;
+    -fx-max-width: 64;
+    -fx-background-color: #101011;
+    -fx-border-color: transparent #1f1f22 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-alignment: top-center;
+}
+
+/* Logo area (h-16 = 64×64, centered) */
+.studio-logo-area {
+    -fx-pref-height: 64;
+    -fx-min-height: 64;
+    -fx-max-height: 64;
+    -fx-cursor: hand;
+}
+
+/* Concept card (SidebarCard: w-14 h-14 rounded-2xl) */
+.studio-concept-card {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-pref-width: 56;
+    -fx-min-width: 56;
+    -fx-max-width: 56;
+    -fx-pref-height: 56;
+    -fx-min-height: 56;
+    -fx-max-height: 56;
+    -fx-cursor: hand;
+}
+
+.studio-concept-card-active {
+    -fx-background-color: #141418;
+    -fx-border-color: #303033;
+}
+
+/* Settings / misc buttons */
+.studio-settings-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+}
+
+/* ===== WORKSPACE ===== */
+.studio-workspace {
+    -fx-background-color: transparent;
+}
+
+/* ===== TABS + WINDOW CONTROLS BAR (h-12 = 48px) ===== */
+.studio-editor-tabs {
+    -fx-pref-height: 48;
+    -fx-min-height: 48;
+    -fx-max-height: 48;
+    -fx-background-color: transparent;
+}
+
+.studio-window-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+/* Tab items */
+.studio-editor-tab-item {
+    -fx-background-color: #1c1c20;
+    -fx-background-radius: 6;
+    -fx-border-color: #242427;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+}
+
+.studio-editor-tab-item-active {
+    -fx-background-color: #3a3a41;
+    -fx-border-color: #5c5c66;
+}
+
+.studio-editor-tab-label {
+    -fx-fill: #d9d9dd;
+    -fx-font-size: 13;
+}
+
+.studio-editor-tab-close {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 2;
+    -fx-background-radius: 4;
+}
+
+.studio-editor-tab-close:hover {
+    -fx-background-color: #303033;
+}
+
+/* ===== CONTENT SURFACE (rounded-tl-3xl border-t border-l) ===== */
+.studio-content-surface {
+    -fx-background-color: #17171a;
+    -fx-border-color: #202024 transparent transparent #202024;
+    -fx-border-width: 1 0 0 1;
+    -fx-background-radius: 24 0 0 0;
+    -fx-border-radius: 24 0 0 0;
+}
+
+/* ===== ENCHANTMENT LAYOUT ===== */
+.enchantment-layout {
+    -fx-background-color: transparent;
+}
+
+/* ===== ENCHANTMENT SIDEBAR (w-72 = 288px) ===== */
+.enchantment-sidebar {
+    -fx-pref-width: 288;
+    -fx-min-width: 288;
+    -fx-max-width: 288;
+    -fx-background-color: #0f0f11;
+    -fx-border-color: transparent #2c2c30 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.enchantment-sidebar-title {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 18;
+    -fx-font-weight: 700;
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+    -fx-content-display: left;
+    -fx-graphic-text-gap: 8;
+    -fx-cursor: hand;
+}
+
+.enchantment-sidebar-subtitle {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 11;
+    -fx-padding: 0 0 0 28;
+}
+
+.enchantment-sidebar-toggle-button {
+    -fx-background-color: #151518;
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 11;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #202024;
+    -fx-border-width: 1;
+    -fx-padding: 5 10 5 10;
+    -fx-cursor: hand;
+}
+
+.enchantment-sidebar-toggle-button-active {
+    -fx-background-color: #202024;
+    -fx-text-fill: #f4f4f5;
+    -fx-border-color: #48484f;
+}
+
+/* ===== DISCORD / NEED HELP SECTION ===== */
+.enchantment-sidebar-discord-wrapper {
+    -fx-background-color: #111114;
+    -fx-border-color: #242427 transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+.enchantment-sidebar-discord-card {
+    -fx-background-color: #161619;
+    -fx-background-radius: 8;
+    -fx-border-color: #242427;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+}
+
+.enchantment-sidebar-discord-card-hover {
+    -fx-border-color: #2e2e31;
+    -fx-background-color: #1a1a1d;
+}
+
+.enchantment-sidebar-discord-text {
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 13;
+    -fx-font-weight: 500;
+}
+
+.enchantment-sidebar-discord-circle {
+    -fx-background-color: #252528;
+    -fx-background-radius: 100;
+}
+
+.enchantment-sidebar-discord-circle-hover {
+    -fx-background-color: #303033;
+    -fx-background-radius: 100;
+}
+
+/* ===== TREE SIDEBAR ===== */
+.enchantment-tree {
+    -fx-padding: 8 0 8 0;
+}
+
+.enchantment-tree-group,
+.enchantment-tree-leaf {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 12;
+    -fx-alignment: center-left;
+    -fx-padding: 5 8 5 8;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.enchantment-tree-group {
+    -fx-font-weight: 600;
+    -fx-text-fill: #a8a8b2;
+}
+
+.enchantment-tree-group-active,
+.enchantment-tree-leaf-active {
+    -fx-background-color: #2d2d32;
+    -fx-background-radius: 6;
+    -fx-text-fill: #f4f4f5;
+}
+
+.enchantment-tree-leaves {
+    -fx-padding: 0 0 4 10;
+}
+
+/* ===== ENCHANTMENT MAIN AREA ===== */
+.enchantment-main {
+    -fx-background-color: #0f0e0e;
+}
+
+/* ===== EDITOR HEADER ===== */
+.enchantment-header {
+    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #111114 0%, transparent 80%), #19181c;
+    -fx-border-color: transparent transparent #2c2c30 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Breadcrumb */
+.enchantment-breadcrumb {
+    -fx-alignment: center-left;
+}
+
+.enchantment-breadcrumb-back {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #a8a8b2;
+    -fx-padding: 2 8 2 0;
+    -fx-font-size: 11;
+    -fx-cursor: hand;
+}
+
+.enchantment-breadcrumb-root {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 11;
+    -fx-font-weight: 500;
+}
+
+.enchantment-breadcrumb-separator {
+    -fx-text-fill: #48484f;
+    -fx-font-size: 11;
+}
+
+.enchantment-breadcrumb-leaf {
+    -fx-text-fill: #d9d9dd;
+    -fx-background-color: #151418;
+    -fx-background-radius: 6;
+    -fx-border-color: #1f1c21;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 2 8 2 8;
+    -fx-font-size: 10;
+    -fx-font-weight: 500;
+}
+
+/* Title (font set programmatically via VoxelFonts.minecraft) */
+.enchantment-header-title {
+    -fx-text-fill: white;
+}
+
+/* Colored underline (h-px w-24) */
+.enchantment-header-color-line {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #5c5c66 0%, transparent 100%);
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-pref-width: 96;
+    -fx-min-width: 96;
+    -fx-max-width: 96;
+}
+
+/* Header actions row */
+.enchantment-header-actions {
+    -fx-alignment: center-right;
+}
+
+.enchantment-header-simulation {
+    -fx-background-color: #202024;
+    -fx-text-fill: #a8a8b2;
+    -fx-border-color: #303033;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 8 14 8 14;
+    -fx-cursor: hand;
+    -fx-font-size: 13;
+}
+
+.enchantment-header-simulation:hover {
+    -fx-background-color: #303033;
+    -fx-text-fill: #d9d9dd;
+}
+
+/* View toggle wrapper */
+.enchantment-header-view-toggle {
+    -fx-background-color: #151518;
+    -fx-background-radius: 8;
+    -fx-border-color: #202024;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 2;
+}
+
+/* Grid/List icon buttons */
+.enchantment-header-view-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-pref-width: 28;
+    -fx-min-width: 28;
+    -fx-max-width: 28;
+    -fx-pref-height: 28;
+    -fx-min-height: 28;
+    -fx-max-height: 28;
+}
+
+.enchantment-header-view-button-active {
+    -fx-background-color: #303033;
+}
+
+/* Header section tabs nav */
+.enchantment-header-tabs {
+    -fx-alignment: center-left;
+}
+
+/* Tab button (px-4 py-2 text-sm font-medium rounded-t-lg border-b-2) */
+.enchantment-header-tab-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 13;
+    -fx-font-weight: 500;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-background-radius: 8 8 0 0;
+    -fx-border-radius: 0;
+}
+
+.enchantment-header-tab-button:hover {
+    -fx-text-fill: #d9d9dd;
+    -fx-background-color: #1f1d21;
+}
+
+.enchantment-header-tab-button-active {
+    -fx-background-color: #1f1d21;
+    -fx-text-fill: white;
+    -fx-border-color: transparent transparent #999999 transparent;
+}
+
+/* ===== OVERVIEW PAGE ===== */
+.enchantment-overview-page {
+    -fx-background-color: #111114;
+}
+
+.enchantment-overview-toolbar {
+    -fx-background-color: #0f0f11;
+    -fx-border-color: transparent transparent #242427 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.enchantment-overview-search {
+    -fx-background-color: #151518;
+    -fx-border-color: #303033;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-text-fill: #f4f4f5;
+    -fx-prompt-text-fill: #48484f;
+    -fx-font-size: 13;
+    -fx-padding: 8 12 8 12;
+}
+
+.enchantment-overview-search:focused {
+    -fx-border-color: #5c5c66;
+}
+
+.enchantment-overview-scroll {
+    -fx-background-color: transparent;
+}
+
+.enchantment-overview-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* Empty state */
+.enchantment-overview-empty {
+    -fx-alignment: center;
+    -fx-padding: 40;
+}
+
+.enchantment-overview-empty-title {
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 18;
+    -fx-font-weight: 500;
+}
+
+.enchantment-overview-empty-body {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 12;
+    -fx-max-width: 320;
+    -fx-alignment: center;
+}
+
+/* ===== CARD (grid view): bg-zinc-950/70 border border-zinc-900 rounded-xl ===== */
+.enchantment-card-icon {
+    -fx-background-color: #202024;
+    -fx-background-radius: 100;
+}
+
+.enchantment-card {
+    -fx-background-color: #131215;
+    -fx-border-color: #202024;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-pref-width: 280;
+    -fx-min-width: 280;
+    -fx-cursor: hand;
+}
+
+.enchantment-card:hover {
+    -fx-border-color: #303033;
+}
+
+.enchantment-card-resource-name {
+    -fx-text-fill: #e4e4e7;
+    -fx-font-size: 13;
+    -fx-font-weight: 600;
+}
+
+.enchantment-card-level {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 10;
+}
+
+.enchantment-card-divider {
+    -fx-background-color: #242427;
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+}
+
+.enchantment-card-configure {
+    -fx-background-color: #1a191f;
+    -fx-border-color: #242427;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 6 12 6 12;
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 11;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.enchantment-card-configure:hover {
+    -fx-background-color: #28262f;
+    -fx-border-color: #303033;
+}
+
+/* ===== ROW (list view) ===== */
+.enchantment-row-icon {
+    -fx-background-color: #202024;
+    -fx-background-radius: 8;
+}
+
+.enchantment-row {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent #242427 transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-cursor: hand;
+}
+
+.enchantment-row:hover {
+    -fx-background-color: #1a191f;
+}
+
+.enchantment-row-name {
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 13;
+    -fx-font-weight: 500;
+}
+
+.enchantment-row-identifier {
+    -fx-text-fill: #48484f;
+    -fx-font-size: 10;
+    -fx-font-family: "Consolas", monospace;
+}
+
+.enchantment-row-separator {
+    -fx-text-fill: #5c5c66;
+    -fx-font-size: 10;
+}
+
+.enchantment-row-level {
+    -fx-text-fill: #5c5c66;
+    -fx-font-size: 10;
+}
+
+.enchantment-row-divider {
+    -fx-background-color: #2c2c30;
+}
+
+.enchantment-row-configure {
+    -fx-background-color: #1a191f;
+    -fx-border-color: #303033;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 6 12 6 12;
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 11;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-min-width: 80;
+    -fx-alignment: center;
+}
+
+.enchantment-row-configure:hover {
+    -fx-background-color: #28262f;
+    -fx-text-fill: white;
+}
+
+/* ===== MAIN EDITING PAGE ===== */
+.enchantment-main-page {
+    -fx-background-color: transparent;
+}
+
+.enchantment-main-section-title {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 13;
+    -fx-font-weight: 600;
+}
+
+.enchantment-main-card {
+    -fx-background-color: #1b1a1f;
+    -fx-border-color: #2e2e33;
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.enchantment-main-card-title {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 13;
+    -fx-font-weight: 600;
+}
+
+.enchantment-main-card-description {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 11;
+}
+
+.enchantment-main-card-value {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 22;
+    -fx-font-weight: 700;
+}
+
+.enchantment-main-mode-row {
+    -fx-background-color: #131316;
+    -fx-border-color: #2c2c30;
+    -fx-border-width: 1;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 12;
+}
+
+.enchantment-main-mode-title {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 13;
+}
+
+.enchantment-main-mode-description {
+    -fx-text-fill: #7a7a85;
+    -fx-font-size: 11;
+}
+
+/* ===== SUPPORT CARD ===== */
+.enchantment-support-card {
+    -fx-background-color: #0a0a0a;
+    -fx-border-color: #202024 transparent transparent #202024;
+    -fx-border-width: 2 0 0 2;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+}
+
+.enchantment-support-title {
+    -fx-text-fill: white;
+    -fx-font-size: 28;
+    -fx-font-weight: 600;
+}
+
+.enchantment-support-description {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 12;
+}
+
+.enchantment-support-heading {
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+    -fx-font-weight: 700;
+}
+
+.enchantment-support-benefit {
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 12;
+    -fx-font-weight: 600;
+}
+
+.enchantment-support-action {
+    -fx-background-color: #f4f4f5;
+    -fx-text-fill: #080507;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 8;
+    -fx-font-size: 12;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.enchantment-support-action-patreon {
+    -fx-background-color: #e85b46;
+    -fx-text-fill: white;
+    -fx-padding: 8 20 8 20;
+    -fx-background-radius: 8;
+    -fx-font-size: 12;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}

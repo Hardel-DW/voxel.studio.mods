@@ -36,14 +36,34 @@ public final class VoxelFonts {
         }
     }
 
+    public enum Minecraft {
+        TEN("minecraftten"),
+        SEVEN("seven");
+
+        public final String fileName;
+
+        Minecraft(String fileName) {
+            this.fileName = fileName;
+        }
+    }
+
     private static final Map<Rubik, String> registry = new HashMap<>();
+    private static final Map<Minecraft, String> minecraftRegistry = new HashMap<>();
 
     static void register(Rubik weight, Font f) {
         if (f != null) registry.put(weight, f.getName());
     }
 
+    static void registerMinecraft(Minecraft font, Font f) {
+        if (f != null) minecraftRegistry.put(font, f.getName());
+    }
+
     public static Font rubik(Rubik weight, double size) {
         return new Font(registry.getOrDefault(weight, "Rubik"), size);
+    }
+
+    public static Font minecraft(Minecraft font, double size) {
+        return new Font(minecraftRegistry.getOrDefault(font, "Minecraft"), size);
     }
 
     private VoxelFonts() {}

@@ -19,6 +19,13 @@ public final class VoxelColors {
     public static final Color ZINC_970 = Color.web("#0b0b0b");
     public static final Color RED_400 = Color.web("#f87171");
 
+    // Semantic colors from globals.css @theme
+    public static final Color BACKGROUND = Color.web("#080507");
+    public static final Color SIDEBAR    = Color.web("#101011");
+    public static final Color EDITOR     = Color.web("#0f0e0e");
+    public static final Color CONTENT    = Color.web("#38373f33"); // bg-content: #38373f at ~20% opacity
+    public static final Color CARD       = Color.web("#1c1b1ec2"); // bg-card: #1c1b1e at ~76% opacity
+
     private VoxelColors() {
     }
 }
