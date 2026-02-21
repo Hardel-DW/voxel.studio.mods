@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -25,8 +26,12 @@ public final class StudioEditorRoot extends HBox {
         StudioPrimarySidebar sidebar = new StudioPrimarySidebar(context);
         StudioEditorTabsBar header = new StudioEditorTabsBar(context, stage);
 
-        StackPane contentBody = new StackPane(new EnchantmentLayout(context));
+        EnchantmentLayout layout = new EnchantmentLayout(context);
+        StackPane contentBody = new StackPane(layout);
         contentBody.getStyleClass().add("studio-content-body");
+        contentBody.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        contentBody.setAlignment(Pos.TOP_LEFT);
+        layout.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         Path frame = new Path();
         frame.getStyleClass().add("studio-content-frame");
@@ -38,20 +43,37 @@ public final class StudioEditorRoot extends HBox {
 
         StackPane contentSurface = new StackPane(contentBody, frame);
         contentSurface.getStyleClass().add("studio-content-surface");
+        contentSurface.setAlignment(Pos.TOP_LEFT);
+        StackPane.setAlignment(contentBody, Pos.TOP_LEFT);
+        StackPane.setAlignment(layout, Pos.TOP_LEFT);
         VBox.setVgrow(contentSurface, Priority.ALWAYS);
 
         // Rounded top-left mask + explicit border path to avoid JavaFX border-radius artifacts.
-        contentSurface.layoutBoundsProperty().addListener((obs, oldBounds, bounds) ->
-                refreshSurfaceGeometry(bounds.getWidth(), bounds.getHeight(), contentBody, frame));
+        contentSurface.widthProperty().addListener((obs, oldWidth, newWidth) ->
+                refreshSurfaceGeometry(newWidth.doubleValue(), contentSurface.getHeight(), contentBody, frame));
+        contentSurface.heightProperty().addListener((obs, oldHeight, newHeight) ->
+                refreshSurfaceGeometry(contentSurface.getWidth(), newHeight.doubleValue(), contentBody, frame));
 
         VBox workspace = new VBox(header, contentSurface);
         workspace.getStyleClass().add("studio-workspace");
         HBox.setHgrow(workspace, Priority.ALWAYS);
 
         getChildren().addAll(sidebar, workspace);
+
+        // First pass once the node is in scene to avoid a transient empty clip.
+        contentSurface.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null)
+                return;
+            refreshSurfaceGeometry(contentSurface.getWidth(), contentSurface.getHeight(), contentBody, frame);
+        });
     }
 
     private static void refreshSurfaceGeometry(double width, double height, StackPane contentBody, Path frame) {
+        if (width <= 1 || height <= 1) {
+            contentBody.setClip(null);
+            frame.getElements().clear();
+            return;
+        }
         contentBody.setClip(buildTlClip(width, height));
         frame.getElements().setAll(buildTlFrame(width, height).getElements());
     }
@@ -60,7 +82,7 @@ public final class StudioEditorRoot extends HBox {
         if (width <= 0 || height <= 0)
             return new Path();
         double r = Math.min(24, Math.min(width, height));
-        return new Path(
+        Path clip = new Path(
                 new MoveTo(r, 0),
                 new LineTo(width, 0),
                 new LineTo(width, height),
@@ -68,6 +90,9 @@ public final class StudioEditorRoot extends HBox {
                 new LineTo(0, r),
                 new QuadCurveTo(0, 0, r, 0),
                 new ClosePath());
+        clip.setFill(Color.WHITE);
+        clip.setStroke(null);
+        return clip;
     }
 
     private static Path buildTlFrame(double width, double height) {
