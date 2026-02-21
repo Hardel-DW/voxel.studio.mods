@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx;
 
-import fr.hardel.asset_editor.client.javafx.editor.StudioEditorRoot;
-import fr.hardel.asset_editor.client.javafx.layout.Splash;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.StudioEditorRoot;
+import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -318,3 +318,5 @@ public final class VoxelStudioWindow {
                 double origX, double origY, double minW, double minH);
     }
 }
+
+
