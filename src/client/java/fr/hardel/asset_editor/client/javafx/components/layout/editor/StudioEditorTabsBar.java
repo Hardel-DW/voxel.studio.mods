@@ -1,11 +1,13 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.store.StudioOpenTab;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
+import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
@@ -15,11 +17,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import java.util.Locale;
+import net.minecraft.resources.Identifier;
 
 /**
  * Workspace header bar — always visible.
@@ -28,6 +28,8 @@ import java.util.Locale;
  * Drag/resize behavior is handled at window level (VoxelStudioWindow).
  */
 public final class StudioEditorTabsBar extends HBox {
+
+    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
 
     private final StudioContext context;
     private final HBox tabsContainer = new HBox(4);
@@ -80,18 +82,14 @@ public final class StudioEditorTabsBar extends HBox {
         ResourceImageIcon icon = new ResourceImageIcon(StudioConcept.byRoute(tab.route()).icon(), 16); // size-4
         Text label = new Text(displayName(tab.elementId()));
         label.getStyleClass().add("studio-editor-tab-label");
-        StackPane closeBtn = closeButton(index, tab);
+        StackPane closeBtn = closeButton(index);
 
         item.getChildren().addAll(icon, label, closeBtn);
         return item;
     }
 
-    private StackPane closeButton(int index, StudioOpenTab tab) {
-        SVGPath icon = new SVGPath();
-        icon.setContent("M1.41 0L0 1.41 3.59 5 0 8.59 1.41 10 5 6.41 8.59 10 10 8.59 6.41 5 10 1.41 8.59 0 5 3.59 1.41 0z");
-        icon.setFill(VoxelColors.ZINC_400);
-        icon.setScaleX(0.5);
-        icon.setScaleY(0.5);
+    private StackPane closeButton(int index) {
+        SvgIcon icon = new SvgIcon(CLOSE_ICON, 10, VoxelColors.ZINC_400);
 
         StackPane btn = new StackPane(icon);
         btn.getStyleClass().add("studio-editor-tab-close");
@@ -113,26 +111,8 @@ public final class StudioEditorTabsBar extends HBox {
         if (elementId == null || elementId.isBlank()) return "";
         String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
         int sep = clean.indexOf(':');
-        if (sep < 0 || sep + 1 >= clean.length()) return toDisplay(clean);
-        return toDisplay(clean.substring(sep + 1));
-    }
-
-    private static String toDisplay(String input) {
-        if (input == null || input.isBlank()) return "";
-        String clean = input.startsWith("#") ? input.substring(1) : input;
-        int namespaceSep = clean.indexOf(':');
-        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
-        String[] path = resource.split("/");
-        String leaf = path[path.length - 1];
-        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
-        StringBuilder builder = new StringBuilder();
-        for (String word : words) {
-            if (word.isEmpty()) continue;
-            if (builder.length() > 0) builder.append(' ');
-            builder.append(Character.toUpperCase(word.charAt(0)));
-            if (word.length() > 1) builder.append(word.substring(1).toLowerCase(Locale.ROOT));
-        }
-        return builder.toString();
+        if (sep < 0 || sep + 1 >= clean.length()) return TextUtils.toDisplay(clean);
+        return TextUtils.toDisplay(clean.substring(sep + 1));
     }
 }
 

@@ -1,9 +1,9 @@
-package fr.hardel.asset_editor.client.javafx.context;
+package fr.hardel.asset_editor.client.javafx.lib;
 
-import fr.hardel.asset_editor.client.javafx.data.mock.StudioMockRepository;
+import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockRepository;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
-import fr.hardel.asset_editor.client.javafx.store.StudioTabsState;
-import fr.hardel.asset_editor.client.javafx.store.StudioUiState;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 
 public final class StudioContext {
 

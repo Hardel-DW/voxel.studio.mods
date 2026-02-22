@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

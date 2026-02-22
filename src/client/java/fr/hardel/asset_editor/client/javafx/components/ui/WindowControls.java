@@ -6,33 +6,32 @@ import javafx.scene.Cursor;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.Stage;
+import net.minecraft.resources.Identifier;
 
 public final class WindowControls extends HBox {
 
-    private static final String MINIMIZE_PATH = "M0 0h10v1H0z";
-    private static final String MAXIMIZE_PATH = "M0 0v10h10V0H0zm1 1h8v8H1V1z";
-    private static final String CLOSE_PATH =
-            "M1.41 0L0 1.41 3.59 5 0 8.59 1.41 10 5 6.41 8.59 10 10 8.59 6.41 5 10 1.41 8.59 0 5 3.59 1.41 0z";
+    private static final Identifier MINIMIZE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/minimize.svg");
+    private static final Identifier MAXIMIZE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/maximize.svg");
+    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/close.svg");
 
     public WindowControls(Stage stage, String buttonStyleClass, double buttonWidth, double buttonHeight,
             String inlineButtonStyle, Runnable closeAction) {
-        StackPane minimize = button(buttonStyleClass, MINIMIZE_PATH, 10, 1, buttonWidth, buttonHeight,
+        StackPane minimize = button(buttonStyleClass, MINIMIZE_ICON, buttonWidth, buttonHeight,
                 inlineButtonStyle, VoxelColors.ZINC_200);
         minimize.setOnMouseClicked(e -> {
             stage.setIconified(true);
             e.consume();
         });
 
-        StackPane maximize = button(buttonStyleClass, MAXIMIZE_PATH, 10, 10, buttonWidth, buttonHeight,
+        StackPane maximize = button(buttonStyleClass, MAXIMIZE_ICON, buttonWidth, buttonHeight,
                 inlineButtonStyle, VoxelColors.ZINC_200);
         maximize.setOnMouseClicked(e -> {
             stage.setMaximized(!stage.isMaximized());
             e.consume();
         });
 
-        StackPane close = button(buttonStyleClass, CLOSE_PATH, 10, 10, buttonWidth, buttonHeight,
+        StackPane close = button(buttonStyleClass, CLOSE_ICON, buttonWidth, buttonHeight,
                 inlineButtonStyle, VoxelColors.RED_400);
         close.setOnMouseClicked(e -> {
             closeAction.run();
@@ -43,15 +42,9 @@ public final class WindowControls extends HBox {
         getChildren().addAll(minimize, maximize, close);
     }
 
-    private StackPane button(String styleClass, String pathData, double vbW, double vbH,
+    private StackPane button(String styleClass, Identifier iconPath,
             double buttonWidth, double buttonHeight, String inlineStyle, Color hoverFill) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(pathData);
-        icon.setFill(VoxelColors.ZINC_500);
-
-        double scale = 12.0 / Math.max(vbW, vbH);
-        icon.setScaleX(scale);
-        icon.setScaleY(scale);
+        SvgIcon icon = new SvgIcon(iconPath, 12, VoxelColors.ZINC_500);
 
         StackPane button = new StackPane(icon);
         button.getStyleClass().add(styleClass);
@@ -63,8 +56,8 @@ public final class WindowControls extends HBox {
         if (inlineStyle != null && !inlineStyle.isBlank())
             button.setStyle(inlineStyle);
 
-        button.setOnMouseEntered(e -> icon.setFill(hoverFill));
-        button.setOnMouseExited(e -> icon.setFill(VoxelColors.ZINC_500));
+        button.setOnMouseEntered(e -> icon.setIconFill(hoverFill));
+        button.setOnMouseExited(e -> icon.setIconFill(VoxelColors.ZINC_500));
         return button;
     }
 }

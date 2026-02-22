@@ -1,27 +1,30 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.store.StudioOpenTab;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Map;
 
 public final class TreeController {
 
-    private static final String DEFAULT_ELEMENT_ICON = "/images/features/item/bundle_open.png";
+    private static final Identifier DEFAULT_ELEMENT_ICON = Identifier.fromNamespaceAndPath(
+            "asset_editor",
+            "textures/features/item/bundle_open.png");
 
     private final StudioContext context;
     private final Config config;
     private final ObjectProperty<TreeNodeModel> tree;
-    private final ObjectProperty<Map<String, String>> folderIcons;
-    private final ObjectProperty<String> elementIconPath;
+    private final ObjectProperty<Map<String, Identifier>> folderIcons;
+    private final ObjectProperty<Identifier> elementIcon;
     private final BooleanProperty disableAutoExpand;
     private final ReadOnlyBooleanWrapper allActive = new ReadOnlyBooleanWrapper(true);
 
@@ -30,10 +33,7 @@ public final class TreeController {
         this.config = config;
         this.tree = new SimpleObjectProperty<>(config.tree());
         this.folderIcons = new SimpleObjectProperty<>(config.folderIcons() == null ? Map.of() : config.folderIcons());
-        this.elementIconPath = new SimpleObjectProperty<>(
-                config.elementIconPath() == null || config.elementIconPath().isBlank()
-                        ? DEFAULT_ELEMENT_ICON
-                        : config.elementIconPath());
+        this.elementIcon = new SimpleObjectProperty<>(config.elementIcon() == null ? DEFAULT_ELEMENT_ICON : config.elementIcon());
         this.disableAutoExpand = new SimpleBooleanProperty(config.disableAutoExpand());
 
         context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refreshState());
@@ -78,19 +78,19 @@ public final class TreeController {
         return selected == null || selected.isBlank() ? null : selected;
     }
 
-    public String elementIconPath() {
-        return elementIconPath.get();
+    public Identifier elementIcon() {
+        return elementIcon.get();
     }
 
-    public ObjectProperty<String> elementIconPathProperty() {
-        return elementIconPath;
+    public ObjectProperty<Identifier> elementIconProperty() {
+        return elementIcon;
     }
 
-    public Map<String, String> folderIcons() {
+    public Map<String, Identifier> folderIcons() {
         return folderIcons.get();
     }
 
-    public ObjectProperty<Map<String, String>> folderIconsProperty() {
+    public ObjectProperty<Map<String, Identifier>> folderIconsProperty() {
         return folderIcons;
     }
 
@@ -118,7 +118,7 @@ public final class TreeController {
         tree.set(value);
     }
 
-    public void setFolderIcons(Map<String, String> value) {
+    public void setFolderIcons(Map<String, Identifier> value) {
         folderIcons.set(value == null ? Map.of() : value);
     }
 
@@ -187,8 +187,8 @@ public final class TreeController {
             String concept,
             List<StudioRoute> tabRoutes,
             TreeNodeModel tree,
-            String elementIconPath,
-            Map<String, String> folderIcons,
+            Identifier elementIcon,
+            Map<String, Identifier> folderIcons,
             boolean disableAutoExpand,
             java.util.function.Supplier<String> selectedElementId,
             java.util.function.Consumer<String> onSelectElement,

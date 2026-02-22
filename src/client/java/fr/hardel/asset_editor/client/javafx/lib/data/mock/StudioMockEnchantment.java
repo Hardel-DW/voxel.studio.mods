@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.data.mock;
+package fr.hardel.asset_editor.client.javafx.lib.data.mock;
 
 import java.util.List;
 

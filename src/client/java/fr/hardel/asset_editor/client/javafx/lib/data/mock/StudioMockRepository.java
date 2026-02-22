@@ -1,6 +1,6 @@
-package fr.hardel.asset_editor.client.javafx.data.mock;
+package fr.hardel.asset_editor.client.javafx.lib.data.mock;
 
-import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 
 import java.util.Collection;

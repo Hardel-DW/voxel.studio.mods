@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.page.loot_table.tree;
+package fr.hardel.asset_editor.client.javafx.components.page.loot_table;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;

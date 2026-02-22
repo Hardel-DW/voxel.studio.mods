@@ -1,6 +1,6 @@
-package fr.hardel.asset_editor.client.javafx.components.page.shared;
+package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
@@ -18,12 +18,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 public final class EditorSidebar extends VBox {
 
-    public EditorSidebar(StudioContext context, TreeController tree, String titleKey, String iconPath, List<Node> topContent) {
+    private static final Identifier DISCORD_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/discord.svg");
+
+    public EditorSidebar(StudioContext context, TreeController tree, String titleKey, Identifier iconPath, List<Node> topContent) {
         getStyleClass().add("editor-sidebar");
 
         Button title = new Button(I18n.get(titleKey));
@@ -62,7 +65,7 @@ public final class EditorSidebar extends VBox {
         text.getStyleClass().add("editor-sidebar-discord-text");
         HBox.setHgrow(text, Priority.ALWAYS);
 
-        SvgIcon discordIcon = new SvgIcon("/icons/company/discord.svg", 16, Color.WHITE);
+        SvgIcon discordIcon = new SvgIcon(DISCORD_ICON, 16, Color.WHITE);
         discordIcon.setOpacity(0.3);
 
         StackPane circle = new StackPane(discordIcon);

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.store;
+package fr.hardel.asset_editor.client.javafx.lib.store;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.beans.property.IntegerProperty;

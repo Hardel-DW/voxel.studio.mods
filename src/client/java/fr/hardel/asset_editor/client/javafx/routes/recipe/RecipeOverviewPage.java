@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.recipe;
 
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;

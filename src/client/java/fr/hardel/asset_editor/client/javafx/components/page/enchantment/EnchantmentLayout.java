@@ -1,14 +1,13 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.page.enchantment.tree.EnchantmentTreeBuilder;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorHeader;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorSidebar;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorHeader;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorSidebar;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentMainPage;
@@ -18,11 +17,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Map;
 
 public final class EnchantmentLayout extends HBox {
+
+    private static final Identifier ENCHANTED_BOOK_ICON = Identifier.fromNamespaceAndPath(
+            "asset_editor",
+            "textures/features/item/enchanted_book.png");
 
     private final StudioContext context;
     private final TreeController tree;
@@ -47,7 +51,7 @@ public final class EnchantmentLayout extends HBox {
                 StudioConcept.ENCHANTMENT.registry(),
                 StudioConcept.ENCHANTMENT.tabRoutes(),
                 buildTree(initialView),
-                "/images/features/item/enchanted_book.png",
+                ENCHANTED_BOOK_ICON,
                 folderIcons(initialView),
                 initialView == StudioSidebarView.SLOTS,
                 null,
@@ -61,7 +65,7 @@ public final class EnchantmentLayout extends HBox {
                 context,
                 tree,
                 "enchantment:overview.title",
-                "/images/features/item/enchanted_book.png",
+                ENCHANTED_BOOK_ICON,
                 List.of(toggleGroup));
 
         VBox main = new VBox(new EditorHeader(context, tree, StudioConcept.ENCHANTMENT, true, StudioRoute.ENCHANTMENT_SIMULATION), outlet);
@@ -118,7 +122,7 @@ public final class EnchantmentLayout extends HBox {
         return EnchantmentTreeBuilder.build(context.repository().enchantments(), view, 61);
     }
 
-    private Map<String, String> folderIcons(StudioSidebarView view) {
+    private Map<String, Identifier> folderIcons(StudioSidebarView view) {
         if (view == StudioSidebarView.SLOTS) return EnchantmentTreeBuilder.slotFolderIcons();
         if (view == StudioSidebarView.ITEMS) return EnchantmentTreeBuilder.itemFolderIcons(61);
         return Map.of();

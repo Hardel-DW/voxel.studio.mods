@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.data;
+package fr.hardel.asset_editor.client.javafx.lib.data;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 

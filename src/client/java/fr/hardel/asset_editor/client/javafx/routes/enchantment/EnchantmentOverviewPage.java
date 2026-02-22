@@ -2,10 +2,10 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.data.StudioViewMode;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;

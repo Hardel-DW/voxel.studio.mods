@@ -4,7 +4,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.changes.ChangesLayou
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentLayout;
 import fr.hardel.asset_editor.client.javafx.components.page.loot_table.LootTableLayout;
 import fr.hardel.asset_editor.client.javafx.components.page.recipe.RecipeLayout;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;

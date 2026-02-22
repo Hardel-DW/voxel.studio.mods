@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.page.enchantment.tree;
+package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;

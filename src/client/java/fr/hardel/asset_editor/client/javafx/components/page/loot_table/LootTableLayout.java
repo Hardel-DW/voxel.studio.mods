@@ -1,11 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.components.page.loot_table;
 
-import fr.hardel.asset_editor.client.javafx.components.page.loot_table.tree.LootTableTreeBuilder;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorHeader;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorSidebar;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorHeader;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorSidebar;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.loot.LootTableMainPage;
@@ -14,11 +13,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.Map;
 
 public final class LootTableLayout extends HBox {
+
+    private static final Identifier LOOT_ICON = Identifier.fromNamespaceAndPath(
+            "asset_editor",
+            "textures/features/item/bundle_close.png");
 
     private final StudioContext context;
     private final LootTableOverviewPage overviewPage;
@@ -38,7 +42,7 @@ public final class LootTableLayout extends HBox {
                 StudioConcept.LOOT_TABLE.registry(),
                 StudioConcept.LOOT_TABLE.tabRoutes(),
                 LootTableTreeBuilder.build(List.of()),
-                "/images/features/item/bundle_close.png",
+                LOOT_ICON,
                 Map.of(),
                 false,
                 null,
@@ -54,7 +58,7 @@ public final class LootTableLayout extends HBox {
                 context,
                 tree,
                 "loot:overview.title",
-                "/images/features/item/bundle_close.png",
+                LOOT_ICON,
                 List.of()
         );
 

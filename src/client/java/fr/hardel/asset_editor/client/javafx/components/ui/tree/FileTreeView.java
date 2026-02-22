@@ -2,8 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import javafx.animation.RotateTransition;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -15,16 +14,21 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
+import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 
 public final class FileTreeView extends VBox {
+
+    private static final Identifier CHEVRON_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/chevron-down.svg");
+    private static final Identifier DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/folder.svg");
 
     private final TreeController tree;
     private final HashMap<String, Boolean> openState = new HashMap<>();
@@ -37,7 +41,7 @@ public final class FileTreeView extends VBox {
         context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refresh());
         tree.treeProperty().addListener((obs, oldValue, newValue) -> refresh());
         tree.folderIconsProperty().addListener((obs, oldValue, newValue) -> refresh());
-        tree.elementIconPathProperty().addListener((obs, oldValue, newValue) -> refresh());
+        tree.elementIconProperty().addListener((obs, oldValue, newValue) -> refresh());
         tree.disableAutoExpandProperty().addListener((obs, oldValue, newValue) -> refresh());
         refresh();
     }
@@ -56,7 +60,7 @@ public final class FileTreeView extends VBox {
         boolean isElement = node.elementId() != null && !node.elementId().isBlank();
         boolean hasChildren = !node.children().isEmpty();
         String activeElementId = tree.currentElementId();
-        boolean hasActiveChild = !tree.disableAutoExpand() && node.hasActiveDescendant(activeElementId);
+        boolean hasActiveChild = !tree.disableAutoExpand() && TreeUtils.hasActiveDescendant(node, activeElementId);
         boolean defaultOpen = forceOpen || hasActiveChild;
         boolean isOpen = openState.computeIfAbsent(path, key -> defaultOpen);
         if (hasActiveChild && !isOpen) {
@@ -70,18 +74,18 @@ public final class FileTreeView extends VBox {
                 : (activeElementId == null || activeElementId.isBlank()) && path.equals(filterPath);
         boolean isEmpty = !isElement && node.count() == 0;
 
-        String iconPath = node.iconPath();
+        Identifier icon = node.icon();
         boolean isDefaultFolderIcon = false;
-        if (iconPath == null || iconPath.isBlank()) {
+        if (icon == null) {
             if (isElement) {
-                iconPath = tree.elementIconPath();
+                icon = tree.elementIcon();
             } else {
-                String folderIcon = tree.folderIcons().get(name);
-                if (folderIcon == null || folderIcon.isBlank()) {
-                    iconPath = "/icons/folder.svg";
+                Identifier folderIcon = tree.folderIcons().get(name);
+                if (folderIcon == null) {
+                    icon = DEFAULT_FOLDER_ICON;
                     isDefaultFolderIcon = true;
                 } else {
-                    iconPath = folderIcon;
+                    icon = folderIcon;
                 }
             }
         }
@@ -105,20 +109,20 @@ public final class FileTreeView extends VBox {
         }
 
         if (isHighlighted) {
-            int hue = stringToHue(isElement ? node.elementId() : path);
+            int hue = ColorUtils.stringToHue(isElement ? node.elementId() : path);
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
-            accent.setStyle("-fx-background-color: " + toCssColor(hueToColor(hue)) + ";");
+            accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(ColorUtils.hueToColor(hue)) + ";");
             StackPane.setAlignment(accent, Pos.CENTER_LEFT);
             StackPane.setMargin(accent, new Insets(8, 0, 8, 0));
             rowContainer.getChildren().add(accent);
         }
 
         if (!isElement) {
-            Node chevronIcon = new SvgIcon("/icons/chevron-down.svg", 12, Color.WHITE);
+            Node chevronIcon = new SvgIcon(CHEVRON_ICON, 12, Color.WHITE);
             chevronIcon.setRotate(isOpen ? 0 : -90);
             if (!hasChildren)
                 chevronIcon.setOpacity(0.2);
@@ -132,9 +136,6 @@ public final class FileTreeView extends VBox {
                 event.consume();
                 boolean next = !openState.getOrDefault(path, false);
                 openState.put(path, next);
-                RotateTransition rotate = new RotateTransition(Duration.millis(150), chevronIcon);
-                rotate.setToAngle(next ? 0 : -90);
-                rotate.play();
                 refresh();
             });
             row.getChildren().add(chevron);
@@ -142,15 +143,15 @@ public final class FileTreeView extends VBox {
 
         HBox content = new HBox(10);
         content.setAlignment(Pos.CENTER_LEFT);
-        Node icon = iconPath.endsWith(".svg")
-                ? new SvgIcon(iconPath, 20, Color.WHITE)
-                : new ResourceImageIcon(iconPath, 20);
-        icon.getStyleClass().add("tree-row-icon");
+        Node iconNode = isSvg(icon)
+                ? new SvgIcon(icon, 20, Color.WHITE)
+                : new ResourceImageIcon(icon, 20);
+        iconNode.getStyleClass().add("tree-row-icon");
         if (isDefaultFolderIcon)
-            icon.setOpacity(isHighlighted ? 1.0 : 0.6);
-        content.getChildren().add(icon);
+            iconNode.setOpacity(isHighlighted ? 1.0 : 0.6);
+        content.getChildren().add(iconNode);
 
-        Label label = new Label(toDisplay(name));
+        Label label = new Label(TextUtils.toDisplay(name));
         label.getStyleClass().add("tree-row-label");
         label.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(label, Priority.ALWAYS);
@@ -210,77 +211,7 @@ public final class FileTreeView extends VBox {
         return node.elementId() != null && !node.elementId().isBlank();
     }
 
-    private static String toCssColor(Color color) {
-        return "rgba(%d,%d,%d,%.3f)".formatted(
-                (int) Math.round(color.getRed() * 255),
-                (int) Math.round(color.getGreen() * 255),
-                (int) Math.round(color.getBlue() * 255),
-                color.getOpacity());
-    }
-
-    private static int stringToHue(String text) {
-        int hash = 0;
-        for (int i = 0; i < text.length(); i++) {
-            hash = text.charAt(i) + ((hash << 5) - hash);
-        }
-        return (int) (Math.abs((long) hash) % 360L);
-    }
-
-    private static Color hueToColor(int hue) {
-        double h = ((hue % 360) + 360) % 360;
-        double s = 0.70;
-        double l = 0.60;
-        double c = (1 - Math.abs(2 * l - 1)) * s;
-        double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
-        double m = l - c / 2.0;
-        double r = 0;
-        double g = 0;
-        double b = 0;
-        if (h < 60) {
-            r = c;
-            g = x;
-        } else if (h < 120) {
-            r = x;
-            g = c;
-        } else if (h < 180) {
-            g = c;
-            b = x;
-        } else if (h < 240) {
-            g = x;
-            b = c;
-        } else if (h < 300) {
-            r = x;
-            b = c;
-        } else {
-            r = c;
-            b = x;
-        }
-        return Color.color(clamp(r + m), clamp(g + m), clamp(b + m));
-    }
-
-    private static double clamp(double value) {
-        return Math.max(0.0, Math.min(1.0, value));
-    }
-
-    private static String toDisplay(String input) {
-        if (input == null || input.isBlank())
-            return "";
-        String clean = input.startsWith("#") ? input.substring(1) : input;
-        int namespaceSep = clean.indexOf(':');
-        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
-        String[] path = resource.split("/");
-        String leaf = path[path.length - 1];
-        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < words.length; i++) {
-            if (words[i].isEmpty())
-                continue;
-            if (builder.length() > 0)
-                builder.append(' ');
-            builder.append(Character.toUpperCase(words[i].charAt(0)));
-            if (words[i].length() > 1)
-                builder.append(words[i].substring(1).toLowerCase(Locale.ROOT));
-        }
-        return builder.toString();
+    private static boolean isSvg(Identifier icon) {
+        return icon.toString().endsWith(".svg");
     }
 }

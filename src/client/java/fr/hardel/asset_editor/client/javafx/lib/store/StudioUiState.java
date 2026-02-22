@@ -1,7 +1,7 @@
-package fr.hardel.asset_editor.client.javafx.store;
+package fr.hardel.asset_editor.client.javafx.lib.store;
 
-import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
-import fr.hardel.asset_editor.client.javafx.data.StudioViewMode;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

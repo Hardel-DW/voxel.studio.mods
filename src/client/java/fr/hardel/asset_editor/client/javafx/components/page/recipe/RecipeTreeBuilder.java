@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.page.recipe.tree;
+package fr.hardel.asset_editor.client.javafx.components.page.recipe;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import net.minecraft.resources.Identifier;

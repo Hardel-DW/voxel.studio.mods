@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;

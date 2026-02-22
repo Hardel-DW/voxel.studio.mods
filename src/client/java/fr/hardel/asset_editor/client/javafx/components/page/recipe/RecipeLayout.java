@@ -1,11 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.components.page.recipe;
 
-import fr.hardel.asset_editor.client.javafx.components.page.recipe.tree.RecipeTreeBuilder;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorHeader;
-import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorSidebar;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorHeader;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorSidebar;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
-import fr.hardel.asset_editor.client.javafx.context.StudioContext;
-import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.recipe.RecipeMainPage;
@@ -14,10 +13,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 public final class RecipeLayout extends HBox {
+
+    private static final Identifier RECIPE_ICON = Identifier.fromNamespaceAndPath(
+            "asset_editor",
+            "textures/features/block/crafting_table.png");
 
     private final StudioContext context;
     private final RecipeOverviewPage overviewPage;
@@ -37,7 +41,7 @@ public final class RecipeLayout extends HBox {
                 StudioConcept.RECIPE.registry(),
                 StudioConcept.RECIPE.tabRoutes(),
                 RecipeTreeBuilder.build(List.of()),
-                "/images/features/block/crafting_table.png",
+                RECIPE_ICON,
                 RecipeTreeBuilder.folderIcons(),
                 false,
                 null,
@@ -53,7 +57,7 @@ public final class RecipeLayout extends HBox {
                 context,
                 tree,
                 "recipe:overview.title",
-                "/images/features/block/crafting_table.png",
+                RECIPE_ICON,
                 List.of()
         );
 
