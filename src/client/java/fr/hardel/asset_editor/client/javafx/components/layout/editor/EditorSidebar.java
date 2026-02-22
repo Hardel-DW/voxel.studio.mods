@@ -14,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -64,7 +65,7 @@ public final class EditorSidebar extends VBox {
     private Node buildDiscordSection() {
         Label text = new Label(I18n.get("common.help.discord"));
         text.getStyleClass().add("editor-sidebar-discord-text");
-        HBox.setHgrow(text, Priority.ALWAYS);
+        text.setWrapText(true);
 
         SvgIcon discordIcon = new SvgIcon(DISCORD_ICON, 16, Color.WHITE);
         discordIcon.setOpacity(0.3);
@@ -76,10 +77,14 @@ public final class EditorSidebar extends VBox {
         circle.setMaxSize(32, 32);
         circle.setAlignment(Pos.CENTER);
 
-        HBox card = new HBox(12, text, circle);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox card = new HBox(12, text, spacer, circle);
         card.getStyleClass().add("editor-sidebar-discord-card");
         card.setPadding(new Insets(12));
         card.setAlignment(Pos.CENTER_LEFT);
+        card.setMaxWidth(Double.MAX_VALUE);
         card.setCursor(Cursor.HAND);
         card.setOnMouseEntered(event -> {
             card.getStyleClass().add("editor-sidebar-discord-card-hover");

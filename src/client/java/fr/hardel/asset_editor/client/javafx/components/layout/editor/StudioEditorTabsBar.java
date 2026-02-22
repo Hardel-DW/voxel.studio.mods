@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
@@ -13,11 +12,12 @@ import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.minecraft.resources.Identifier;
 
@@ -38,9 +38,12 @@ public final class StudioEditorTabsBar extends HBox {
         this.context = context;
         getStyleClass().add("studio-editor-tabs");
         setAlignment(Pos.CENTER_LEFT);
+        setFillHeight(false);
 
         setPadding(new Insets(0, 0, 0, 16)); // pl-4
         tabsContainer.setAlignment(Pos.CENTER_LEFT);
+        tabsContainer.setFillHeight(false);
+        tabsContainer.getStyleClass().add("studio-editor-tablist");
 
         Region dragSpacer = new Region();
         HBox.setHgrow(dragSpacer, Priority.ALWAYS);
@@ -72,6 +75,8 @@ public final class StudioEditorTabsBar extends HBox {
         if (active) item.getStyleClass().add("studio-editor-tab-item-active");
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(6, 12, 6, 12)); // px-3 py-1.5
+        item.setMinHeight(Region.USE_PREF_SIZE);
+        item.setMaxHeight(Region.USE_PREF_SIZE);
         item.setCursor(Cursor.HAND);
         item.setOnMouseClicked(e -> {
             context.tabsState().switchTab(index);
@@ -80,16 +85,24 @@ public final class StudioEditorTabsBar extends HBox {
         });
 
         ResourceImageIcon icon = new ResourceImageIcon(StudioConcept.byRoute(tab.route()).icon(), 16); // size-4
-        Text label = new Text(displayName(tab.elementId()));
+        icon.setOpacity(active ? 1.0 : 0.85);
+
+        Label label = new Label(displayName(tab.elementId()));
         label.getStyleClass().add("studio-editor-tab-label");
-        StackPane closeBtn = closeButton(index);
+        label.getStyleClass().add(active ? "studio-editor-tab-label-active" : "studio-editor-tab-label-inactive");
+        label.setMaxWidth(192);
+        label.setEllipsisString("...");
+
+        StackPane closeBtn = closeButton(index, active);
+        item.setOnMouseEntered(e -> closeBtn.setOpacity(1.0));
+        item.setOnMouseExited(e -> closeBtn.setOpacity(active ? 1.0 : 0.0));
 
         item.getChildren().addAll(icon, label, closeBtn);
         return item;
     }
 
-    private StackPane closeButton(int index) {
-        SvgIcon icon = new SvgIcon(CLOSE_ICON, 10, VoxelColors.ZINC_400);
+    private StackPane closeButton(int index, boolean active) {
+        SvgIcon icon = new SvgIcon(CLOSE_ICON, 10, active ? VoxelColors.ZINC_200 : VoxelColors.ZINC_400);
 
         StackPane btn = new StackPane(icon);
         btn.getStyleClass().add("studio-editor-tab-close");
@@ -97,6 +110,9 @@ public final class StudioEditorTabsBar extends HBox {
         btn.setMinSize(16, 16);
         btn.setMaxSize(16, 16);
         btn.setCursor(Cursor.HAND);
+        btn.setOpacity(active ? 1.0 : 0.0);
+        btn.setOnMouseEntered(e -> icon.setIconFill(Color.WHITE));
+        btn.setOnMouseExited(e -> icon.setIconFill(active ? VoxelColors.ZINC_200 : VoxelColors.ZINC_400));
         btn.setOnMouseClicked(e -> {
             e.consume();
             context.tabsState().closeTab(index);
@@ -111,10 +127,7 @@ public final class StudioEditorTabsBar extends HBox {
         if (elementId == null || elementId.isBlank()) return "";
         String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
         int sep = clean.indexOf(':');
-        if (sep < 0 || sep + 1 >= clean.length()) return TextUtils.toDisplay(clean);
-        return TextUtils.toDisplay(clean.substring(sep + 1));
+        if (sep < 0 || sep + 1 >= clean.length()) return clean;
+        return clean.substring(sep + 1);
     }
 }
-
-
-

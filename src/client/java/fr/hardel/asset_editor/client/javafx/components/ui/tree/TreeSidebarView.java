@@ -41,16 +41,16 @@ public final class TreeSidebarView extends VBox {
 
     private void refresh() {
         getChildren().setAll(
-                createRow(PENCIL_ICON, I18n.get("tree.updated"), tree.modifiedCount(), false, () -> {
+                createRow(PENCIL_ICON, I18n.get("tree.updated"), "updated", tree.modifiedCount(), false, () -> {
                     tree.clearSelection();
                     context.router().navigate(tree.changesRoute());
                 }),
-                createRow(SEARCH_ICON, I18n.get("tree.all"), tree.tree().count(), tree.isAllActive(), tree::selectAll),
+                createRow(SEARCH_ICON, I18n.get("tree.all"), "all", tree.tree().count(), tree.isAllActive(), tree::selectAll),
                 fileTree
         );
     }
 
-    private HBox createRow(Identifier iconPath, String text, int count, boolean active, Runnable onClick) {
+    private HBox createRow(Identifier iconPath, String text, String colorKey, int count, boolean active, Runnable onClick) {
         HBox row = new HBox(8);
         row.getStyleClass().add("tree-sidebar-row");
         row.getStyleClass().add(active ? "tree-sidebar-row-active" : "tree-sidebar-row-inactive");
@@ -58,7 +58,7 @@ public final class TreeSidebarView extends VBox {
         row.setOnMouseClicked(event -> onClick.run());
 
         if (active) {
-            int hue = ColorUtils.stringToHue(text.toLowerCase(Locale.ROOT));
+            int hue = ColorUtils.stringToHue(colorKey.toLowerCase(Locale.ROOT));
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);

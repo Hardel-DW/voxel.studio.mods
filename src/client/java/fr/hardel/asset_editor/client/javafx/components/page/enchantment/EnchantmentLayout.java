@@ -110,6 +110,7 @@ public final class EnchantmentLayout extends HBox {
                     context.uiState().setSidebarView(next);
                 });
         toggleGroup.getStyleClass().add("enchantment-sidebar-toggle");
+        toggleGroup.setMaxWidth(Double.MAX_VALUE);
         javafx.scene.layout.VBox.setMargin(toggleGroup, new javafx.geometry.Insets(16, 0, 0, 0));
         toggleGroup.addOption("slots", net.minecraft.client.resources.language.I18n.get("enchantment:overview.sidebar.slots"));
         toggleGroup.addOption("items", net.minecraft.client.resources.language.I18n.get("enchantment:overview.sidebar.items"));
@@ -128,6 +129,5 @@ public final class EnchantmentLayout extends HBox {
         return Map.of();
     }
 }
-
 
 

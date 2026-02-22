@@ -125,8 +125,8 @@ public final class FileTreeView extends VBox {
         if (!isElement) {
             Node chevronIcon = new SvgIcon(CHEVRON_ICON, 12, Color.WHITE);
             chevronIcon.setRotate(isOpen ? 0 : -90);
-            if (!hasChildren)
-                chevronIcon.setOpacity(0.2);
+            chevronIcon.setOpacity(hasChildren ? 0.6 : 0.2);
+            chevronIcon.getStyleClass().add("tree-chevron-icon");
 
             Button chevron = new Button();
             chevron.getStyleClass().add("tree-chevron");

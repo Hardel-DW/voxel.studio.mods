@@ -5,7 +5,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.FillRule;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -27,7 +26,6 @@ public final class SvgIcon extends Pane {
         setPrefSize(size, size);
         setMinSize(size, size);
         setMaxSize(size, size);
-        setClip(new Rectangle(size, size));
 
         try (InputStream is = ResourceLoader.open(location)) {
             var doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
@@ -56,6 +54,19 @@ public final class SvgIcon extends Pane {
     private void addShape(Element el, Paint fill, double scale, SvgStyle inherited) {
         String content = switch (el.getTagName()) {
             case "path" -> el.getAttribute("d");
+            case "circle" -> {
+                double cx = attr(el, "cx", 0);
+                double cy = attr(el, "cy", 0);
+                double r = attr(el, "r", 0);
+                if (r <= 0) yield null;
+                yield "M%s,%s a%s,%s 0 1,0 %s,0 a%s,%s 0 1,0 -%s,0".formatted(
+                        cx - r,
+                        cy,
+                        r, r,
+                        2 * r,
+                        r, r,
+                        2 * r);
+            }
             case "rect" -> {
                 double x = attr(el, "x", 0), y = attr(el, "y", 0);
                 double w = attr(el, "width", 0), h = attr(el, "height", 0);
@@ -80,7 +91,10 @@ public final class SvgIcon extends Pane {
 
         SvgStyle style = SvgStyle.resolve(el, inherited);
 
-        path.setFill("none".equals(style.fill()) ? Color.TRANSPARENT : fill);
+        String fillValue = style.fill() == null ? "" : style.fill().trim().toLowerCase();
+        boolean transparentFill = "none".equals(fillValue)
+                || "transparent".equals(fillValue);
+        path.setFill(transparentFill ? Color.TRANSPARENT : fill);
 
         if (!style.stroke().isEmpty() && !"none".equals(style.stroke())) {
             path.setStroke(fill);
