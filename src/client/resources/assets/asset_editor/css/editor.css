@@ -1156,3 +1156,234 @@
     -fx-font-size: 16;
     -fx-font-weight: 600;
 }
+
+/* ===== SIMPLE CARD ===== */
+/* bg-black/35 border border-zinc-900 rounded-xl py-6 px-8 cursor-pointer */
+.simple-card {
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-border-color: #202024;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* ===== STUDIO BUTTON ===== */
+.studio-button {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+.studio-button-label {
+    -fx-font-size: 14;
+    -fx-font-weight: 500;
+}
+
+/* default: bg-zinc-200 text-zinc-800 border-2 border-zinc-500 hover:bg-zinc-300 */
+.studio-button-default {
+    -fx-background-color: #e4e4e7;
+    -fx-border-color: #7a7a85;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* black: bg-black text-zinc-200 border-2 border-zinc-500 hover:bg-zinc-900 */
+.studio-button-black {
+    -fx-background-color: #000000;
+    -fx-border-color: #7a7a85;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* ghost: bg-transparent text-zinc-200 border-2 border-zinc-500 */
+.studio-button-ghost {
+    -fx-background-color: transparent;
+    -fx-border-color: #7a7a85;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* ghost_border: bg-transparent border-2 border-zinc-900 */
+.studio-button-ghost-border {
+    -fx-background-color: transparent;
+    -fx-border-color: #202024;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* aurora: bg-transparent border-2 border-zinc-900, gradient right side */
+.studio-button-aurora {
+    -fx-background-color: linear-gradient(from 30% 0% to 100% 0%, transparent, rgba(63,63,70,0.3));
+    -fx-border-color: #202024;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* transparent */
+.studio-button-transparent {
+    -fx-background-color: transparent;
+    -fx-border-color: #7a7a85;
+    -fx-border-width: 2;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+/* link: no background */
+.studio-button-link {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+/* shimmer: text-black font-medium border-t border-l border-zinc-900 */
+/* (background is white, handled programmatically) */
+.studio-button-shimmer {
+    -fx-background-color: transparent;
+    -fx-border-color: #202024 transparent transparent #202024;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+.studio-button-shimmer .studio-button-label {
+    -fx-text-fill: #080507;
+    -fx-font-weight: 500;
+}
+
+/* patreon: text-white rounded-xl (background is orange, handled programmatically) */
+.studio-button-patreon {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+}
+
+.studio-button-patreon .studio-button-label {
+    -fx-text-fill: white;
+}
+
+/* ===== ANIMATED TABS ===== */
+/* h-fit w-fit bg-zinc-900/70 rounded-2xl border border-zinc-800 p-1 */
+.animated-tabs {
+    -fx-background-color: rgba(24, 24, 27, 0.7);
+    -fx-border-color: #303033;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+}
+
+/* Tab button: text-zinc-500 rounded-xl px-3 py-1.5 font-medium */
+.animated-tabs-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #71717a;
+    -fx-font-size: 14;
+    -fx-font-weight: 500;
+    -fx-padding: 6 12 6 12;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-white-space: nowrap;
+}
+
+.animated-tabs-button:hover {
+    -fx-text-fill: white;
+}
+
+.animated-tabs-button-active {
+    -fx-text-fill: white;
+}
+
+/* Sliding indicator: bg-white/10 rounded-xl */
+.animated-tabs-indicator {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-radius: 12;
+}
+
+/* ===== TOOL SECTION ===== */
+/* h2: text-2xl font-semibold */
+.tool-section-title {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 24;
+    -fx-font-weight: 600;
+}
+
+/* hr: gradient line, opacity 0.25 */
+.tool-section-hr {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, transparent, white, transparent);
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+    -fx-opacity: 0.25;
+}
+
+/* ===== TEMPLATE CARD ===== */
+/* h3: text-lg font-semibold mb-1 */
+.template-card-title {
+    -fx-text-fill: #f4f4f5;
+    -fx-font-size: 18;
+    -fx-font-weight: 600;
+}
+
+/* p: text-sm text-zinc-400 */
+.template-card-desc {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 14;
+}
+
+/* ===== TOOL SELECTOR ===== */
+/* title: text-white line-clamp-1 */
+.tool-selector-title {
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+}
+
+/* desc: text-xs text-zinc-400 font-light line-clamp-2 */
+.tool-selector-desc {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 12;
+    -fx-font-weight: 300;
+}
+
+/* ===== SUPPORT CARD ===== */
+/* bg-black/35 border-t-2 border-l-2 rounded-2xl border-stone-900 */
+.support-card {
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-border-color: #1c1917 transparent transparent #1c1917;
+    -fx-border-width: 2 0 0 2;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+}
+
+/* h1: text-3xl tracking-wide font-semibold white */
+.support-card-title {
+    -fx-text-fill: white;
+    -fx-font-size: 30;
+    -fx-font-weight: 600;
+}
+
+/* p: text-sm text-zinc-400 lg:w-3/4 */
+.support-card-desc {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 14;
+    -fx-max-width: 480;
+}
+
+/* h3: font-bold text-xl white */
+.support-card-advantages-heading {
+    -fx-text-fill: white;
+    -fx-font-size: 20;
+    -fx-font-weight: 700;
+}
+
+/* span: text-zinc-300 text-sm font-semibold */
+.support-card-benefit {
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 14;
+    -fx-font-weight: 600;
+}
