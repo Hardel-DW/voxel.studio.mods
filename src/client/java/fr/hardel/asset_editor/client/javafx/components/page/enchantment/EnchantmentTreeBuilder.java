@@ -1,13 +1,14 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment.tree;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
-import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
-import fr.hardel.asset_editor.client.javafx.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public final class EnchantmentTreeBuilder {
@@ -67,19 +68,19 @@ public final class EnchantmentTreeBuilder {
         return root;
     }
 
-    public static Map<String, String> slotFolderIcons() {
-        LinkedHashMap<String, String> icons = new LinkedHashMap<>();
+    public static Map<String, Identifier> slotFolderIcons() {
+        LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
         for (SlotConfig config : SLOT_CONFIGS) {
-            icons.put(config.id(), "/images/features/slots/%s.png".formatted(config.id()));
+            icons.put(config.id(), icon("textures/features/slots/%s.png".formatted(config.id())));
         }
         return icons;
     }
 
-    public static Map<String, String> itemFolderIcons(int version) {
-        LinkedHashMap<String, String> icons = new LinkedHashMap<>();
+    public static Map<String, Identifier> itemFolderIcons(int version) {
+        LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
         for (ItemTagConfig tag : ITEM_TAGS) {
             if (version < tag.min() || version > tag.max()) continue;
-            icons.put(tag.key(), "/images/features/item/%s.png".formatted(tag.key()));
+            icons.put(tag.key(), icon("textures/features/item/%s.png".formatted(tag.key())));
         }
         return icons;
     }
@@ -94,7 +95,7 @@ public final class EnchantmentTreeBuilder {
             }
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
-                category.setIconPath("/images/features/slots/%s.png".formatted(config.id()));
+                category.setIcon(icon("textures/features/slots/%s.png".formatted(config.id())));
                 root.children().put(config.id(), category);
             }
         }
@@ -111,7 +112,7 @@ public final class EnchantmentTreeBuilder {
             }
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
-                category.setIconPath("/images/features/item/%s.png".formatted(tag.key()));
+                category.setIcon(icon("textures/features/item/%s.png".formatted(tag.key())));
                 root.children().put(tag.key(), category);
             }
         }
@@ -125,7 +126,7 @@ public final class EnchantmentTreeBuilder {
         }
         for (Map.Entry<String, ArrayList<StudioMockEnchantment>> entry : grouped.entrySet()) {
             String key = entry.getKey();
-            String name = key.startsWith("#") ? key : toDisplay(key);
+            String name = key.startsWith("#") ? key : TextUtils.toDisplay(key);
             root.children().put(name, createCategoryNode(entry.getValue()));
         }
     }
@@ -149,22 +150,8 @@ public final class EnchantmentTreeBuilder {
         return false;
     }
 
-    private static String toDisplay(String input) {
-        if (input == null || input.isBlank()) return "";
-        String clean = input.startsWith("#") ? input.substring(1) : input;
-        int namespaceSep = clean.indexOf(':');
-        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
-        String[] path = resource.split("/");
-        String leaf = path[path.length - 1];
-        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
-        StringBuilder builder = new StringBuilder();
-        for (String word : words) {
-            if (word.isEmpty()) continue;
-            if (builder.length() > 0) builder.append(' ');
-            builder.append(Character.toUpperCase(word.charAt(0)));
-            if (word.length() > 1) builder.append(word.substring(1).toLowerCase(Locale.ROOT));
-        }
-        return builder.toString();
+    private static Identifier icon(String path) {
+        return Identifier.fromNamespaceAndPath("asset_editor", path);
     }
 
     private record SlotConfig(String id, List<String> slots) {

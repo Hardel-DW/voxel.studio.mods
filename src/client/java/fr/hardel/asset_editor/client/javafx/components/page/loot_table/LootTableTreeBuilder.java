@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.loot_table.tree;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
 
 import java.util.List;
 
@@ -27,7 +28,7 @@ public final class LootTableTreeBuilder {
             current.children().put(elementName, leaf);
         }
 
-        root.recalculateCount();
+        TreeUtils.recalculateCount(root);
         return root;
     }
 

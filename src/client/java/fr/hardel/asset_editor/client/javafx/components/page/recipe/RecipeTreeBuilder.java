@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.recipe.tree;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -84,15 +85,15 @@ public final class RecipeTreeBuilder {
         return root;
     }
 
-    public static Map<String, String> folderIcons() {
-        LinkedHashMap<String, String> icons = new LinkedHashMap<>();
+    public static Map<String, Identifier> folderIcons() {
+        LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
         for (RecipeBlockConfig block : RECIPE_BLOCKS) {
             if (block.special()) continue;
             String resource = block.id().contains(":") ? block.id().split(":", 2)[1] : block.id();
-            String path = "/images/features/block/%s.png".formatted(resource);
-            icons.put(block.id(), path);
+            Identifier icon = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/block/%s.png".formatted(resource));
+            icons.put(block.id(), icon);
             for (String type : block.recipeTypes()) {
-                icons.put(type, path);
+                icons.put(type, icon);
             }
         }
         return icons;
