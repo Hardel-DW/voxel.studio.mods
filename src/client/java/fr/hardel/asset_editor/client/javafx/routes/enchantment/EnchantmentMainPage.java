@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -134,12 +135,12 @@ public final class EnchantmentMainPage extends VBox {
         Label donate = new Label(I18n.get("donate"));
         donate.getStyleClass().add("enchantment-support-action");
         donate.setCursor(Cursor.HAND);
-        donate.setOnMouseClicked(e -> openBrowser("https://streamelements.com/hardoudou/tip"));
+        donate.setOnMouseClicked(e -> BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip"));
 
         Label patreon = new Label(I18n.get("supports.become"));
         patreon.getStyleClass().add("enchantment-support-action-patreon");
         patreon.setCursor(Cursor.HAND);
-        patreon.setOnMouseClicked(e -> openBrowser("https://www.patreon.com/hardel"));
+        patreon.setOnMouseClicked(e -> BrowserUtils.openBrowser("https://www.patreon.com/hardel"));
 
         VBox actionsSection = new VBox(16, donate, patreon);
         actionsSection.setAlignment(Pos.BOTTOM_LEFT);
@@ -184,12 +185,5 @@ public final class EnchantmentMainPage extends VBox {
         }
         return context.repository().enchantments().getFirst();
     }
-
-    private static void openBrowser(String url) {
-        try {
-            Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
-        } catch (Exception ignored) {}
-    }
 }
-
 

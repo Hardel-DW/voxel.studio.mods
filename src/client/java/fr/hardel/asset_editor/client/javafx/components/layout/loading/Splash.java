@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.GridBackground;
 import fr.hardel.asset_editor.client.javafx.components.ui.SpacedText;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import javafx.animation.FadeTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -120,13 +121,13 @@ public final class Splash extends StackPane {
         help.setCursor(Cursor.HAND);
         help.setOnMouseEntered(e -> help.setTextFill(VoxelColors.ZINC_400));
         help.setOnMouseExited(e -> help.setTextFill(VoxelColors.ZINC_600));
-        help.setOnMouseClicked(e -> openBrowser("https://github.com"));
+        help.setOnMouseClicked(e -> BrowserUtils.openBrowser("https://github.com"));
 
         SvgIcon github = new SvgIcon(GITHUB, 16, Color.WHITE);
         github.setCursor(Cursor.HAND);
         github.setOnMouseEntered(e -> github.setOpacity(0.7));
         github.setOnMouseExited(e -> github.setOpacity(1.0));
-        github.setOnMouseClicked(e -> openBrowser("https://github.com"));
+        github.setOnMouseClicked(e -> BrowserUtils.openBrowser("https://github.com"));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -135,14 +136,6 @@ public final class Splash extends StackPane {
         bottom.setAlignment(Pos.BOTTOM_LEFT);
         bottom.getChildren().addAll(help, spacer, github);
         return bottom;
-    }
-
-    private static void openBrowser(String url) {
-        try {
-            Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
-        } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(Splash.class).error("Failed to open browser: {}", url, e);
-        }
     }
 
     private VBox buildCenterColumn() {

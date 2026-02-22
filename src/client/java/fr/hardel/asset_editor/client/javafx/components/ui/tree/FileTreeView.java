@@ -3,6 +3,10 @@ package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.IconUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,9 +18,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
@@ -143,7 +144,7 @@ public final class FileTreeView extends VBox {
 
         HBox content = new HBox(10);
         content.setAlignment(Pos.CENTER_LEFT);
-        Node iconNode = isSvg(icon)
+        Node iconNode = IconUtils.isSvgIcon(icon)
                 ? new SvgIcon(icon, 20, Color.WHITE)
                 : new ResourceImageIcon(icon, 20);
         iconNode.getStyleClass().add("tree-row-icon");
@@ -209,9 +210,5 @@ public final class FileTreeView extends VBox {
 
     private static boolean isElement(TreeNodeModel node) {
         return node.elementId() != null && !node.elementId().isBlank();
-    }
-
-    private static boolean isSvg(Identifier icon) {
-        return icon.toString().endsWith(".svg");
     }
 }

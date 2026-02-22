@@ -19,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
+import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 
 import java.util.List;
 
@@ -92,7 +93,7 @@ public final class EditorSidebar extends VBox {
             circle.getStyleClass().add("editor-sidebar-discord-circle");
             discordIcon.setOpacity(0.3);
         });
-        card.setOnMouseClicked(event -> openBrowser("https://discord.gg/TAmVFvkHep"));
+        card.setOnMouseClicked(event -> BrowserUtils.openBrowser("https://discord.gg/TAmVFvkHep"));
 
         VBox wrapper = new VBox(card);
         wrapper.getStyleClass().add("editor-sidebar-discord-wrapper");
@@ -100,10 +101,4 @@ public final class EditorSidebar extends VBox {
         return wrapper;
     }
 
-    private static void openBrowser(String url) {
-        try {
-            Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
-        } catch (Exception ignored) {
-        }
-    }
 }
