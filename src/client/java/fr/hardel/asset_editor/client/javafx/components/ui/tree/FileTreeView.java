@@ -110,13 +110,13 @@ public final class FileTreeView extends VBox {
         }
 
         if (isHighlighted) {
-            int hue = ColorUtils.stringToHue(isElement ? node.elementId() : path);
+            Color accentColor = ColorUtils.accentColor(isElement ? node.elementId() : path);
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
-            accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(ColorUtils.hueToColor(hue)) + ";");
+            accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(accentColor) + ";");
             StackPane.setAlignment(accent, Pos.CENTER_LEFT);
             StackPane.setMargin(accent, new Insets(8, 0, 8, 0));
             rowContainer.getChildren().add(accent);

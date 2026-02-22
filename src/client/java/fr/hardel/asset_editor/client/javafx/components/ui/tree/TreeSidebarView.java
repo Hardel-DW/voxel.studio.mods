@@ -58,13 +58,12 @@ public final class TreeSidebarView extends VBox {
         row.setOnMouseClicked(event -> onClick.run());
 
         if (active) {
-            int hue = ColorUtils.stringToHue(colorKey.toLowerCase(Locale.ROOT));
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
-            Color c = ColorUtils.hueToColor(hue);
+            Color c = ColorUtils.accentColor(colorKey.toLowerCase(Locale.ROOT));
             accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(c) + ";");
             row.getChildren().add(accent);
         } else {

@@ -17,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
@@ -34,6 +35,10 @@ public final class EditorHeader extends VBox {
     private final StudioConcept concept;
     private final boolean showViewToggle;
     private final StudioRoute simulationRoute;
+    private final StackPane surface = new StackPane();
+    private final Region tintLayer = new Region();
+    private final Region gradientLayer = new Region();
+    private final VBox content = new VBox();
 
     public EditorHeader(StudioContext context, TreeController tree, StudioConcept concept, boolean showViewToggle, StudioRoute simulationRoute) {
         this.context = context;
@@ -43,7 +48,26 @@ public final class EditorHeader extends VBox {
         this.simulationRoute = simulationRoute;
 
         getStyleClass().add("editor-header");
-        setPadding(new Insets(32, 32, 24, 32));
+
+        surface.getStyleClass().add("editor-header-surface");
+        surface.setAlignment(Pos.TOP_LEFT);
+        surface.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(surface, Priority.NEVER);
+
+        tintLayer.getStyleClass().add("editor-header-tint");
+        tintLayer.setOpacity(0.4);
+        tintLayer.setMouseTransparent(true);
+
+        gradientLayer.getStyleClass().add("editor-header-gradient");
+        gradientLayer.setMouseTransparent(true);
+
+        content.getStyleClass().add("editor-header-content");
+        content.setPadding(new Insets(32, 32, 24, 32));
+        content.setSpacing(0);
+        content.setMaxWidth(Double.MAX_VALUE);
+
+        surface.getChildren().addAll(tintLayer, gradientLayer, content);
+        getChildren().add(surface);
 
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refresh());
         context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
@@ -53,7 +77,7 @@ public final class EditorHeader extends VBox {
     }
 
     private void refresh() {
-        getChildren().clear();
+        content.getChildren().clear();
 
         HBox row = new HBox(16);
         row.setAlignment(Pos.BOTTOM_LEFT);
@@ -63,13 +87,8 @@ public final class EditorHeader extends VBox {
 
         Region colorLine = new Region();
         colorLine.getStyleClass().add("editor-header-color-line");
-        int hue = ColorUtils.stringToHue(resolveColorKey());
-        Color lineColor = ColorUtils.hueToColor(hue);
-        Color glowColor = new Color(lineColor.getRed(), lineColor.getGreen(), lineColor.getBlue(), 0.26);
-        setStyle("-fx-background-color: "
-                + "linear-gradient(from 0% 0% to 0% 100%, " + ColorUtils.toCssRgba(glowColor) + " 0%, transparent 82%), "
-                + "linear-gradient(from 0% 100% to 0% 0%, #111114 0%, transparent 80%), "
-                + "#19181c;");
+        Color lineColor = ColorUtils.accentColor(resolveColorKey());
+        tintLayer.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(lineColor) + ";");
         colorLine.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, "
                 + ColorUtils.toCssRgba(lineColor)
                 + " 0%, transparent 100%);");
@@ -84,9 +103,9 @@ public final class EditorHeader extends VBox {
         HBox.setHgrow(left, Priority.ALWAYS);
         row.getChildren().addAll(left, actions());
 
-        getChildren().add(row);
+        content.getChildren().add(row);
         if (showTabs()) {
-            getChildren().add(buildTabs());
+            content.getChildren().add(buildTabs());
         }
     }
 
@@ -94,11 +113,14 @@ public final class EditorHeader extends VBox {
         HBox actions = new HBox(8);
         actions.getStyleClass().add("editor-header-actions");
         actions.setAlignment(Pos.CENTER_RIGHT);
+        actions.setFillHeight(false);
+        actions.setMaxHeight(Region.USE_PREF_SIZE);
         if (!isOverview()) return actions;
 
         if (simulationRoute != null) {
             Button simulation = new Button(I18n.get("enchantment:simulation"));
             simulation.getStyleClass().add("editor-header-simulation");
+            simulation.setMaxHeight(Region.USE_PREF_SIZE);
             simulation.setOnAction(event -> context.router().navigate(simulationRoute));
             actions.getChildren().add(simulation);
         }
@@ -109,6 +131,9 @@ public final class EditorHeader extends VBox {
                     value -> context.uiState().setViewMode("list".equals(value) ? StudioViewMode.LIST : StudioViewMode.GRID));
             toggle.addIconOption("grid", GRID_ICON);
             toggle.addIconOption("list", LIST_ICON);
+            toggle.setMinHeight(Region.USE_PREF_SIZE);
+            toggle.setMaxHeight(Region.USE_PREF_SIZE);
+            toggle.setMaxWidth(Region.USE_PREF_SIZE);
             toggle.refresh();
             actions.getChildren().add(toggle);
         }
@@ -162,7 +187,7 @@ public final class EditorHeader extends VBox {
             String filterPath = tree.filterPath();
             return filterPath == null || filterPath.isBlank() ? "all" : filterPath;
         }
-        String id = tree.currentElementId();
+        String id = ColorUtils.normalizeColorKey(tree.currentElementId());
         return (id == null || id.isBlank()) ? concept.registry() : id;
     }
 

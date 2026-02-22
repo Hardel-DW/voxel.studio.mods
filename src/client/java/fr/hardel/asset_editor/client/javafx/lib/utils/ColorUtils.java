@@ -4,6 +4,19 @@ import javafx.scene.paint.Color;
 
 public final class ColorUtils {
 
+    public static Color accentColor(String key) {
+        String normalized = normalizeColorKey(key);
+        return hueToColor(stringToHue(normalized));
+    }
+
+    public static String normalizeColorKey(String key) {
+        if (key == null) return "";
+        String clean = key.trim();
+        int reg = clean.indexOf('$');
+        if (reg >= 0) clean = clean.substring(0, reg);
+        return clean;
+    }
+
     public static int stringToHue(String text) {
         int hash = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -13,9 +26,13 @@ public final class ColorUtils {
     }
 
     public static Color hueToColor(int hue) {
+        return hueToColor(hue, 0.70, 0.60);
+    }
+
+    public static Color hueToColor(int hue, double saturation, double lightness) {
         double h = ((hue % 360) + 360) % 360;
-        double s = 0.70;
-        double l = 0.60;
+        double s = clamp(saturation);
+        double l = clamp(lightness);
         double c = (1 - Math.abs(2 * l - 1)) * s;
         double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
         double m = l - c / 2.0;

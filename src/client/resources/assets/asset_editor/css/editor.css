@@ -856,6 +856,7 @@
 
 .tree-row-accent {
     -fx-background-radius: 0 999 999 0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.45), 8, 0.2, 0, 0);
 }
 
 .tree-sidebar-row-label {
@@ -950,9 +951,16 @@
 
 /* ===== GENERIC EDITOR HEADER ===== */
 .editor-header {
-    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #111114 0%, transparent 80%), #19181c;
     -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
     -fx-border-width: 0 0 1 0;
+}
+
+.editor-header-surface {
+    -fx-background-color: #19181c;
+}
+
+.editor-header-gradient {
+    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, rgba(9, 9, 11, 1.0) 0%, rgba(9, 9, 11, 0.8) 50%, transparent 100%);
 }
 
 .editor-header-title {
