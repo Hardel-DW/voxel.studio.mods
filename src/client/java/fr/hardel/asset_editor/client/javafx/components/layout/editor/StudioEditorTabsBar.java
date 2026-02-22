@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
+import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -13,7 +14,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -52,41 +52,7 @@ public final class StudioEditorTabsBar extends HBox {
     }
 
     private HBox buildWindowControls(Stage stage) {
-        StackPane minimize = windowButton("M0 0h10v1H0z", 10, 1, VoxelColors.ZINC_200);
-        minimize.setOnMouseClicked(e -> { stage.setIconified(true); e.consume(); });
-
-        StackPane maximize = windowButton("M0 0v10h10V0H0zm1 1h8v8H1V1z", 10, 10, VoxelColors.ZINC_200);
-        maximize.setOnMouseClicked(e -> { stage.setMaximized(!stage.isMaximized()); e.consume(); });
-
-        StackPane close = windowButton(
-                "M1.41 0L0 1.41 3.59 5 0 8.59 1.41 10 5 6.41 8.59 10 10 8.59 6.41 5 10 1.41 8.59 0 5 3.59 1.41 0z",
-                10, 10, VoxelColors.RED_400);
-        close.setOnMouseClicked(e -> { stage.hide(); e.consume(); });
-
-        HBox controls = new HBox(minimize, maximize, close);
-        controls.setAlignment(Pos.CENTER_LEFT);
-        return controls;
-    }
-
-    private StackPane windowButton(String pathData, double vbW, double vbH, Color hoverFill) {
-        SVGPath icon = new SVGPath();
-        icon.setContent(pathData);
-        icon.setFill(VoxelColors.ZINC_500);
-
-        double scale = 12.0 / Math.max(vbW, vbH);
-        icon.setScaleX(scale);
-        icon.setScaleY(scale);
-
-        StackPane button = new StackPane(icon);
-        button.getStyleClass().add("studio-window-button");
-        button.setPrefSize(36, 48);
-        button.setMinSize(36, 48);
-        button.setMaxSize(36, 48);
-        button.setAlignment(Pos.CENTER);
-        button.setCursor(Cursor.HAND);
-        button.setOnMouseEntered(e -> icon.setFill(hoverFill));
-        button.setOnMouseExited(e -> icon.setFill(VoxelColors.ZINC_500));
-        return button;
+        return new WindowControls(stage, "studio-window-button", 36, 48, null, stage::hide);
     }
 
     private void refreshTabs() {
