@@ -18,14 +18,14 @@ public final class TreeController {
     private static final String DEFAULT_ELEMENT_ICON = "/images/features/item/bundle_open.png";
 
     private final StudioContext context;
-    private final TreeConfig config;
+    private final Config config;
     private final ObjectProperty<TreeNodeModel> tree;
     private final ObjectProperty<Map<String, String>> folderIcons;
     private final ObjectProperty<String> elementIconPath;
     private final BooleanProperty disableAutoExpand;
     private final ReadOnlyBooleanWrapper allActive = new ReadOnlyBooleanWrapper(true);
 
-    public TreeController(StudioContext context, TreeConfig config) {
+    public TreeController(StudioContext context, Config config) {
         this.context = context;
         this.config = config;
         this.tree = new SimpleObjectProperty<>(config.tree());
@@ -178,5 +178,22 @@ public final class TreeController {
         String filterPath = context.uiState().filterPath();
         String activeId = currentElementId();
         allActive.set((filterPath == null || filterPath.isBlank()) && (activeId == null || activeId.isBlank()));
+    }
+
+    public record Config(
+            StudioRoute overviewRoute,
+            StudioRoute detailRoute,
+            StudioRoute changesRoute,
+            String concept,
+            List<StudioRoute> tabRoutes,
+            TreeNodeModel tree,
+            String elementIconPath,
+            Map<String, String> folderIcons,
+            boolean disableAutoExpand,
+            java.util.function.Supplier<String> selectedElementId,
+            java.util.function.Consumer<String> onSelectElement,
+            java.util.function.Consumer<String> onSelectFolder,
+            java.util.function.IntSupplier modifiedCount
+    ) {
     }
 }

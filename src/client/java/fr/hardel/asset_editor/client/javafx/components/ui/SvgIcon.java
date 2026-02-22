@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
-import fr.hardel.asset_editor.client.javafx.WebAssetPath;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -25,7 +24,7 @@ import java.io.InputStream;
 public final class SvgIcon extends Pane {
 
     public SvgIcon(String webPath, double size, Paint fill) {
-        this(WebAssetPath.toIdentifier(webPath), size, fill);
+        this(Identifier.fromNamespaceAndPath("asset_editor", normalize(webPath)), size, fill);
     }
 
     public SvgIcon(Identifier location, double size, Paint fill) {
@@ -141,6 +140,16 @@ public final class SvgIcon extends Pane {
                 Double.parseDouble(parts[0]), Double.parseDouble(parts[1]),
                 Double.parseDouble(parts[2]), Double.parseDouble(parts[3])
         };
+    }
+
+    private static String normalize(String webPath) {
+        if (webPath == null || webPath.isBlank()) {
+            throw new IllegalArgumentException("webPath cannot be empty");
+        }
+        String path = webPath.trim().replace('\\', '/');
+        if (path.startsWith("/")) path = path.substring(1);
+        if (path.startsWith("images/")) return "textures/" + path.substring("images/".length());
+        return path;
     }
 }
 

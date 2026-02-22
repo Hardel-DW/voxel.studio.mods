@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.layout.editor;
+package fr.hardel.asset_editor.client.javafx.components.page.shared;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
@@ -8,9 +8,7 @@ import fr.hardel.asset_editor.client.javafx.data.StudioTabDefinition;
 import fr.hardel.asset_editor.client.javafx.data.StudioViewMode;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeColorUtil;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeTextUtil;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -26,6 +24,7 @@ import net.minecraft.client.resources.language.I18n;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class EditorHeader extends VBox {
 
@@ -63,8 +62,8 @@ public final class EditorHeader extends VBox {
 
         Region colorLine = new Region();
         colorLine.getStyleClass().add("editor-header-color-line");
-        int hue = TreeColorUtil.stringToHue(resolveColorKey());
-        Color lineColor = TreeColorUtil.hueToColor(hue);
+        int hue = stringToHue(resolveColorKey());
+        Color lineColor = hueToColor(hue);
         colorLine.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, "
                 + cssColor(lineColor)
                 + " 0%, transparent 100%);");
@@ -117,7 +116,7 @@ public final class EditorHeader extends VBox {
         for (int i = 0; i < segments.size(); i++) {
             Label sep = new Label("/");
             sep.getStyleClass().add("editor-breadcrumb-separator");
-            Label segment = new Label(TreeTextUtil.toDisplay(segments.get(i)).toUpperCase());
+            Label segment = new Label(toDisplay(segments.get(i)).toUpperCase(Locale.ROOT));
             segment.getStyleClass().add(i == segments.size() - 1
                     ? "editor-breadcrumb-leaf"
                     : "editor-breadcrumb-segment");
@@ -194,13 +193,13 @@ public final class EditorHeader extends VBox {
             String filterPath = tree.filterPath();
             if (filterPath == null || filterPath.isBlank()) return I18n.get("editor.all");
             String[] parts = filterPath.split("/");
-            return TreeTextUtil.toDisplay(parts[parts.length - 1]);
+            return toDisplay(parts[parts.length - 1]);
         }
         String id = tree.currentElementId();
         if (id == null || id.isBlank()) return I18n.get(concept.titleKey());
         String clean = id.contains("$") ? id.substring(0, id.indexOf('$')) : id;
         int sep = clean.indexOf(':');
-        return sep >= 0 ? TreeTextUtil.toDisplay(clean.substring(sep + 1)) : TreeTextUtil.toDisplay(clean);
+        return sep >= 0 ? toDisplay(clean.substring(sep + 1)) : toDisplay(clean);
     }
 
     private String resolveColorKey() {
@@ -245,5 +244,67 @@ public final class EditorHeader extends VBox {
                 (int) Math.round(color.getGreen() * 255),
                 (int) Math.round(color.getBlue() * 255),
                 color.getOpacity());
+    }
+
+    private static int stringToHue(String text) {
+        int hash = 0;
+        for (int i = 0; i < text.length(); i++) {
+            hash = text.charAt(i) + ((hash << 5) - hash);
+        }
+        return (int) (Math.abs((long) hash) % 360L);
+    }
+
+    private static Color hueToColor(int hue) {
+        double h = ((hue % 360) + 360) % 360;
+        double s = 0.70;
+        double l = 0.60;
+        double c = (1 - Math.abs(2 * l - 1)) * s;
+        double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
+        double m = l - c / 2.0;
+        double r = 0;
+        double g = 0;
+        double b = 0;
+        if (h < 60) {
+            r = c;
+            g = x;
+        } else if (h < 120) {
+            r = x;
+            g = c;
+        } else if (h < 180) {
+            g = c;
+            b = x;
+        } else if (h < 240) {
+            g = x;
+            b = c;
+        } else if (h < 300) {
+            r = x;
+            b = c;
+        } else {
+            r = c;
+            b = x;
+        }
+        return Color.color(clamp(r + m), clamp(g + m), clamp(b + m));
+    }
+
+    private static double clamp(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
+    }
+
+    private static String toDisplay(String input) {
+        if (input == null || input.isBlank()) return "";
+        String clean = input.startsWith("#") ? input.substring(1) : input;
+        int namespaceSep = clean.indexOf(':');
+        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
+        String[] path = resource.split("/");
+        String leaf = path[path.length - 1];
+        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if (builder.length() > 0) builder.append(' ');
+            builder.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) builder.append(word.substring(1).toLowerCase(Locale.ROOT));
+        }
+        return builder.toString();
     }
 }

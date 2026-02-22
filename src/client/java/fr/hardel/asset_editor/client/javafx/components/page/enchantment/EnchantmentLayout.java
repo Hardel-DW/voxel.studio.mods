@@ -1,17 +1,18 @@
-package fr.hardel.asset_editor.client.javafx.components.layout.editor;
+package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.components.page.enchantment.tree.EnchantmentTreeBuilder;
+import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorHeader;
+import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorSidebar;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeConfig;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.build.EnchantmentTreeBuilder;
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentMainPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentOverviewPage;
-import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -39,7 +40,7 @@ public final class EnchantmentLayout extends HBox {
         mainPage = new EnchantmentMainPage(context);
 
         StudioSidebarView initialView = context.uiState().sidebarView();
-        tree = new TreeController(context, new TreeConfig(
+        tree = new TreeController(context, new TreeController.Config(
                 StudioRoute.ENCHANTMENT_OVERVIEW,
                 StudioRoute.ENCHANTMENT_MAIN,
                 StudioRoute.CHANGES_MAIN,

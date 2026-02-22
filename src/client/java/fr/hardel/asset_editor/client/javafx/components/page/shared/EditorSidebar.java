@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.layout.editor;
+package fr.hardel.asset_editor.client.javafx.components.page.shared;
 
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;

@@ -12,6 +12,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
 
+import java.util.Locale;
+
 public final class TreeSidebarView extends VBox {
 
     private final StudioContext context;
@@ -51,13 +53,13 @@ public final class TreeSidebarView extends VBox {
         row.setOnMouseClicked(event -> onClick.run());
 
         if (active) {
-            int hue = TreeColorUtil.stringToHue(text.toLowerCase());
+            int hue = stringToHue(text.toLowerCase(Locale.ROOT));
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
-            Color c = TreeColorUtil.hueToColor(hue);
+            Color c = hueToColor(hue);
             accent.setStyle("-fx-background-color: rgba(%d,%d,%d,1.0);".formatted(
                     (int) Math.round(c.getRed() * 255),
                     (int) Math.round(c.getGreen() * 255),
@@ -85,5 +87,49 @@ public final class TreeSidebarView extends VBox {
         row.getChildren().add(countLabel);
 
         return row;
+    }
+
+    private static int stringToHue(String text) {
+        int hash = 0;
+        for (int i = 0; i < text.length(); i++) {
+            hash = text.charAt(i) + ((hash << 5) - hash);
+        }
+        return (int) (Math.abs((long) hash) % 360L);
+    }
+
+    private static Color hueToColor(int hue) {
+        double h = ((hue % 360) + 360) % 360;
+        double s = 0.70;
+        double l = 0.60;
+        double c = (1 - Math.abs(2 * l - 1)) * s;
+        double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
+        double m = l - c / 2.0;
+        double r = 0;
+        double g = 0;
+        double b = 0;
+        if (h < 60) {
+            r = c;
+            g = x;
+        } else if (h < 120) {
+            r = x;
+            g = c;
+        } else if (h < 180) {
+            g = c;
+            b = x;
+        } else if (h < 240) {
+            g = x;
+            b = c;
+        } else if (h < 300) {
+            r = x;
+            b = c;
+        } else {
+            r = c;
+            b = x;
+        }
+        return Color.color(clamp(r + m), clamp(g + m), clamp(b + m));
+    }
+
+    private static double clamp(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 }

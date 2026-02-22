@@ -1,43 +1,45 @@
-package fr.hardel.asset_editor.client.javafx.components.layout.editor;
+package fr.hardel.asset_editor.client.javafx.components.page.loot_table;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeConfig;
+import fr.hardel.asset_editor.client.javafx.components.page.loot_table.tree.LootTableTreeBuilder;
+import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorHeader;
+import fr.hardel.asset_editor.client.javafx.components.page.shared.EditorSidebar;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.build.RecipeTreeBuilder;
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.routes.recipe.RecipeMainPage;
-import fr.hardel.asset_editor.client.javafx.routes.recipe.RecipeOverviewPage;
+import fr.hardel.asset_editor.client.javafx.routes.loot.LootTableMainPage;
+import fr.hardel.asset_editor.client.javafx.routes.loot.LootTableOverviewPage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Map;
 
-public final class RecipeLayout extends HBox {
+public final class LootTableLayout extends HBox {
 
     private final StudioContext context;
-    private final RecipeOverviewPage overviewPage;
-    private final RecipeMainPage mainPage;
+    private final LootTableOverviewPage overviewPage;
+    private final LootTableMainPage mainPage;
     private final EmptyPage emptyPage = new EmptyPage();
     private final StackPane outlet = new StackPane();
 
-    public RecipeLayout(StudioContext context) {
+    public LootTableLayout(StudioContext context) {
         this.context = context;
         getStyleClass().add("enchantment-layout");
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        TreeController tree = new TreeController(context, new TreeConfig(
-                StudioRoute.RECIPE_OVERVIEW,
-                StudioRoute.RECIPE_MAIN,
+        TreeController tree = new TreeController(context, new TreeController.Config(
+                StudioRoute.LOOT_TABLE_OVERVIEW,
+                StudioRoute.LOOT_TABLE_MAIN,
                 StudioRoute.CHANGES_MAIN,
-                StudioConcept.RECIPE.registry(),
-                StudioConcept.RECIPE.tabRoutes(),
-                RecipeTreeBuilder.build(List.of()),
-                "/images/features/block/crafting_table.png",
-                RecipeTreeBuilder.folderIcons(),
+                StudioConcept.LOOT_TABLE.registry(),
+                StudioConcept.LOOT_TABLE.tabRoutes(),
+                LootTableTreeBuilder.build(List.of()),
+                "/images/features/item/bundle_close.png",
+                Map.of(),
                 false,
                 null,
                 null,
@@ -45,18 +47,18 @@ public final class RecipeLayout extends HBox {
                 () -> 0
         ));
 
-        overviewPage = new RecipeOverviewPage(context);
-        mainPage = new RecipeMainPage();
+        overviewPage = new LootTableOverviewPage(context);
+        mainPage = new LootTableMainPage();
 
         EditorSidebar sidebar = new EditorSidebar(
                 context,
                 tree,
-                "recipe:overview.title",
-                "/images/features/block/crafting_table.png",
+                "loot:overview.title",
+                "/images/features/item/bundle_close.png",
                 List.of()
         );
 
-        VBox main = new VBox(new EditorHeader(context, tree, StudioConcept.RECIPE, false, null), outlet);
+        VBox main = new VBox(new EditorHeader(context, tree, StudioConcept.LOOT_TABLE, true, null), outlet);
         main.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         main.getStyleClass().add("enchantment-main");
         VBox.setVgrow(outlet, Priority.ALWAYS);
@@ -69,11 +71,11 @@ public final class RecipeLayout extends HBox {
 
     private void refresh() {
         StudioRoute route = context.router().currentRoute();
-        if (route == StudioRoute.RECIPE_OVERVIEW) {
+        if (route == StudioRoute.LOOT_TABLE_OVERVIEW) {
             outlet.getChildren().setAll(overviewPage);
             return;
         }
-        if (route == StudioRoute.RECIPE_MAIN) {
+        if (route == StudioRoute.LOOT_TABLE_MAIN || route == StudioRoute.LOOT_TABLE_POOLS) {
             outlet.getChildren().setAll(mainPage);
             return;
         }

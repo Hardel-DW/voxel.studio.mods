@@ -5,7 +5,6 @@ import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeTextUtil;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
 import javafx.collections.ListChangeListener;
@@ -19,6 +18,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
+import java.util.Locale;
 
 /**
  * Workspace header bar — always visible.
@@ -112,8 +113,26 @@ public final class StudioEditorTabsBar extends HBox {
         if (elementId == null || elementId.isBlank()) return "";
         String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
         int sep = clean.indexOf(':');
-        if (sep < 0 || sep + 1 >= clean.length()) return TreeTextUtil.toDisplay(clean);
-        return TreeTextUtil.toDisplay(clean.substring(sep + 1));
+        if (sep < 0 || sep + 1 >= clean.length()) return toDisplay(clean);
+        return toDisplay(clean.substring(sep + 1));
+    }
+
+    private static String toDisplay(String input) {
+        if (input == null || input.isBlank()) return "";
+        String clean = input.startsWith("#") ? input.substring(1) : input;
+        int namespaceSep = clean.indexOf(':');
+        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
+        String[] path = resource.split("/");
+        String leaf = path[path.length - 1];
+        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if (builder.length() > 0) builder.append(' ');
+            builder.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) builder.append(word.substring(1).toLowerCase(Locale.ROOT));
+        }
+        return builder.toString();
     }
 }
 

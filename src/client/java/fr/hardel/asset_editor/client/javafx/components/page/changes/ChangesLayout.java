@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.components.layout.editor;
+package fr.hardel.asset_editor.client.javafx.components.page.changes;
 
 import fr.hardel.asset_editor.client.javafx.routes.changes.ChangesMainPage;
 import javafx.scene.layout.StackPane;

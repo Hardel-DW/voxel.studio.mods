@@ -20,17 +20,16 @@ import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 
 public final class FileTreeView extends VBox {
 
-    private final StudioContext context;
     private final TreeController tree;
     private final HashMap<String, Boolean> openState = new HashMap<>();
 
     public FileTreeView(StudioContext context, TreeController tree) {
-        this.context = context;
         this.tree = tree;
         getStyleClass().add("tree-file");
 
@@ -46,7 +45,8 @@ public final class FileTreeView extends VBox {
     private void refresh() {
         getChildren().clear();
         TreeNodeModel root = tree.tree();
-        if (root == null) return;
+        if (root == null)
+            return;
         for (Map.Entry<String, TreeNodeModel> entry : sortedEntries(root.children())) {
             getChildren().add(createNode(entry.getKey(), entry.getKey(), entry.getValue(), 0, false));
         }
@@ -56,7 +56,7 @@ public final class FileTreeView extends VBox {
         boolean isElement = node.elementId() != null && !node.elementId().isBlank();
         boolean hasChildren = !node.children().isEmpty();
         String activeElementId = tree.currentElementId();
-        boolean hasActiveChild = !tree.disableAutoExpand() && TreeUtils.hasActiveDescendant(node, activeElementId);
+        boolean hasActiveChild = !tree.disableAutoExpand() && node.hasActiveDescendant(activeElementId);
         boolean defaultOpen = forceOpen || hasActiveChild;
         boolean isOpen = openState.computeIfAbsent(path, key -> defaultOpen);
         if (hasActiveChild && !isOpen) {
@@ -94,7 +94,8 @@ public final class FileTreeView extends VBox {
         HBox row = new HBox(8);
         row.getStyleClass().add("tree-row");
         row.getStyleClass().add(isHighlighted ? "tree-row-active" : "tree-row-inactive");
-        if (depth > 0) row.getStyleClass().add("tree-row-depth");
+        if (depth > 0)
+            row.getStyleClass().add("tree-row-depth");
         row.setPadding(new Insets(0, 8, 0, depth * 8 + 8));
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
@@ -104,13 +105,13 @@ public final class FileTreeView extends VBox {
         }
 
         if (isHighlighted) {
-            int hue = TreeColorUtil.stringToHue(isElement ? node.elementId() : path);
+            int hue = stringToHue(isElement ? node.elementId() : path);
             Region accent = new Region();
             accent.getStyleClass().add("tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
-            accent.setStyle("-fx-background-color: " + toCssColor(TreeColorUtil.hueToColor(hue)) + ";");
+            accent.setStyle("-fx-background-color: " + toCssColor(hueToColor(hue)) + ";");
             StackPane.setAlignment(accent, Pos.CENTER_LEFT);
             StackPane.setMargin(accent, new Insets(8, 0, 8, 0));
             rowContainer.getChildren().add(accent);
@@ -119,11 +120,13 @@ public final class FileTreeView extends VBox {
         if (!isElement) {
             Node chevronIcon = new SvgIcon("/icons/chevron-down.svg", 12, Color.WHITE);
             chevronIcon.setRotate(isOpen ? 0 : -90);
-            if (!hasChildren) chevronIcon.setOpacity(0.2);
+            if (!hasChildren)
+                chevronIcon.setOpacity(0.2);
 
             Button chevron = new Button();
             chevron.getStyleClass().add("tree-chevron");
-                if (hasChildren) chevron.getStyleClass().add("tree-chevron-hoverable");
+            if (hasChildren)
+                chevron.getStyleClass().add("tree-chevron-hoverable");
             chevron.setGraphic(chevronIcon);
             chevron.setOnAction(event -> {
                 event.consume();
@@ -143,10 +146,11 @@ public final class FileTreeView extends VBox {
                 ? new SvgIcon(iconPath, 20, Color.WHITE)
                 : new ResourceImageIcon(iconPath, 20);
         icon.getStyleClass().add("tree-row-icon");
-        if (isDefaultFolderIcon) icon.setOpacity(isHighlighted ? 1.0 : 0.6);
+        if (isDefaultFolderIcon)
+            icon.setOpacity(isHighlighted ? 1.0 : 0.6);
         content.getChildren().add(icon);
 
-        Label label = new Label(TreeTextUtil.toDisplay(name));
+        Label label = new Label(toDisplay(name));
         label.getStyleClass().add("tree-row-label");
         label.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(label, Priority.ALWAYS);
@@ -212,5 +216,71 @@ public final class FileTreeView extends VBox {
                 (int) Math.round(color.getGreen() * 255),
                 (int) Math.round(color.getBlue() * 255),
                 color.getOpacity());
+    }
+
+    private static int stringToHue(String text) {
+        int hash = 0;
+        for (int i = 0; i < text.length(); i++) {
+            hash = text.charAt(i) + ((hash << 5) - hash);
+        }
+        return (int) (Math.abs((long) hash) % 360L);
+    }
+
+    private static Color hueToColor(int hue) {
+        double h = ((hue % 360) + 360) % 360;
+        double s = 0.70;
+        double l = 0.60;
+        double c = (1 - Math.abs(2 * l - 1)) * s;
+        double x = c * (1 - Math.abs((h / 60.0) % 2 - 1));
+        double m = l - c / 2.0;
+        double r = 0;
+        double g = 0;
+        double b = 0;
+        if (h < 60) {
+            r = c;
+            g = x;
+        } else if (h < 120) {
+            r = x;
+            g = c;
+        } else if (h < 180) {
+            g = c;
+            b = x;
+        } else if (h < 240) {
+            g = x;
+            b = c;
+        } else if (h < 300) {
+            r = x;
+            b = c;
+        } else {
+            r = c;
+            b = x;
+        }
+        return Color.color(clamp(r + m), clamp(g + m), clamp(b + m));
+    }
+
+    private static double clamp(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
+    }
+
+    private static String toDisplay(String input) {
+        if (input == null || input.isBlank())
+            return "";
+        String clean = input.startsWith("#") ? input.substring(1) : input;
+        int namespaceSep = clean.indexOf(':');
+        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
+        String[] path = resource.split("/");
+        String leaf = path[path.length - 1];
+        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < words.length; i++) {
+            if (words[i].isEmpty())
+                continue;
+            if (builder.length() > 0)
+                builder.append(' ');
+            builder.append(Character.toUpperCase(words[i].charAt(0)));
+            if (words[i].length() > 1)
+                builder.append(words[i].substring(1).toLowerCase(Locale.ROOT));
+        }
+        return builder.toString();
     }
 }

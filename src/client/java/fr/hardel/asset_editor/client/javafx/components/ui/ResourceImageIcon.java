@@ -1,10 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
-import fr.hardel.asset_editor.client.javafx.WebAssetPath;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import net.minecraft.resources.Identifier;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ResourceImageIcon extends ImageView {
 
@@ -24,7 +26,7 @@ public final class ResourceImageIcon extends ImageView {
         setFitWidth(size);
         setFitHeight(size);
         setPreserveRatio(true);
-        for (Identifier id : WebAssetPath.imageCandidates(webPath)) {
+        for (Identifier id : imageCandidates(webPath)) {
             try (var stream = ResourceLoader.open(id)) {
                 setImage(new Image(stream));
                 return;
@@ -33,6 +35,27 @@ public final class ResourceImageIcon extends ImageView {
         }
         setVisible(false);
         setManaged(false);
+    }
+
+    private static List<Identifier> imageCandidates(String webPath) {
+        String normalized = normalize(webPath);
+        ArrayList<Identifier> candidates = new ArrayList<>();
+        candidates.add(Identifier.fromNamespaceAndPath("asset_editor", normalized));
+        if (normalized.endsWith(".png")) {
+            String webp = normalized.substring(0, normalized.length() - 4) + ".webp";
+            candidates.add(Identifier.fromNamespaceAndPath("asset_editor", webp));
+        }
+        return candidates;
+    }
+
+    private static String normalize(String webPath) {
+        if (webPath == null || webPath.isBlank()) {
+            throw new IllegalArgumentException("webPath cannot be empty");
+        }
+        String path = webPath.trim().replace('\\', '/');
+        if (path.startsWith("/")) path = path.substring(1);
+        if (path.startsWith("images/")) return "textures/" + path.substring("images/".length());
+        return path;
     }
 }
 

@@ -1,11 +1,11 @@
 package fr.hardel.asset_editor.client.javafx.data.mock;
 
 import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
-import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeTextUtil;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class StudioMockRepository {
@@ -55,7 +55,7 @@ public final class StudioMockRepository {
         LinkedHashSet<String> groups = new LinkedHashSet<>();
         for (StudioMockEnchantment enchantment : enchantments) {
             if (mode == StudioSidebarView.EXCLUSIVE) {
-                groups.add(TreeTextUtil.toDisplay(enchantment.exclusiveGroup()));
+                groups.add(toDisplay(enchantment.exclusiveGroup()));
                 continue;
             }
             if (mode == StudioSidebarView.SLOTS) {
@@ -87,7 +87,7 @@ public final class StudioMockRepository {
         if (!leaf.isEmpty() && !enchantment.resource().equals(leaf))
             return false;
         if (sidebarView == StudioSidebarView.EXCLUSIVE)
-            return TreeTextUtil.toDisplay(enchantment.exclusiveGroup()).toLowerCase().equals(category);
+            return toDisplay(enchantment.exclusiveGroup()).toLowerCase(Locale.ROOT).equals(category);
         if (sidebarView == StudioSidebarView.SLOTS)
             return hasAny(enchantment.slots(), SLOT_MATCHERS.getOrDefault(category, List.of()));
         return enchantment.items().contains(category);
@@ -98,6 +98,24 @@ public final class StudioMockRepository {
             if (expected.contains(value)) return true;
         }
         return false;
+    }
+
+    private static String toDisplay(String input) {
+        if (input == null || input.isBlank()) return "";
+        String clean = input.startsWith("#") ? input.substring(1) : input;
+        int namespaceSep = clean.indexOf(':');
+        String resource = namespaceSep >= 0 ? clean.substring(namespaceSep + 1) : clean;
+        String[] path = resource.split("/");
+        String leaf = path[path.length - 1];
+        String[] words = leaf.replace('_', ' ').trim().split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String word : words) {
+            if (word.isEmpty()) continue;
+            if (builder.length() > 0) builder.append(' ');
+            builder.append(Character.toUpperCase(word.charAt(0)));
+            if (word.length() > 1) builder.append(word.substring(1).toLowerCase(Locale.ROOT));
+        }
+        return builder.toString();
     }
 }
 

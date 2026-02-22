@@ -52,4 +52,23 @@ public final class TreeNodeModel {
     public void setFolder(boolean folder) {
         this.folder = folder;
     }
+
+    public boolean hasActiveDescendant(String activeId) {
+        if (activeId == null || activeId.isBlank()) return false;
+        if (activeId.equals(elementId)) return true;
+        for (TreeNodeModel child : children.values()) {
+            if (child.hasActiveDescendant(activeId)) return true;
+        }
+        return false;
+    }
+
+    public int recalculateCount() {
+        if (elementId != null && !elementId.isBlank()) return 1;
+        int value = 0;
+        for (TreeNodeModel child : children.values()) {
+            value += child.recalculateCount();
+        }
+        count = value;
+        return value;
+    }
 }

@@ -1,5 +1,9 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.client.javafx.components.page.changes.ChangesLayout;
+import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentLayout;
+import fr.hardel.asset_editor.client.javafx.components.page.loot_table.LootTableLayout;
+import fr.hardel.asset_editor.client.javafx.components.page.recipe.RecipeLayout;
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.geometry.Pos;
