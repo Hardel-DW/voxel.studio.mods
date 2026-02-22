@@ -47,5 +47,20 @@
     "supports.advantages.submit_ideas": "Submit ideas",
     "supports.advantages.discord_role": "Exclusive role and channel on Discord",
     "supports.advantages.live_voxel": "Make Voxel live",
-    "supports.become": "Become a Patreon"
+    "supports.become": "Become a Patreon",
+    "tree.updated": "Updated",
+    "tree.all": "All",
+    "changes:layout.title": "Changes",
+    "studio.coming_soon.title": "This page is coming soon",
+    "loot:overview.title": "Loot Tables",
+    "loot:overview.search": "Search tables...",
+    "loot:overview.empty.title": "No loot tables found",
+    "loot:overview.empty.description": "Try adjusting your search or filters.",
+    "loot:section.main": "Main",
+    "loot:section.pools": "Pools",
+    "recipe:overview.title": "Recipes",
+    "recipe:overview.search": "Search recipes...",
+    "recipe:overview.no.recipes.found": "No recipes found",
+    "recipe:overview.try.adjusting.search.or.filter": "Try adjusting your search or filter",
+    "recipe:section.main": "Main"
 }

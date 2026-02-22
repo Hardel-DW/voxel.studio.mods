@@ -12,7 +12,7 @@ public final class StudioUiState {
 
     private final StringProperty search = new SimpleStringProperty("");
     private final StringProperty filterPath = new SimpleStringProperty("");
-    private final ObjectProperty<StudioViewMode> viewMode = new SimpleObjectProperty<>(StudioViewMode.GRID);
+    private final ObjectProperty<StudioViewMode> viewMode = new SimpleObjectProperty<>(StudioViewMode.LIST);
     private final ObjectProperty<StudioSidebarView> sidebarView = new SimpleObjectProperty<>(StudioSidebarView.SLOTS);
 
     public StringProperty searchProperty() {
@@ -65,6 +65,7 @@ public final class StudioUiState {
         if (mode == null || mode == sidebarView.get())
             return;
         sidebarView.set(mode);
+        filterPath.set("");
     }
 }
 

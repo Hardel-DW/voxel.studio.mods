@@ -1,18 +1,30 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeConfig;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.build.EnchantmentTreeBuilder;
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentMainPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentOverviewPage;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
+import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import java.util.List;
+import java.util.Map;
+
 public final class EnchantmentLayout extends HBox {
 
     private final StudioContext context;
+    private final TreeController tree;
     private final EnchantmentOverviewPage overviewPage;
     private final EnchantmentMainPage mainPage;
     private final EmptyPage emptyPage = new EmptyPage();
@@ -26,8 +38,32 @@ public final class EnchantmentLayout extends HBox {
         overviewPage = new EnchantmentOverviewPage(context);
         mainPage = new EnchantmentMainPage(context);
 
-        EnchantmentSidebar sidebar = new EnchantmentSidebar(context);
-        VBox main = new VBox(new EnchantmentHeader(context), outlet);
+        StudioSidebarView initialView = context.uiState().sidebarView();
+        tree = new TreeController(context, new TreeConfig(
+                StudioRoute.ENCHANTMENT_OVERVIEW,
+                StudioRoute.ENCHANTMENT_MAIN,
+                StudioRoute.CHANGES_MAIN,
+                StudioConcept.ENCHANTMENT.registry(),
+                StudioConcept.ENCHANTMENT.tabRoutes(),
+                buildTree(initialView),
+                "/images/features/item/enchanted_book.png",
+                folderIcons(initialView),
+                initialView == StudioSidebarView.SLOTS,
+                null,
+                null,
+                null,
+                () -> 0
+        ));
+
+        ToggleGroup toggleGroup = buildSidebarToggle();
+        Node sidebar = new EditorSidebar(
+                context,
+                tree,
+                "enchantment:overview.title",
+                "/images/features/item/enchanted_book.png",
+                List.of(toggleGroup));
+
+        VBox main = new VBox(new EditorHeader(context, tree, StudioConcept.ENCHANTMENT, true, StudioRoute.ENCHANTMENT_SIMULATION), outlet);
         main.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         main.getStyleClass().add("enchantment-main");
         VBox.setVgrow(outlet, Priority.ALWAYS);
@@ -36,6 +72,11 @@ public final class EnchantmentLayout extends HBox {
         getChildren().addAll(sidebar, main);
 
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refresh());
+        context.uiState().sidebarViewProperty().addListener((obs, oldValue, newValue) -> {
+            tree.setTree(buildTree(newValue));
+            tree.setFolderIcons(folderIcons(newValue));
+            tree.setDisableAutoExpand(newValue == StudioSidebarView.SLOTS);
+        });
         refresh();
     }
 
@@ -50,6 +91,36 @@ public final class EnchantmentLayout extends HBox {
             return;
         }
         outlet.getChildren().setAll(emptyPage);
+    }
+
+    private ToggleGroup buildSidebarToggle() {
+        ToggleGroup toggleGroup = new ToggleGroup(
+                () -> context.uiState().sidebarView().name().toLowerCase(),
+                value -> {
+                    StudioSidebarView next = switch (value) {
+                        case "items" -> StudioSidebarView.ITEMS;
+                        case "exclusive" -> StudioSidebarView.EXCLUSIVE;
+                        default -> StudioSidebarView.SLOTS;
+                    };
+                    context.uiState().setSidebarView(next);
+                });
+        toggleGroup.getStyleClass().add("enchantment-sidebar-toggle");
+        javafx.scene.layout.VBox.setMargin(toggleGroup, new javafx.geometry.Insets(16, 0, 0, 0));
+        toggleGroup.addOption("slots", net.minecraft.client.resources.language.I18n.get("enchantment:overview.sidebar.slots"));
+        toggleGroup.addOption("items", net.minecraft.client.resources.language.I18n.get("enchantment:overview.sidebar.items"));
+        toggleGroup.addOption("exclusive", net.minecraft.client.resources.language.I18n.get("enchantment:overview.sidebar.exclusive"));
+        context.uiState().sidebarViewProperty().addListener((obs, oldValue, newValue) -> toggleGroup.refresh());
+        return toggleGroup;
+    }
+
+    private TreeNodeModel buildTree(StudioSidebarView view) {
+        return EnchantmentTreeBuilder.build(context.repository().enchantments(), view, 61);
+    }
+
+    private Map<String, String> folderIcons(StudioSidebarView view) {
+        if (view == StudioSidebarView.SLOTS) return EnchantmentTreeBuilder.slotFolderIcons();
+        if (view == StudioSidebarView.ITEMS) return EnchantmentTreeBuilder.itemFolderIcons(61);
+        return Map.of();
     }
 }
 

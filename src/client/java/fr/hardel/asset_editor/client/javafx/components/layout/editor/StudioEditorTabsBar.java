@@ -2,8 +2,10 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeTextUtil;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
 import javafx.collections.ListChangeListener;
@@ -17,7 +19,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import net.minecraft.resources.Identifier;
 
 /**
  * Workspace header bar — always visible.
@@ -26,9 +27,6 @@ import net.minecraft.resources.Identifier;
  * Drag/resize behavior is handled at window level (VoxelStudioWindow).
  */
 public final class StudioEditorTabsBar extends HBox {
-
-    private static final Identifier ENCHANTMENT_ICON =
-            Identifier.fromNamespaceAndPath("minecraft", "textures/item/enchanted_book.png");
 
     private final StudioContext context;
     private final HBox tabsContainer = new HBox(4);
@@ -78,7 +76,7 @@ public final class StudioEditorTabsBar extends HBox {
             e.consume();
         });
 
-        ResourceImageIcon icon = new ResourceImageIcon(ENCHANTMENT_ICON, 16); // size-4
+        ResourceImageIcon icon = new ResourceImageIcon(StudioConcept.byRoute(tab.route()).icon(), 16); // size-4
         Text label = new Text(displayName(tab.elementId()));
         label.getStyleClass().add("studio-editor-tab-label");
         StackPane closeBtn = closeButton(index, tab);
@@ -104,15 +102,18 @@ public final class StudioEditorTabsBar extends HBox {
             e.consume();
             context.tabsState().closeTab(index);
             StudioOpenTab next = context.tabsState().activeTab();
-            context.router().navigate(next != null ? next.route() : StudioRoute.ENCHANTMENT_OVERVIEW);
+            StudioRoute fallback = StudioRoute.overviewOf(context.router().currentRoute().concept());
+            context.router().navigate(next != null ? next.route() : fallback);
         });
         return btn;
     }
 
     private String displayName(String elementId) {
         if (elementId == null || elementId.isBlank()) return "";
-        int sep = elementId.indexOf(':');
-        return (sep < 0 || sep + 1 >= elementId.length()) ? elementId : elementId.substring(sep + 1);
+        String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
+        int sep = clean.indexOf(':');
+        if (sep < 0 || sep + 1 >= clean.length()) return TreeTextUtil.toDisplay(clean);
+        return TreeTextUtil.toDisplay(clean.substring(sep + 1));
     }
 }
 

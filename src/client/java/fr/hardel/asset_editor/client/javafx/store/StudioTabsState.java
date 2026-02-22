@@ -11,6 +11,8 @@ import javafx.collections.ObservableList;
 
 public final class StudioTabsState {
 
+    private static final int MAX_TABS = 10;
+
     private final ObservableList<StudioOpenTab> openTabs = FXCollections.observableArrayList();
     private final IntegerProperty activeTabIndex = new SimpleIntegerProperty(-1);
     private final SimpleStringProperty currentElementId = new SimpleStringProperty("");
@@ -51,6 +53,9 @@ public final class StudioTabsState {
             return;
         }
         openTabs.add(new StudioOpenTab(elementId, route));
+        if (openTabs.size() > MAX_TABS) {
+            openTabs.remove(0);
+        }
         activeTabIndex.set(openTabs.size() - 1);
         currentElementId.set(elementId);
     }

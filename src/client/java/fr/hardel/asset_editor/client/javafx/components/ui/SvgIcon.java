@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.WebAssetPath;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -22,6 +23,10 @@ import java.io.InputStream;
  * Supports: path, rect, line, polyline — with fill and/or stroke.
  */
 public final class SvgIcon extends Pane {
+
+    public SvgIcon(String webPath, double size, Paint fill) {
+        this(WebAssetPath.toIdentifier(webPath), size, fill);
+    }
 
     public SvgIcon(Identifier location, double size, Paint fill) {
         setPrefSize(size, size);

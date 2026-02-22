@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.context.StudioContext;
+import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -19,6 +20,11 @@ import javafx.stage.Stage;
 public final class StudioEditorRoot extends HBox {
 
     private final StudioContext context = new StudioContext();
+    private final StackPane contentOutlet = new StackPane();
+    private final EnchantmentLayout enchantmentLayout = new EnchantmentLayout(context);
+    private final LootTableLayout lootTableLayout = new LootTableLayout(context);
+    private final RecipeLayout recipeLayout = new RecipeLayout(context);
+    private final ChangesLayout changesLayout = new ChangesLayout();
 
     public StudioEditorRoot(Stage stage) {
         getStyleClass().add("studio-root");
@@ -26,12 +32,11 @@ public final class StudioEditorRoot extends HBox {
         StudioPrimarySidebar sidebar = new StudioPrimarySidebar(context);
         StudioEditorTabsBar header = new StudioEditorTabsBar(context, stage);
 
-        EnchantmentLayout layout = new EnchantmentLayout(context);
-        StackPane contentBody = new StackPane(layout);
+        StackPane contentBody = new StackPane(contentOutlet);
         contentBody.getStyleClass().add("studio-content-body");
         contentBody.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         contentBody.setAlignment(Pos.TOP_LEFT);
-        layout.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        contentOutlet.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         Path frame = new Path();
         frame.getStyleClass().add("studio-content-frame");
@@ -45,7 +50,7 @@ public final class StudioEditorRoot extends HBox {
         contentSurface.getStyleClass().add("studio-content-surface");
         contentSurface.setAlignment(Pos.TOP_LEFT);
         StackPane.setAlignment(contentBody, Pos.TOP_LEFT);
-        StackPane.setAlignment(layout, Pos.TOP_LEFT);
+        StackPane.setAlignment(contentOutlet, Pos.TOP_LEFT);
         VBox.setVgrow(contentSurface, Priority.ALWAYS);
 
         // Rounded top-left mask + explicit border path to avoid JavaFX border-radius artifacts.
@@ -59,6 +64,8 @@ public final class StudioEditorRoot extends HBox {
         HBox.setHgrow(workspace, Priority.ALWAYS);
 
         getChildren().addAll(sidebar, workspace);
+        context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshOutlet());
+        refreshOutlet();
 
         // First pass once the node is in scene to avoid a transient empty clip.
         contentSurface.sceneProperty().addListener((obs, oldScene, newScene) -> {
@@ -66,6 +73,23 @@ public final class StudioEditorRoot extends HBox {
                 return;
             refreshSurfaceGeometry(contentSurface.getWidth(), contentSurface.getHeight(), contentBody, frame);
         });
+    }
+
+    private void refreshOutlet() {
+        if (context.router().currentRoute() == StudioRoute.CHANGES_MAIN) {
+            contentOutlet.getChildren().setAll(changesLayout);
+            return;
+        }
+        String concept = context.router().currentRoute().concept();
+        if ("loot_table".equals(concept)) {
+            contentOutlet.getChildren().setAll(lootTableLayout);
+            return;
+        }
+        if ("recipe".equals(concept)) {
+            contentOutlet.getChildren().setAll(recipeLayout);
+            return;
+        }
+        contentOutlet.getChildren().setAll(enchantmentLayout);
     }
 
     private static void refreshSurfaceGeometry(double width, double height, StackPane contentBody, Path frame) {

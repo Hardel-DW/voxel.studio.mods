@@ -29,16 +29,22 @@ public final class StudioPrimarySidebar extends VBox {
     private static final Identifier LOGO     = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier SETTINGS = Identifier.fromNamespaceAndPath("asset_editor", "icons/settings.svg");
 
+    private final StudioContext context;
+    private final VBox concepts = new VBox(12);
+
     public StudioPrimarySidebar(StudioContext context) {
+        this.context = context;
         getStyleClass().add("studio-primary-sidebar");
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        getChildren().addAll(buildLogoArea(context), buildConcepts(context), spacer, buildBottom());
+        getChildren().addAll(buildLogoArea(), buildConcepts(), spacer, buildBottom());
+        context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshConcepts());
+        refreshConcepts();
     }
 
-    private StackPane buildLogoArea(StudioContext context) {
+    private StackPane buildLogoArea() {
         SvgIcon logo = new SvgIcon(LOGO, 20, Color.WHITE);
         StackPane area = new StackPane(logo);
         area.getStyleClass().add("studio-logo-area");
@@ -49,17 +55,14 @@ public final class StudioPrimarySidebar extends VBox {
         return area;
     }
 
-    private VBox buildConcepts(StudioContext context) {
-        VBox concepts = new VBox(12); // gap-3
+    private VBox buildConcepts() {
         concepts.setAlignment(Pos.TOP_CENTER);
         concepts.setPadding(new Insets(16, 0, 0, 0)); // mt-4
-        for (StudioConcept concept : StudioConcept.values())
-            concepts.getChildren().add(conceptCard(context, concept));
         return concepts;
     }
 
-    private StackPane conceptCard(StudioContext context, StudioConcept concept) {
-        boolean active = concept == StudioConcept.ENCHANTMENT;
+    private StackPane conceptCard(StudioConcept concept) {
+        boolean active = context.router().currentRoute().concept().equals(concept.registry());
         ResourceImageIcon icon = new ResourceImageIcon(concept.icon(), 24); // size-6
         icon.setOpacity(active ? 1.0 : 0.8);
 
@@ -71,12 +74,25 @@ public final class StudioPrimarySidebar extends VBox {
         if (!active) {
             card.setOnMouseEntered(e -> icon.setOpacity(1.0));
             card.setOnMouseExited(e -> icon.setOpacity(0.8));
+            card.setOnMouseClicked(e -> {
+                context.uiState().setFilterPath("");
+                context.tabsState().setCurrentElementId("");
+                context.router().navigate(concept.overviewRoute());
+            });
         }
 
         Tooltip tooltip = new Tooltip(I18n.get(concept.titleKey()));
         tooltip.setShowDelay(Duration.millis(150));
         Tooltip.install(card, tooltip);
         return card;
+    }
+
+    private void refreshConcepts() {
+        concepts.getChildren().clear();
+        for (StudioConcept concept : StudioConcept.values()) {
+            if (concept == StudioConcept.STRUCTURE) continue;
+            concepts.getChildren().add(conceptCard(concept));
+        }
     }
 
     private VBox buildBottom() {

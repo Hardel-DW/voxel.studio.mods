@@ -1,12 +1,25 @@
 package fr.hardel.asset_editor.client.javafx.data.mock;
 
 import fr.hardel.asset_editor.client.javafx.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeTextUtil;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 public final class StudioMockRepository {
+
+    private static final Map<String, List<String>> SLOT_MATCHERS = Map.of(
+            "mainhand", List.of("mainhand", "any", "hand", "all"),
+            "offhand", List.of("offhand", "any", "hand", "all"),
+            "body", List.of("body", "any", "all"),
+            "saddle", List.of("saddle", "any", "all"),
+            "head", List.of("head", "any", "armor", "all"),
+            "chest", List.of("chest", "any", "armor", "all"),
+            "legs", List.of("legs", "any", "armor", "all"),
+            "feet", List.of("feet", "any", "armor", "all")
+    );
 
     private final List<StudioMockEnchantment> enchantments = List.of(
             new StudioMockEnchantment("minecraft", "sharpness", 5, 10, 1, List.of("mainhand"), List.of("sword"), "damage"),
@@ -42,11 +55,15 @@ public final class StudioMockRepository {
         LinkedHashSet<String> groups = new LinkedHashSet<>();
         for (StudioMockEnchantment enchantment : enchantments) {
             if (mode == StudioSidebarView.EXCLUSIVE) {
-                groups.add(enchantment.exclusiveGroup());
+                groups.add(TreeTextUtil.toDisplay(enchantment.exclusiveGroup()));
                 continue;
             }
             if (mode == StudioSidebarView.SLOTS) {
-                groups.addAll(enchantment.slots());
+                for (Map.Entry<String, List<String>> entry : SLOT_MATCHERS.entrySet()) {
+                    if (hasAny(enchantment.slots(), entry.getValue())) {
+                        groups.add(entry.getKey());
+                    }
+                }
                 continue;
             }
             groups.addAll(enchantment.items());
@@ -70,10 +87,17 @@ public final class StudioMockRepository {
         if (!leaf.isEmpty() && !enchantment.resource().equals(leaf))
             return false;
         if (sidebarView == StudioSidebarView.EXCLUSIVE)
-            return enchantment.exclusiveGroup().equals(category);
+            return TreeTextUtil.toDisplay(enchantment.exclusiveGroup()).toLowerCase().equals(category);
         if (sidebarView == StudioSidebarView.SLOTS)
-            return enchantment.slots().contains(category);
+            return hasAny(enchantment.slots(), SLOT_MATCHERS.getOrDefault(category, List.of()));
         return enchantment.items().contains(category);
+    }
+
+    private static boolean hasAny(List<String> source, List<String> expected) {
+        for (String value : source) {
+            if (expected.contains(value)) return true;
+        }
+        return false;
     }
 }
 

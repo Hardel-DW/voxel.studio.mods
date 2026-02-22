@@ -47,5 +47,20 @@
     "supports.advantages.submit_ideas": "Soumettre des idees",
     "supports.advantages.discord_role": "Role et salon exclusifs sur Discord",
     "supports.advantages.live_voxel": "Faire vivre Voxel",
-    "supports.become": "Devenir Patreon"
+    "supports.become": "Devenir Patreon",
+    "tree.updated": "Modifie",
+    "tree.all": "Tout",
+    "changes:layout.title": "Modifications",
+    "studio.coming_soon.title": "Cette page arrive bientot",
+    "loot:overview.title": "Tables de Butin",
+    "loot:overview.search": "Rechercher des tables...",
+    "loot:overview.empty.title": "Aucune table de butin trouvee",
+    "loot:overview.empty.description": "Essayez d'ajuster votre recherche ou vos filtres.",
+    "loot:section.main": "Principal",
+    "loot:section.pools": "Pools",
+    "recipe:overview.title": "Recettes",
+    "recipe:overview.search": "Rechercher des recettes...",
+    "recipe:overview.no.recipes.found": "Aucune recette trouvee",
+    "recipe:overview.try.adjusting.search.or.filter": "Essayez de modifier votre recherche ou filtre",
+    "recipe:section.main": "Principal"
 }
