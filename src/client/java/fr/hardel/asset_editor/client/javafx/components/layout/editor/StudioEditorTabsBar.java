@@ -23,15 +23,13 @@ import net.minecraft.resources.Identifier;
  * Workspace header bar — always visible.
  * Left: window controls (minimize / maximize / close).
  * Center/right: open element tabs + drag spacer.
- * The bar itself is the Tauri drag-region equivalent: draggable on empty space,
- * double-click toggles maximize.
+ * Drag/resize behavior is handled at window level (VoxelStudioWindow).
  */
 public final class StudioEditorTabsBar extends HBox {
 
     private static final Identifier ENCHANTMENT_ICON =
             Identifier.fromNamespaceAndPath("minecraft", "textures/item/enchanted_book.png");
 
-    private double dragOffsetX, dragOffsetY;
     private final StudioContext context;
     private final HBox tabsContainer = new HBox(4);
 
@@ -45,8 +43,6 @@ public final class StudioEditorTabsBar extends HBox {
 
         Region dragSpacer = new Region();
         HBox.setHgrow(dragSpacer, Priority.ALWAYS);
-
-        setupDrag(stage);
 
         context.tabsState().openTabs().addListener((ListChangeListener<StudioOpenTab>) c -> refreshTabs());
         context.tabsState().activeTabIndexProperty().addListener((obs, o, n) -> refreshTabs());
@@ -91,22 +87,6 @@ public final class StudioEditorTabsBar extends HBox {
         button.setOnMouseEntered(e -> icon.setFill(hoverFill));
         button.setOnMouseExited(e -> icon.setFill(VoxelColors.ZINC_500));
         return button;
-    }
-
-    private void setupDrag(Stage stage) {
-        setOnMousePressed(e -> {
-            dragOffsetX = e.getScreenX() - stage.getX();
-            dragOffsetY = e.getScreenY() - stage.getY();
-        });
-        setOnMouseDragged(e -> {
-            if (!stage.isMaximized()) {
-                stage.setX(e.getScreenX() - dragOffsetX);
-                stage.setY(e.getScreenY() - dragOffsetY);
-            }
-        });
-        setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) stage.setMaximized(!stage.isMaximized());
-        });
     }
 
     private void refreshTabs() {
