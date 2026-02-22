@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.TemplateCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ToolSelector;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
@@ -48,7 +49,7 @@ public final class EnchantmentMainPage extends VBox {
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
     private final StudioContext context;
-    private final VBox content = new VBox(32); // gap-8 = 32px
+    private final VBox content = new VBox(32);
 
     public EnchantmentMainPage(StudioContext context) {
         this.context = context;
@@ -60,7 +61,6 @@ public final class EnchantmentMainPage extends VBox {
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
 
-        // py-4 px-8 = 16px top/bottom, 32px left/right
         content.setPadding(new Insets(16, 32, 28, 32));
         scroll.viewportBoundsProperty().addListener((obs, o, bounds) ->
             content.setMinHeight(Math.max(0, bounds.getHeight())));
@@ -72,14 +72,11 @@ public final class EnchantmentMainPage extends VBox {
     private void refresh() {
         StudioMockEnchantment selected = selectedEnchantment();
 
-        // ToolSection with 3 TemplateCards + ToolSelector
         ToolSection section = new ToolSection("enchantment:section.global.description");
 
-        // grid-auto-64 max-xl:grid-cols-1 → 3 equal columns
         GridPane cardsGrid = buildCardsGrid(selected);
         section.addContent(cardsGrid, buildModeSelector());
 
-        // mt-auto support card (pushed to bottom of flex column)
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
@@ -92,6 +89,7 @@ public final class EnchantmentMainPage extends VBox {
         grid.setVgap(16);
         for (int i = 0; i < 3; i++) {
             ColumnConstraints c = new ColumnConstraints();
+            c.setPercentWidth(100.0 / 3.0);
             c.setHgrow(Priority.ALWAYS);
             c.setFillWidth(true);
             grid.getColumnConstraints().add(c);
@@ -119,34 +117,33 @@ public final class EnchantmentMainPage extends VBox {
     }
 
     private StackPane buildSupportCard() {
-        // Decorative logo: absolute -top-24 -right-24 size-96 opacity-20
         SvgIcon logo = new SvgIcon(LOGO, 384, Color.WHITE);
         logo.setOpacity(0.2);
         logo.setManaged(false);
         logo.setMouseTransparent(true);
 
-        // Title + description
         Label title = new Label(I18n.get("supports.title"));
         title.getStyleClass().add("support-card-title");
+        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 30));
         title.setWrapText(true);
 
         Label desc = new Label(I18n.get("supports.description"));
         desc.getStyleClass().add("support-card-desc");
+        desc.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
         desc.setWrapText(true);
-        VBox.setMargin(desc, new Insets(8, 0, 0, 0)); // pt-2
+        VBox.setMargin(desc, new Insets(8, 0, 0, 0));
 
         VBox textBlock = new VBox(title, desc);
 
-        // Advantages heading + 2-column grid
         Label advantagesHeading = new Label(I18n.get("supports.advantages"));
         advantagesHeading.getStyleClass().add("support-card-advantages-heading");
-        VBox.setMargin(advantagesHeading, new Insets(24, 0, 16, 0)); // pt-6 pb-4
+        advantagesHeading.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
+        VBox.setMargin(advantagesHeading, new Insets(24, 0, 16, 0));
 
         GridPane advantagesGrid = buildAdvantagesGrid();
         VBox advantagesSection = new VBox(advantagesHeading, advantagesGrid);
         HBox.setHgrow(advantagesSection, Priority.ALWAYS);
 
-        // Buttons: flex-row gap-4, self-end
         StudioButton donateBtn = new StudioButton(StudioButton.Variant.SHIMMER, StudioButton.Size.LG,
                 I18n.get("donate"));
         donateBtn.setOnAction(() -> BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip"));
@@ -162,26 +159,24 @@ public final class EnchantmentMainPage extends VBox {
 
         HBox buttonsRow = new HBox(16, donateBtn, patreonBtn);
         buttonsRow.setAlignment(Pos.CENTER_RIGHT);
-        buttonsRow.setPadding(new Insets(32, 0, 0, 0)); // pt-8
+        buttonsRow.setPadding(new Insets(32, 0, 0, 0));
 
-        // self-end: push buttons to bottom of their column
         Region btnSpacer = new Region();
         VBox.setVgrow(btnSpacer, Priority.ALWAYS);
         VBox buttonsWrapper = new VBox(btnSpacer, buttonsRow);
         buttonsWrapper.setAlignment(Pos.BOTTOM_RIGHT);
 
         HBox bottom = new HBox(16, advantagesSection, buttonsWrapper);
-        bottom.setPadding(new Insets(16, 0, 0, 0)); // mt-4
+        bottom.setPadding(new Insets(16, 0, 0, 0));
 
         VBox cardContent = new VBox(textBlock, bottom);
-        cardContent.setPadding(new Insets(32, 32, 32, 48)); // p-8 pl-12
+        cardContent.setPadding(new Insets(32, 32, 32, 48));
         StackPane.setAlignment(cardContent, Pos.TOP_LEFT);
 
         StackPane card = new StackPane();
         card.getStyleClass().add("support-card");
         card.setAlignment(Pos.TOP_LEFT);
 
-        // Shine: absolute inset-0, brightness-15 ≈ opacity 0.15 (behind logo and content)
         try (var stream = ResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             ColorAdjust shineEffect = new ColorAdjust();
@@ -212,8 +207,8 @@ public final class EnchantmentMainPage extends VBox {
 
     private GridPane buildAdvantagesGrid() {
         GridPane grid = new GridPane();
-        grid.setHgap(32); // gap-x-8 = 32px
-        grid.setVgap(16); // gap-y-4 = 16px
+        grid.setHgap(32);
+        grid.setVgap(16);
         for (int i = 0; i < 2; i++) {
             ColumnConstraints c = new ColumnConstraints();
             c.setHgrow(Priority.ALWAYS);
@@ -229,6 +224,7 @@ public final class EnchantmentMainPage extends VBox {
         SvgIcon check = new SvgIcon(CHECK, 16, Color.WHITE);
         Label text = new Label(I18n.get(key));
         text.getStyleClass().add("support-card-benefit");
+        text.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 14));
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;

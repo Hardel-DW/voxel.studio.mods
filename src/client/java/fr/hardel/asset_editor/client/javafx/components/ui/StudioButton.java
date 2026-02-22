@@ -1,9 +1,9 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.animation.Interpolator;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -15,10 +15,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-/**
- * Styled button matching web Button component variants.
- * Shimmer and Patreon variants include animated shimmer highlight.
- */
 public final class StudioButton extends StackPane {
 
     public enum Variant {
@@ -45,10 +41,8 @@ public final class StudioButton extends StackPane {
         if (text != null && !text.isEmpty()) {
             javafx.scene.control.Label label = new javafx.scene.control.Label(text);
             label.getStyleClass().add("studio-button-label");
-            // Shimmer uses dark text; patreon uses white — set programmatically since the
-            // variant style class is on a sibling Region, not an ancestor of the label.
-            if (variant == Variant.SHIMMER) label.setTextFill(Color.web("#080507"));
-            else label.setTextFill(Color.WHITE);
+            label.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 14));
+            label.setTextFill(variant == Variant.SHIMMER ? Color.web("#080507") : Color.WHITE);
             content.getChildren().add(label);
         }
         for (Node icon : icons) {
@@ -64,7 +58,9 @@ public final class StudioButton extends StackPane {
             getChildren().addAll(background, content);
         }
 
-        setOnMouseClicked(e -> { if (onClick != null) onClick.run(); });
+        setOnMouseClicked(e -> {
+            if (onClick != null) onClick.run();
+        });
         setupHoverEffects(variant);
     }
 
@@ -88,10 +84,10 @@ public final class StudioButton extends StackPane {
             case SM -> new Insets(0, 12, 0, 12);
             case LG -> new Insets(0, 32, 0, 32);
             case XL -> new Insets(0, 40, 0, 40);
-            case ICON -> new Insets(8);
-            case SQUARE -> new Insets(8);
+            case ICON, SQUARE -> new Insets(8);
             default -> new Insets(0, 16, 0, 16);
         };
+
         if (size == Size.ICON) {
             setPrefSize(height, height);
             setMinSize(height, height);
@@ -114,8 +110,7 @@ public final class StudioButton extends StackPane {
             case SHIMMER -> "studio-button-shimmer";
             case PATREON -> "studio-button-patreon";
         };
-        // Apply to background Region (for non-shimmer/patreon) AND to the outer StackPane
-        // (so CSS descendant selectors like .studio-button-shimmer .studio-button-label work).
+
         background.getStyleClass().add(styleClass);
         background.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         if (variant == Variant.SHIMMER || variant == Variant.PATREON) {
@@ -136,7 +131,8 @@ public final class StudioButton extends StackPane {
         Region baseLayer = new Region();
         baseLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         baseLayer.setBackground(new javafx.scene.layout.Background(
-            new javafx.scene.layout.BackgroundFill(base, new javafx.scene.layout.CornerRadii(12), Insets.EMPTY)));
+            new javafx.scene.layout.BackgroundFill(base, new javafx.scene.layout.CornerRadii(12), Insets.EMPTY)
+        ));
 
         Region stripe = new Region();
         stripe.setMouseTransparent(true);
@@ -144,20 +140,15 @@ public final class StudioButton extends StackPane {
         stripe.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, transparent, rgba(255,255,255,0.45), transparent);");
 
         getChildren().addAll(baseLayer, stripe, content);
-
         stripe.prefWidthProperty().bind(widthProperty().multiply(0.4));
 
-        // Start the animation once (first non-zero width). Starting far left (-1.5x width)
-        // ensures a smooth entry instead of snapping into view.
         Timeline[] animHolder = {null};
         widthProperty().addListener((obs, o, w) -> {
             if (w.doubleValue() <= 0 || animHolder[0] != null) return;
             double bw = w.doubleValue();
             Timeline anim = new Timeline(
-                new KeyFrame(Duration.ZERO,
-                    new KeyValue(stripe.translateXProperty(), -bw * 1.5)),
-                new KeyFrame(Duration.seconds(2.5),
-                    new KeyValue(stripe.translateXProperty(), bw * 1.5))
+                new KeyFrame(Duration.ZERO, new KeyValue(stripe.translateXProperty(), -bw * 1.5)),
+                new KeyFrame(Duration.seconds(2.5), new KeyValue(stripe.translateXProperty(), bw * 1.5))
             );
             anim.setCycleCount(Timeline.INDEFINITE);
             anim.play();
@@ -170,24 +161,14 @@ public final class StudioButton extends StackPane {
             setOnMouseEntered(e -> animateOpacity(0.75));
             setOnMouseExited(e -> animateOpacity(1.0));
         } else if (variant == Variant.PATREON) {
-            setOnMouseEntered(e -> animateScale(0.95));
-            setOnMouseExited(e -> animateScale(1.0));
+            setOnMouseEntered(e -> animateOpacity(0.9));
+            setOnMouseExited(e -> animateOpacity(1.0));
         }
     }
 
     private void animateOpacity(double target) {
         Timeline timeline = new Timeline(
-            new KeyFrame(Duration.millis(150),
-                new KeyValue(opacityProperty(), target, Interpolator.EASE_BOTH))
-        );
-        timeline.play();
-    }
-
-    private void animateScale(double target) {
-        Timeline timeline = new Timeline(
-            new KeyFrame(Duration.millis(150),
-                new KeyValue(scaleXProperty(), target, Interpolator.EASE_BOTH),
-                new KeyValue(scaleYProperty(), target, Interpolator.EASE_BOTH))
+            new KeyFrame(Duration.millis(150), new KeyValue(opacityProperty(), target, javafx.animation.Interpolator.EASE_BOTH))
         );
         timeline.play();
     }

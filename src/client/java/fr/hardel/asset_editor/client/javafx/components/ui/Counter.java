@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -12,19 +13,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 /**
- * Animated counter: w-20 h-10, hover:w-32 (500ms ease-in-out).
+ * Animated counter: w-20 h-10, hover:w-32 (420ms ease-in-out).
  * Border: white/20% → white on hover. Chevron arrows appear on hover.
  * Click value to edit inline.
  */
@@ -33,13 +31,15 @@ public final class Counter extends StackPane {
     private static final double WIDTH_DEFAULT = 80;
     private static final double WIDTH_HOVER = 128;
     private static final double HEIGHT = 40;
-    private static final String BORDER_NORMAL = "-fx-border-color: rgba(255,255,255,0.2); -fx-border-width: 1.5; -fx-border-radius: 24; -fx-background-color: transparent; -fx-background-radius: 24;";
-    private static final String BORDER_HOVER  = "-fx-border-color: white; -fx-border-width: 1.5; -fx-border-radius: 24; -fx-background-color: transparent; -fx-background-radius: 24;";
+    private static final double ANIMATION_MS = 420;
+    private static final double BORDER_WIDTH = 2.0;
+    private static final Color BORDER_NORMAL = Color.rgb(255, 255, 255, 0.2);
+    private static final Color BORDER_HOVER  = Color.WHITE;
 
     private final IntegerProperty value = new SimpleIntegerProperty();
     private final int min, max, step;
 
-    private final Region border = new Region();
+    private final Rectangle border = new Rectangle();
     private final Label valueLabel = new Label();
     private final TextField valueField = new TextField();
     private final StackPane leftArrow;
@@ -59,17 +59,23 @@ public final class Counter extends StackPane {
         setMinSize(WIDTH_DEFAULT, HEIGHT);
         setMaxSize(WIDTH_HOVER, HEIGHT);
 
-        border.setStyle(BORDER_NORMAL);
-        border.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        border.setFill(Color.TRANSPARENT);
+        border.setStroke(BORDER_NORMAL);
+        border.setStrokeWidth(BORDER_WIDTH);
+        border.setArcWidth(48);
+        border.setArcHeight(48);
         border.setMouseTransparent(true);
+        border.widthProperty().bind(visualRoot.widthProperty().subtract(BORDER_WIDTH));
+        border.heightProperty().bind(visualRoot.heightProperty().subtract(BORDER_WIDTH));
 
         valueLabel.setText(String.valueOf(initialValue));
         valueLabel.setTextFill(Color.WHITE);
-        valueLabel.setFont(Font.font("Rubik", FontWeight.BOLD, 20));
+        valueLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
         valueLabel.setCursor(javafx.scene.Cursor.TEXT);
 
         valueField.setText(String.valueOf(initialValue));
         valueField.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 20; -fx-font-weight: bold; -fx-alignment: center; -fx-border-color: transparent;");
+        valueField.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
         valueField.setAlignment(Pos.CENTER);
         valueField.setMaxWidth(60);
         valueField.setVisible(false);
@@ -105,12 +111,12 @@ public final class Counter extends StackPane {
 
         Interpolator easeInOut = Interpolator.EASE_BOTH;
         expandAnim = new Timeline(
-            new KeyFrame(Duration.millis(500),
+            new KeyFrame(Duration.millis(ANIMATION_MS),
                 new KeyValue(visualRoot.prefWidthProperty(), WIDTH_HOVER, easeInOut),
                 new KeyValue(prefWidthProperty(), WIDTH_HOVER, easeInOut))
         );
         collapseAnim = new Timeline(
-            new KeyFrame(Duration.millis(500),
+            new KeyFrame(Duration.millis(ANIMATION_MS),
                 new KeyValue(visualRoot.prefWidthProperty(), WIDTH_DEFAULT, easeInOut),
                 new KeyValue(prefWidthProperty(), WIDTH_DEFAULT, easeInOut))
         );
@@ -121,14 +127,14 @@ public final class Counter extends StackPane {
 
     private void setupInteractions() {
         setOnMouseEntered(e -> {
-            border.setStyle(BORDER_HOVER);
+            border.setStroke(BORDER_HOVER);
             collapseAnim.stop();
             expandAnim.playFromStart();
             fadeArrows(true);
         });
 
         setOnMouseExited(e -> {
-            border.setStyle(BORDER_NORMAL);
+            border.setStroke(BORDER_NORMAL);
             expandAnim.stop();
             collapseAnim.playFromStart();
             fadeArrows(false);
@@ -146,14 +152,14 @@ public final class Counter extends StackPane {
     }
 
     private void fadeArrows(boolean visible) {
-        FadeTransition left = new FadeTransition(Duration.millis(500), leftArrow);
+        FadeTransition left = new FadeTransition(Duration.millis(ANIMATION_MS), leftArrow);
         left.setToValue(visible ? 1.0 : 0.0);
         left.play();
-        FadeTransition right = new FadeTransition(Duration.millis(500), rightArrow);
+        FadeTransition right = new FadeTransition(Duration.millis(ANIMATION_MS), rightArrow);
         right.setToValue(visible ? 1.0 : 0.0);
         right.play();
         Timeline slide = new Timeline(
-            new KeyFrame(Duration.millis(500),
+            new KeyFrame(Duration.millis(ANIMATION_MS),
                 new KeyValue(leftArrow.translateXProperty(), visible ? 4 : 0, Interpolator.EASE_BOTH),
                 new KeyValue(rightArrow.translateXProperty(), visible ? -4 : 0, Interpolator.EASE_BOTH))
         );

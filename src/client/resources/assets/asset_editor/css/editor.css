@@ -1174,8 +1174,6 @@
 }
 
 .studio-button-label {
-    -fx-font-size: 14;
-    -fx-font-weight: 500;
 }
 
 /* default: bg-zinc-200 text-zinc-800 border-2 border-zinc-500 hover:bg-zinc-300 */
@@ -1251,7 +1249,6 @@
 
 .studio-button-shimmer .studio-button-label {
     -fx-text-fill: #080507;
-    -fx-font-weight: 500;
 }
 
 /* patreon: text-white rounded-xl (background is orange, handled programmatically) */
@@ -1279,9 +1276,8 @@
 /* Tab button: text-zinc-500 rounded-xl px-3 py-1.5 font-medium */
 .animated-tabs-button {
     -fx-background-color: transparent;
+    -fx-background-insets: 0;
     -fx-text-fill: #71717a;
-    -fx-font-size: 14;
-    -fx-font-weight: 500;
     -fx-padding: 6 12 6 12;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
@@ -1289,6 +1285,8 @@
     -fx-border-width: 0;
     -fx-cursor: hand;
     -fx-white-space: nowrap;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
 
 .animated-tabs-button:hover {
@@ -1301,7 +1299,7 @@
 
 /* Sliding indicator: bg-white/10 rounded-xl */
 .animated-tabs-indicator {
-    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-background-color: rgba(255, 255, 255, 0.16);
     -fx-background-radius: 12;
 }
 
@@ -1309,8 +1307,6 @@
 /* h2: text-2xl font-semibold */
 .tool-section-title {
     -fx-text-fill: #f4f4f5;
-    -fx-font-size: 24;
-    -fx-font-weight: 600;
 }
 
 /* hr: gradient line, opacity 0.25 */
@@ -1326,28 +1322,22 @@
 /* h3: text-lg font-semibold mb-1 */
 .template-card-title {
     -fx-text-fill: #f4f4f5;
-    -fx-font-size: 18;
-    -fx-font-weight: 600;
 }
 
 /* p: text-sm text-zinc-400 */
 .template-card-desc {
     -fx-text-fill: #a8a8b2;
-    -fx-font-size: 14;
 }
 
 /* ===== TOOL SELECTOR ===== */
 /* title: text-white line-clamp-1 */
 .tool-selector-title {
     -fx-text-fill: white;
-    -fx-font-size: 14;
 }
 
 /* desc: text-xs text-zinc-400 font-light line-clamp-2 */
 .tool-selector-desc {
     -fx-text-fill: #a8a8b2;
-    -fx-font-size: 12;
-    -fx-font-weight: 300;
 }
 
 /* ===== SUPPORT CARD ===== */
@@ -1363,27 +1353,20 @@
 /* h1: text-3xl tracking-wide font-semibold white */
 .support-card-title {
     -fx-text-fill: white;
-    -fx-font-size: 30;
-    -fx-font-weight: 600;
 }
 
 /* p: text-sm text-zinc-400 lg:w-3/4 */
 .support-card-desc {
     -fx-text-fill: #a8a8b2;
-    -fx-font-size: 14;
     -fx-max-width: 480;
 }
 
 /* h3: font-bold text-xl white */
 .support-card-advantages-heading {
     -fx-text-fill: white;
-    -fx-font-size: 20;
-    -fx-font-weight: 700;
 }
 
 /* span: text-zinc-300 text-sm font-semibold */
 .support-card-benefit {
     -fx-text-fill: #d9d9dd;
-    -fx-font-size: 14;
-    -fx-font-weight: 600;
 }

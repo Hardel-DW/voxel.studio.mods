@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -11,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
@@ -18,15 +20,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * Tabs with animated sliding indicator.
- * Container: rounded-2xl bg-zinc-900/70 border border-zinc-800 p-1 overflow-hidden.
- * Indicator: bg-white/10 rounded-xl, slides to active tab (300ms ease-out).
- */
 public final class AnimatedTabs extends StackPane {
 
     private final LinkedHashMap<String, Button> buttons = new LinkedHashMap<>();
-    private final Region indicator = new Region();
+    private final Rectangle indicator = new Rectangle();
     private final HBox tabsRow = new HBox();
     private final Timeline indicatorTimeline = new Timeline();
     private String activeValue;
@@ -41,10 +38,11 @@ public final class AnimatedTabs extends StackPane {
         setMinWidth(Region.USE_PREF_SIZE);
         setMaxWidth(Region.USE_PREF_SIZE);
 
-        indicator.getStyleClass().add("animated-tabs-indicator");
         indicator.setMouseTransparent(true);
         indicator.setManaged(false);
-        indicator.setPrefHeight(0);
+        indicator.setFill(Color.rgb(255, 255, 255, 0.16));
+        indicator.setArcWidth(24);
+        indicator.setArcHeight(24);
 
         tabsRow.setSpacing(0);
         tabsRow.setAlignment(Pos.CENTER_LEFT);
@@ -66,7 +64,6 @@ public final class AnimatedTabs extends StackPane {
         heightProperty().addListener((obs, o, h) -> clip.setHeight(h.doubleValue()));
         setClip(clip);
 
-        // z-order: indicator behind buttons
         getChildren().addAll(indicator, tabsRow);
         StackPane.setAlignment(tabsRow, Pos.CENTER_LEFT);
 
@@ -76,15 +73,16 @@ public final class AnimatedTabs extends StackPane {
         tabsRow.layoutXProperty().addListener((obs, o, x) -> snapIndicator());
         tabsRow.layoutYProperty().addListener((obs, o, y) -> snapIndicator());
 
-        Platform.runLater(() -> {
+        Platform.runLater(() -> Platform.runLater(() -> {
             normalizeButtonWidths();
             snapIndicator();
-        });
+        }));
     }
 
     private Button buildTabButton(String value, String label) {
         Button btn = new Button(label);
         btn.getStyleClass().add("animated-tabs-button");
+        btn.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 14));
         if (value.equals(activeValue)) {
             btn.getStyleClass().add("animated-tabs-button-active");
         }
@@ -123,12 +121,13 @@ public final class AnimatedTabs extends StackPane {
         if (active == null) return;
         Bounds bounds = active.getBoundsInParent();
         double x = tabsRow.getLayoutX() + bounds.getMinX();
-        double w = bounds.getWidth();
-        double h = Math.max(0, getHeight() - 8);
-        indicator.setLayoutX(x);
-        indicator.setLayoutY(4);
-        indicator.setPrefWidth(w);
-        indicator.setPrefHeight(h);
+        double y = tabsRow.getLayoutY() + bounds.getMinY();
+        double w = bounds.getWidth() > 0 ? bounds.getWidth() : active.prefWidth(-1);
+        double h = bounds.getHeight() > 0 ? bounds.getHeight() : active.prefHeight(-1);
+        indicator.setX(x);
+        indicator.setY(y);
+        indicator.setWidth(w);
+        indicator.setHeight(h);
     }
 
     private void animateIndicator() {
@@ -136,13 +135,13 @@ public final class AnimatedTabs extends StackPane {
         if (active == null) return;
         Bounds bounds = active.getBoundsInParent();
         double targetX = tabsRow.getLayoutX() + bounds.getMinX();
-        double targetW = bounds.getWidth();
+        double targetW = bounds.getWidth() > 0 ? bounds.getWidth() : active.prefWidth(-1);
 
         indicatorTimeline.stop();
         indicatorTimeline.getKeyFrames().setAll(
             new KeyFrame(Duration.millis(300),
-                new KeyValue(indicator.layoutXProperty(), targetX, javafx.animation.Interpolator.EASE_OUT),
-                new KeyValue(indicator.prefWidthProperty(), targetW, javafx.animation.Interpolator.EASE_OUT))
+                new KeyValue(indicator.xProperty(), targetX, javafx.animation.Interpolator.EASE_OUT),
+                new KeyValue(indicator.widthProperty(), targetW, javafx.animation.Interpolator.EASE_OUT))
         );
         indicatorTimeline.playFromStart();
     }
