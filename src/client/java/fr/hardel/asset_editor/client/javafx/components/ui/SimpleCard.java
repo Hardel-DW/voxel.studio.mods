@@ -24,7 +24,9 @@ import net.minecraft.resources.Identifier;
 public class SimpleCard extends StackPane {
 
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static volatile Image shineImage;
 
+    protected final StackPane visualCard = new StackPane();
     protected final VBox contentBox = new VBox();
 
     protected SimpleCard(Insets padding) {
@@ -34,7 +36,6 @@ public class SimpleCard extends StackPane {
         // The outer StackPane (this) acts as the stable hit area since it never translates.
         // JavaFX picks on layout bounds (not transformed), so the outer StackPane's hover
         // zone stays fixed even when visualCard shifts up.
-        StackPane visualCard = new StackPane();
         visualCard.getStyleClass().add("simple-card");
         visualCard.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
@@ -44,14 +45,15 @@ public class SimpleCard extends StackPane {
         Pane shinePane = new Pane();
         shinePane.setMouseTransparent(true);
         shinePane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        try (var stream = ResourceLoader.open(SHINE)) {
-            ImageView shine = new ImageView(new Image(stream));
+        Image sharedShine = getShineImage();
+        if (sharedShine != null) {
+            ImageView shine = new ImageView(sharedShine);
             shine.setPreserveRatio(false);
             shine.setOpacity(0.15);
             shine.fitWidthProperty().bind(visualCard.widthProperty());
             shine.fitHeightProperty().bind(visualCard.heightProperty().multiply(0.5));
             shinePane.getChildren().add(shine);
-        } catch (Exception ignored) {}
+        }
 
         visualCard.getChildren().addAll(shinePane, contentBox);
         StackPane.setAlignment(contentBox, Pos.TOP_LEFT);
@@ -76,5 +78,23 @@ public class SimpleCard extends StackPane {
 
     public SimpleCard() {
         this(new Insets(24, 32, 24, 32)); // py-6 px-8
+    }
+
+    private static Image getShineImage() {
+        Image current = shineImage;
+        if (current != null) {
+            return current;
+        }
+        synchronized (SimpleCard.class) {
+            if (shineImage != null) {
+                return shineImage;
+            }
+            try (var stream = ResourceLoader.open(SHINE)) {
+                shineImage = new Image(stream);
+            } catch (Exception ignored) {
+                shineImage = null;
+            }
+            return shineImage;
+        }
     }
 }

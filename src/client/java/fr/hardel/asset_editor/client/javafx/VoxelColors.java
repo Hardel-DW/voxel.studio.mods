@@ -18,6 +18,10 @@ public final class VoxelColors {
     public static final Color ZINC_960 = Color.web("#0d0d0d");
     public static final Color ZINC_970 = Color.web("#0b0b0b");
     public static final Color RED_400 = Color.web("#f87171");
+    public static final Color SWITCH_RAIL_OFF = Color.web("#343434");
+    public static final Color SWITCH_RAIL_ON_FROM = Color.web("#180909");
+    public static final Color SWITCH_RAIL_ON_TO = Color.web("#7a009f");
+    public static final Color SWITCH_KNOB_OFF = Color.web("#dfdfdf");
 
     public static final Color BACKGROUND = Color.web("#080507");
     public static final Color SIDEBAR    = Color.web("#101011");

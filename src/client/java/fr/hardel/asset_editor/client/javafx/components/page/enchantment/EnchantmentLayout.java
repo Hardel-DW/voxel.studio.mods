@@ -10,8 +10,13 @@ import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
+import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentExclusivePage;
+import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentFindPage;
+import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentItemsPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentMainPage;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentOverviewPage;
+import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentSlotsPage;
+import fr.hardel.asset_editor.client.javafx.routes.enchantment.EnchantmentTechnicalPage;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -19,6 +24,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.minecraft.resources.Identifier;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,8 +36,7 @@ public final class EnchantmentLayout extends HBox {
 
     private final StudioContext context;
     private final TreeController tree;
-    private final EnchantmentOverviewPage overviewPage;
-    private final EnchantmentMainPage mainPage;
+    private final EnumMap<StudioRoute, Node> pageCache = new EnumMap<>(StudioRoute.class);
     private final EmptyPage emptyPage = new EmptyPage();
     private final StackPane outlet = new StackPane();
 
@@ -39,9 +44,6 @@ public final class EnchantmentLayout extends HBox {
         this.context = context;
         getStyleClass().add("enchantment-layout");
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-        overviewPage = new EnchantmentOverviewPage(context);
-        mainPage = new EnchantmentMainPage(context);
 
         StudioSidebarView initialView = context.uiState().sidebarView();
         tree = new TreeController(context, new TreeController.Config(
@@ -87,15 +89,30 @@ public final class EnchantmentLayout extends HBox {
 
     private void refresh() {
         StudioRoute route = context.router().currentRoute();
-        if (route == StudioRoute.ENCHANTMENT_OVERVIEW) {
-            outlet.getChildren().setAll(overviewPage);
-            return;
-        }
-        if (route == StudioRoute.ENCHANTMENT_MAIN) {
-            outlet.getChildren().setAll(mainPage);
-            return;
-        }
-        outlet.getChildren().setAll(emptyPage);
+        Node page = isEnchantmentRoute(route) ? pageCache.computeIfAbsent(route, this::createPage) : emptyPage;
+        outlet.getChildren().setAll(page);
+    }
+
+    private static boolean isEnchantmentRoute(StudioRoute route) {
+        return switch (route) {
+            case ENCHANTMENT_OVERVIEW, ENCHANTMENT_MAIN, ENCHANTMENT_FIND,
+                    ENCHANTMENT_SLOTS, ENCHANTMENT_ITEMS, ENCHANTMENT_EXCLUSIVE,
+                    ENCHANTMENT_TECHNICAL -> true;
+            default -> false;
+        };
+    }
+
+    private Node createPage(StudioRoute route) {
+        return switch (route) {
+            case ENCHANTMENT_OVERVIEW -> new EnchantmentOverviewPage(context);
+            case ENCHANTMENT_MAIN -> new EnchantmentMainPage(context);
+            case ENCHANTMENT_FIND -> new EnchantmentFindPage(context);
+            case ENCHANTMENT_SLOTS -> new EnchantmentSlotsPage(context);
+            case ENCHANTMENT_ITEMS -> new EnchantmentItemsPage(context);
+            case ENCHANTMENT_EXCLUSIVE -> new EnchantmentExclusivePage(context);
+            case ENCHANTMENT_TECHNICAL -> new EnchantmentTechnicalPage(context);
+            default -> emptyPage;
+        };
     }
 
     private ToggleGroup buildSidebarToggle() {
@@ -129,5 +146,3 @@ public final class EnchantmentLayout extends HBox {
         return Map.of();
     }
 }
-
-

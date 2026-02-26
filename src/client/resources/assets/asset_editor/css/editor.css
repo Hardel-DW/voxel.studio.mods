@@ -1340,6 +1340,130 @@
     -fx-text-fill: #a8a8b2;
 }
 
+/* ===== TOOL SLOT ===== */
+/* Active: bg-zinc-950/50 ring-1 ring-zinc-700 */
+.tool-slot-active {
+    -fx-background-color: #0d0d0e;
+    -fx-border-color: #48484f;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-effect: innershadow(gaussian, rgba(72,72,79,0.45), 0, 0, 0, 0);
+}
+
+/* ===== TOOL RANGE SLIDER ===== */
+.tool-range-slider {
+    -fx-pref-height: 24;
+    -fx-padding: 0;
+}
+
+.tool-range-slider .track {
+    -fx-background-color: #303033;
+    -fx-background-radius: 8;
+    -fx-pref-height: 8;
+    -fx-padding: 0;
+}
+
+.tool-range-slider .thumb {
+    -fx-background-color: #0f0f11;
+    -fx-background-radius: 12;
+    -fx-pref-width: 24;
+    -fx-pref-height: 24;
+    -fx-border-color: #48484f;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 1);
+}
+
+.tool-range-slider .thumb:hover {
+    -fx-background-color: #202024;
+}
+
+/* ===== TOOL SECTION SELECTOR TABS ===== */
+.tool-section-selector-header {
+    -fx-alignment: center-left;
+    -fx-padding: 8;
+    -fx-spacing: 16;
+}
+
+/* bg-black/35 border border-zinc-900 rounded-2xl overflow-hidden */
+.tool-section-selector-tabs {
+    -fx-background-color: #0b0b0b;
+    -fx-border-color: #202024;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-padding: 0;
+}
+
+/* Tab button: px-4 py-2 rounded-xl font-semibold */
+.tool-section-selector-tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d9d9dd;
+    -fx-font-size: 12;
+    -fx-font-weight: 600;
+    -fx-padding: 8 16 8 16;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tool-section-selector-tab:hover {
+    -fx-background-color: #18181b;
+    -fx-text-fill: #f4f4f5;
+}
+
+.tool-section-selector-tab-active {
+    -fx-background-color: #d9d9dd;
+    -fx-text-fill: #121212;
+}
+
+.tool-section-selector-tab-active:hover {
+    -fx-background-color: #d9d9dd;
+}
+
+/* ===== ENCHANTMENT TAGS ===== */
+.enchantment-tags-value {
+    -fx-text-fill: #a8a8b2;
+    -fx-font-size: 12;
+    -fx-background-color: rgba(39, 39, 42, 0.2);
+    -fx-background-radius: 4;
+    -fx-border-color: #202024;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-padding: 2 8 2 8;
+}
+
+.enchantment-tags-hr {
+    -fx-background-color: #48484f;
+    -fx-pref-height: 1;
+    -fx-min-height: 1;
+    -fx-max-height: 1;
+}
+
+/* Ring when enchantment is a target of this exclusive set */
+.enchantment-tags-targeted {
+    -fx-border-color: #5c5c66;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+}
+
+/* ===== ENCHANTMENT SUBPAGE SCROLL ===== */
+.enchantment-subpage-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.enchantment-subpage-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
 /* ===== SUPPORT CARD ===== */
 /* bg-black/35 border-t-2 border-l-2 rounded-2xl border-stone-900 */
 .support-card {
@@ -1370,4 +1494,3 @@
 .support-card-benefit {
     -fx-text-fill: #d9d9dd;
 }
-

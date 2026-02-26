@@ -25,10 +25,10 @@ public final class StudioEditorRoot extends HBox {
 
     private final StudioContext context = new StudioContext();
     private final StackPane contentOutlet = new StackPane();
-    private final EnchantmentLayout enchantmentLayout = new EnchantmentLayout(context);
-    private final LootTableLayout lootTableLayout = new LootTableLayout(context);
-    private final RecipeLayout recipeLayout = new RecipeLayout(context);
-    private final ChangesLayout changesLayout = new ChangesLayout();
+    private EnchantmentLayout enchantmentLayout;
+    private LootTableLayout lootTableLayout;
+    private RecipeLayout recipeLayout;
+    private ChangesLayout changesLayout;
 
     public StudioEditorRoot(Stage stage) {
         getStyleClass().add("studio-root");
@@ -81,19 +81,47 @@ public final class StudioEditorRoot extends HBox {
 
     private void refreshOutlet() {
         if (context.router().currentRoute() == StudioRoute.CHANGES_MAIN) {
-            contentOutlet.getChildren().setAll(changesLayout);
+            contentOutlet.getChildren().setAll(getChangesLayout());
             return;
         }
         String concept = context.router().currentRoute().concept();
         if ("loot_table".equals(concept)) {
-            contentOutlet.getChildren().setAll(lootTableLayout);
+            contentOutlet.getChildren().setAll(getLootTableLayout());
             return;
         }
         if ("recipe".equals(concept)) {
-            contentOutlet.getChildren().setAll(recipeLayout);
+            contentOutlet.getChildren().setAll(getRecipeLayout());
             return;
         }
-        contentOutlet.getChildren().setAll(enchantmentLayout);
+        contentOutlet.getChildren().setAll(getEnchantmentLayout());
+    }
+
+    private EnchantmentLayout getEnchantmentLayout() {
+        if (enchantmentLayout == null) {
+            enchantmentLayout = new EnchantmentLayout(context);
+        }
+        return enchantmentLayout;
+    }
+
+    private LootTableLayout getLootTableLayout() {
+        if (lootTableLayout == null) {
+            lootTableLayout = new LootTableLayout(context);
+        }
+        return lootTableLayout;
+    }
+
+    private RecipeLayout getRecipeLayout() {
+        if (recipeLayout == null) {
+            recipeLayout = new RecipeLayout(context);
+        }
+        return recipeLayout;
+    }
+
+    private ChangesLayout getChangesLayout() {
+        if (changesLayout == null) {
+            changesLayout = new ChangesLayout();
+        }
+        return changesLayout;
     }
 
     private static void refreshSurfaceGeometry(double width, double height, StackPane contentBody, Path frame) {
@@ -138,6 +166,5 @@ public final class StudioEditorRoot extends HBox {
                 new LineTo(w, inset));
     }
 }
-
 
 

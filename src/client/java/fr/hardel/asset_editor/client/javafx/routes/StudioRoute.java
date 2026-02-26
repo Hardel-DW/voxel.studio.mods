@@ -9,8 +9,6 @@ public enum StudioRoute {
     ENCHANTMENT_EXCLUSIVE("enchantment", false, true),
     ENCHANTMENT_TECHNICAL("enchantment", false, true),
     ENCHANTMENT_SIMULATION("enchantment", false, false),
-    ENCHANTMENT_DNT("enchantment", false, false),
-    ENCHANTMENT_YGGDRASIL("enchantment", false, false),
     LOOT_TABLE_OVERVIEW("loot_table", true, false),
     LOOT_TABLE_MAIN("loot_table", false, true),
     LOOT_TABLE_POOLS("loot_table", false, true),
