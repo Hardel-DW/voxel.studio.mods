@@ -2,10 +2,11 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
@@ -52,7 +53,8 @@ public final class EnchantmentSlotsPage extends VBox {
         ToolSection section = new ToolSection("enchantment:section.slots.description");
 
         for (List<String> group : GROUPS) {
-            AutoFitGrid row = new AutoFitGrid(256, true);
+            ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
+                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
             for (int i = 0; i < group.size(); i++) {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(group.get(i));

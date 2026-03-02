@@ -2,15 +2,15 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolRange;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSwitch;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
@@ -56,14 +56,13 @@ public final class EnchantmentTechnicalPage extends VBox {
 
     private ToolSection buildBehaviourSection() {
         ToolSection section = new ToolSection("enchantment:section.technical.description");
-        GridPane grid = buildTwoColGrid();
+        ResponsiveGrid grid = buildTwoColGrid();
 
-        for (int i = 0; i < BEHAVIOUR_FIELDS.size(); i++) {
-            String field = BEHAVIOUR_FIELDS.get(i);
+        for (String field : BEHAVIOUR_FIELDS) {
             ToolSwitch sw = new ToolSwitch(
                     "enchantment:technical." + field + ".title",
                     "enchantment:technical." + field + ".description");
-            grid.add(sw, i % 2, i / 2);
+            grid.addItem(sw);
         }
 
         section.addContent(grid);
@@ -72,11 +71,10 @@ public final class EnchantmentTechnicalPage extends VBox {
 
     private ToolSection buildCostsSection() {
         ToolSection section = new ToolSection("enchantment:section.costs");
-        GridPane grid = buildTwoColGrid();
+        ResponsiveGrid grid = buildTwoColGrid();
 
-        for (int i = 0; i < COST_FIELDS.size(); i++) {
-            String field = COST_FIELDS.get(i);
-            grid.add(new ToolRange("enchantment:global." + field + ".title", 0, 100, 1, 0), i % 2, i / 2);
+        for (String field : COST_FIELDS) {
+            grid.addItem(new ToolRange("enchantment:global." + field + ".title", 0, 100, 1, 0));
         }
 
         section.addContent(grid);
@@ -97,21 +95,9 @@ public final class EnchantmentTechnicalPage extends VBox {
         return section;
     }
 
-    private GridPane buildTwoColGrid() {
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setMaxWidth(Double.MAX_VALUE);
-
-        ColumnConstraints col = new ColumnConstraints();
-        col.setPercentWidth(50);
-        col.setHgrow(Priority.ALWAYS);
-        ColumnConstraints secondCol = new ColumnConstraints();
-        secondCol.setPercentWidth(50);
-        secondCol.setHgrow(Priority.ALWAYS);
-        grid.getColumnConstraints().addAll(col, secondCol);
-
-        return grid;
+    private ResponsiveGrid buildTwoColGrid() {
+        return new ResponsiveGrid(ResponsiveGrid.fixed(1))
+            .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
     }
 
 }

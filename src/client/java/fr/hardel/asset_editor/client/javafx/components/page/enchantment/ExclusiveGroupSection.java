@@ -1,7 +1,8 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolCategory;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -26,7 +27,8 @@ public final class ExclusiveGroupSection extends VBox {
     private ToolCategory buildVanillaCategory() {
         ToolCategory category = new ToolCategory("enchantment:exclusive.vanilla.title");
 
-        AutoFitGrid grid = new AutoFitGrid(256, true);
+        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
+            .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (ExclusiveSetGroup group : ExclusiveSetGroup.ALL) {
             grid.addItem(new EnchantmentTags(

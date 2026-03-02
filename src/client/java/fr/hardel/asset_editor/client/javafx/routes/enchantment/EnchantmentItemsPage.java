@@ -1,9 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSectionSelector;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
@@ -25,8 +26,8 @@ public final class EnchantmentItemsPage extends VBox {
     private final ToolSectionSelector selector;
     private String currentSection = "supportedItems";
     private String currentElement = "";
-    private AutoFitGrid supportedGrid;
-    private AutoFitGrid primaryGrid;
+    private ResponsiveGrid supportedGrid;
+    private ResponsiveGrid primaryGrid;
 
     public EnchantmentItemsPage(StudioContext context) {
         this.context = context;
@@ -74,8 +75,9 @@ public final class EnchantmentItemsPage extends VBox {
         selector.setContent(currentSection.equals("primaryItems") ? primaryGrid : supportedGrid);
     }
 
-    private AutoFitGrid buildGrid(StudioMockEnchantment e, boolean includePrimaryNone) {
-        AutoFitGrid grid = new AutoFitGrid(256, true);
+    private ResponsiveGrid buildGrid(StudioMockEnchantment e, boolean includePrimaryNone) {
+        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
+            .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (Map.Entry<String, String> entry : ENCHANTABLE_ENTRIES.entrySet()) {
             String key  = entry.getKey();

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -10,7 +11,6 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -69,14 +69,11 @@ public final class EnchantmentOverviewPage extends VBox {
             content.getChildren().setAll(list);
             return;
         }
-        FlowPane grid = new FlowPane();
+        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(280));
         grid.getStyleClass().add("enchantment-overview-grid");
-        grid.setHgap(14);
-        grid.setVgap(14);
         grid.setPadding(new Insets(20, 32, 24, 32));
-        grid.prefWrapLengthProperty().bind(widthProperty().subtract(96));
         for (StudioMockEnchantment enchantment : enchantments)
-            grid.getChildren().add(new EnchantmentOverviewCard(enchantment, () -> open(enchantment)));
+            grid.addItem(new EnchantmentOverviewCard(enchantment, () -> open(enchantment)));
         content.getChildren().setAll(grid);
     }
 
@@ -96,5 +93,3 @@ public final class EnchantmentOverviewPage extends VBox {
         context.router().navigate(StudioRoute.ENCHANTMENT_MAIN);
     }
 }
-
-
