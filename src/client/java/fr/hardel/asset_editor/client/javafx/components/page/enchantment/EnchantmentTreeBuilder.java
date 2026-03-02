@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -67,7 +68,7 @@ public final class EnchantmentTreeBuilder {
             if (version < tag.min() || version > tag.max()) continue;
             ArrayList<StudioMockEnchantment> matching = new ArrayList<>();
             for (StudioMockEnchantment enchantment : enchantments) {
-                if (EnchantmentResolver.matchesItemReference(enchantment, tag.key())) {
+                if (enchantment.items().contains(tag.key())) {
                     matching.add(enchantment);
                 }
             }
@@ -101,14 +102,10 @@ public final class EnchantmentTreeBuilder {
             TreeNodeModel leaf = new TreeNodeModel();
             leaf.setCount(0);
             leaf.setElementId(enchantment.uniqueKey());
-            leaf.setLabel(enchantmentLabel(enchantment));
+            leaf.setLabel(enchantment.displayName());
             node.children().put(enchantment.resource(), leaf);
         }
         return node;
-    }
-
-    private static String enchantmentLabel(StudioMockEnchantment enchantment) {
-        return EnchantmentResolver.enchantmentDisplayName(enchantment);
     }
 
     private static boolean hasOne(List<String> source, List<String> targets) {

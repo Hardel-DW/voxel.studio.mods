@@ -34,7 +34,7 @@ public final class EnchantmentOverviewRow extends HBox {
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
 
-        var previewTexture = EnchantmentResolver.previewTexture(enchantment);
+        var previewTexture = enchantment.previewTexture();
         if (previewTexture != null) {
             iconWrap.getChildren().add(new ResourceImageIcon(previewTexture, 32));
         }
@@ -44,7 +44,7 @@ public final class EnchantmentOverviewRow extends HBox {
             iconWrap.getChildren().add(fallback);
         }
 
-        Label name = new Label(EnchantmentResolver.enchantmentDisplayName(enchantment));
+        Label name = new Label(enchantment.displayName());
         name.getStyleClass().add("enchantment-row-name");
 
         Label identifier = new Label(enchantment.uniqueKey());
@@ -70,7 +70,7 @@ public final class EnchantmentOverviewRow extends HBox {
         HBox right = new HBox(8);
         right.setAlignment(Pos.CENTER_RIGHT);
 
-        if (!EnchantmentResolver.isVanilla(enchantment)) {
+        if (!enchantment.isVanilla()) {
             ToggleSwitch stateSwitch = new ToggleSwitch();
             stateSwitch.setValue(true);
             stateSwitch.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);

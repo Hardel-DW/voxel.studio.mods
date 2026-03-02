@@ -34,12 +34,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
             new OverviewCase("enchantment:overview.tradeable", feature("item/enchanted_book")),
             new OverviewCase("enchantment:overview.tradeable_equipment", feature("item/enchanted_item")));
 
-    public EnchantmentOverviewCard(
-            StudioMockEnchantment enchantment,
-            String displayName,
-            Identifier previewTexture,
-            boolean vanilla,
-            Runnable onOpen) {
+    public EnchantmentOverviewCard(StudioMockEnchantment enchantment, Runnable onOpen) {
         super(new Insets(16));
         getStyleClass().add("enchantment-card");
         setMaxWidth(Double.MAX_VALUE);
@@ -48,7 +43,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         visualCard.getStyleClass().add("enchantment-card-surface");
         installOverviewHover();
 
-        HBox top = buildTopRow(displayName, enchantment.maxLevel(), previewTexture, vanilla);
+        HBox top = buildTopRow(enchantment.displayName(), enchantment.maxLevel(), enchantment.previewTexture(), enchantment.isVanilla());
         FlowPane cases = buildCases();
 
         Region spacer = new Region();
