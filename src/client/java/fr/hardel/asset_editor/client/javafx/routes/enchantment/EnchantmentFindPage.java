@@ -1,12 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import net.minecraft.resources.Identifier;
 
@@ -43,14 +43,10 @@ public final class EnchantmentFindPage extends VBox {
 
     private void refresh() {
         ToolSection behaviour = new ToolSection("enchantment:section.find");
-        TilePane grid = new TilePane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setPrefTileWidth(300);
-        grid.setMaxWidth(Double.MAX_VALUE);
+        AutoFitGrid grid = new AutoFitGrid(368, true);
 
         for (FindEntry entry : FIND_ENTRIES) {
-            grid.getChildren().add(new ToolSlot(entry.image(), entry.titleKey(), entry.descKey(), false, false, null));
+            grid.addItem(new ToolSlot(entry.image(), entry.titleKey(), entry.descKey(), false, false, null));
         }
         behaviour.addContent(grid);
         content.getChildren().setAll(behaviour);

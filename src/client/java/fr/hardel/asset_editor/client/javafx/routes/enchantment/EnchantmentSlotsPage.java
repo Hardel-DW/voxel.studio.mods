@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -12,8 +13,6 @@ import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
@@ -53,26 +52,16 @@ public final class EnchantmentSlotsPage extends VBox {
         ToolSection section = new ToolSection("enchantment:section.slots.description");
 
         for (List<String> group : GROUPS) {
-            GridPane grid = new GridPane();
-            grid.setHgap(16);
-            grid.setMaxWidth(Double.MAX_VALUE);
-
-            for (int i = 0; i < group.size(); i++) {
-                ColumnConstraints col = new ColumnConstraints();
-                col.setHgrow(Priority.ALWAYS);
-                col.setFillWidth(true);
-                grid.getColumnConstraints().add(col);
-            }
+            AutoFitGrid row = new AutoFitGrid(256, true);
 
             for (int i = 0; i < group.size(); i++) {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(group.get(i));
                 if (cfg == null) continue;
                 boolean active = e.slots().stream().anyMatch(cfg.slots()::contains);
                 ToolSlot slot = new ToolSlot(cfg.image(), cfg.nameKey(), active);
-                slot.setMaxWidth(Double.MAX_VALUE);
-                grid.add(slot, i, 0);
+                row.addItem(slot);
             }
-            section.addContent(grid);
+            section.addContent(row);
         }
 
         section.addContent(buildExplanation());

@@ -7,7 +7,6 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -30,7 +29,7 @@ public final class ToolSlot extends SimpleCard {
 
     public ToolSlot(Identifier imageId, String titleKey, String descKey, boolean initialActive, boolean locked, String lockKey) {
         super(new Insets(16));
-        setMaxHeight(Region.USE_PREF_SIZE);
+        setMaxWidth(Double.MAX_VALUE);
         this.locked = locked;
 
         Label title = new Label(I18n.get(titleKey));
@@ -51,6 +50,9 @@ public final class ToolSlot extends SimpleCard {
         ResourceImageIcon image = new ResourceImageIcon(imageId, 64);
         StackPane imageWrap = new StackPane(image);
         imageWrap.setAlignment(Pos.CENTER);
+        imageWrap.setMinSize(64, 64);
+        imageWrap.setPrefSize(64, 64);
+        imageWrap.setMaxSize(64, 64);
 
         VBox inner = new VBox(textBlock, imageWrap);
         inner.setAlignment(Pos.TOP_CENTER);

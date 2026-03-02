@@ -20,46 +20,38 @@ import java.util.List;
 public final class EnchantmentTechnicalPage extends VBox {
 
     private static final List<String> BEHAVIOUR_FIELDS = List.of(
-        "smelts_loot",
-        "prevent_ice_melting",
-        "prevent_infested_block_spawning",
-        "prevent_bee_spawning",
-        "prevent_pot_shattering",
-        "price_doubled"
-    );
+            "smelts_loot",
+            "prevent_ice_melting",
+            "prevent_infested_block_spawning",
+            "prevent_bee_spawning",
+            "prevent_pot_shattering",
+            "price_doubled");
 
     private static final List<String> COST_FIELDS = List.of(
-        "minCostBase",
-        "minCostPerLevelAboveFirst",
-        "maxCostBase",
-        "maxCostPerLevelAboveFirst"
-    );
+            "minCostBase",
+            "minCostPerLevelAboveFirst",
+            "maxCostBase",
+            "maxCostPerLevelAboveFirst");
 
-    private final StudioContext context;
     private final VBox content = new VBox(64);
 
     public EnchantmentTechnicalPage(StudioContext context) {
-        this.context = context;
-
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.getStyleClass().add("enchantment-subpage-scroll");
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
-
         content.setPadding(new Insets(32));
-
         context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refresh());
         refresh();
     }
 
     private void refresh() {
         content.getChildren().setAll(
-            buildBehaviourSection(),
-            buildCostsSection(),
-            buildEffectsSection()
-        );
+                buildBehaviourSection(),
+                buildCostsSection(),
+                buildEffectsSection());
     }
 
     private ToolSection buildBehaviourSection() {
@@ -69,9 +61,8 @@ public final class EnchantmentTechnicalPage extends VBox {
         for (int i = 0; i < BEHAVIOUR_FIELDS.size(); i++) {
             String field = BEHAVIOUR_FIELDS.get(i);
             ToolSwitch sw = new ToolSwitch(
-                "enchantment:technical." + field + ".title",
-                "enchantment:technical." + field + ".description"
-            );
+                    "enchantment:technical." + field + ".title",
+                    "enchantment:technical." + field + ".description");
             grid.add(sw, i % 2, i / 2);
         }
 

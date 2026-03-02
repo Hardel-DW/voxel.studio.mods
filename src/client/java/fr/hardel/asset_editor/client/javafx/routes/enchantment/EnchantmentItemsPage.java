@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSectionSelector;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -7,7 +8,6 @@ import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
@@ -25,8 +25,8 @@ public final class EnchantmentItemsPage extends VBox {
     private final ToolSectionSelector selector;
     private String currentSection = "supportedItems";
     private String currentElement = "";
-    private TilePane supportedGrid;
-    private TilePane primaryGrid;
+    private AutoFitGrid supportedGrid;
+    private AutoFitGrid primaryGrid;
 
     public EnchantmentItemsPage(StudioContext context) {
         this.context = context;
@@ -74,25 +74,21 @@ public final class EnchantmentItemsPage extends VBox {
         selector.setContent(currentSection.equals("primaryItems") ? primaryGrid : supportedGrid);
     }
 
-    private TilePane buildGrid(StudioMockEnchantment e, boolean includePrimaryNone) {
-        TilePane grid = new TilePane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setPrefTileWidth(256);
-        grid.setMaxWidth(Double.MAX_VALUE);
+    private AutoFitGrid buildGrid(StudioMockEnchantment e, boolean includePrimaryNone) {
+        AutoFitGrid grid = new AutoFitGrid(256, true);
 
         for (Map.Entry<String, String> entry : ENCHANTABLE_ENTRIES.entrySet()) {
             String key  = entry.getKey();
             String tag  = entry.getValue();
             boolean active = e.items().contains(tag);
             Identifier img = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/" + key + ".png");
-            grid.getChildren().add(new ToolSlot(img, "enchantment:supported." + key + ".title", active));
+            grid.addItem(new ToolSlot(img, "enchantment:supported." + key + ".title", active));
         }
 
         if (includePrimaryNone) {
             Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/tools/cross.png");
             boolean noneActive = e.items().isEmpty();
-            grid.getChildren().add(new ToolSlot(noneImg, "enchantment:supported.none.title", noneActive));
+            grid.addItem(new ToolSlot(noneImg, "enchantment:supported.none.title", noneActive));
         }
 
         return grid;

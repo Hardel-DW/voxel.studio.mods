@@ -1,10 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.components.ui.AutoFitGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolCategory;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 
@@ -26,14 +26,10 @@ public final class ExclusiveGroupSection extends VBox {
     private ToolCategory buildVanillaCategory() {
         ToolCategory category = new ToolCategory("enchantment:exclusive.vanilla.title");
 
-        TilePane grid = new TilePane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setPrefTileWidth(256);
-        grid.setMaxWidth(Double.MAX_VALUE);
+        AutoFitGrid grid = new AutoFitGrid(256, true);
 
         for (ExclusiveSetGroup group : ExclusiveSetGroup.ALL) {
-            grid.getChildren().add(new EnchantmentTags(
+            grid.addItem(new EnchantmentTags(
                 "enchantment:exclusive.set." + group.id() + ".title",
                 "enchantment:exclusive.set." + group.id() + ".description",
                 group.image(),

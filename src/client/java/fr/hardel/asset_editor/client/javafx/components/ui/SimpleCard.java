@@ -44,6 +44,8 @@ public class SimpleCard extends StackPane {
 
         Pane shinePane = new Pane();
         shinePane.setMouseTransparent(true);
+        // Overlay only: keep it out of parent size computation to avoid layout feedback.
+        shinePane.setManaged(false);
         shinePane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         Image sharedShine = getShineImage();
         if (sharedShine != null) {
@@ -56,6 +58,7 @@ public class SimpleCard extends StackPane {
         }
 
         visualCard.getChildren().addAll(shinePane, contentBox);
+        StackPane.setAlignment(shinePane, Pos.TOP_LEFT);
         StackPane.setAlignment(contentBox, Pos.TOP_LEFT);
 
         Rectangle clip = new Rectangle();
