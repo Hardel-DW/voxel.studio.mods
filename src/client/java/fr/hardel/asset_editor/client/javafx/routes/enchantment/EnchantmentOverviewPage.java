@@ -61,19 +61,21 @@ public final class EnchantmentOverviewPage extends VBox {
             return;
         }
         if (context.uiState().viewMode() == StudioViewMode.LIST) {
-            VBox list = new VBox(8);
+            VBox list = new VBox(0);
             list.getStyleClass().add("enchantment-overview-list");
-            list.setPadding(new Insets(20, 32, 24, 32));
-            for (StudioMockEnchantment enchantment : enchantments)
+            list.setPadding(new Insets(24, 32, 24, 32));
+            for (StudioMockEnchantment enchantment : enchantments) {
                 list.getChildren().add(new EnchantmentOverviewRow(enchantment, () -> open(enchantment)));
+            }
             content.getChildren().setAll(list);
             return;
         }
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(280));
         grid.getStyleClass().add("enchantment-overview-grid");
-        grid.setPadding(new Insets(20, 32, 24, 32));
-        for (StudioMockEnchantment enchantment : enchantments)
+        grid.setPadding(new Insets(24, 32, 24, 32));
+        for (StudioMockEnchantment enchantment : enchantments) {
             grid.addItem(new EnchantmentOverviewCard(enchantment, () -> open(enchantment)));
+        }
         content.getChildren().setAll(grid);
     }
 

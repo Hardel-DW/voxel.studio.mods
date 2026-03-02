@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.utils;
 
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import javafx.scene.paint.Color;
 
 public final class ColorUtils {
@@ -12,9 +13,8 @@ public final class ColorUtils {
     public static String normalizeColorKey(String key) {
         if (key == null) return "";
         String clean = key.trim();
-        int reg = clean.indexOf('$');
-        if (reg >= 0) clean = clean.substring(0, reg);
-        return clean;
+        StudioElementId parsed = StudioElementId.parse(clean);
+        return parsed == null ? clean : parsed.identifier().toString();
     }
 
     public static int stringToHue(String text) {

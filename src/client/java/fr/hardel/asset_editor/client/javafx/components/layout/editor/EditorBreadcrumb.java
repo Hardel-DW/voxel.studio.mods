@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
@@ -67,28 +67,19 @@ public final class EditorBreadcrumb extends HBox {
         ArrayList<String> segments = new ArrayList<>();
         if (isOverview) {
             if (filterPath == null || filterPath.isBlank()) return segments;
-            String[] parts = filterPath.split("/");
-            for (String part : parts) {
-                segments.add(TextUtils.toDisplay(part));
-            }
+            segments.addAll(List.of(filterPath.split("/")));
             return segments;
         }
 
         if (elementId == null || elementId.isBlank()) return segments;
-        String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
-        int separator = clean.indexOf(':');
-        if (separator < 0) {
-            segments.add(TextUtils.toDisplay(clean));
+        StudioElementId parsed = StudioElementId.parse(elementId);
+        if (parsed == null) {
+            segments.add(elementId);
             return segments;
         }
 
-        segments.add(clean.substring(0, separator));
-        String resource = clean.substring(separator + 1);
-        if (resource.isBlank()) return segments;
-        String[] parts = resource.split("/");
-        for (String part : parts) {
-            segments.add(TextUtils.toDisplay(part));
-        }
+        segments.add(parsed.namespace());
+        segments.addAll(List.of(parsed.resourcePath().split("/")));
         return segments;
     }
 }

@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -124,10 +125,7 @@ public final class StudioEditorTabsBar extends HBox {
     }
 
     private String displayName(String elementId) {
-        if (elementId == null || elementId.isBlank()) return "";
-        String clean = elementId.contains("$") ? elementId.substring(0, elementId.indexOf('$')) : elementId;
-        int sep = clean.indexOf(':');
-        if (sep < 0 || sep + 1 >= clean.length()) return clean;
-        return clean.substring(sep + 1);
+        StudioElementId parsed = StudioElementId.parse(elementId);
+        return parsed == null ? (elementId == null ? "" : elementId) : parsed.resourceLeaf();
     }
 }

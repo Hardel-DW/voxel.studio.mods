@@ -8,8 +8,8 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -170,16 +170,12 @@ public final class EditorHeader extends VBox {
             String filterPath = tree.filterPath();
             if (filterPath == null || filterPath.isBlank()) return I18n.get("editor.all");
             String[] parts = filterPath.split("/");
-            return TextUtils.toDisplay(parts[parts.length - 1]);
+            return parts[parts.length - 1];
         }
         String id = tree.currentElementId();
         if (id == null || id.isBlank()) return I18n.get(concept.titleKey());
-        String clean = id.contains("$") ? id.substring(0, id.indexOf('$')) : id;
-        int sep = clean.indexOf(':');
-        String resource = sep >= 0 ? clean.substring(sep + 1) : clean;
-        int slash = resource.lastIndexOf('/');
-        String leaf = slash >= 0 ? resource.substring(slash + 1) : resource;
-        return TextUtils.toDisplay(leaf);
+        StudioElementId parsed = StudioElementId.parse(id);
+        return parsed == null ? id : parsed.resourceLeaf();
     }
 
     private String resolveColorKey() {

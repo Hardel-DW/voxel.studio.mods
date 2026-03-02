@@ -4,8 +4,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.resources.language.I18n;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -57,6 +56,7 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(config.icon());
+                category.setLabel(translationOrDefault("enchantment:slots." + config.id() + ".title", config.id()));
                 root.children().put(config.id(), category);
             }
         }
@@ -67,13 +67,14 @@ public final class EnchantmentTreeBuilder {
             if (version < tag.min() || version > tag.max()) continue;
             ArrayList<StudioMockEnchantment> matching = new ArrayList<>();
             for (StudioMockEnchantment enchantment : enchantments) {
-                if (enchantment.items().contains(tag.key())) {
+                if (EnchantmentResolver.matchesItemReference(enchantment, tag.key())) {
                     matching.add(enchantment);
                 }
             }
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(tag.icon());
+                category.setLabel(translationOrDefault("enchantment:supported." + tag.key() + ".title", tag.key()));
                 root.children().put(tag.key(), category);
             }
         }
@@ -87,8 +88,9 @@ public final class EnchantmentTreeBuilder {
         }
         for (Map.Entry<String, ArrayList<StudioMockEnchantment>> entry : grouped.entrySet()) {
             String key = entry.getKey();
-            String name = key.startsWith("#") ? key : TextUtils.toDisplay(key);
-            root.children().put(name, createCategoryNode(entry.getValue()));
+            TreeNodeModel category = createCategoryNode(entry.getValue());
+            category.setLabel(translationOrDefault("enchantment:exclusive.set." + key + ".title", key));
+            root.children().put(key, category);
         }
     }
 
@@ -99,9 +101,14 @@ public final class EnchantmentTreeBuilder {
             TreeNodeModel leaf = new TreeNodeModel();
             leaf.setCount(0);
             leaf.setElementId(enchantment.uniqueKey());
+            leaf.setLabel(enchantmentLabel(enchantment));
             node.children().put(enchantment.resource(), leaf);
         }
         return node;
+    }
+
+    private static String enchantmentLabel(StudioMockEnchantment enchantment) {
+        return EnchantmentResolver.enchantmentDisplayName(enchantment);
     }
 
     private static boolean hasOne(List<String> source, List<String> targets) {
@@ -110,6 +117,11 @@ public final class EnchantmentTreeBuilder {
         }
         return false;
     }
+
+    private static String translationOrDefault(String key, String fallback) {
+        return I18n.exists(key) ? I18n.get(key) : fallback;
+    }
+
     private EnchantmentTreeBuilder() {
     }
 }

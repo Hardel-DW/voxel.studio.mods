@@ -12,6 +12,7 @@ public final class TreeNodeModel {
     private final ArrayList<String> identifiers = new ArrayList<>();
     private int count;
     private String elementId;
+    private String label;
     private Identifier icon;
     private boolean folder;
 
@@ -35,6 +36,10 @@ public final class TreeNodeModel {
         return icon;
     }
 
+    public String label() {
+        return label;
+    }
+
     public boolean folder() {
         return folder;
     }
@@ -45,6 +50,10 @@ public final class TreeNodeModel {
 
     public void setElementId(String elementId) {
         this.elementId = elementId;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public void setIcon(Identifier icon) {

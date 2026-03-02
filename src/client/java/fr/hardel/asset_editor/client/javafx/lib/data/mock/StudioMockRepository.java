@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.data.mock;
 
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -56,7 +55,7 @@ public final class StudioMockRepository {
         LinkedHashSet<String> groups = new LinkedHashSet<>();
         for (StudioMockEnchantment enchantment : enchantments) {
             if (mode == StudioSidebarView.EXCLUSIVE) {
-                groups.add(TextUtils.toDisplay(enchantment.exclusiveGroup()));
+                groups.add(enchantment.exclusiveGroup());
                 continue;
             }
             if (mode == StudioSidebarView.SLOTS) {
@@ -88,7 +87,7 @@ public final class StudioMockRepository {
         if (!leaf.isEmpty() && !enchantment.resource().equals(leaf))
             return false;
         if (sidebarView == StudioSidebarView.EXCLUSIVE)
-            return TextUtils.toDisplay(enchantment.exclusiveGroup()).toLowerCase(Locale.ROOT).equals(category);
+            return enchantment.exclusiveGroup().toLowerCase(Locale.ROOT).equals(category);
         if (sidebarView == StudioSidebarView.SLOTS)
             return hasAny(enchantment.slots(), SLOT_MATCHERS.getOrDefault(category, List.of()));
         return enchantment.items().contains(category);
@@ -101,5 +100,4 @@ public final class StudioMockRepository {
         return false;
     }
 }
-
 

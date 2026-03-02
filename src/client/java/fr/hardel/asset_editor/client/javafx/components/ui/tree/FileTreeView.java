@@ -5,7 +5,6 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import fr.hardel.asset_editor.client.javafx.lib.utils.IconUtils;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -152,7 +151,8 @@ public final class FileTreeView extends VBox {
             iconNode.setOpacity(isHighlighted ? 1.0 : 0.6);
         content.getChildren().add(iconNode);
 
-        Label label = new Label(TextUtils.toDisplay(name));
+        String labelText = node.label() == null || node.label().isBlank() ? name : node.label();
+        Label label = new Label(labelText);
         label.getStyleClass().add("tree-row-label");
         label.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(label, Priority.ALWAYS);

@@ -13,6 +13,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
 import java.util.List;
@@ -91,8 +92,7 @@ public final class EnchantmentTags extends SimpleCard {
     }
 
     private Label buildTagChip(String value) {
-        String display = value.contains(":") ? value.substring(value.indexOf(':') + 1) : value;
-        Label chip = new Label(display);
+        Label chip = new Label(resolveTagLabel(value));
         chip.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 12));
         chip.setTextFill(VoxelColors.ZINC_400);
         chip.getStyleClass().add("enchantment-tags-value");
@@ -123,5 +123,21 @@ public final class EnchantmentTags extends SimpleCard {
         bottom.getChildren().add(actionsBtn);
 
         return bottom;
+    }
+
+    private String resolveTagLabel(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        String clean = value.startsWith("#") ? value.substring(1) : value;
+        Identifier identifier = Identifier.tryParse(clean);
+        if (identifier == null) {
+            return value;
+        }
+        if (BuiltInRegistries.ITEM.containsKey(identifier)) {
+            var item = BuiltInRegistries.ITEM.getValue(identifier);
+            return item.getName().getString();
+        }
+        return value;
     }
 }
