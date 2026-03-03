@@ -9,7 +9,6 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -17,6 +16,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 
@@ -48,9 +49,11 @@ public final class EnchantmentSlotsPage extends VBox {
     }
 
     private void refresh() {
-        StudioMockEnchantment e = selectedEnchantment();
+        Holder.Reference<Enchantment> holder = selectedEnchantment();
+        if (holder == null) return;
 
         ToolSection section = new ToolSection("enchantment:section.slots.description");
+        var enchantmentSlots = holder.value().definition().slots();
 
         for (List<String> group : GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
@@ -59,7 +62,8 @@ public final class EnchantmentSlotsPage extends VBox {
             for (int i = 0; i < group.size(); i++) {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(group.get(i));
                 if (cfg == null) continue;
-                boolean active = e.slots().stream().anyMatch(cfg.slots()::contains);
+                boolean active = enchantmentSlots.stream()
+                        .anyMatch(g -> cfg.slots().contains(g.getSerializedName()));
                 ToolSlot slot = new ToolSlot(cfg.image(), cfg.nameKey(), active);
                 row.addItem(slot);
             }
@@ -92,13 +96,15 @@ public final class EnchantmentSlotsPage extends VBox {
         return box;
     }
 
-    private StudioMockEnchantment selectedEnchantment() {
+    private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
-        if (!id.isBlank()) {
-            for (StudioMockEnchantment e : context.repository().enchantments()) {
-                if (e.uniqueKey().equals(id)) return e;
+        var enchantments = context.enchantments();
+        if (enchantments.isEmpty()) return null;
+        if (id != null && !id.isBlank()) {
+            for (var h : enchantments) {
+                if (h.key().identifier().toString().equals(id)) return h;
             }
         }
-        return context.repository().enchantments().getFirst();
+        return enchantments.getFirst();
     }
 }

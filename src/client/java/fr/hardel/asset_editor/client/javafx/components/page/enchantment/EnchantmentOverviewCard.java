@@ -4,7 +4,6 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleSwitch;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,7 +18,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
             new OverviewCase("enchantment:overview.tradeable", feature("item/enchanted_book")),
             new OverviewCase("enchantment:overview.tradeable_equipment", feature("item/enchanted_item")));
 
-    public EnchantmentOverviewCard(StudioMockEnchantment enchantment, Runnable onOpen) {
+    public EnchantmentOverviewCard(Holder.Reference<Enchantment> holder, Runnable onOpen) {
         super(new Insets(16));
         getStyleClass().add("enchantment-card");
         setMaxWidth(Double.MAX_VALUE);
@@ -43,7 +44,11 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         visualCard.getStyleClass().add("enchantment-card-surface");
         installOverviewHover();
 
-        HBox top = buildTopRow(enchantment.displayName(), enchantment.maxLevel(), enchantment.previewTexture(), enchantment.isVanilla());
+        String displayName = holder.value().description().getString();
+        int maxLevel = holder.value().getMaxLevel();
+        boolean vanilla = "minecraft".equals(holder.key().identifier().getNamespace());
+
+        HBox top = buildTopRow(displayName, maxLevel, null, vanilla);
         FlowPane cases = buildCases();
 
         Region spacer = new Region();

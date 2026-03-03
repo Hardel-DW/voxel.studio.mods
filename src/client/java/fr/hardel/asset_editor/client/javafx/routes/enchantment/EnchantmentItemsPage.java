@@ -5,21 +5,24 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ToolSectionSelector;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class EnchantmentItemsPage extends VBox {
 
-    private static final Map<String, String> ENCHANTABLE_ENTRIES = buildEntries();
+    private static final List<String> ENCHANTABLE_KEYS = List.of(
+            "sword", "trident", "mace", "bow", "crossbow", "range", "fishing", "shield", "weapon",
+            "melee", "head_armor", "chest_armor", "leg_armor", "foot_armor", "elytra", "armor",
+            "equippable", "axes", "shovels", "hoes", "pickaxes", "durability", "mining_loot");
 
     private final StudioContext context;
     private final VBox content = new VBox(32);
@@ -58,60 +61,55 @@ public final class EnchantmentItemsPage extends VBox {
     }
 
     private void onSectionChange(String section) {
-        if (section.equals(currentSection)) {
-            return;
-        }
+        if (section.equals(currentSection)) return;
         currentSection = section;
         selector.setContent(currentSection.equals("primaryItems") ? primaryGrid : supportedGrid);
     }
 
     private void refreshForSelectedElement() {
-        StudioMockEnchantment e = selectedEnchantment();
-        if (!e.uniqueKey().equals(currentElement)) {
-            currentElement = e.uniqueKey();
-            supportedGrid = buildGrid(e, false);
-            primaryGrid = buildGrid(e, true);
+        Holder.Reference<Enchantment> holder = selectedEnchantment();
+        if (holder == null) return;
+        String key = holder.key().identifier().toString();
+        if (!key.equals(currentElement)) {
+            currentElement = key;
+            supportedGrid = buildGrid(holder, false);
+            primaryGrid = buildGrid(holder, true);
         }
         selector.setContent(currentSection.equals("primaryItems") ? primaryGrid : supportedGrid);
     }
 
-    private ResponsiveGrid buildGrid(StudioMockEnchantment e, boolean includePrimaryNone) {
+    private ResponsiveGrid buildGrid(Holder.Reference<Enchantment> holder, boolean includePrimaryNone) {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-        for (Map.Entry<String, String> entry : ENCHANTABLE_ENTRIES.entrySet()) {
-            String key  = entry.getKey();
-            String tag  = entry.getValue();
-            boolean active = e.items().contains(tag);
+        String supportedTag = holder.value().definition().supportedItems().unwrapKey()
+                .map(k -> k.location().getPath())
+                .orElse("");
+
+        for (String key : ENCHANTABLE_KEYS) {
+            boolean active = supportedTag.equals("enchantable/" + key);
             Identifier img = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/" + key + ".png");
             grid.addItem(new ToolSlot(img, "enchantment:supported." + key + ".title", active));
         }
 
         if (includePrimaryNone) {
             Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/tools/cross.png");
-            boolean noneActive = e.items().isEmpty();
+            boolean noneActive = supportedTag.isEmpty();
             grid.addItem(new ToolSlot(noneImg, "enchantment:supported.none.title", noneActive));
         }
 
         return grid;
     }
 
-    private static Map<String, String> buildEntries() {
-        LinkedHashMap<String, String> map = new LinkedHashMap<>();
-        List.of("sword", "trident", "mace", "bow", "crossbow", "range", "fishing", "shield", "weapon",
-                "melee", "head_armor", "chest_armor", "leg_armor", "foot_armor", "elytra", "armor",
-                "equippable", "axes", "shovels", "hoes", "pickaxes", "durability", "mining_loot")
-            .forEach(k -> map.put(k, "#minecraft:enchantable/" + k));
-        return map;
-    }
-
-    private StudioMockEnchantment selectedEnchantment() {
+    private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
-        if (!id.isBlank()) {
-            for (StudioMockEnchantment e : context.repository().enchantments()) {
-                if (e.uniqueKey().equals(id)) return e;
+        var enchantments = context.enchantments();
+        if (enchantments.isEmpty()) return null;
+        if (id != null && !id.isBlank()) {
+            for (var h : enchantments) {
+                if (h.key().identifier().toString().equals(id)) return h;
             }
         }
-        return context.repository().enchantments().getFirst();
+        return enchantments.getFirst();
     }
 }

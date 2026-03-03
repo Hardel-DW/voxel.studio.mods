@@ -137,7 +137,7 @@ public final class EnchantmentLayout extends HBox {
     }
 
     private TreeNodeModel buildTree(StudioSidebarView view) {
-        return EnchantmentTreeBuilder.build(context.repository().enchantments(), view, 61);
+        return EnchantmentTreeBuilder.build(context.enchantments(), view, 61);
     }
 
     private Map<String, Identifier> folderIcons(StudioSidebarView view) {

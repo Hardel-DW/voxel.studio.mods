@@ -6,23 +6,19 @@ import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
-/**
- * Exclusive single mode: custom (from datapack) + vanilla enchantment lists.
- * Matches ExclusiveSingleSection.tsx.
- */
 public final class ExclusiveSingleSection extends VBox {
 
     public ExclusiveSingleSection(StudioContext context) {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 
-        List<Identifier> custom = context.repository().enchantments().stream()
-            .map(e -> Identifier.fromNamespaceAndPath(e.namespace(), e.resource()))
+        List<Identifier> custom = context.enchantments().stream()
+            .map(h -> h.key().identifier())
             .filter(id -> !id.getNamespace().equals("minecraft"))
             .toList();
 
-        List<Identifier> vanilla = context.repository().enchantments().stream()
-            .map(e -> Identifier.fromNamespaceAndPath(e.namespace(), e.resource()))
+        List<Identifier> vanilla = context.enchantments().stream()
+            .map(h -> h.key().identifier())
             .filter(id -> id.getNamespace().equals("minecraft"))
             .toList();
 

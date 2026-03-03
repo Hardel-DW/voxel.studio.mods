@@ -4,7 +4,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
+import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
@@ -15,8 +16,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
+import java.util.Locale;
 
 public final class EnchantmentOverviewPage extends VBox {
 
@@ -52,10 +56,15 @@ public final class EnchantmentOverviewPage extends VBox {
     }
 
     private void refresh() {
-        List<StudioMockEnchantment> enchantments = context.repository().filter(
-                context.uiState().search(),
-                context.uiState().filterPath(),
-                context.uiState().sidebarView());
+        String search = context.uiState().search() == null ? "" : context.uiState().search().trim().toLowerCase(Locale.ROOT);
+        String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
+        StudioSidebarView sidebarView = context.uiState().sidebarView();
+
+        List<Holder.Reference<Enchantment>> enchantments = context.enchantments().stream()
+                .filter(h -> search.isEmpty() || h.key().identifier().getPath().contains(search))
+                .filter(h -> matchesFilter(h, filterPath, sidebarView))
+                .toList();
+
         if (enchantments.isEmpty()) {
             content.getChildren().setAll(emptyState());
             return;
@@ -64,8 +73,8 @@ public final class EnchantmentOverviewPage extends VBox {
             VBox list = new VBox(0);
             list.getStyleClass().add("enchantment-overview-list");
             list.setPadding(new Insets(24, 32, 24, 32));
-            for (StudioMockEnchantment enchantment : enchantments) {
-                list.getChildren().add(new EnchantmentOverviewRow(enchantment, () -> open(enchantment)));
+            for (var holder : enchantments) {
+                list.getChildren().add(new EnchantmentOverviewRow(holder, () -> open(holder)));
             }
             content.getChildren().setAll(list);
             return;
@@ -73,10 +82,36 @@ public final class EnchantmentOverviewPage extends VBox {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(280));
         grid.getStyleClass().add("enchantment-overview-grid");
         grid.setPadding(new Insets(24, 32, 24, 32));
-        for (StudioMockEnchantment enchantment : enchantments) {
-            grid.addItem(new EnchantmentOverviewCard(enchantment, () -> open(enchantment)));
+        for (var holder : enchantments) {
+            grid.addItem(new EnchantmentOverviewCard(holder, () -> open(holder)));
         }
         content.getChildren().setAll(grid);
+    }
+
+    private static boolean matchesFilter(Holder.Reference<Enchantment> holder, String filterPath, StudioSidebarView sidebarView) {
+        if (filterPath.isEmpty()) return true;
+        String[] parts = filterPath.split("/", 2);
+        String category = parts[0];
+        String leaf = parts.length == 2 ? parts[1] : "";
+        if (!leaf.isEmpty() && !holder.key().identifier().getPath().equals(leaf)) return false;
+
+        Enchantment enchantment = holder.value();
+        if (sidebarView == StudioSidebarView.SLOTS) {
+            for (EnchantmentTreeData.SlotConfig config : EnchantmentTreeData.SLOT_CONFIGS) {
+                if (!config.id().equals(category)) continue;
+                return enchantment.definition().slots().stream()
+                        .anyMatch(g -> config.slots().contains(g.getSerializedName()));
+            }
+            return false;
+        }
+        if (sidebarView == StudioSidebarView.ITEMS) {
+            return enchantment.definition().supportedItems().unwrapKey()
+                    .map(tag -> tag.location().getPath().endsWith("/" + category))
+                    .orElse(false);
+        }
+        return enchantment.exclusiveSet().unwrapKey()
+                .map(tag -> tag.location().getPath().toLowerCase(Locale.ROOT).equals(category))
+                .orElse(false);
     }
 
     private VBox emptyState() {
@@ -90,8 +125,8 @@ public final class EnchantmentOverviewPage extends VBox {
         return box;
     }
 
-    private void open(StudioMockEnchantment enchantment) {
-        context.tabsState().openElement(enchantment.uniqueKey(), StudioRoute.ENCHANTMENT_MAIN);
+    private void open(Holder.Reference<Enchantment> holder) {
+        context.tabsState().openElement(holder.key().identifier().toString(), StudioRoute.ENCHANTMENT_MAIN);
         context.router().navigate(StudioRoute.ENCHANTMENT_MAIN);
     }
 }

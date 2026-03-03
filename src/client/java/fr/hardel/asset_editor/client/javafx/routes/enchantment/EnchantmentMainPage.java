@@ -11,7 +11,6 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
@@ -30,7 +29,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 
@@ -72,7 +73,8 @@ public final class EnchantmentMainPage extends VBox {
     }
 
     private void refresh() {
-        StudioMockEnchantment selected = selectedEnchantment();
+        Holder.Reference<Enchantment> selected = selectedEnchantment();
+        if (selected == null) return;
 
         ToolSection section = new ToolSection("enchantment:section.global.description");
 
@@ -85,15 +87,16 @@ public final class EnchantmentMainPage extends VBox {
         content.getChildren().setAll(section, spacer, buildSupportCard());
     }
 
-    private ResponsiveGrid buildCardsGrid(StudioMockEnchantment e) {
+    private ResponsiveGrid buildCardsGrid(Holder.Reference<Enchantment> holder) {
+        Enchantment e = holder.value();
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
         grid.addItem(new TemplateCard(MAX_LEVEL_ICON, "enchantment:global.maxLevel.title",
-                "enchantment:global.explanation.list.1", new Counter(1, 127, 1, e.maxLevel())));
+                "enchantment:global.explanation.list.1", new Counter(1, 127, 1, e.getMaxLevel())));
         grid.addItem(new TemplateCard(WEIGHT_ICON, "enchantment:global.weight.title",
-                "enchantment:global.explanation.list.2", new Counter(1, 1024, 1, e.weight())));
+                "enchantment:global.explanation.list.2", new Counter(1, 1024, 1, e.getWeight())));
         grid.addItem(new TemplateCard(ANVIL_COST_ICON, "enchantment:global.anvilCost.title",
-                "enchantment:global.explanation.list.3", new Counter(0, 255, 1, e.anvilCost())));
+                "enchantment:global.explanation.list.3", new Counter(0, 255, 1, e.getAnvilCost())));
         return grid;
     }
 
@@ -224,14 +227,15 @@ public final class EnchantmentMainPage extends VBox {
         return item;
     }
 
-    private StudioMockEnchantment selectedEnchantment() {
+    private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
-        if (!id.isBlank()) {
-            for (StudioMockEnchantment e : context.repository().enchantments()) {
-                if (e.uniqueKey().equals(id))
-                    return e;
+        var enchantments = context.enchantments();
+        if (enchantments.isEmpty()) return null;
+        if (id != null && !id.isBlank()) {
+            for (var h : enchantments) {
+                if (h.key().identifier().toString().equals(id)) return h;
             }
         }
-        return context.repository().enchantments().getFirst();
+        return enchantments.getFirst();
     }
 }

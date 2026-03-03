@@ -1,8 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleSwitch;
-import fr.hardel.asset_editor.client.javafx.lib.data.mock.StudioMockEnchantment;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -14,11 +12,13 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 public final class EnchantmentOverviewRow extends HBox {
 
     public EnchantmentOverviewRow(
-        StudioMockEnchantment enchantment,
+        Holder.Reference<Enchantment> holder,
         Runnable onOpen
     ) {
         getStyleClass().add("enchantment-row");
@@ -34,26 +34,20 @@ public final class EnchantmentOverviewRow extends HBox {
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
 
-        var previewTexture = enchantment.previewTexture();
-        if (previewTexture != null) {
-            iconWrap.getChildren().add(new ResourceImageIcon(previewTexture, 32));
-        }
-        if (iconWrap.getChildren().isEmpty()) {
-            Label fallback = new Label("?");
-            fallback.getStyleClass().add("enchantment-row-placeholder");
-            iconWrap.getChildren().add(fallback);
-        }
+        Label fallback = new Label("?");
+        fallback.getStyleClass().add("enchantment-row-placeholder");
+        iconWrap.getChildren().add(fallback);
 
-        Label name = new Label(enchantment.displayName());
+        Label name = new Label(holder.value().description().getString());
         name.getStyleClass().add("enchantment-row-name");
 
-        Label identifier = new Label(enchantment.uniqueKey());
+        Label identifier = new Label(holder.key().identifier().toString());
         identifier.getStyleClass().add("enchantment-row-identifier");
 
         Label bullet = new Label("\u2022");
         bullet.getStyleClass().add("enchantment-row-separator");
 
-        Label level = new Label(I18n.get("enchantment:overview.level") + " " + enchantment.maxLevel());
+        Label level = new Label(I18n.get("enchantment:overview.level") + " " + holder.value().getMaxLevel());
         level.getStyleClass().add("enchantment-row-level");
 
         HBox subInfo = new HBox(8, identifier, bullet, level);
@@ -70,7 +64,7 @@ public final class EnchantmentOverviewRow extends HBox {
         HBox right = new HBox(8);
         right.setAlignment(Pos.CENTER_RIGHT);
 
-        if (!enchantment.isVanilla()) {
+        if (!"minecraft".equals(holder.key().identifier().getNamespace())) {
             ToggleSwitch stateSwitch = new ToggleSwitch();
             stateSwitch.setValue(true);
             stateSwitch.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
