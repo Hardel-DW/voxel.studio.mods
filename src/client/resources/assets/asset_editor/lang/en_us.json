@@ -178,5 +178,20 @@
     "enchantment:exclusive.actions.membership.description": "Adds this enchantment to the tags list",
 
     "generic.see.more": "See more",
-    "generic.actions": "Actions"
+    "generic.actions": "Actions",
+
+    "studio:pack.none": "No Pack",
+    "studio:pack.select": "Select a pack",
+    "studio:pack.create": "Create Pack",
+    "studio:pack.create.title": "Create a new pack",
+    "studio:pack.create.name": "Pack name",
+    "studio:pack.create.name.placeholder": "My Datapack",
+    "studio:pack.create.namespace": "Namespace",
+    "studio:pack.create.namespace.placeholder": "my_datapack",
+    "studio:pack.create.icon": "Pack icon",
+    "studio:pack.create.icon.placeholder": "Drop a PNG here or click to browse",
+    "studio:pack.required.title": "Pack required",
+    "studio:pack.required.message": "You need to select or create a pack before editing. Vanilla content is read-only.",
+    "studio:action.cancel": "Cancel",
+    "studio:action.create": "Create"
 }

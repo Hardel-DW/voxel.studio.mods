@@ -62,5 +62,20 @@
     "recipe:overview.search": "Rechercher des recettes...",
     "recipe:overview.no.recipes.found": "Aucune recette trouvee",
     "recipe:overview.try.adjusting.search.or.filter": "Essayez de modifier votre recherche ou filtre",
-    "recipe:section.main": "Principal"
+    "recipe:section.main": "Principal",
+
+    "studio:pack.none": "Aucun Pack",
+    "studio:pack.select": "Selectionner un pack",
+    "studio:pack.create": "Creer un Pack",
+    "studio:pack.create.title": "Creer un nouveau pack",
+    "studio:pack.create.name": "Nom du pack",
+    "studio:pack.create.name.placeholder": "Mon Datapack",
+    "studio:pack.create.namespace": "Namespace",
+    "studio:pack.create.namespace.placeholder": "mon_datapack",
+    "studio:pack.create.icon": "Icone du pack",
+    "studio:pack.create.icon.placeholder": "Deposez un PNG ici ou cliquez pour parcourir",
+    "studio:pack.required.title": "Pack requis",
+    "studio:pack.required.message": "Vous devez selectionner ou creer un pack avant de modifier. Le contenu vanilla est en lecture seule.",
+    "studio:action.cancel": "Annuler",
+    "studio:action.create": "Creer"
 }

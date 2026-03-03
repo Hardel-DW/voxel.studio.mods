@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
+import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 import net.minecraft.client.Minecraft;
@@ -15,6 +16,7 @@ public final class StudioContext {
     private final StudioRouter router = new StudioRouter();
     private final StudioUiState uiState = new StudioUiState();
     private final StudioTabsState tabsState = new StudioTabsState();
+    private final StudioPackState packState = new StudioPackState();
     public StudioRouter router() {
         return router;
     }
@@ -25,6 +27,10 @@ public final class StudioContext {
 
     public StudioTabsState tabsState() {
         return tabsState;
+    }
+
+    public StudioPackState packState() {
+        return packState;
     }
 
     public List<Holder.Reference<Enchantment>> enchantments() {

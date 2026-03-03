@@ -41,10 +41,22 @@ public final class StudioEditorTabsBar extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         setFillHeight(false);
 
-        setPadding(new Insets(0, 0, 0, 16)); // pl-4
+        setPadding(new Insets(0, 8, 0, 8));
+        setSpacing(10);
         tabsContainer.setAlignment(Pos.CENTER_LEFT);
         tabsContainer.setFillHeight(false);
         tabsContainer.getStyleClass().add("studio-editor-tablist");
+
+        PackSelector packSelector = new PackSelector(context);
+
+        Region separator = new Region();
+        separator.getStyleClass().add("tabs-bar-separator");
+        separator.setPrefWidth(1);
+        separator.setMinWidth(1);
+        separator.setMaxWidth(1);
+        separator.setPrefHeight(24);
+        separator.setMinHeight(24);
+        separator.setMaxHeight(24);
 
         Region dragSpacer = new Region();
         HBox.setHgrow(dragSpacer, Priority.ALWAYS);
@@ -52,7 +64,7 @@ public final class StudioEditorTabsBar extends HBox {
         context.tabsState().openTabs().addListener((ListChangeListener<StudioOpenTab>) c -> refreshTabs());
         context.tabsState().activeTabIndexProperty().addListener((obs, o, n) -> refreshTabs());
 
-        getChildren().addAll(tabsContainer, dragSpacer, buildWindowControls(stage));
+        getChildren().addAll(packSelector, separator, tabsContainer, dragSpacer, buildWindowControls(stage));
         refreshTabs();
     }
 

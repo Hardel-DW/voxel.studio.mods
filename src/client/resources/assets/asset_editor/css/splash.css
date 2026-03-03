@@ -4,7 +4,7 @@
 .root {
     -fx-background-color: black;
     -fx-font-family: "Rubik", "Segoe UI", system;
-    -fx-font-smoothing-type: lcd;
+    -fx-font-smoothing-type: gray;
 }
 
 /* ---------- TitleBar ---------- */

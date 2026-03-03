@@ -1,9 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.TemplateCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ToolSelector;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
+import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
 import fr.hardel.asset_editor.client.javafx.components.ui.StudioButton;
@@ -15,6 +18,7 @@ import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -80,6 +84,12 @@ public final class EnchantmentMainPage extends VBox {
 
         ResponsiveGrid cardsGrid = buildCardsGrid(selected);
         section.addContent(cardsGrid, buildModeSelector());
+
+        section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (context.packState().hasSelectedPack()) return;
+            e.consume();
+            showPackRequiredDialog();
+        });
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -225,6 +235,30 @@ public final class EnchantmentMainPage extends VBox {
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;
+    }
+
+    private void showPackRequiredDialog() {
+        Label message = new Label(I18n.get("studio:pack.required.message"));
+        message.setTextFill(VoxelColors.ZINC_400);
+        message.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 13));
+        message.setWrapText(true);
+
+        Dialog dialog = new Dialog("studio:pack.required.title", message);
+
+        StudioButton cancelBtn = new StudioButton(StudioButton.Variant.GHOST_BORDER, StudioButton.Size.SM,
+                I18n.get("studio:action.cancel"));
+        cancelBtn.setOnAction(dialog::close);
+
+        StudioButton createBtn = new StudioButton(StudioButton.Variant.SHIMMER, StudioButton.Size.SM,
+                I18n.get("studio:pack.create"));
+        createBtn.setOnAction(() -> {
+            dialog.close();
+            var createDialog = PackCreateDialog.create(context);
+            createDialog.show(getScene().getWindow());
+        });
+
+        dialog.addFooterButton(cancelBtn).addFooterButton(createBtn);
+        dialog.show(getScene().getWindow());
     }
 
     private Holder.Reference<Enchantment> selectedEnchantment() {
