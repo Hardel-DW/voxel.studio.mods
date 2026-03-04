@@ -83,7 +83,7 @@ public final class EditorHeader extends VBox {
         row.setAlignment(Pos.BOTTOM_LEFT);
         Label title = new Label(resolveTitle());
         title.getStyleClass().add("editor-header-title");
-        title.setFont(VoxelFonts.minecraft(VoxelFonts.Minecraft.TEN, 36));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.MINECRAFT_TEN, 36));
 
         Region colorLine = new Region();
         colorLine.getStyleClass().add("editor-header-color-line");

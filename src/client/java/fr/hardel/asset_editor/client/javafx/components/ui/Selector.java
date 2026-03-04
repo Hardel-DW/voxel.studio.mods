@@ -26,11 +26,11 @@ public final class Selector extends SimpleCard {
 
         Label titleLabel = new Label(I18n.get(titleKey));
         titleLabel.getStyleClass().add("tool-selector-title");
-        titleLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
 
         Label descLabel = new Label(I18n.get(descKey));
         descLabel.getStyleClass().add("tool-selector-desc");
-        descLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 12));
+        descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         descLabel.setWrapText(true);
 
         VBox textBlock = new VBox(4, titleLabel, descLabel);

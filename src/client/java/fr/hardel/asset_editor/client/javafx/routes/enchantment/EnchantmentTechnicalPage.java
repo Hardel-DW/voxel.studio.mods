@@ -85,7 +85,7 @@ public final class EnchantmentTechnicalPage extends VBox {
         Section section = new Section("enchantment:technical.effects.title");
 
         Label empty = new Label(I18n.get("enchantment:technical.empty_effects"));
-        empty.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
+        empty.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         empty.setTextFill(VoxelColors.ZINC_400);
         empty.setPadding(new Insets(16, 0, 16, 0));
         empty.setMaxWidth(Double.MAX_VALUE);

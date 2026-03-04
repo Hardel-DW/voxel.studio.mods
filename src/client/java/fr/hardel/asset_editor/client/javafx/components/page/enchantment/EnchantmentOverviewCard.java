@@ -90,7 +90,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
 
         Label level = new Label(I18n.get("enchantment:overview.level") + " " + maxLevel);
         level.getStyleClass().add("enchantment-card-level");
-        level.setFont(VoxelFonts.minecraft(VoxelFonts.Minecraft.TEN, 10));
+        level.setFont(VoxelFonts.of(VoxelFonts.Variant.MINECRAFT_TEN, 10));
 
         VBox info = new VBox(2, name, level);
         info.setMinWidth(0);

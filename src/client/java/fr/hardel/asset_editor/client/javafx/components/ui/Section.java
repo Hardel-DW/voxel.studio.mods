@@ -24,7 +24,7 @@ public final class Section extends VBox {
 
         Label title = new Label(I18n.get(titleKey));
         title.getStyleClass().add("tool-section-title");
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 24));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 24));
         title.setTextFill(VoxelColors.ZINC_100);
 
         Region hr = new Region();

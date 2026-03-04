@@ -2,71 +2,47 @@ package fr.hardel.asset_editor.client.javafx;
 
 import javafx.scene.text.Font;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Stores loaded Rubik font names after Font.loadFont() registration.
- * Font.font(family, weight, size) is unreliable when static TTF files register
- * under legacy family names like "Rubik ExtraBold" instead of "Rubik".
- * Using new Font(name, size) with the exact registered name is always correct.
- */
 public final class VoxelFonts {
 
-    public enum Rubik {
-        LIGHT("rubik-light"),
-        LIGHT_ITALIC("rubik-lightitalic"),
-        REGULAR("rubik-regular"),
-        ITALIC("rubik-italic"),
-        MEDIUM("rubik-medium"),
-        MEDIUM_ITALIC("rubik-mediumitalic"),
-        SEMI_BOLD("rubik-semibold"),
-        SEMI_BOLD_ITALIC("rubik-semibolditalic"),
-        BOLD("rubik-bold"),
-        BOLD_ITALIC("rubik-bolditalic"),
-        EXTRA_BOLD("rubik-extrabold"),
-        EXTRA_BOLD_ITALIC("rubik-extrabolditalic"),
-        BLACK("rubik-black"),
-        BLACK_ITALIC("rubik-blackitalic");
+    public enum Variant {
+        LIGHT("rubik-light", "Rubik"),
+        LIGHT_ITALIC("rubik-lightitalic", "Rubik"),
+        REGULAR("rubik-regular", "Rubik"),
+        ITALIC("rubik-italic", "Rubik"),
+        MEDIUM("rubik-medium", "Rubik"),
+        MEDIUM_ITALIC("rubik-mediumitalic", "Rubik"),
+        SEMI_BOLD("rubik-semibold", "Rubik"),
+        SEMI_BOLD_ITALIC("rubik-semibolditalic", "Rubik"),
+        BOLD("rubik-bold", "Rubik"),
+        BOLD_ITALIC("rubik-bolditalic", "Rubik"),
+        EXTRA_BOLD("rubik-extrabold", "Rubik"),
+        EXTRA_BOLD_ITALIC("rubik-extrabolditalic", "Rubik"),
+        BLACK("rubik-black", "Rubik"),
+        BLACK_ITALIC("rubik-blackitalic", "Rubik"),
+        MINECRAFT_TEN("minecraftten", "Minecraft"),
+        MINECRAFT_SEVEN("seven", "Minecraft");
 
         public final String fileName;
+        public final String defaultFamily;
 
-        Rubik(String fileName) {
+        Variant(String fileName, String defaultFamily) {
             this.fileName = fileName;
+            this.defaultFamily = defaultFamily;
         }
     }
 
-    public enum Minecraft {
-        TEN("minecraftten"),
-        SEVEN("seven");
+    private static final Map<Variant, String> registry = new EnumMap<>(Variant.class);
 
-        public final String fileName;
-
-        Minecraft(String fileName) {
-            this.fileName = fileName;
-        }
+    static void register(Variant variant, Font f) {
+        if (f != null) registry.put(variant, f.getName());
     }
 
-    private static final Map<Rubik, String> registry = new HashMap<>();
-    private static final Map<Minecraft, String> minecraftRegistry = new HashMap<>();
-
-    static void register(Rubik weight, Font f) {
-        if (f != null) registry.put(weight, f.getName());
-    }
-
-    static void registerMinecraft(Minecraft font, Font f) {
-        if (f != null) minecraftRegistry.put(font, f.getName());
-    }
-
-    public static Font rubik(Rubik weight, double size) {
-        return new Font(registry.getOrDefault(weight, "Rubik"), size);
-    }
-
-    public static Font minecraft(Minecraft font, double size) {
-        return new Font(minecraftRegistry.getOrDefault(font, "Minecraft"), size);
+    public static Font of(Variant variant, double size) {
+        return new Font(registry.getOrDefault(variant, variant.defaultFamily), size);
     }
 
     private VoxelFonts() {}
 }
-
-

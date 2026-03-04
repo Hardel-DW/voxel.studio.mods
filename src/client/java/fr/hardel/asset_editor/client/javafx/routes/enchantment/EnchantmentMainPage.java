@@ -131,12 +131,12 @@ public final class EnchantmentMainPage extends VBox {
 
         Label title = new Label(I18n.get("supports.title"));
         title.getStyleClass().add("support-card-title");
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 30));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 30));
         title.setWrapText(true);
 
         Label desc = new Label(I18n.get("supports.description"));
         desc.getStyleClass().add("support-card-desc");
-        desc.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
+        desc.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         desc.setWrapText(true);
         VBox.setMargin(desc, new Insets(8, 0, 0, 0));
 
@@ -144,7 +144,7 @@ public final class EnchantmentMainPage extends VBox {
 
         Label advantagesHeading = new Label(I18n.get("supports.advantages"));
         advantagesHeading.getStyleClass().add("support-card-advantages-heading");
-        advantagesHeading.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
+        advantagesHeading.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
         VBox.setMargin(advantagesHeading, new Insets(24, 0, 16, 0));
 
         GridPane advantagesGrid = buildAdvantagesGrid();
@@ -231,7 +231,7 @@ public final class EnchantmentMainPage extends VBox {
         SvgIcon check = new SvgIcon(CHECK, 16, Color.WHITE);
         Label text = new Label(I18n.get(key));
         text.getStyleClass().add("support-card-benefit");
-        text.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 14));
+        text.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 14));
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;
@@ -240,7 +240,7 @@ public final class EnchantmentMainPage extends VBox {
     private void showPackRequiredDialog() {
         Label message = new Label(I18n.get("studio:pack.required.message"));
         message.setTextFill(VoxelColors.ZINC_400);
-        message.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 13));
+        message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         message.setWrapText(true);
 
         Dialog dialog = new Dialog("studio:pack.required.title", message);

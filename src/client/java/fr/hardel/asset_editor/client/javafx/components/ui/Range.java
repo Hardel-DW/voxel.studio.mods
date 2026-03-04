@@ -36,11 +36,11 @@ public final class Range extends VBox {
         String labelText = locked && lockKey != null ? I18n.get(lockKey) : I18n.get(labelKey);
 
         Label labelNode = new Label(labelText);
-        labelNode.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 13));
+        labelNode.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 13));
         labelNode.setTextFill(VoxelColors.ZINC_400);
 
         Label valueLabel = new Label(String.valueOf(initialValue));
-        valueLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 13));
+        valueLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 13));
         valueLabel.setTextFill(VoxelColors.ZINC_400);
 
         Region spacer = new Region();

@@ -79,14 +79,14 @@ public final class EnchantmentSlotsPage extends VBox {
         box.setPadding(new Insets(16));
 
         Label title = new Label(I18n.get("enchantment:slots.explanation.title"));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 13));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         title.setTextFill(VoxelColors.ZINC_300);
         title.setWrapText(true);
 
         Label item1 = new Label("- " + I18n.get("enchantment:slots.explanation.list.1"));
         Label item2 = new Label("- " + I18n.get("enchantment:slots.explanation.list.2"));
         for (Label item : new Label[]{item1, item2}) {
-            item.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 13));
+            item.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 13));
             item.setTextFill(VoxelColors.ZINC_400);
             item.setWrapText(true);
         }

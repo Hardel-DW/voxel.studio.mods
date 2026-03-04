@@ -21,7 +21,7 @@ public final class InputText extends HBox {
 
         field.setPromptText(net.minecraft.client.resources.language.I18n.get(promptKey));
         field.getStyleClass().add("text-input-field");
-        field.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 13));
+        field.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         HBox.setHgrow(field, Priority.ALWAYS);
 
         getChildren().add(field);

@@ -44,7 +44,7 @@ public final class PackSelector extends StackPane {
         SvgIcon chevron = new SvgIcon(CHEVRON_ICON, 10, VoxelColors.ZINC_500);
 
         nameLabel.getStyleClass().add("pack-selector-label");
-        nameLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 12));
+        nameLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12));
         nameLabel.setMaxWidth(160);
         nameLabel.setEllipsisString("...");
 
@@ -107,7 +107,7 @@ public final class PackSelector extends StackPane {
 
         Label header = new Label(I18n.get("studio:pack.select"));
         header.setTextFill(VoxelColors.ZINC_300);
-        header.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 13));
+        header.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 13));
         header.setPadding(new Insets(0, 0, 4, 0));
         popoverContent.getChildren().add(header);
 
@@ -142,7 +142,7 @@ public final class PackSelector extends StackPane {
         SvgIcon icon = new SvgIcon(FOLDER_ICON, 14, VoxelColors.ZINC_200);
         Label name = new Label(pack.name());
         name.setTextFill(VoxelColors.ZINC_100);
-        name.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 13));
+        name.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 13));
 
         HBox titleRow = new HBox(10, icon, name);
         titleRow.setAlignment(Pos.CENTER_LEFT);
@@ -160,7 +160,7 @@ public final class PackSelector extends StackPane {
             boolean isActive = ns.equals(activeNs);
 
             Label nsLabel = new Label(ns);
-            nsLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 11));
+            nsLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
             nsLabel.setMaxWidth(Double.MAX_VALUE);
             nsLabel.setPadding(new Insets(4, 8, 4, 8));
             nsLabel.setCursor(Cursor.HAND);
@@ -202,7 +202,7 @@ public final class PackSelector extends StackPane {
 
         Label name = new Label(pack.name());
         name.setTextFill(VoxelColors.ZINC_300);
-        name.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 13));
+        name.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 13));
 
         HBox row = new HBox(10, icon, name);
         row.getStyleClass().add("pack-popover-row");
@@ -227,7 +227,7 @@ public final class PackSelector extends StackPane {
         SvgIcon icon = new SvgIcon(PENCIL_ICON, 12, VoxelColors.ZINC_400);
         Label label = new Label(I18n.get("studio:pack.create"));
         label.setTextFill(VoxelColors.ZINC_300);
-        label.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 12));
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12));
 
         HBox btn = new HBox(8, icon, label);
         btn.getStyleClass().add("pack-popover-create");

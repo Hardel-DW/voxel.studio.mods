@@ -41,7 +41,7 @@ public final class Button extends StackPane {
         if (text != null && !text.isEmpty()) {
             javafx.scene.control.Label label = new javafx.scene.control.Label(text);
             label.getStyleClass().add("studio-button-label");
-            label.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 14));
+            label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 14));
             label.setTextFill(variant == Variant.SHIMMER ? Color.web("#080507") : Color.WHITE);
             content.getChildren().add(label);
         }

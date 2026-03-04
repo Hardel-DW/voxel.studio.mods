@@ -28,12 +28,12 @@ public final class SwitchCard extends SimpleCard {
         super(new Insets(24));
 
         Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         title.setTextFill(VoxelColors.ZINC_100);
 
         String descText = locked && lockKey != null ? I18n.get(lockKey) : I18n.get(descKey);
         Label desc = new Label(descText);
-        desc.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 12));
+        desc.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         desc.setTextFill(VoxelColors.ZINC_400);
         desc.setWrapText(true);
 

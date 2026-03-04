@@ -33,7 +33,7 @@ public final class Card extends SimpleCard {
         this.locked = locked;
 
         Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 16));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 16));
         title.setTextFill(VoxelColors.ZINC_100);
 
         VBox textBlock = new VBox(4, title);
@@ -41,7 +41,7 @@ public final class Card extends SimpleCard {
         textBlock.setMaxWidth(Double.MAX_VALUE);
         if (descKey != null) {
             Label desc = new Label(I18n.get(descKey));
-            desc.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 13));
+            desc.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
             desc.setTextFill(VoxelColors.ZINC_400);
             desc.setWrapText(true);
             textBlock.getChildren().add(desc);
@@ -91,7 +91,7 @@ public final class Card extends SimpleCard {
 
             if (lockKey != null) {
                 Label lockText = new Label(I18n.get(lockKey));
-                lockText.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 11));
+                lockText.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 11));
                 lockText.setTextFill(VoxelColors.ZINC_400);
                 lockText.setMouseTransparent(true);
                 StackPane.setAlignment(lockText, Pos.BOTTOM_RIGHT);

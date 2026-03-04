@@ -29,7 +29,7 @@ public final class SectionSelector extends VBox {
         setMaxWidth(Double.MAX_VALUE);
 
         Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 24));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 24));
         title.setTextFill(VoxelColors.ZINC_100);
 
         Region hr = new Region();

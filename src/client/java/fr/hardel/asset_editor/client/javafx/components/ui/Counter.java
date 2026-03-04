@@ -70,12 +70,12 @@ public final class Counter extends StackPane {
 
         valueLabel.setText(String.valueOf(initialValue));
         valueLabel.setTextFill(Color.WHITE);
-        valueLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
+        valueLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
         valueLabel.setCursor(javafx.scene.Cursor.TEXT);
 
         valueField.setText(String.valueOf(initialValue));
         valueField.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 20; -fx-font-weight: bold; -fx-alignment: center; -fx-border-color: transparent;");
-        valueField.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.BOLD, 20));
+        valueField.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
         valueField.setAlignment(Pos.CENTER);
         valueField.setMaxWidth(60);
         valueField.setVisible(false);

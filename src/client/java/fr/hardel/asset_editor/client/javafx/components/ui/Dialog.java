@@ -40,7 +40,7 @@ public final class Dialog {
 
         Label title = new Label(net.minecraft.client.resources.language.I18n.get(titleKey));
         title.setTextFill(VoxelColors.ZINC_100);
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 18));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
 
         SvgIcon closeIcon = new SvgIcon(CLOSE_ICON, 14, VoxelColors.ZINC_400);
         StackPane closeBtn = new StackPane(closeIcon);

@@ -27,7 +27,7 @@ public final class TemplateCard extends SimpleCard {
 
         Label titleLabel = new Label(I18n.get(titleKey));
         titleLabel.getStyleClass().add("template-card-title");
-        titleLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.SEMI_BOLD, 18));
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
 
         VBox infoBox = new VBox(4, titleLabel);
         VBox.setMargin(infoBox, new Insets(12, 0, 0, 0));
@@ -35,7 +35,7 @@ public final class TemplateCard extends SimpleCard {
         if (descriptionKey != null) {
             Label descLabel = new Label(I18n.get(descriptionKey));
             descLabel.getStyleClass().add("template-card-desc");
-            descLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));
+            descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
             descLabel.setWrapText(true);
             infoBox.getChildren().add(descLabel);
         }

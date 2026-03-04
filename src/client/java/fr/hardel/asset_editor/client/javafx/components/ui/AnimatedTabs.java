@@ -82,7 +82,7 @@ public final class AnimatedTabs extends StackPane {
     private Button buildTabButton(String value, String label) {
         Button btn = new Button(label);
         btn.getStyleClass().add("animated-tabs-button");
-        btn.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 14));
+        btn.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 14));
         if (value.equals(activeValue)) {
             btn.getStyleClass().add("animated-tabs-button-active");
         }

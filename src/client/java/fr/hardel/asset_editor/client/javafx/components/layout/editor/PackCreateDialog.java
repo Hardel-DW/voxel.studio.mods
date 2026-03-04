@@ -72,7 +72,7 @@ public final class PackCreateDialog {
     private static Label fieldLabel(String key) {
         Label label = new Label(I18n.get(key));
         label.setTextFill(VoxelColors.ZINC_300);
-        label.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 12));
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12));
         return label;
     }
 }

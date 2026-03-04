@@ -142,14 +142,14 @@ public final class Splash extends StackPane {
         StackPane logoGroup = buildLogoGroup();
 
         Text title = new Text(I18n.get("tauri:splash.title"));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.EXTRA_BOLD, 36));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.EXTRA_BOLD, 36));
         title.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.WHITE),
                 new Stop(1, VoxelColors.ZINC_400)));
 
         SpacedText subtitle = new SpacedText(
                 I18n.get("tauri:splash.subtitle").toUpperCase(),
-                VoxelFonts.rubik(VoxelFonts.Rubik.MEDIUM, 12),
+                VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12),
                 VoxelColors.ZINC_500,
                 0.3);
         subtitle.setAlignment(Pos.CENTER);

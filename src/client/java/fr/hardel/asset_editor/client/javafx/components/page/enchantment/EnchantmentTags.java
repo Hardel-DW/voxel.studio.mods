@@ -58,11 +58,11 @@ public final class EnchantmentTags extends SimpleCard {
 
     private VBox buildHeader(String titleKey, String descKey, Identifier imageId) {
         Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 16));
+        title.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 16));
         title.setTextFill(Color.WHITE);
 
         Label desc = new Label(I18n.get(descKey));
-        desc.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 12));
+        desc.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         desc.setTextFill(VoxelColors.ZINC_400);
         desc.setWrapText(true);
 
@@ -93,7 +93,7 @@ public final class EnchantmentTags extends SimpleCard {
 
     private Label buildTagChip(String value) {
         Label chip = new Label(resolveTagLabel(value));
-        chip.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 12));
+        chip.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
         chip.setTextFill(VoxelColors.ZINC_400);
         chip.getStyleClass().add("enchantment-tags-value");
         chip.setMaxWidth(Double.MAX_VALUE);
@@ -107,7 +107,7 @@ public final class EnchantmentTags extends SimpleCard {
         if (values.size() > MAX_DISPLAY) {
             int overflow = values.size() - MAX_DISPLAY;
             Label seeMore = new Label(I18n.get("generic.see.more") + " (" + overflow + ")");
-            seeMore.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 12));
+            seeMore.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
             seeMore.setTextFill(VoxelColors.ZINC_400);
             seeMore.setPadding(new Insets(0, 8, 0, 0));
             seeMore.setCursor(javafx.scene.Cursor.HAND);

@@ -30,7 +30,7 @@ public final class FileInput extends VBox {
 
         fileLabel = new Label(I18n.get(promptKey));
         fileLabel.setTextFill(VoxelColors.ZINC_500);
-        fileLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 12));
+        fileLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
 
         getChildren().add(fileLabel);
 

@@ -35,12 +35,12 @@ public final class InlineCard extends SimpleCard {
         setMaxWidth(Double.MAX_VALUE);
 
         Label titleLabel = new Label(title);
-        titleLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 16));
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 16));
         titleLabel.setTextFill(Color.WHITE);
 
         String descText = locked && lockKey != null ? I18n.get(lockKey) : description;
         Label descLabel = new Label(descText);
-        descLabel.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.LIGHT, 12));
+        descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         descLabel.setTextFill(VoxelColors.ZINC_400);
         descLabel.setWrapText(true);
 
