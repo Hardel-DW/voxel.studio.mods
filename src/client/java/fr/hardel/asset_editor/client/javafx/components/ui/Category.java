@@ -16,11 +16,11 @@ import net.minecraft.client.resources.language.I18n;
  * Category separator: zinc-700 line | title (text-2xl semibold) | zinc-700 line.
  * Children in a VBox below with gap-4.
  */
-public class ToolCategory extends VBox {
+public class Category extends VBox {
 
     private final VBox childrenBox = new VBox(16);
 
-    public ToolCategory(String titleKey) {
+    public Category(String titleKey) {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 

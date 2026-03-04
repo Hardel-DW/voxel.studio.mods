@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
-import fr.hardel.asset_editor.client.javafx.components.ui.StudioButton;
+import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -118,7 +118,7 @@ public final class EnchantmentTags extends SimpleCard {
         HBox.setHgrow(spacer, Priority.ALWAYS);
         bottom.getChildren().add(spacer);
 
-        StudioButton actionsBtn = new StudioButton(StudioButton.Variant.GHOST_BORDER, StudioButton.Size.SM, I18n.get("generic.actions"));
+        Button actionsBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("generic.actions"));
         actionsBtn.setMouseTransparent(true);
         bottom.getChildren().add(actionsBtn);
 

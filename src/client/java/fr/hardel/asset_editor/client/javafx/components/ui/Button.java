@@ -15,7 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
-public final class StudioButton extends StackPane {
+public final class Button extends StackPane {
 
     public enum Variant {
         DEFAULT, BLACK, GHOST, GHOST_BORDER, AURORA, TRANSPARENT, LINK, SHIMMER, PATREON
@@ -32,7 +32,7 @@ public final class StudioButton extends StackPane {
     private final Region background = new Region();
     private Runnable onClick;
 
-    public StudioButton(Variant variant, Size size, String text, Node... icons) {
+    public Button(Variant variant, Size size, String text, Node... icons) {
         getStyleClass().add("studio-button");
         setCursor(Cursor.HAND);
 
@@ -64,7 +64,7 @@ public final class StudioButton extends StackPane {
         setupHoverEffects(variant);
     }
 
-    public StudioButton(Variant variant, String text) {
+    public Button(Variant variant, String text) {
         this(variant, Size.DEFAULT, text);
     }
 

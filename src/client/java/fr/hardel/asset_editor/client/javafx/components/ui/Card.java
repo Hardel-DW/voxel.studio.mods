@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
  * Locked:  opacity-50 + zinc-700 border + lock icon + lock text.
  * Clicking toggles active state (local BooleanProperty).
  */
-public final class ToolSlot extends SimpleCard {
+public final class Card extends SimpleCard {
 
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
     private static final Identifier LOCK  = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
@@ -27,7 +27,7 @@ public final class ToolSlot extends SimpleCard {
     private final BooleanProperty active = new SimpleBooleanProperty(false);
     private final boolean locked;
 
-    public ToolSlot(Identifier imageId, String titleKey, String descKey, boolean initialActive, boolean locked, String lockKey) {
+    public Card(Identifier imageId, String titleKey, String descKey, boolean initialActive, boolean locked, String lockKey) {
         super(new Insets(16));
         setMaxWidth(Double.MAX_VALUE);
         this.locked = locked;
@@ -73,11 +73,11 @@ public final class ToolSlot extends SimpleCard {
         }
     }
 
-    public ToolSlot(Identifier imageId, String titleKey) {
+    public Card(Identifier imageId, String titleKey) {
         this(imageId, titleKey, null, false, false, null);
     }
 
-    public ToolSlot(Identifier imageId, String titleKey, boolean initialActive) {
+    public Card(Identifier imageId, String titleKey, boolean initialActive) {
         this(imageId, titleKey, null, initialActive, false, null);
     }
 

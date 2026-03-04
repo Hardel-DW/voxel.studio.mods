@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
+import fr.hardel.asset_editor.client.javafx.components.ui.Section;
+import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
@@ -43,12 +43,12 @@ public final class EnchantmentFindPage extends VBox {
     }
 
     private void refresh() {
-        ToolSection behaviour = new ToolSection("enchantment:section.find");
+        Section behaviour = new Section("enchantment:section.find");
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(368))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (FindEntry entry : FIND_ENTRIES) {
-            grid.addItem(new ToolSlot(entry.image(), entry.titleKey(), entry.descKey(), false, false, null));
+            grid.addItem(new Card(entry.image(), entry.titleKey(), entry.descKey(), false, false, null));
         }
         behaviour.addContent(grid);
         content.getChildren().setAll(behaviour);

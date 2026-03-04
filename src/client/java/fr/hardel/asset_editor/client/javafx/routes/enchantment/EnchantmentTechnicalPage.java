@@ -3,9 +3,9 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolRange;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSwitch;
+import fr.hardel.asset_editor.client.javafx.components.ui.Range;
+import fr.hardel.asset_editor.client.javafx.components.ui.Section;
+import fr.hardel.asset_editor.client.javafx.components.ui.Switch;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
@@ -54,12 +54,12 @@ public final class EnchantmentTechnicalPage extends VBox {
                 buildEffectsSection());
     }
 
-    private ToolSection buildBehaviourSection() {
-        ToolSection section = new ToolSection("enchantment:section.technical.description");
+    private Section buildBehaviourSection() {
+        Section section = new Section("enchantment:section.technical.description");
         ResponsiveGrid grid = buildTwoColGrid();
 
         for (String field : BEHAVIOUR_FIELDS) {
-            ToolSwitch sw = new ToolSwitch(
+            Switch sw = new Switch(
                     "enchantment:technical." + field + ".title",
                     "enchantment:technical." + field + ".description");
             grid.addItem(sw);
@@ -69,12 +69,12 @@ public final class EnchantmentTechnicalPage extends VBox {
         return section;
     }
 
-    private ToolSection buildCostsSection() {
-        ToolSection section = new ToolSection("enchantment:section.costs");
+    private Section buildCostsSection() {
+        Section section = new Section("enchantment:section.costs");
         ResponsiveGrid grid = buildTwoColGrid();
 
         for (String field : COST_FIELDS) {
-            grid.addItem(new ToolRange("enchantment:global." + field + ".title", 0, 100, 1, 0));
+            grid.addItem(new Range("enchantment:global." + field + ".title", 0, 100, 1, 0));
         }
 
         section.addContent(grid);
@@ -82,7 +82,7 @@ public final class EnchantmentTechnicalPage extends VBox {
     }
 
     private VBox buildEffectsSection() {
-        ToolSection section = new ToolSection("enchantment:technical.effects.title");
+        Section section = new Section("enchantment:technical.effects.title");
 
         Label empty = new Label(I18n.get("enchantment:technical.empty_effects"));
         empty.setFont(VoxelFonts.rubik(VoxelFonts.Rubik.REGULAR, 14));

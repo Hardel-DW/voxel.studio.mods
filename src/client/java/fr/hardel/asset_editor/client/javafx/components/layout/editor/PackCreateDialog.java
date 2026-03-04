@@ -4,8 +4,8 @@ import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.FileInput;
-import fr.hardel.asset_editor.client.javafx.components.ui.StudioButton;
-import fr.hardel.asset_editor.client.javafx.components.ui.TextInput;
+import fr.hardel.asset_editor.client.javafx.components.ui.Button;
+import fr.hardel.asset_editor.client.javafx.components.ui.InputText;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
 import javafx.geometry.Insets;
@@ -20,8 +20,8 @@ public final class PackCreateDialog {
     private PackCreateDialog() {}
 
     public static Dialog create(StudioContext context) {
-        TextInput nameInput = new TextInput("studio:pack.create.name.placeholder");
-        TextInput namespaceInput = new TextInput("studio:pack.create.namespace.placeholder");
+        InputText nameInput = new InputText("studio:pack.create.name.placeholder");
+        InputText namespaceInput = new InputText("studio:pack.create.namespace.placeholder");
         FileInput iconInput = new FileInput("studio:pack.create.icon.placeholder", "*.png", file -> {});
 
         nameInput.field().textProperty().addListener((obs, o, v) -> {
@@ -43,11 +43,11 @@ public final class PackCreateDialog {
 
         Dialog dialog = new Dialog("studio:pack.create.title", form);
 
-        StudioButton cancelBtn = new StudioButton(StudioButton.Variant.GHOST_BORDER, StudioButton.Size.SM,
+        Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM,
                 I18n.get("studio:action.cancel"));
         cancelBtn.setOnAction(dialog::close);
 
-        StudioButton createBtn = new StudioButton(StudioButton.Variant.SHIMMER, StudioButton.Size.SM,
+        Button createBtn = new Button(Button.Variant.SHIMMER, Button.Size.SM,
                 I18n.get("studio:action.create"));
         createBtn.setOnAction(() -> {
             String name = nameInput.getText().trim();

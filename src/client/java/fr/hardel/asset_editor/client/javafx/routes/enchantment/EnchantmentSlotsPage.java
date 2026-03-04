@@ -3,8 +3,8 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
+import fr.hardel.asset_editor.client.javafx.components.ui.Section;
+import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfig;
@@ -52,7 +52,7 @@ public final class EnchantmentSlotsPage extends VBox {
         Holder.Reference<Enchantment> holder = selectedEnchantment();
         if (holder == null) return;
 
-        ToolSection section = new ToolSection("enchantment:section.slots.description");
+        Section section = new Section("enchantment:section.slots.description");
         var enchantmentSlots = holder.value().definition().slots();
 
         for (List<String> group : GROUPS) {
@@ -64,7 +64,7 @@ public final class EnchantmentSlotsPage extends VBox {
                 if (cfg == null) continue;
                 boolean active = enchantmentSlots.stream()
                         .anyMatch(g -> cfg.slots().contains(g.getSerializedName()));
-                ToolSlot slot = new ToolSlot(cfg.image(), cfg.nameKey(), active);
+                Card slot = new Card(cfg.image(), cfg.nameKey(), active);
                 row.addItem(slot);
             }
             section.addContent(row);

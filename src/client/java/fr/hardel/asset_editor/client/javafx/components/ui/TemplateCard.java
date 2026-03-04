@@ -1,8 +1,6 @@
-package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
+package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
-import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;

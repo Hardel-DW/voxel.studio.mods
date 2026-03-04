@@ -3,15 +3,15 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.components.page.enchantment.TemplateCard;
-import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ToolSelector;
+import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
+import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
-import fr.hardel.asset_editor.client.javafx.components.ui.StudioButton;
+import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSection;
+import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
@@ -80,7 +80,7 @@ public final class EnchantmentMainPage extends VBox {
         Holder.Reference<Enchantment> selected = selectedEnchantment();
         if (selected == null) return;
 
-        ToolSection section = new ToolSection("enchantment:section.global.description");
+        Section section = new Section("enchantment:section.global.description");
 
         ResponsiveGrid cardsGrid = buildCardsGrid(selected);
         section.addContent(cardsGrid, buildModeSelector());
@@ -110,13 +110,13 @@ public final class EnchantmentMainPage extends VBox {
         return grid;
     }
 
-    private ToolSelector buildModeSelector() {
+    private Selector buildModeSelector() {
         LinkedHashMap<String, String> modeOptions = new LinkedHashMap<>();
         modeOptions.put("normal", I18n.get("enchantment:global.mode.enum.normal"));
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
 
-        return new ToolSelector(
+        return new Selector(
                 "enchantment:global.mode.title",
                 "enchantment:global.mode.description",
                 modeOptions, "normal", v -> {
@@ -151,12 +151,12 @@ public final class EnchantmentMainPage extends VBox {
         VBox advantagesSection = new VBox(advantagesHeading, advantagesGrid);
         HBox.setHgrow(advantagesSection, Priority.ALWAYS);
 
-        StudioButton donateBtn = new StudioButton(StudioButton.Variant.SHIMMER, StudioButton.Size.LG,
+        Button donateBtn = new Button(Button.Variant.SHIMMER, Button.Size.LG,
                 I18n.get("donate"));
         donateBtn.setOnAction(() -> BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip"));
 
         SvgIcon patreonIcon = new SvgIcon(PATREON_ICON, 16, Color.WHITE);
-        StudioButton patreonBtn = new StudioButton(StudioButton.Variant.PATREON, StudioButton.Size.LG,
+        Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG,
                 I18n.get("supports.become"), patreonIcon);
         patreonBtn.setOnAction(() -> BrowserUtils.openBrowser("https://www.patreon.com/hardel"));
         donateBtn.setMaxWidth(Double.MAX_VALUE);
@@ -245,11 +245,11 @@ public final class EnchantmentMainPage extends VBox {
 
         Dialog dialog = new Dialog("studio:pack.required.title", message);
 
-        StudioButton cancelBtn = new StudioButton(StudioButton.Variant.GHOST_BORDER, StudioButton.Size.SM,
+        Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM,
                 I18n.get("studio:action.cancel"));
         cancelBtn.setOnAction(dialog::close);
 
-        StudioButton createBtn = new StudioButton(StudioButton.Variant.SHIMMER, StudioButton.Size.SM,
+        Button createBtn = new Button(Button.Variant.SHIMMER, Button.Size.SM,
                 I18n.get("studio:pack.create"));
         createBtn.setOnAction(() -> {
             dialog.close();

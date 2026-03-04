@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolCategory;
+import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import javafx.geometry.Insets;
@@ -24,8 +24,8 @@ public final class ExclusiveGroupSection extends VBox {
         getChildren().addAll(buildVanillaCategory(), buildCustomCategory());
     }
 
-    private ToolCategory buildVanillaCategory() {
-        ToolCategory category = new ToolCategory("enchantment:exclusive.vanilla.title");
+    private Category buildVanillaCategory() {
+        Category category = new Category("enchantment:exclusive.vanilla.title");
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
@@ -45,8 +45,8 @@ public final class ExclusiveGroupSection extends VBox {
         return category;
     }
 
-    private ToolCategory buildCustomCategory() {
-        ToolCategory category = new ToolCategory("enchantment:exclusive.custom.title");
+    private Category buildCustomCategory() {
+        Category category = new Category("enchantment:exclusive.custom.title");
 
         Label fallback = new Label(I18n.get("enchantment:exclusive.custom.fallback"));
         fallback.setFont(fr.hardel.asset_editor.client.javafx.VoxelFonts.rubik(

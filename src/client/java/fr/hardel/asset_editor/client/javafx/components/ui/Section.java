@@ -11,11 +11,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 
-public final class ToolSection extends VBox {
+public final class Section extends VBox {
 
     private final VBox childrenBox = new VBox(16);
 
-    public ToolSection(String titleKey) {
+    public Section(String titleKey) {
         setSpacing(0);
 
         HBox titleRow = new HBox(16);

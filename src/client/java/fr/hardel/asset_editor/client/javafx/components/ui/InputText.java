@@ -7,11 +7,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public final class TextInput extends HBox {
+public final class InputText extends HBox {
 
     private final TextField field = new TextField();
 
-    public TextInput(String promptKey) {
+    public InputText(String promptKey) {
         getStyleClass().add("text-input");
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(0, 12, 0, 12));

@@ -20,11 +20,11 @@ import java.util.function.Consumer;
  * Active tab: bg-zinc-300 text-zinc-900. Inactive hover: bg-zinc-900.
  * Children are shown below the header, switching per selected tab.
  */
-public final class ToolSectionSelector extends VBox {
+public final class SectionSelector extends VBox {
 
     private final VBox childrenBox = new VBox(16);
 
-    public ToolSectionSelector(String titleKey, LinkedHashMap<String, String> tabs, String defaultTab, Consumer<String> onTabChange, Node... initialContent) {
+    public SectionSelector(String titleKey, LinkedHashMap<String, String> tabs, String defaultTab, Consumer<String> onTabChange, Node... initialContent) {
         setSpacing(0);
         setMaxWidth(Double.MAX_VALUE);
 

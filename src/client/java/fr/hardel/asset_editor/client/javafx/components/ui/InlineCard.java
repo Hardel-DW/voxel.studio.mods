@@ -19,18 +19,18 @@ import net.minecraft.resources.Identifier;
  * Active: bg-zinc-950/50 + zinc-700 ring. Locked: opacity-50.
  * Used in ExclusiveSingleSection / EnchantmentCategory grids.
  */
-public final class ToolInline extends SimpleCard {
+public final class InlineCard extends SimpleCard {
 
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
     private static final Identifier LOCK  = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
 
     private final BooleanProperty active = new SimpleBooleanProperty(false);
 
-    public ToolInline(String title, String description) {
+    public InlineCard(String title, String description) {
         this(title, description, false, false, null);
     }
 
-    public ToolInline(String title, String description, boolean initialActive, boolean locked, String lockKey) {
+    public InlineCard(String title, String description, boolean initialActive, boolean locked, String lockKey) {
         super(new Insets(16, 24, 16, 24));
         setMaxWidth(Double.MAX_VALUE);
 

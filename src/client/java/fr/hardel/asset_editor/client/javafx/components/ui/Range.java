@@ -21,15 +21,15 @@ import net.minecraft.client.resources.language.I18n;
  * Label row: label left, value right.
  * Styled range slider (h-6 track rounded, 24px thumb).
  */
-public final class ToolRange extends VBox {
+public final class Range extends VBox {
 
     private final IntegerProperty value;
 
-    public ToolRange(String labelKey, int min, int max, int step, int initialValue) {
+    public Range(String labelKey, int min, int max, int step, int initialValue) {
         this(labelKey, min, max, step, initialValue, false, null);
     }
 
-    public ToolRange(String labelKey, int min, int max, int step, int initialValue, boolean locked, String lockKey) {
+    public Range(String labelKey, int min, int max, int step, int initialValue, boolean locked, String lockKey) {
         setSpacing(4);
         setMaxWidth(Double.MAX_VALUE);
 

@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ExclusiveGroupSection;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ExclusiveSingleSection;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSectionSelector;
+import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
@@ -16,7 +16,7 @@ public final class EnchantmentExclusivePage extends VBox {
 
     private final StudioContext context;
     private final VBox content = new VBox(32);
-    private ToolSectionSelector selector;
+    private SectionSelector selector;
     private VBox groupSection;
     private VBox singleSection;
     private String currentMode = "group";
@@ -39,7 +39,7 @@ public final class EnchantmentExclusivePage extends VBox {
         tabs.put("group",  I18n.get("enchantment:toggle.group.title"));
         tabs.put("single", I18n.get("enchantment:toggle.individual.title"));
 
-        selector = new ToolSectionSelector(
+        selector = new SectionSelector(
             "enchantment:section.exclusive.description",
             tabs,
             currentMode,

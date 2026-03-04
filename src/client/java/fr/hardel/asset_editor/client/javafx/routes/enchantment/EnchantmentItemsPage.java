@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSectionSelector;
-import fr.hardel.asset_editor.client.javafx.components.ui.ToolSlot;
+import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
+import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
@@ -26,7 +26,7 @@ public final class EnchantmentItemsPage extends VBox {
 
     private final StudioContext context;
     private final VBox content = new VBox(32);
-    private final ToolSectionSelector selector;
+    private final SectionSelector selector;
     private String currentSection = "supportedItems";
     private String currentElement = "";
     private ResponsiveGrid supportedGrid;
@@ -48,7 +48,7 @@ public final class EnchantmentItemsPage extends VBox {
         tabs.put("supportedItems", I18n.get("enchantment:toggle.supported.title"));
         tabs.put("primaryItems",   I18n.get("enchantment:toggle.primary.title"));
 
-        selector = new ToolSectionSelector(
+        selector = new SectionSelector(
             "enchantment:section.supported.description",
             tabs,
             currentSection,
@@ -89,13 +89,13 @@ public final class EnchantmentItemsPage extends VBox {
         for (String key : ENCHANTABLE_KEYS) {
             boolean active = supportedTag.equals("enchantable/" + key);
             Identifier img = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/" + key + ".png");
-            grid.addItem(new ToolSlot(img, "enchantment:supported." + key + ".title", active));
+            grid.addItem(new Card(img, "enchantment:supported." + key + ".title", active));
         }
 
         if (includePrimaryNone) {
             Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/tools/cross.png");
             boolean noneActive = supportedTag.isEmpty();
-            grid.addItem(new ToolSlot(noneImg, "enchantment:supported.none.title", noneActive));
+            grid.addItem(new Card(noneImg, "enchantment:supported.none.title", noneActive));
         }
 
         return grid;

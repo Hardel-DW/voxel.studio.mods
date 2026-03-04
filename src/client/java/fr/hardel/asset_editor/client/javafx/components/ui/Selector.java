@@ -1,8 +1,6 @@
-package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
+package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.components.ui.AnimatedTabs;
-import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -19,10 +17,10 @@ import java.util.function.Consumer;
  * Card with title/description on the left and AnimatedTabs on the right.
  * p-6 outer + px-6 inner = Insets(24, 48, 24, 48).
  */
-public final class ToolSelector extends SimpleCard {
+public final class Selector extends SimpleCard {
 
-    public ToolSelector(String titleKey, String descKey, LinkedHashMap<String, String> options,
-                        String defaultValue, Consumer<String> onChange) {
+    public Selector(String titleKey, String descKey, LinkedHashMap<String, String> options,
+                    String defaultValue, Consumer<String> onChange) {
         super(new Insets(24, 48, 24, 48));
         contentBox.setSpacing(0);
 
