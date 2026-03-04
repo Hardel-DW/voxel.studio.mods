@@ -352,10 +352,19 @@ public final class VoxelStudioWindow {
         return best;
     }
 
+    private Screen screenAtCursor(double x, double y) {
+        for (Screen s : Screen.getScreens()) {
+            Rectangle2D b = s.getVisualBounds();
+            if (x >= b.getMinX() && x < b.getMaxX() && y >= b.getMinY() && y < b.getMaxY())
+                return s;
+        }
+        return Screen.getPrimary();
+    }
+
     private void applySnap(double cursorX, double cursorY) {
         if (isSnapped()) return;
 
-        Rectangle2D bounds = windowScreen().getVisualBounds();
+        Rectangle2D bounds = screenAtCursor(cursorX, cursorY).getVisualBounds();
 
         boolean left = cursorX <= bounds.getMinX() + SNAP_MARGIN;
         boolean right = cursorX >= bounds.getMaxX() - SNAP_MARGIN;
