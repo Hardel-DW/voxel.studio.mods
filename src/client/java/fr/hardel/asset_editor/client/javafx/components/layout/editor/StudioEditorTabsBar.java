@@ -39,9 +39,9 @@ public final class StudioEditorTabsBar extends HBox {
         this.context = context;
         getStyleClass().add("studio-editor-tabs");
         setAlignment(Pos.CENTER_LEFT);
-        setFillHeight(false);
+        setFillHeight(true);
 
-        setPadding(new Insets(0, 8, 0, 8));
+        setPadding(new Insets(0, 0, 0, 8));
         setSpacing(10);
         tabsContainer.setAlignment(Pos.CENTER_LEFT);
         tabsContainer.setFillHeight(false);
@@ -69,7 +69,7 @@ public final class StudioEditorTabsBar extends HBox {
     }
 
     private HBox buildWindowControls(Stage stage) {
-        return new WindowControls(stage, "studio-window-button", 36, 48, null, stage::hide);
+        return new WindowControls(stage, "studio-window-button", 48, 48, null, stage::hide);
     }
 
     private void refreshTabs() {

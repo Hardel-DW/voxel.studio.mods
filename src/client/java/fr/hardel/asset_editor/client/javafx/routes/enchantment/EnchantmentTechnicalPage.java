@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Range;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
-import fr.hardel.asset_editor.client.javafx.components.ui.Switch;
+import fr.hardel.asset_editor.client.javafx.components.ui.SwitchCard;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
@@ -59,7 +59,7 @@ public final class EnchantmentTechnicalPage extends VBox {
         ResponsiveGrid grid = buildTwoColGrid();
 
         for (String field : BEHAVIOUR_FIELDS) {
-            Switch sw = new Switch(
+            SwitchCard sw = new SwitchCard(
                     "enchantment:technical." + field + ".title",
                     "enchantment:technical." + field + ".description");
             grid.addItem(sw);

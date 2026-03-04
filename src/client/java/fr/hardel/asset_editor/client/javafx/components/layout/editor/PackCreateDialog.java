@@ -24,9 +24,16 @@ public final class PackCreateDialog {
         InputText namespaceInput = new InputText("studio:pack.create.namespace.placeholder");
         FileInput iconInput = new FileInput("studio:pack.create.icon.placeholder", "*.png", file -> {});
 
+        boolean[] syncing = {false};
+        boolean[] userEditedNamespace = {false};
+        namespaceInput.field().textProperty().addListener((obs, o, v) -> {
+            if (!syncing[0]) userEditedNamespace[0] = true;
+        });
         nameInput.field().textProperty().addListener((obs, o, v) -> {
-            if (v != null && namespaceInput.getText().isEmpty()) {
+            if (v != null && !userEditedNamespace[0]) {
+                syncing[0] = true;
                 namespaceInput.setText(v.toLowerCase().replaceAll("[^a-z0-9_]", "_"));
+                syncing[0] = false;
             }
         });
 

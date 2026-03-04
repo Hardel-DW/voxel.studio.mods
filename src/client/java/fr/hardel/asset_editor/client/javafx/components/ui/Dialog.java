@@ -74,7 +74,7 @@ public final class Dialog {
         try (var stream = ResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             shine.setPreserveRatio(false);
-            shine.setOpacity(0.08);
+            shine.setOpacity(0.15);
             shine.setMouseTransparent(true);
             shine.setManaged(false);
             shine.fitWidthProperty().bind(dialogCard.widthProperty());

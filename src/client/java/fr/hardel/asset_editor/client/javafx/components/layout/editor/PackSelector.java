@@ -65,7 +65,7 @@ public final class PackSelector extends StackPane {
 
         getChildren().add(row);
 
-        new Popover(this, buildPopoverContent());
+        new Popover(this, buildPopoverContent(), true);
 
         context.packState().selectedPackProperty().addListener((obs, o, v) -> {
             refreshLabel();
@@ -97,7 +97,7 @@ public final class PackSelector extends StackPane {
     }
 
     private VBox buildPopoverContent() {
-        popoverContent.setPrefWidth(280);
+        popoverContent.setMaxWidth(Double.MAX_VALUE);
         refreshPopoverContent();
         return popoverContent;
     }

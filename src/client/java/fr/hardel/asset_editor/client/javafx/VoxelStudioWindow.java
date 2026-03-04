@@ -5,9 +5,9 @@ import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
@@ -21,17 +21,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
-/**
- * Manages the JavaFX Stage lifecycle.
- * Uses UNDECORATED style so TitleBar provides custom window chrome.
- * Implements edge-based resize for all 8 directions.
- */
 public final class VoxelStudioWindow {
 
     private static final int RESIZE_MARGIN = 10;
     private static final int DRAG_TOP_HEIGHT = 48;
     private static final int DRAG_LEFT_WIDTH = 64;
-    private static final int SNAP_MARGIN = 28;
+    private static final int SNAP_MARGIN = 5;
     private static final double MIN_WINDOW_WIDTH = 680;
     private static final double MIN_WINDOW_HEIGHT = 440;
 
@@ -50,11 +45,23 @@ public final class VoxelStudioWindow {
     private boolean draggingWindow = false;
     private boolean suppressNextClick = false;
     private ResizeZone activeZone = ResizeZone.NONE;
+    private Rectangle2D boundsBeforeSnap;
+    private Node cursorOverrideNode;
+    private Cursor cursorOverrideOriginal;
 
     public static void open() {
         if (instance == null)
             instance = new VoxelStudioWindow();
         instance.show();
+    }
+
+    public static void toggleMaximize() {
+        if (instance == null || instance.stage == null) return;
+        if (instance.isSnapped()) {
+            instance.unsnap();
+        } else {
+            instance.snapTo(instance.windowScreen().getVisualBounds());
+        }
     }
 
     public static void onResourceReload() {
@@ -82,15 +89,23 @@ public final class VoxelStudioWindow {
         });
     }
 
+    private boolean isSnapped() { return boundsBeforeSnap != null; }
+
     private void createWindow() {
         ResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadRubikFont();
         loadMinecraftFonts();
 
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        double initW = Math.max(MIN_WINDOW_WIDTH, screenBounds.getWidth() * 0.75);
+        double initH = Math.max(MIN_WINDOW_HEIGHT, screenBounds.getHeight() * 0.75);
+
         stage = new Stage(StageStyle.UNDECORATED);
         stage.setTitle(I18n.get("tauri:app.title"));
-        stage.setWidth(900);
-        stage.setHeight(600);
+        stage.setWidth(initW);
+        stage.setHeight(initH);
+        stage.setX(screenBounds.getMinX() + (screenBounds.getWidth() - initW) / 2);
+        stage.setY(screenBounds.getMinY() + (screenBounds.getHeight() - initH) / 2);
         stage.setMinWidth(MIN_WINDOW_WIDTH);
         stage.setMinHeight(MIN_WINDOW_HEIGHT);
 
@@ -111,10 +126,7 @@ public final class VoxelStudioWindow {
     }
 
     private void rebuildScene() {
-        if (stage == null || scene == null)
-            return;
-        if (!splashPlayed)
-            return;
+        if (stage == null || scene == null || !splashPlayed) return;
         editorRoot = new StudioEditorRoot(stage);
         scene.setRoot(editorRoot);
     }
@@ -129,8 +141,7 @@ public final class VoxelStudioWindow {
         delay.setOnFinished(e -> {
             splashPlayed = true;
             editorRoot = new StudioEditorRoot(stage);
-            if (scene != null)
-                scene.setRoot(editorRoot);
+            if (scene != null) scene.setRoot(editorRoot);
         });
         delay.play();
         return splash;
@@ -154,27 +165,48 @@ public final class VoxelStudioWindow {
         }
     }
 
+    private void unsnap() {
+        if (boundsBeforeSnap == null) return;
+        stage.setX(boundsBeforeSnap.getMinX());
+        stage.setY(boundsBeforeSnap.getMinY());
+        stage.setWidth(boundsBeforeSnap.getWidth());
+        stage.setHeight(boundsBeforeSnap.getHeight());
+        boundsBeforeSnap = null;
+    }
+
+    private void snapTo(Rectangle2D region) {
+        if (boundsBeforeSnap == null)
+            boundsBeforeSnap = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+        stage.setX(region.getMinX());
+        stage.setY(region.getMinY());
+        stage.setWidth(region.getWidth());
+        stage.setHeight(region.getHeight());
+    }
+
     private void attachResizeHandlers(Scene scene) {
         scene.addEventFilter(MouseEvent.MOUSE_MOVED, e -> {
-            if (draggingWindow)
-                return;
-            if (stage.isMaximized()) {
+            if (draggingWindow || resizingWindow) return;
+            if (isSnapped()) {
+                clearCursorOverride();
                 scene.setCursor(Cursor.DEFAULT);
                 return;
             }
             ResizeZone zone = detectZone(e.getX(), e.getY(), scene.getWidth(), scene.getHeight());
             scene.setCursor(zone.cursor());
             if (zone != ResizeZone.NONE)
-                e.consume();
+                applyCursorOverride(e.getTarget(), zone.cursor());
+            else
+                clearCursorOverride();
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
             suppressNextClick = false;
-            activeZone = detectZone(e.getX(), e.getY(), scene.getWidth(), scene.getHeight());
+            ResizeZone zone = detectZone(e.getX(), e.getY(), scene.getWidth(), scene.getHeight());
             draggingWindow = false;
             resizingWindow = false;
 
-            if (activeZone != ResizeZone.NONE && !stage.isMaximized()) {
+            if (zone != ResizeZone.NONE && !isSnapped()) {
+                activeZone = zone;
                 resizingWindow = true;
                 resizeDragX = e.getScreenX();
                 resizeDragY = e.getScreenY();
@@ -195,7 +227,7 @@ public final class VoxelStudioWindow {
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
-            if (resizingWindow && activeZone != ResizeZone.NONE && !stage.isMaximized()) {
+            if (resizingWindow && activeZone != ResizeZone.NONE) {
                 double dx = e.getScreenX() - resizeDragX;
                 double dy = e.getScreenY() - resizeDragY;
                 activeZone.apply(stage, dx, dy, resizeDragW, resizeDragH, resizeDragStageX, resizeDragStageY,
@@ -203,12 +235,12 @@ public final class VoxelStudioWindow {
                 e.consume();
                 return;
             }
-            if (!draggingWindow)
-                return;
+            if (!draggingWindow) return;
 
-            if (stage.isMaximized()) {
-                double ratio = Math.max(0.1, Math.min(0.9, e.getX() / Math.max(1, scene.getWidth())));
-                stage.setMaximized(false);
+            if (isSnapped()) {
+                double prevW = scene.getWidth();
+                unsnap();
+                double ratio = Math.max(0.1, Math.min(0.9, e.getX() / Math.max(1, prevW)));
                 moveDragOffsetX = stage.getWidth() * ratio;
                 moveDragOffsetY = Math.min(24, e.getY());
             }
@@ -220,11 +252,11 @@ public final class VoxelStudioWindow {
 
         scene.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
             boolean wasResizing = resizingWindow;
-            if (draggingWindow)
-                applySnap(e.getScreenX(), e.getScreenY());
+            if (draggingWindow) applySnap(e.getScreenX(), e.getScreenY());
             activeZone = ResizeZone.NONE;
             resizingWindow = false;
             draggingWindow = false;
+            clearCursorOverride();
             scene.setCursor(Cursor.DEFAULT);
             if (wasResizing) {
                 suppressNextClick = true;
@@ -238,11 +270,14 @@ public final class VoxelStudioWindow {
                 e.consume();
                 return;
             }
-            if (e.getClickCount() != 2)
-                return;
-            if (!isDragZone(e.getX(), e.getY()) || isInteractiveTarget(e.getTarget()))
-                return;
-            stage.setMaximized(!stage.isMaximized());
+            if (e.getClickCount() != 2) return;
+            if (!isDragZone(e.getX(), e.getY()) || isInteractiveTarget(e.getTarget())) return;
+            if (isSnapped()) {
+                unsnap();
+            } else {
+                Rectangle2D sb = windowScreen().getVisualBounds();
+                snapTo(sb);
+            }
             e.consume();
         });
     }
@@ -252,22 +287,14 @@ public final class VoxelStudioWindow {
         boolean s = y >= h - RESIZE_MARGIN;
         boolean west = x <= RESIZE_MARGIN;
         boolean east = x >= w - RESIZE_MARGIN;
-        if (n && west)
-            return ResizeZone.NW;
-        if (n && east)
-            return ResizeZone.NE;
-        if (s && west)
-            return ResizeZone.SW;
-        if (s && east)
-            return ResizeZone.SE;
-        if (n)
-            return ResizeZone.N;
-        if (s)
-            return ResizeZone.S;
-        if (west)
-            return ResizeZone.W;
-        if (east)
-            return ResizeZone.E;
+        if (n && west) return ResizeZone.NW;
+        if (n && east) return ResizeZone.NE;
+        if (s && west) return ResizeZone.SW;
+        if (s && east) return ResizeZone.SE;
+        if (n) return ResizeZone.N;
+        if (s) return ResizeZone.S;
+        if (west) return ResizeZone.W;
+        if (east) return ResizeZone.E;
         return ResizeZone.NONE;
     }
 
@@ -276,12 +303,14 @@ public final class VoxelStudioWindow {
     }
 
     private static boolean isInteractiveTarget(Object target) {
-        if (!(target instanceof Node node))
-            return false;
+        if (!(target instanceof Node node)) return false;
         Node current = node;
         while (current != null) {
-            if (current.getOnMouseClicked() != null || current.getOnMousePressed() != null
-                    || current.getOnMouseReleased() != null) {
+            if (current.getCursor() == Cursor.HAND
+                    || current.getOnMouseClicked() != null
+                    || current.getOnMousePressed() != null
+                    || current.getOnMouseReleased() != null
+                    || current instanceof javafx.scene.control.ButtonBase) {
                 return true;
             }
             current = current.getParent();
@@ -289,188 +318,137 @@ public final class VoxelStudioWindow {
         return false;
     }
 
-    private void applySnap(double screenX, double screenY) {
-        if (stage.isMaximized())
-            return;
-
-        Screen screen = Screen.getScreensForRectangle(screenX, screenY, 1, 1).stream()
-                .findFirst()
-                .orElse(Screen.getPrimary());
-        Rectangle2D bounds = screen.getVisualBounds();
-
-        boolean left = screenX <= bounds.getMinX() + SNAP_MARGIN;
-        boolean right = screenX >= bounds.getMaxX() - SNAP_MARGIN;
-        boolean top = screenY <= bounds.getMinY() + SNAP_MARGIN;
-        boolean bottom = screenY >= bounds.getMaxY() - SNAP_MARGIN;
-
-        if (top && !left && !right) {
-            stage.setMaximized(true);
-            return;
-        }
-
-        stage.setMaximized(false);
-        if (left && top) {
-            snap(bounds, bounds.getMinX(), bounds.getMinY(), bounds.getWidth() / 2, bounds.getHeight() / 2);
-            return;
-        }
-        if (right && top) {
-            snap(bounds, bounds.getMinX() + bounds.getWidth() / 2, bounds.getMinY(),
-                    bounds.getWidth() / 2, bounds.getHeight() / 2);
-            return;
-        }
-        if (left && bottom) {
-            snap(bounds, bounds.getMinX(), bounds.getMinY() + bounds.getHeight() / 2,
-                    bounds.getWidth() / 2, bounds.getHeight() / 2);
-            return;
-        }
-        if (right && bottom) {
-            snap(bounds, bounds.getMinX() + bounds.getWidth() / 2, bounds.getMinY() + bounds.getHeight() / 2,
-                    bounds.getWidth() / 2, bounds.getHeight() / 2);
-            return;
-        }
-        if (left) {
-            snap(bounds, bounds.getMinX(), bounds.getMinY(), bounds.getWidth() / 2, bounds.getHeight());
-            return;
-        }
-        if (right) {
-            snap(bounds, bounds.getMinX() + bounds.getWidth() / 2, bounds.getMinY(),
-                    bounds.getWidth() / 2, bounds.getHeight());
-        }
+    private void applyCursorOverride(Object target, Cursor cursor) {
+        clearCursorOverride();
+        if (!(target instanceof Node node)) return;
+        while (node != null && node.getCursor() == null) node = node.getParent();
+        if (node == null || node.getCursor() == cursor) return;
+        cursorOverrideNode = node;
+        cursorOverrideOriginal = node.getCursor();
+        node.setCursor(cursor);
     }
 
-    private void snap(Rectangle2D bounds, double x, double y, double w, double h) {
-        double width = Math.min(bounds.getWidth(), Math.max(stage.getMinWidth(), w));
-        double height = Math.min(bounds.getHeight(), Math.max(stage.getMinHeight(), h));
-        double clampedX = Math.max(bounds.getMinX(), Math.min(x, bounds.getMaxX() - width));
-        double clampedY = Math.max(bounds.getMinY(), Math.min(y, bounds.getMaxY() - height));
-        stage.setX(clampedX);
-        stage.setY(clampedY);
-        stage.setWidth(width);
-        stage.setHeight(height);
+    private void clearCursorOverride() {
+        if (cursorOverrideNode == null) return;
+        cursorOverrideNode.setCursor(cursorOverrideOriginal);
+        cursorOverrideNode = null;
+        cursorOverrideOriginal = null;
+    }
+
+    private Screen windowScreen() {
+        double wx = stage.getX(), wy = stage.getY();
+        double wr = wx + stage.getWidth(), wb = wy + stage.getHeight();
+        Screen best = Screen.getPrimary();
+        double bestArea = 0;
+        for (Screen s : Screen.getScreens()) {
+            Rectangle2D b = s.getVisualBounds();
+            double overlap = Math.max(0, Math.min(wr, b.getMaxX()) - Math.max(wx, b.getMinX()))
+                           * Math.max(0, Math.min(wb, b.getMaxY()) - Math.max(wy, b.getMinY()));
+            if (overlap > bestArea) {
+                bestArea = overlap;
+                best = s;
+            }
+        }
+        return best;
+    }
+
+    private void applySnap(double cursorX, double cursorY) {
+        if (isSnapped()) return;
+
+        Rectangle2D bounds = windowScreen().getVisualBounds();
+
+        boolean left = cursorX <= bounds.getMinX() + SNAP_MARGIN;
+        boolean right = cursorX >= bounds.getMaxX() - SNAP_MARGIN;
+        boolean top = cursorY <= bounds.getMinY() + SNAP_MARGIN;
+        boolean bottom = cursorY >= bounds.getMaxY() - SNAP_MARGIN;
+
+        if (!left && !right && !top && !bottom) return;
+
+        double hw = bounds.getWidth() / 2, hh = bounds.getHeight() / 2;
+
+        if (top && !left && !right) {
+            snapTo(bounds);
+        } else if (left && top) {
+            snapTo(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), hw, hh));
+        } else if (right && top) {
+            snapTo(new Rectangle2D(bounds.getMinX() + hw, bounds.getMinY(), hw, hh));
+        } else if (left && bottom) {
+            snapTo(new Rectangle2D(bounds.getMinX(), bounds.getMinY() + hh, hw, hh));
+        } else if (right && bottom) {
+            snapTo(new Rectangle2D(bounds.getMinX() + hw, bounds.getMinY() + hh, hw, hh));
+        } else if (left) {
+            snapTo(new Rectangle2D(bounds.getMinX(), bounds.getMinY(), hw, bounds.getHeight()));
+        } else if (right) {
+            snapTo(new Rectangle2D(bounds.getMinX() + hw, bounds.getMinY(), hw, bounds.getHeight()));
+        } else if (bottom) {
+            snapTo(new Rectangle2D(bounds.getMinX(), bounds.getMinY() + hh, bounds.getWidth(), hh));
+        }
     }
 
     private enum ResizeZone {
         NONE {
-            @Override
-            public Cursor cursor() {
-                return Cursor.DEFAULT;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
-            }
+            @Override public Cursor cursor() { return Cursor.DEFAULT; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {}
         },
         N {
-            @Override
-            public Cursor cursor() {
-                return Cursor.N_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.N_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 double newH = Math.max(mh, oh - dy);
                 s.setY(oy + (oh - newH));
                 s.setHeight(newH);
             }
         },
         S {
-            @Override
-            public Cursor cursor() {
-                return Cursor.S_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.S_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 s.setHeight(Math.max(mh, oh + dy));
             }
         },
         W {
-            @Override
-            public Cursor cursor() {
-                return Cursor.W_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.W_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 double newW = Math.max(mw, ow - dx);
                 s.setX(ox + (ow - newW));
                 s.setWidth(newW);
             }
         },
         E {
-            @Override
-            public Cursor cursor() {
-                return Cursor.E_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.E_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 s.setWidth(Math.max(mw, ow + dx));
             }
         },
         NW {
-            @Override
-            public Cursor cursor() {
-                return Cursor.NW_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.NW_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 N.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         NE {
-            @Override
-            public Cursor cursor() {
-                return Cursor.NE_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.NE_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 N.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         SW {
-            @Override
-            public Cursor cursor() {
-                return Cursor.SW_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.SW_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 S.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         },
         SE {
-            @Override
-            public Cursor cursor() {
-                return Cursor.SE_RESIZE;
-            }
-
-            @Override
-            public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+            @Override public Cursor cursor() { return Cursor.SE_RESIZE; }
+            @Override public void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
                 S.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.apply(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
         };
 
         public abstract Cursor cursor();
-
         public abstract void apply(Stage stage, double dx, double dy, double origW, double origH,
                 double origX, double origY, double minW, double minH);
     }
 }
-
-

@@ -9,13 +9,16 @@ import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -73,8 +76,11 @@ public final class EnchantmentOverviewPage extends VBox {
             VBox list = new VBox(0);
             list.getStyleClass().add("enchantment-overview-list");
             list.setPadding(new Insets(24, 32, 24, 32));
-            for (var holder : enchantments) {
-                list.getChildren().add(new EnchantmentOverviewRow(holder, () -> open(holder)));
+            for (int i = 0; i < enchantments.size(); i++) {
+                var holder = enchantments.get(i);
+                var row = new EnchantmentOverviewRow(holder, () -> open(holder));
+                if (i == 0) row.getStyleClass().add("enchantment-row-first");
+                list.getChildren().add(row);
             }
             content.getChildren().setAll(list);
             return;
@@ -114,14 +120,27 @@ public final class EnchantmentOverviewPage extends VBox {
                 .orElse(false);
     }
 
+    private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");
+
     private VBox emptyState() {
+        var icon = new fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon(SEARCH_ICON, 40, Color.WHITE);
+        icon.setOpacity(0.2);
+        StackPane circle = new StackPane(icon);
+        circle.getStyleClass().add("enchantment-overview-empty-circle");
+        circle.setPrefSize(96, 96);
+        circle.setMaxSize(96, 96);
+        circle.setAlignment(Pos.CENTER);
+
         Label title = new Label(I18n.get("enchantment:items.no_results.title"));
         title.getStyleClass().add("enchantment-overview-empty-title");
         Label body = new Label(I18n.get("enchantment:items.no_results.description"));
         body.getStyleClass().add("enchantment-overview-empty-body");
         body.setWrapText(true);
-        VBox box = new VBox(6, title, body);
+
+        VBox box = new VBox(6, circle, title, body);
+        VBox.setMargin(circle, new Insets(0, 0, 18, 0));
         box.getStyleClass().add("enchantment-overview-empty");
+        box.setOpacity(0.6);
         return box;
     }
 

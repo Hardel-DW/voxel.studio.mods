@@ -419,12 +419,12 @@
 
 /* ===== OVERVIEW PAGE ===== */
 .enchantment-overview-page {
-    -fx-background-color: #111114;
+    -fx-background-color: rgba(9, 9, 11, 0.5);
 }
 
 .enchantment-overview-toolbar {
-    -fx-background-color: #0f0f11;
-    -fx-border-color: transparent transparent #242427 transparent;
+    -fx-background-color: rgba(9, 9, 11, 0.75);
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
     -fx-border-width: 0 0 1 0;
 }
 
@@ -456,6 +456,14 @@
 .enchantment-overview-empty {
     -fx-alignment: center;
     -fx-padding: 40;
+}
+
+.enchantment-overview-empty-circle {
+    -fx-background-color: rgba(24, 24, 27, 0.5);
+    -fx-border-color: #27272a;
+    -fx-border-width: 1;
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
 }
 
 .enchantment-overview-empty-title {
@@ -555,6 +563,11 @@
     -fx-cursor: hand;
 }
 
+.enchantment-row-first {
+    -fx-border-color: rgba(63, 63, 70, 0.3) transparent rgba(63, 63, 70, 0.3) transparent;
+    -fx-border-width: 1 0 1 0;
+}
+
 .enchantment-row:hover {
     -fx-background-color: rgba(24, 24, 27, 0.6);
 }
@@ -600,7 +613,7 @@
     -fx-border-radius: 8;
     -fx-padding: 6 12 6 12;
     -fx-text-fill: #a8a8b2;
-    -fx-font-size: 11;
+    -fx-font-size: 12;
     -fx-font-weight: 500;
     -fx-cursor: hand;
     -fx-min-width: 80;

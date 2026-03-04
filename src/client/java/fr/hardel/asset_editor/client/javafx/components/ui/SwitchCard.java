@@ -16,15 +16,15 @@ import net.minecraft.client.resources.language.I18n;
  * flex row: title+desc (flex-1) | ToggleSwitch
  * Locked: opacity-50, shows lock reason text instead of description.
  */
-public final class Switch extends SimpleCard {
+public final class SwitchCard extends SimpleCard {
 
     private final ToggleSwitch toggle = new ToggleSwitch();
 
-    public Switch(String titleKey, String descKey) {
+    public SwitchCard(String titleKey, String descKey) {
         this(titleKey, descKey, false, null);
     }
 
-    public Switch(String titleKey, String descKey, boolean locked, String lockKey) {
+    public SwitchCard(String titleKey, String descKey, boolean locked, String lockKey) {
         super(new Insets(24));
 
         Label title = new Label(I18n.get(titleKey));

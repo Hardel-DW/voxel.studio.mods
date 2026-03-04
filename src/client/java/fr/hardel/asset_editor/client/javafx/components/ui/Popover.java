@@ -20,9 +20,15 @@ public final class Popover extends Popup {
 
     private final Node trigger;
     private final StackPane container = new StackPane();
+    private boolean matchTriggerWidth;
 
     public Popover(Node trigger, Node content) {
+        this(trigger, content, false);
+    }
+
+    public Popover(Node trigger, Node content, boolean matchTriggerWidth) {
         this.trigger = trigger;
+        this.matchTriggerWidth = matchTriggerWidth;
         setAutoHide(false);
         setHideOnEscape(true);
 
@@ -32,20 +38,20 @@ public final class Popover extends Popup {
         try (var stream = ResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             shine.setPreserveRatio(false);
-            shine.setOpacity(0.06);
+            shine.setOpacity(0.12);
             shine.setMouseTransparent(true);
             shine.setManaged(false);
-            shine.fitWidthProperty().bind(inner.widthProperty());
-            shine.fitHeightProperty().bind(inner.heightProperty().multiply(0.35));
+            shine.fitWidthProperty().bind(container.widthProperty());
+            shine.fitHeightProperty().bind(container.heightProperty().multiply(0.35));
             inner.getChildren().addFirst(shine);
         } catch (Exception ignored) {}
 
-        Rectangle innerClip = new Rectangle();
-        innerClip.setArcWidth(32);
-        innerClip.setArcHeight(32);
-        inner.widthProperty().addListener((obs, o, w) -> innerClip.setWidth(w.doubleValue()));
-        inner.heightProperty().addListener((obs, o, h) -> innerClip.setHeight(h.doubleValue()));
-        inner.setClip(innerClip);
+        Rectangle clip = new Rectangle();
+        clip.setArcWidth(32);
+        clip.setArcHeight(32);
+        container.widthProperty().addListener((obs, o, w) -> clip.setWidth(w.doubleValue()));
+        container.heightProperty().addListener((obs, o, h) -> clip.setHeight(h.doubleValue()));
+        container.setClip(clip);
 
         container.getStyleClass().add("popover");
         container.getChildren().add(inner);
@@ -100,11 +106,17 @@ public final class Popover extends Popup {
         Bounds bounds = trigger.localToScreen(trigger.getBoundsInLocal());
         if (bounds == null) return;
 
-        show(window, bounds.getMinX(), bounds.getMaxY() + 6);
+        if (matchTriggerWidth) {
+            container.setPrefWidth(bounds.getWidth());
+            container.setMinWidth(bounds.getWidth());
+            container.setMaxWidth(bounds.getWidth());
+        }
+
+        show(window, bounds.getMinX(), bounds.getMaxY() + 8);
 
         double screenBottom = window.getY() + window.getHeight();
         if (getY() + container.getHeight() > screenBottom) {
-            setY(bounds.getMinY() - container.getHeight() - 6);
+            setY(bounds.getMinY() - container.getHeight() - 8);
         }
     }
 }
