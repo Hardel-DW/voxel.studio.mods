@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
+import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionGateway;
+import fr.hardel.asset_editor.client.javafx.lib.editor.store.LayeredRegistryStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
@@ -17,6 +19,9 @@ public final class StudioContext {
     private final StudioUiState uiState = new StudioUiState();
     private final StudioTabsState tabsState = new StudioTabsState();
     private final StudioPackState packState = new StudioPackState();
+    private final LayeredRegistryStore registryStore = new LayeredRegistryStore();
+    private final EditorActionGateway gateway = new EditorActionGateway(packState, registryStore);
+
     public StudioRouter router() {
         return router;
     }
@@ -33,6 +38,14 @@ public final class StudioContext {
         return packState;
     }
 
+    public LayeredRegistryStore registryStore() {
+        return registryStore;
+    }
+
+    public EditorActionGateway gateway() {
+        return gateway;
+    }
+
     public List<Holder.Reference<Enchantment>> enchantments() {
         var conn = Minecraft.getInstance().getConnection();
         if (conn == null) return List.of();
@@ -42,5 +55,3 @@ public final class StudioContext {
                 .orElse(List.of());
     }
 }
-
-

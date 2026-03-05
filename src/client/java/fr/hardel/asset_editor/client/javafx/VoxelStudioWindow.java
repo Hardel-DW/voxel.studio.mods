@@ -110,6 +110,7 @@ public final class VoxelStudioWindow {
                 VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
         attachWindowHandlers(scene);
+        attachFocusLossFlush();
         stage.setScene(scene);
         stage.show();
     }
@@ -146,6 +147,21 @@ public final class VoxelStudioWindow {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    private void attachFocusLossFlush() {
+        stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused && editorRoot != null) {
+                var ctx = editorRoot.context();
+                var pack = ctx.packState().selectedPack();
+                if (pack != null && pack.writable()) {
+                    var conn = Minecraft.getInstance().getConnection();
+                    if (conn != null) {
+                        ctx.registryStore().flush(pack.rootPath(), conn.registryAccess());
+                    }
+                }
+            }
+        });
     }
 
     private boolean isSnapped() {

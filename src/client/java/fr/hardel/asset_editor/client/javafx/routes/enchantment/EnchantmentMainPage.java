@@ -14,7 +14,9 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorAction;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
+import java.util.function.UnaryOperator;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -99,15 +101,44 @@ public final class EnchantmentMainPage extends VBox {
 
     private ResponsiveGrid buildCardsGrid(Holder.Reference<Enchantment> holder) {
         Enchantment e = holder.value();
+        Identifier id = holder.key().identifier();
+
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
+
+        Counter maxLevel = new Counter(1, 127, 1, e.getMaxLevel());
+        maxLevel.valueProperty().addListener((obs, oldVal, newVal) ->
+                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
+                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                                d.weight(), newVal.intValue(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots())))));
+
+        Counter weight = new Counter(1, 1024, 1, e.getWeight());
+        weight.valueProperty().addListener((obs, oldVal, newVal) ->
+                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
+                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                                newVal.intValue(), d.maxLevel(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots())))));
+
+        Counter anvilCost = new Counter(0, 255, 1, e.getAnvilCost());
+        anvilCost.valueProperty().addListener((obs, oldVal, newVal) ->
+                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
+                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                                d.weight(), d.maxLevel(), d.minCost(), d.maxCost(), newVal.intValue(), d.slots())))));
+
         grid.addItem(new TemplateCard(MAX_LEVEL_ICON, "enchantment:global.maxLevel.title",
-                "enchantment:global.explanation.list.1", new Counter(1, 127, 1, e.getMaxLevel())));
+                "enchantment:global.explanation.list.1", maxLevel));
         grid.addItem(new TemplateCard(WEIGHT_ICON, "enchantment:global.weight.title",
-                "enchantment:global.explanation.list.2", new Counter(1, 1024, 1, e.getWeight())));
+                "enchantment:global.explanation.list.2", weight));
         grid.addItem(new TemplateCard(ANVIL_COST_ICON, "enchantment:global.anvilCost.title",
-                "enchantment:global.explanation.list.3", new Counter(0, 255, 1, e.getAnvilCost())));
+                "enchantment:global.explanation.list.3", anvilCost));
         return grid;
+    }
+
+    private static EditorAction<Enchantment> enchantmentAction(Identifier id, UnaryOperator<Enchantment> transform) {
+        return new EditorAction<>("enchantment", id, Enchantment.class, transform);
+    }
+
+    private static Enchantment withDefinition(Enchantment e, UnaryOperator<Enchantment.EnchantmentDefinition> transform) {
+        return new Enchantment(e.description(), transform.apply(e.definition()), e.exclusiveSet(), e.effects());
     }
 
     private Selector buildModeSelector() {

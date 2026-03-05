@@ -30,8 +30,13 @@ public final class StudioEditorRoot extends HBox {
     private RecipeLayout recipeLayout;
     private ChangesLayout changesLayout;
 
+    public StudioContext context() {
+        return context;
+    }
+
     public StudioEditorRoot(Stage stage) {
         getStyleClass().add("studio-root");
+        context.packState().refreshFromServer();
 
         StudioPrimarySidebar sidebar = new StudioPrimarySidebar(context);
         StudioEditorTabsBar header = new StudioEditorTabsBar(context, stage);

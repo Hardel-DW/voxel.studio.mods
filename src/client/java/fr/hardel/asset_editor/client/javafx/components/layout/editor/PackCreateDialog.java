@@ -7,13 +7,10 @@ import fr.hardel.asset_editor.client.javafx.components.ui.FileInput;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.InputText;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
-
-import java.util.List;
 
 public final class PackCreateDialog {
 
@@ -60,8 +57,7 @@ public final class PackCreateDialog {
             String name = nameInput.getText().trim();
             String namespace = namespaceInput.getText().trim();
             if (name.isEmpty() || namespace.isEmpty()) return;
-            context.packState().availablePacks().add(new PackInfo(name, List.of(namespace)));
-            context.packState().selectPack(new PackInfo(name, List.of(namespace)));
+            context.packState().createPack(name, namespace);
             dialog.close();
         });
 
