@@ -66,6 +66,12 @@ public final class VoxelStudioWindow {
             Platform.runLater(instance::rebuildScene);
     }
 
+    public static void onWorldClosed() {
+        if (instance != null && instance.platformStarted) {
+            Platform.runLater(instance::handleWorldClosed);
+        }
+    }
+
     private void show() {
         if (!platformStarted) {
             platformStarted = true;
@@ -79,6 +85,7 @@ public final class VoxelStudioWindow {
             if (stage == null)
                 createWindow();
             else {
+                resyncOnOpenOrFocus();
                 stage.show();
                 stage.toFront();
             }
@@ -113,6 +120,7 @@ public final class VoxelStudioWindow {
         attachFocusLossFlush();
         stage.setScene(scene);
         stage.show();
+        resyncOnOpenOrFocus();
     }
 
     private void rebuildScene() {
@@ -151,17 +159,44 @@ public final class VoxelStudioWindow {
 
     private void attachFocusLossFlush() {
         stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (!isFocused && editorRoot != null) {
-                var ctx = editorRoot.context();
-                var pack = ctx.packState().selectedPack();
-                if (pack != null && pack.writable()) {
-                    var conn = Minecraft.getInstance().getConnection();
-                    if (conn != null) {
-                        ctx.registryStore().flush(pack.rootPath(), conn.registryAccess());
-                    }
-                }
+            if (isFocused) {
+                resyncOnOpenOrFocus();
+                return;
             }
+            flushActivePack();
         });
+    }
+
+    private void resyncOnOpenOrFocus() {
+        if (editorRoot == null) {
+            return;
+        }
+        editorRoot.context().resyncWorldSession(true);
+    }
+
+    private void flushActivePack() {
+        if (editorRoot == null) {
+            return;
+        }
+        var ctx = editorRoot.context();
+        var pack = ctx.packState().selectedPack();
+        if (pack == null || !pack.writable()) {
+            return;
+        }
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) {
+            return;
+        }
+        ctx.registryStore().flush(pack.rootPath(), conn.registryAccess());
+    }
+
+    private void handleWorldClosed() {
+        if (editorRoot != null) {
+            editorRoot.context().resetForWorldClose();
+        }
+        if (stage != null) {
+            stage.hide();
+        }
     }
 
     private boolean isSnapped() {

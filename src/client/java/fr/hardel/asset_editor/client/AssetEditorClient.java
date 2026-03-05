@@ -21,10 +21,17 @@ public class AssetEditorClient implements ClientModInitializer {
             Identifier.fromNamespaceAndPath("asset_editor", "main"));
     private static final KeyMapping OPEN_STUDIO = KeyBindingHelper.registerKeyBinding(
             new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY));
+    private boolean hadWorld;
 
     @Override
     public void onInitializeClient() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            boolean hasWorld = client.level != null && client.getConnection() != null;
+            if (hadWorld && !hasWorld) {
+                VoxelStudioWindow.onWorldClosed();
+            }
+            hadWorld = hasWorld;
+
             if (OPEN_STUDIO.consumeClick())
                 VoxelStudioWindow.open();
         });

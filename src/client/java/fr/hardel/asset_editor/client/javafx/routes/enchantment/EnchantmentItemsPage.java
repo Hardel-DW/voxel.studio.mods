@@ -63,12 +63,23 @@ public final class EnchantmentItemsPage extends VBox {
     private void onSectionChange(String section) {
         if (section.equals(currentSection)) return;
         currentSection = section;
-        selector.setContent(currentSection.equals("primaryItems") ? primaryGrid : supportedGrid);
+        var grid = currentSection.equals("primaryItems") ? primaryGrid : supportedGrid;
+        if (grid == null) {
+            selector.setContent();
+        } else {
+            selector.setContent(grid);
+        }
     }
 
     private void refreshForSelectedElement() {
         Holder.Reference<Enchantment> holder = selectedEnchantment();
-        if (holder == null) return;
+        if (holder == null) {
+            currentElement = "";
+            supportedGrid = null;
+            primaryGrid = null;
+            selector.setContent();
+            return;
+        }
         String key = holder.key().identifier().toString();
         if (!key.equals(currentElement)) {
             currentElement = key;
@@ -104,12 +115,10 @@ public final class EnchantmentItemsPage extends VBox {
     private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
         var enchantments = context.enchantments();
-        if (enchantments.isEmpty()) return null;
-        if (id != null && !id.isBlank()) {
-            for (var h : enchantments) {
-                if (h.key().identifier().toString().equals(id)) return h;
-            }
+        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
+        for (var h : enchantments) {
+            if (h.key().identifier().toString().equals(id)) return h;
         }
-        return enchantments.getFirst();
+        return null;
     }
 }

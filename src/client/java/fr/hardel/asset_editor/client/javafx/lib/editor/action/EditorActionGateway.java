@@ -25,13 +25,17 @@ public final class EditorActionGateway {
         }
 
         var pack = packState.selectedPack();
+        if (pack == null) {
+            return EditorActionResult.packRequired();
+        }
         if (!pack.writable()) {
             return EditorActionResult.rejected("studio:editor.pack_readonly");
         }
 
         packState.ensureNamespace(action.target().getNamespace());
+        var packRoot = pack.rootPath();
 
-        T current = store.getOverlay(action.registry(), action.target(), action.type()).orElse(null);
+        T current = store.getOverlay(packRoot, action.registry(), action.target(), action.type()).orElse(null);
 
         if (current == null) {
             current = resolveFromRegistry(action);
@@ -42,8 +46,8 @@ public final class EditorActionGateway {
 
         T updated = action.transform().apply(current);
         Codec<T> codec = resolveCodec(action);
-        store.putOverlay(action.registry(), action.target(), updated, codec);
-        store.markDirty(action.registry(), action.target());
+        store.putOverlay(packRoot, action.registry(), action.target(), updated, codec);
+        store.markDirty(packRoot, action.registry(), action.target());
         store.incrementVersion();
 
         return EditorActionResult.applied();

@@ -22,34 +22,39 @@ public final class LayeredRegistryStore {
 
     public record OverlayEntry<T>(String registry, Identifier id, T value, Codec<T> codec) {}
 
-    private final Map<String, Map<Identifier, OverlayEntry<?>>> overlays = new HashMap<>();
-    private final Set<String> dirtyKeys = new HashSet<>();
+    private final Map<Path, Map<String, Map<Identifier, OverlayEntry<?>>>> overlaysByPack = new HashMap<>();
+    private final Map<Path, Set<String>> dirtyKeysByPack = new HashMap<>();
     private final IntegerProperty version = new SimpleIntegerProperty(0);
 
     public IntegerProperty versionProperty() {
         return version;
     }
 
-    public <T> Optional<T> getOverlay(String registry, Identifier id, Class<T> type) {
-        var registryMap = overlays.get(registry);
+    public <T> Optional<T> getOverlay(Path packRoot, String registry, Identifier id, Class<T> type) {
+        var packMap = overlaysByPack.get(normalize(packRoot));
+        if (packMap == null) return Optional.empty();
+        var registryMap = packMap.get(registry);
         if (registryMap == null) return Optional.empty();
         var entry = registryMap.get(id);
         if (entry == null) return Optional.empty();
         return Optional.of(type.cast(entry.value()));
     }
 
-    public <T> void putOverlay(String registry, Identifier id, T value, Codec<T> codec) {
-        overlays.computeIfAbsent(registry, k -> new HashMap<>())
+    public <T> void putOverlay(Path packRoot, String registry, Identifier id, T value, Codec<T> codec) {
+        overlaysByPack.computeIfAbsent(normalize(packRoot), k -> new HashMap<>())
+                .computeIfAbsent(registry, k -> new HashMap<>())
                 .put(id, new OverlayEntry<>(registry, id, value, codec));
     }
 
-    public boolean hasOverlay(String registry, Identifier id) {
-        var registryMap = overlays.get(registry);
+    public boolean hasOverlay(Path packRoot, String registry, Identifier id) {
+        var packMap = overlaysByPack.get(normalize(packRoot));
+        if (packMap == null) return false;
+        var registryMap = packMap.get(registry);
         return registryMap != null && registryMap.containsKey(id);
     }
 
-    public void markDirty(String registry, Identifier id) {
-        dirtyKeys.add(registry + "/" + id);
+    public void markDirty(Path packRoot, String registry, Identifier id) {
+        dirtyKeysByPack.computeIfAbsent(normalize(packRoot), k -> new HashSet<>()).add(registry + "/" + id);
     }
 
     public void incrementVersion() {
@@ -58,12 +63,18 @@ public final class LayeredRegistryStore {
 
     @SuppressWarnings("unchecked")
     public void flush(Path packRoot, HolderLookup.Provider registries) {
-        if (dirtyKeys.isEmpty()) return;
+        Path normalizedPackRoot = normalize(packRoot);
+        var dirtyKeys = dirtyKeysByPack.get(normalizedPackRoot);
+        if (dirtyKeys == null || dirtyKeys.isEmpty()) return;
+
+        var packOverlays = overlaysByPack.get(normalizedPackRoot);
+        if (packOverlays == null || packOverlays.isEmpty()) return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        var writtenKeys = new HashSet<String>();
 
-        for (var registryMap : overlays.values()) {
+        for (var registryMap : packOverlays.values()) {
             for (var entry : registryMap.values()) {
                 String key = entry.registry() + "/" + entry.id();
                 if (!dirtyKeys.contains(key)) continue;
@@ -80,12 +91,26 @@ public final class LayeredRegistryStore {
                 try {
                     Files.createDirectories(filePath.getParent());
                     Files.writeString(filePath, gson.toJson(json));
+                    writtenKeys.add(key);
                 } catch (IOException e) {
-                    System.err.println("Failed to write overlay: " + filePath + " — " + e.getMessage());
+                    System.err.println("Failed to write overlay: " + filePath + " - " + e.getMessage());
                 }
             }
         }
 
-        dirtyKeys.clear();
+        dirtyKeys.removeAll(writtenKeys);
+        if (dirtyKeys.isEmpty()) {
+            dirtyKeysByPack.remove(normalizedPackRoot);
+        }
+    }
+
+    public void clearAll() {
+        overlaysByPack.clear();
+        dirtyKeysByPack.clear();
+        version.set(0);
+    }
+
+    private static Path normalize(Path packRoot) {
+        return packRoot.toAbsolutePath().normalize();
     }
 }

@@ -19,12 +19,14 @@ import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.PackSource;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -75,17 +77,34 @@ public final class StudioPackState {
         selectedNamespace.set(namespace);
     }
 
+    public void clearSelection() {
+        selectedPack.set(null);
+        selectedNamespace.set(null);
+    }
+
     public void refreshFromServer() {
+        PackInfo previousSelection = selectedPack.get();
         var server = Minecraft.getInstance().getSingleplayerServer();
+        availablePacks.clear();
+        clearSelection();
         if (server == null) return;
 
         PackRepository repo = server.getPackRepository();
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
 
-        availablePacks.clear();
         for (Pack pack : repo.getSelectedPacks()) {
             PackInfo info = toPackInfo(pack, datapackDir);
             if (info != null) availablePacks.add(info);
+        }
+
+        if (previousSelection != null) {
+            for (PackInfo info : availablePacks) {
+                if (info.rootPath().toAbsolutePath().normalize()
+                        .equals(previousSelection.rootPath().toAbsolutePath().normalize())) {
+                    selectPack(info);
+                    break;
+                }
+            }
         }
     }
 
@@ -94,25 +113,67 @@ public final class StudioPackState {
         if (server == null) return null;
 
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
-        Path packRoot = datapackDir.resolve(name);
+        String safeName = name == null ? "" : name.trim();
+        String safeNamespace = namespace == null ? "" : namespace.trim();
+        if (!isValidPackName(safeName) || !Identifier.isValidNamespace(safeNamespace)) {
+            return null;
+        }
+
+        Path datapackRoot = datapackDir.toAbsolutePath().normalize();
+        Path packRoot = datapackRoot.resolve(safeName).normalize();
+        if (!packRoot.startsWith(datapackRoot)) {
+            return null;
+        }
+
+        for (PackInfo existing : availablePacks) {
+            if (existing.rootPath().toAbsolutePath().normalize().equals(packRoot)) {
+                selectPack(existing);
+                ensureNamespace(safeNamespace);
+                selectNamespace(safeNamespace);
+                return selectedPack.get();
+            }
+        }
 
         try {
-            Files.createDirectories(packRoot.resolve("data").resolve(namespace));
-            writePackMcmeta(packRoot, name);
+            Files.createDirectories(packRoot.resolve("data").resolve(safeNamespace));
+            writePackMcmeta(packRoot, safeName);
         } catch (IOException e) {
             System.err.println("Failed to create pack: " + e.getMessage());
             return null;
         }
 
-        PackInfo info = new PackInfo(name, packRoot, true, PackKind.DIRECTORY, new ArrayList<>(List.of(namespace)));
+        PackInfo info = new PackInfo(safeName, packRoot, true, PackKind.DIRECTORY, new ArrayList<>(List.of(safeNamespace)));
         availablePacks.add(info);
         selectPack(info);
+        selectNamespace(safeNamespace);
+
+        // Ensure repository-based resync (open/focus) keeps the new pack visible.
+        try {
+            server.executeBlocking(() -> {
+                PackRepository repo = server.getPackRepository();
+                repo.reload();
+                var selected = new LinkedHashSet<>(repo.getSelectedIds());
+                selected.add("file/" + safeName);
+                repo.setSelected(selected);
+            });
+        } catch (Exception e) {
+            System.err.println("Failed to register pack in repository: " + e.getMessage());
+        }
+
+        refreshFromServer();
+        for (PackInfo candidate : availablePacks) {
+            if (candidate.rootPath().toAbsolutePath().normalize().equals(packRoot)) {
+                selectPack(candidate);
+                selectNamespace(safeNamespace);
+                break;
+            }
+        }
         return info;
     }
 
     public void ensureNamespace(String namespace) {
         PackInfo pack = selectedPack.get();
-        if (pack == null || !pack.writable()) return;
+        if (pack == null || !pack.writable() || !Identifier.isValidNamespace(namespace)) return;
 
         Path nsDir = pack.rootPath().resolve("data").resolve(namespace);
         if (Files.exists(nsDir)) return;
@@ -136,13 +197,18 @@ public final class StudioPackState {
         PackSource source = pack.getPackSource();
         String id = pack.getId();
 
-        if (source == PackSource.BUILT_IN) {
+        // We only expose world datapacks (world/datapacks), never builtins/features/mod packs.
+        if (source != PackSource.WORLD) {
             return null;
         }
 
         try (PackResources resources = pack.open()) {
             if (resources instanceof PathPackResources) {
-                Path rootPath = datapackDir.resolve(id.replaceFirst("^file/", ""));
+                Path datapackRoot = datapackDir.toAbsolutePath().normalize();
+                Path rootPath = datapackRoot.resolve(id.replaceFirst("^file/", "")).normalize();
+                if (!rootPath.startsWith(datapackRoot)) {
+                    return null;
+                }
                 List<String> namespaces = scanNamespaces(rootPath);
                 return new PackInfo(
                         pack.getTitle().getString(),
@@ -152,8 +218,13 @@ public final class StudioPackState {
             }
 
             String fileName = id.replaceFirst("^file/", "");
+            Path datapackRoot = datapackDir.toAbsolutePath().normalize();
+            Path archivePath = datapackRoot.resolve(fileName).normalize();
+            if (!archivePath.startsWith(datapackRoot)) {
+                return null;
+            }
             PackKind kind = fileName.endsWith(".jar") ? PackKind.JAR : PackKind.ZIP;
-            return new PackInfo(pack.getTitle().getString(), datapackDir.resolve(fileName), false, kind, List.of());
+            return new PackInfo(pack.getTitle().getString(), archivePath, false, kind, List.of());
         }
     }
 
@@ -183,5 +254,15 @@ public final class StudioPackState {
 
         var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         Files.writeString(packRoot.resolve("pack.mcmeta"), gson.toJson(meta));
+    }
+
+    private static boolean isValidPackName(String name) {
+        if (name.isBlank()) {
+            return false;
+        }
+        if (name.contains("/") || name.contains("\\") || name.contains("..")) {
+            return false;
+        }
+        return name.equals(name.trim());
     }
 }

@@ -50,7 +50,10 @@ public final class EnchantmentSlotsPage extends VBox {
 
     private void refresh() {
         Holder.Reference<Enchantment> holder = selectedEnchantment();
-        if (holder == null) return;
+        if (holder == null) {
+            content.getChildren().clear();
+            return;
+        }
 
         Section section = new Section("enchantment:section.slots.description");
         var enchantmentSlots = holder.value().definition().slots();
@@ -99,12 +102,10 @@ public final class EnchantmentSlotsPage extends VBox {
     private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
         var enchantments = context.enchantments();
-        if (enchantments.isEmpty()) return null;
-        if (id != null && !id.isBlank()) {
-            for (var h : enchantments) {
-                if (h.key().identifier().toString().equals(id)) return h;
-            }
+        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
+        for (var h : enchantments) {
+            if (h.key().identifier().toString().equals(id)) return h;
         }
-        return enchantments.getFirst();
+        return null;
     }
 }

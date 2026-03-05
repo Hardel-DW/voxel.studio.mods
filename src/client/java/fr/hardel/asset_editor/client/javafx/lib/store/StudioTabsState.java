@@ -91,6 +91,10 @@ public final class StudioTabsState {
             return null;
         return openTabs.get(index);
     }
+
+    public void reset() {
+        openTabs.clear();
+        activeTabIndex.set(-1);
+        currentElementId.set("");
+    }
 }
-
-

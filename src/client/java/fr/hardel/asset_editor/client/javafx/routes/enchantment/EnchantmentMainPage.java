@@ -15,6 +15,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorAction;
+import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionResult;
+import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import java.util.function.UnaryOperator;
 import javafx.scene.effect.ColorAdjust;
@@ -80,7 +82,10 @@ public final class EnchantmentMainPage extends VBox {
 
     private void refresh() {
         Holder.Reference<Enchantment> selected = selectedEnchantment();
-        if (selected == null) return;
+        if (selected == null) {
+            content.getChildren().clear();
+            return;
+        }
 
         Section section = new Section("enchantment:section.global.description");
 
@@ -88,9 +93,13 @@ public final class EnchantmentMainPage extends VBox {
         section.addContent(cardsGrid, buildModeSelector());
 
         section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-            if (context.packState().hasSelectedPack()) return;
+            if (hasWritablePackSelected()) return;
             e.consume();
-            showPackRequiredDialog();
+            if (!context.packState().hasSelectedPack()) {
+                showPackRequiredDialog();
+            } else {
+                showReadonlyPackDialog();
+            }
         });
 
         Region spacer = new Region();
@@ -107,22 +116,19 @@ public final class EnchantmentMainPage extends VBox {
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         Counter maxLevel = new Counter(1, 127, 1, e.getMaxLevel());
-        maxLevel.valueProperty().addListener((obs, oldVal, newVal) ->
-                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
-                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                                d.weight(), newVal.intValue(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots())))));
+        bindCounterAction(maxLevel, id, (newVal, d) ->
+                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                        d.weight(), newVal, d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
 
         Counter weight = new Counter(1, 1024, 1, e.getWeight());
-        weight.valueProperty().addListener((obs, oldVal, newVal) ->
-                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
-                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                                newVal.intValue(), d.maxLevel(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots())))));
+        bindCounterAction(weight, id, (newVal, d) ->
+                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                        newVal, d.maxLevel(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
 
         Counter anvilCost = new Counter(0, 255, 1, e.getAnvilCost());
-        anvilCost.valueProperty().addListener((obs, oldVal, newVal) ->
-                context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
-                        new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                                d.weight(), d.maxLevel(), d.minCost(), d.maxCost(), newVal.intValue(), d.slots())))));
+        bindCounterAction(anvilCost, id, (newVal, d) ->
+                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
+                        d.weight(), d.maxLevel(), d.minCost(), d.maxCost(), newVal, d.slots()));
 
         grid.addItem(new TemplateCard(MAX_LEVEL_ICON, "enchantment:global.maxLevel.title",
                 "enchantment:global.explanation.list.1", maxLevel));
@@ -133,12 +139,53 @@ public final class EnchantmentMainPage extends VBox {
         return grid;
     }
 
+    private void bindCounterAction(
+            Counter counter,
+            Identifier id,
+            java.util.function.BiFunction<Integer, Enchantment.EnchantmentDefinition, Enchantment.EnchantmentDefinition> definitionTransform) {
+        boolean[] rollbackInProgress = { false };
+        counter.valueProperty().addListener((obs, oldVal, newVal) -> {
+            if (rollbackInProgress[0] || oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) {
+                return;
+            }
+
+            EditorActionResult result = context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
+                    definitionTransform.apply(newVal.intValue(), d))));
+
+            if (result.isApplied()) {
+                return;
+            }
+
+            rollbackInProgress[0] = true;
+            counter.valueProperty().set(oldVal.intValue());
+            rollbackInProgress[0] = false;
+            handleActionFailure(result);
+        });
+    }
+
     private static EditorAction<Enchantment> enchantmentAction(Identifier id, UnaryOperator<Enchantment> transform) {
         return new EditorAction<>("enchantment", id, Enchantment.class, transform);
     }
 
     private static Enchantment withDefinition(Enchantment e, UnaryOperator<Enchantment.EnchantmentDefinition> transform) {
         return new Enchantment(e.description(), transform.apply(e.definition()), e.exclusiveSet(), e.effects());
+    }
+
+    private boolean hasWritablePackSelected() {
+        var pack = context.packState().selectedPack();
+        return pack != null && pack.writable();
+    }
+
+    private void handleActionFailure(EditorActionResult result) {
+        if (result.status() == EditorActionStatus.PACK_REQUIRED) {
+            showPackRequiredDialog();
+            return;
+        }
+        if (result.status() == EditorActionStatus.REJECTED) {
+            showReadonlyPackDialog();
+            return;
+        }
+        showEditorErrorDialog(result.message());
     }
 
     private Selector buildModeSelector() {
@@ -292,15 +339,30 @@ public final class EnchantmentMainPage extends VBox {
         dialog.show(getScene().getWindow());
     }
 
+    private void showReadonlyPackDialog() {
+        showEditorErrorDialog("studio:editor.pack_readonly");
+    }
+
+    private void showEditorErrorDialog(String messageKey) {
+        Label message = new Label(I18n.get(messageKey == null ? "studio:editor.error" : messageKey));
+        message.setTextFill(VoxelColors.ZINC_400);
+        message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
+        message.setWrapText(true);
+
+        Dialog dialog = new Dialog("studio:pack.select", message);
+        Button closeBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
+        closeBtn.setOnAction(dialog::close);
+        dialog.addFooterButton(closeBtn);
+        dialog.show(getScene().getWindow());
+    }
+
     private Holder.Reference<Enchantment> selectedEnchantment() {
         String id = context.tabsState().currentElementId();
         var enchantments = context.enchantments();
-        if (enchantments.isEmpty()) return null;
-        if (id != null && !id.isBlank()) {
-            for (var h : enchantments) {
-                if (h.key().identifier().toString().equals(id)) return h;
-            }
+        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
+        for (var h : enchantments) {
+            if (h.key().identifier().toString().equals(id)) return h;
         }
-        return enchantments.getFirst();
+        return null;
     }
 }

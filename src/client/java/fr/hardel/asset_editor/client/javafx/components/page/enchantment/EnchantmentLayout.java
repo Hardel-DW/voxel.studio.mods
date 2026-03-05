@@ -88,9 +88,38 @@ public final class EnchantmentLayout extends HBox {
     }
 
     private void refresh() {
+        if (!ensureDetailSelectionInvariant()) {
+            Node page = pageCache.computeIfAbsent(StudioRoute.ENCHANTMENT_OVERVIEW, this::createPage);
+            outlet.getChildren().setAll(page);
+            return;
+        }
         StudioRoute route = context.router().currentRoute();
         Node page = isEnchantmentRoute(route) ? pageCache.computeIfAbsent(route, this::createPage) : emptyPage;
         outlet.getChildren().setAll(page);
+    }
+
+    private boolean ensureDetailSelectionInvariant() {
+        StudioRoute route = context.router().currentRoute();
+        if (!StudioConcept.ENCHANTMENT.tabRoutes().contains(route)) {
+            return true;
+        }
+
+        String selectedId = context.tabsState().currentElementId();
+        if (selectedId == null || selectedId.isBlank()) {
+            context.tabsState().setCurrentElementId("");
+            context.router().navigate(StudioRoute.ENCHANTMENT_OVERVIEW);
+            return false;
+        }
+
+        for (var holder : context.enchantments()) {
+            if (holder.key().identifier().toString().equals(selectedId)) {
+                return true;
+            }
+        }
+
+        context.tabsState().setCurrentElementId("");
+        context.router().navigate(StudioRoute.ENCHANTMENT_OVERVIEW);
+        return false;
     }
 
     private static boolean isEnchantmentRoute(StudioRoute route) {

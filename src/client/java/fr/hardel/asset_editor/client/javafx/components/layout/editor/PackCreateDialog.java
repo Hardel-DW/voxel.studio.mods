@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
 
 public final class PackCreateDialog {
 
@@ -37,11 +38,20 @@ public final class PackCreateDialog {
         Label nameLabel = fieldLabel("studio:pack.create.name");
         Label nsLabel = fieldLabel("studio:pack.create.namespace");
         Label iconLabel = fieldLabel("studio:pack.create.icon");
+        Label errorLabel = new Label();
+        errorLabel.setTextFill(VoxelColors.RED_400);
+        errorLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
+        errorLabel.setWrapText(true);
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
+        nameInput.field().textProperty().addListener((obs, o, v) -> clearError(errorLabel));
+        namespaceInput.field().textProperty().addListener((obs, o, v) -> clearError(errorLabel));
 
         VBox form = new VBox(12,
                 nameLabel, nameInput,
                 nsLabel, namespaceInput,
-                iconLabel, iconInput
+                iconLabel, iconInput,
+                errorLabel
         );
         form.setPadding(new Insets(8, 0, 0, 0));
 
@@ -56,8 +66,18 @@ public final class PackCreateDialog {
         createBtn.setOnAction(() -> {
             String name = nameInput.getText().trim();
             String namespace = namespaceInput.getText().trim();
-            if (name.isEmpty() || namespace.isEmpty()) return;
-            context.packState().createPack(name, namespace);
+            if (name.isEmpty() || namespace.isEmpty()) {
+                setError(errorLabel, "Name and namespace are required.");
+                return;
+            }
+            if (!Identifier.isValidNamespace(namespace)) {
+                setError(errorLabel, "Invalid namespace. Use [a-z0-9_.-].");
+                return;
+            }
+            if (context.packState().createPack(name, namespace) == null) {
+                setError(errorLabel, "Unable to create pack. Check name and world datapack directory.");
+                return;
+            }
             dialog.close();
         });
 
@@ -70,5 +90,17 @@ public final class PackCreateDialog {
         label.setTextFill(VoxelColors.ZINC_300);
         label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12));
         return label;
+    }
+
+    private static void setError(Label label, String message) {
+        label.setText(message);
+        label.setVisible(true);
+        label.setManaged(true);
+    }
+
+    private static void clearError(Label label) {
+        label.setText("");
+        label.setVisible(false);
+        label.setManaged(false);
     }
 }
