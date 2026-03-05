@@ -187,7 +187,7 @@ public final class VoxelStudioWindow {
         if (conn == null) {
             return;
         }
-        ctx.registryStore().flush(pack.rootPath(), conn.registryAccess());
+        ctx.gateway().flushAll(pack.rootPath(), conn.registryAccess());
     }
 
     private void handleWorldClosed() {

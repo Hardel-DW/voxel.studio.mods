@@ -104,17 +104,8 @@ public final class EnchantmentLayout extends HBox {
             return true;
         }
 
-        String selectedId = context.tabsState().currentElementId();
-        if (selectedId == null || selectedId.isBlank()) {
-            context.tabsState().setCurrentElementId("");
-            context.router().navigate(StudioRoute.ENCHANTMENT_OVERVIEW);
-            return false;
-        }
-
-        for (var holder : context.enchantments()) {
-            if (holder.key().identifier().toString().equals(selectedId)) {
-                return true;
-            }
+        if (context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT) != null) {
+            return true;
         }
 
         context.tabsState().setCurrentElementId("");
@@ -166,7 +157,7 @@ public final class EnchantmentLayout extends HBox {
     }
 
     private TreeNodeModel buildTree(StudioSidebarView view) {
-        return EnchantmentTreeBuilder.build(context.enchantments(), view, 61);
+        return EnchantmentTreeBuilder.build(context.registryElements(net.minecraft.core.registries.Registries.ENCHANTMENT), view, 61);
     }
 
     private Map<String, Identifier> folderIcons(StudioSidebarView view) {

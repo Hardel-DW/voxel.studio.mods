@@ -45,7 +45,7 @@ public final class PackSelector extends StackPane {
 
         nameLabel.getStyleClass().add("pack-selector-label");
         nameLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12));
-        nameLabel.setMaxWidth(160);
+        nameLabel.setMaxWidth(200);
         nameLabel.setEllipsisString("...");
 
         Region spacer = new Region();
@@ -71,10 +71,6 @@ public final class PackSelector extends StackPane {
             refreshLabel();
             refreshPopoverContent();
         });
-        context.packState().selectedNamespaceProperty().addListener((obs, o, v) -> {
-            refreshLabel();
-            refreshPopoverContent();
-        });
         refreshLabel();
 
         setOnMouseEntered(e -> {
@@ -91,8 +87,7 @@ public final class PackSelector extends StackPane {
             nameLabel.setTextFill(VoxelColors.ZINC_500);
             return;
         }
-        String ns = context.packState().selectedNamespace();
-        nameLabel.setText(pack.name() + (ns != null ? "  ·  " + ns : ""));
+        nameLabel.setText(pack.name());
         nameLabel.setTextFill(VoxelColors.ZINC_200);
     }
 
@@ -113,20 +108,9 @@ public final class PackSelector extends StackPane {
 
         PackInfo selected = context.packState().selectedPack();
 
-        if (selected != null) {
-            popoverContent.getChildren().add(buildSelectedPackSection(selected));
-
-            Region sep = new Region();
-            sep.getStyleClass().add("pack-popover-separator");
-            sep.setPrefHeight(1);
-            sep.setMaxHeight(1);
-            VBox.setMargin(sep, new Insets(4, 0, 4, 0));
-            popoverContent.getChildren().add(sep);
-        }
-
         for (PackInfo pack : context.packState().availablePacks()) {
-            if (pack.equals(selected)) continue;
-            popoverContent.getChildren().add(buildPackRow(pack));
+            boolean isSelected = pack.equals(selected);
+            popoverContent.getChildren().add(buildPackRow(pack, isSelected));
         }
 
         Region separator = new Region();
@@ -138,83 +122,27 @@ public final class PackSelector extends StackPane {
         popoverContent.getChildren().addAll(separator, buildCreateButton());
     }
 
-    private VBox buildSelectedPackSection(PackInfo pack) {
-        SvgIcon icon = new SvgIcon(FOLDER_ICON, 14, VoxelColors.ZINC_200);
-        Label name = new Label(pack.name());
-        name.setTextFill(VoxelColors.ZINC_100);
-        name.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 13));
-
-        HBox titleRow = new HBox(10, icon, name);
-        titleRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox section = new VBox(6, titleRow);
-        section.getStyleClass().add("pack-popover-selected");
-        section.setPadding(new Insets(10, 12, 10, 12));
-
-        String activeNs = context.packState().selectedNamespace();
-
-        VBox nsList = new VBox(2);
-        nsList.setPadding(new Insets(4, 0, 0, 0));
-
-        for (String ns : pack.namespaces()) {
-            boolean isActive = ns.equals(activeNs);
-
-            Label nsLabel = new Label(ns);
-            nsLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
-            nsLabel.setMaxWidth(Double.MAX_VALUE);
-            nsLabel.setPadding(new Insets(4, 8, 4, 8));
-            nsLabel.setCursor(Cursor.HAND);
-
-            if (isActive) {
-                nsLabel.getStyleClass().add("pack-popover-namespace-active");
-                nsLabel.setTextFill(VoxelColors.ZINC_100);
-            } else {
-                nsLabel.getStyleClass().add("pack-popover-namespace");
-                nsLabel.setTextFill(VoxelColors.ZINC_500);
-                nsLabel.setOnMouseEntered(e -> nsLabel.getStyleClass().add("pack-popover-namespace-hover"));
-                nsLabel.setOnMouseExited(e -> nsLabel.getStyleClass().remove("pack-popover-namespace-hover"));
-            }
-
-            nsLabel.setOnMouseClicked(e -> {
-                e.consume();
-                context.packState().selectNamespace(ns);
-            });
-
-            nsList.getChildren().add(nsLabel);
-        }
-
-        if (pack.namespaces().size() > 6) {
-            javafx.scene.control.ScrollPane scroll = new javafx.scene.control.ScrollPane(nsList);
-            scroll.setFitToWidth(true);
-            scroll.setMaxHeight(160);
-            scroll.setPrefHeight(160);
-            scroll.getStyleClass().add("pack-popover-ns-scroll");
-            scroll.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-            section.getChildren().add(scroll);
-        } else {
-            section.getChildren().add(nsList);
-        }
-        return section;
-    }
-
-    private HBox buildPackRow(PackInfo pack) {
-        SvgIcon icon = new SvgIcon(FOLDER_ICON, 14, VoxelColors.ZINC_400);
+    private HBox buildPackRow(PackInfo pack, boolean isSelected) {
+        SvgIcon icon = new SvgIcon(FOLDER_ICON, 14, isSelected ? VoxelColors.ZINC_200 : VoxelColors.ZINC_400);
 
         Label name = new Label(pack.name());
-        name.setTextFill(VoxelColors.ZINC_300);
-        name.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 13));
+        name.setTextFill(isSelected ? VoxelColors.ZINC_100 : VoxelColors.ZINC_300);
+        name.setFont(VoxelFonts.of(isSelected ? VoxelFonts.Variant.SEMI_BOLD : VoxelFonts.Variant.MEDIUM, 13));
 
         HBox row = new HBox(10, icon, name);
-        row.getStyleClass().add("pack-popover-row");
+        row.getStyleClass().add(isSelected ? "pack-popover-row-active" : "pack-popover-row");
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
         row.setCursor(Cursor.HAND);
 
-        row.setOnMouseEntered(e -> {
-            if (!row.getStyleClass().contains("pack-popover-row-hover"))
-                row.getStyleClass().add("pack-popover-row-hover");
-        });
-        row.setOnMouseExited(e -> row.getStyleClass().remove("pack-popover-row-hover"));
+        if (!isSelected) {
+            row.setOnMouseEntered(e -> {
+                if (!row.getStyleClass().contains("pack-popover-row-hover"))
+                    row.getStyleClass().add("pack-popover-row-hover");
+            });
+            row.setOnMouseExited(e -> row.getStyleClass().remove("pack-popover-row-hover"));
+        }
+
         row.setOnMouseClicked(e -> {
             e.consume();
             context.packState().selectPack(pack);

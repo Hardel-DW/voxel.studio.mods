@@ -4,7 +4,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewCard;
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
@@ -63,7 +64,7 @@ public final class EnchantmentOverviewPage extends VBox {
         String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
         StudioSidebarView sidebarView = context.uiState().sidebarView();
 
-        List<Holder.Reference<Enchantment>> enchantments = context.enchantments().stream()
+        List<Holder.Reference<Enchantment>> enchantments = context.registryElements(net.minecraft.core.registries.Registries.ENCHANTMENT).stream()
                 .filter(h -> search.isEmpty() || h.key().identifier().getPath().contains(search))
                 .filter(h -> matchesFilter(h, filterPath, sidebarView))
                 .toList();
@@ -103,12 +104,10 @@ public final class EnchantmentOverviewPage extends VBox {
 
         Enchantment enchantment = holder.value();
         if (sidebarView == StudioSidebarView.SLOTS) {
-            for (EnchantmentTreeData.SlotConfig config : EnchantmentTreeData.SLOT_CONFIGS) {
-                if (!config.id().equals(category)) continue;
-                return enchantment.definition().slots().stream()
-                        .anyMatch(g -> config.slots().contains(g.getSerializedName()));
-            }
-            return false;
+            SlotConfig config = SlotConfigs.BY_ID.get(category);
+            if (config == null) return false;
+            return enchantment.definition().slots().stream()
+                    .anyMatch(g -> config.slots().contains(g.getSerializedName()));
         }
         if (sidebarView == StudioSidebarView.ITEMS) {
             return enchantment.definition().supportedItems().unwrapKey()

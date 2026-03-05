@@ -12,12 +12,12 @@ public final class ExclusiveSingleSection extends VBox {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 
-        List<Identifier> custom = context.enchantments().stream()
+        List<Identifier> custom = context.registryElements(net.minecraft.core.registries.Registries.ENCHANTMENT).stream()
             .map(h -> h.key().identifier())
             .filter(id -> !id.getNamespace().equals("minecraft"))
             .toList();
 
-        List<Identifier> vanilla = context.enchantments().stream()
+        List<Identifier> vanilla = context.registryElements(net.minecraft.core.registries.Registries.ENCHANTMENT).stream()
             .map(h -> h.key().identifier())
             .filter(id -> id.getNamespace().equals("minecraft"))
             .toList();

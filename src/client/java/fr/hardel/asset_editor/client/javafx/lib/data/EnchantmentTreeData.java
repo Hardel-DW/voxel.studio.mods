@@ -6,17 +6,6 @@ import java.util.List;
 
 public final class EnchantmentTreeData {
 
-    public static final List<SlotConfig> SLOT_CONFIGS = List.of(
-            slot("mainhand", List.of("mainhand", "any", "hand", "all")),
-            slot("offhand", List.of("offhand", "any", "hand", "all")),
-            slot("body", List.of("body", "any", "all")),
-            slot("saddle", List.of("saddle", "any", "all")),
-            slot("head", List.of("head", "any", "armor", "all")),
-            slot("chest", List.of("chest", "any", "armor", "all")),
-            slot("legs", List.of("legs", "any", "armor", "all")),
-            slot("feet", List.of("feet", "any", "armor", "all"))
-    );
-
     public static final List<ItemTagConfig> ITEM_TAGS = List.of(
             item("sword", 0, 89),
             item("sweeping", 90, Integer.MAX_VALUE),
@@ -46,24 +35,11 @@ public final class EnchantmentTreeData {
             item("mining_loot", 0, Integer.MAX_VALUE)
     );
 
-    public record SlotConfig(String id, List<String> slots, Identifier icon) {
-    }
-
-    public record ItemTagConfig(String key, int min, int max, Identifier icon) {
-    }
-
-    private static SlotConfig slot(String id, List<String> slots) {
-        return new SlotConfig(id, slots, icon("textures/features/slots/%s.png".formatted(id)));
-    }
+    public record ItemTagConfig(String key, int min, int max, Identifier icon) {}
 
     private static ItemTagConfig item(String key, int min, int max) {
-        return new ItemTagConfig(key, min, max, icon("textures/features/item/%s.png".formatted(key)));
+        return new ItemTagConfig(key, min, max, Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/%s.png".formatted(key)));
     }
 
-    private static Identifier icon(String path) {
-        return Identifier.fromNamespaceAndPath("asset_editor", path);
-    }
-
-    private EnchantmentTreeData() {
-    }
+    private EnchantmentTreeData() {}
 }

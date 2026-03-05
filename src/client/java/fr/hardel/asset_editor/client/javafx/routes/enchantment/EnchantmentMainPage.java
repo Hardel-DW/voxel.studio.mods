@@ -14,9 +14,9 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorAction;
-import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionResult;
-import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionStatus;
+import fr.hardel.asset_editor.client.javafx.lib.action.EditorAction;
+import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
+import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import java.util.function.UnaryOperator;
 import javafx.scene.effect.ColorAdjust;
@@ -81,7 +81,7 @@ public final class EnchantmentMainPage extends VBox {
     }
 
     private void refresh() {
-        Holder.Reference<Enchantment> selected = selectedEnchantment();
+        Holder.Reference<Enchantment> selected = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);
         if (selected == null) {
             content.getChildren().clear();
             return;
@@ -356,13 +356,4 @@ public final class EnchantmentMainPage extends VBox {
         dialog.show(getScene().getWindow());
     }
 
-    private Holder.Reference<Enchantment> selectedEnchantment() {
-        String id = context.tabsState().currentElementId();
-        var enchantments = context.enchantments();
-        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
-        for (var h : enchantments) {
-            if (h.key().identifier().toString().equals(id)) return h;
-        }
-        return null;
-    }
 }

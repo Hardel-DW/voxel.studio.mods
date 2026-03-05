@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Holder;
@@ -32,8 +34,8 @@ public final class EnchantmentTreeBuilder {
 
     public static Map<String, Identifier> slotFolderIcons() {
         LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
-        for (EnchantmentTreeData.SlotConfig config : EnchantmentTreeData.SLOT_CONFIGS) {
-            icons.put(config.id(), config.icon());
+        for (SlotConfig config : SlotConfigs.ALL) {
+            icons.put(config.id(), config.image());
         }
         return icons;
     }
@@ -48,7 +50,7 @@ public final class EnchantmentTreeBuilder {
     }
 
     private static void buildBySlots(TreeNodeModel root, List<Holder.Reference<Enchantment>> enchantments) {
-        for (EnchantmentTreeData.SlotConfig config : EnchantmentTreeData.SLOT_CONFIGS) {
+        for (SlotConfig config : SlotConfigs.ALL) {
             ArrayList<Holder.Reference<Enchantment>> matching = new ArrayList<>();
             for (var holder : enchantments) {
                 if (holder.value().definition().slots().stream()
@@ -58,8 +60,8 @@ public final class EnchantmentTreeBuilder {
             }
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
-                category.setIcon(config.icon());
-                category.setLabel(translationOrDefault("enchantment:slots." + config.id() + ".title", config.id()));
+                category.setIcon(config.image());
+                category.setLabel(translationOrDefault(config.nameKey(), config.id()));
                 root.children().put(config.id(), category);
             }
         }
@@ -117,6 +119,5 @@ public final class EnchantmentTreeBuilder {
         return I18n.exists(key) ? I18n.get(key) : fallback;
     }
 
-    private EnchantmentTreeBuilder() {
-    }
+    private EnchantmentTreeBuilder() {}
 }

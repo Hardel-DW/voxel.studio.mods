@@ -5,8 +5,6 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import net.minecraft.SharedConstants;
@@ -36,9 +34,10 @@ public final class StudioPackState {
 
     public record PackInfo(String name, Path rootPath, boolean writable, PackKind kind, List<String> namespaces) {}
 
+    private static final String PERSIST_FILE = ".voxel_studio_last_pack";
+
     private final ObservableList<PackInfo> availablePacks = FXCollections.observableArrayList();
     private final ObjectProperty<PackInfo> selectedPack = new SimpleObjectProperty<>(null);
-    private final StringProperty selectedNamespace = new SimpleStringProperty(null);
 
     public ObservableList<PackInfo> availablePacks() {
         return availablePacks;
@@ -48,16 +47,8 @@ public final class StudioPackState {
         return selectedPack;
     }
 
-    public StringProperty selectedNamespaceProperty() {
-        return selectedNamespace;
-    }
-
     public PackInfo selectedPack() {
         return selectedPack.get();
-    }
-
-    public String selectedNamespace() {
-        return selectedNamespace.get();
     }
 
     public boolean hasSelectedPack() {
@@ -66,24 +57,14 @@ public final class StudioPackState {
 
     public void selectPack(PackInfo pack) {
         selectedPack.set(pack);
-        if (pack != null && !pack.namespaces().isEmpty()) {
-            selectedNamespace.set(pack.namespaces().getFirst());
-        } else {
-            selectedNamespace.set(null);
-        }
-    }
-
-    public void selectNamespace(String namespace) {
-        selectedNamespace.set(namespace);
+        persistSelection();
     }
 
     public void clearSelection() {
         selectedPack.set(null);
-        selectedNamespace.set(null);
     }
 
     public void refreshFromServer() {
-        PackInfo previousSelection = selectedPack.get();
         var server = Minecraft.getInstance().getSingleplayerServer();
         availablePacks.clear();
         clearSelection();
@@ -97,15 +78,7 @@ public final class StudioPackState {
             if (info != null) availablePacks.add(info);
         }
 
-        if (previousSelection != null) {
-            for (PackInfo info : availablePacks) {
-                if (info.rootPath().toAbsolutePath().normalize()
-                        .equals(previousSelection.rootPath().toAbsolutePath().normalize())) {
-                    selectPack(info);
-                    break;
-                }
-            }
-        }
+        restoreSelection(datapackDir);
     }
 
     public PackInfo createPack(String name, String namespace) {
@@ -128,8 +101,7 @@ public final class StudioPackState {
         for (PackInfo existing : availablePacks) {
             if (existing.rootPath().toAbsolutePath().normalize().equals(packRoot)) {
                 selectPack(existing);
-                ensureNamespace(safeNamespace);
-                selectNamespace(safeNamespace);
+                ensureNamespace(existing, safeNamespace);
                 return selectedPack.get();
             }
         }
@@ -145,9 +117,7 @@ public final class StudioPackState {
         PackInfo info = new PackInfo(safeName, packRoot, true, PackKind.DIRECTORY, new ArrayList<>(List.of(safeNamespace)));
         availablePacks.add(info);
         selectPack(info);
-        selectNamespace(safeNamespace);
 
-        // Ensure repository-based resync (open/focus) keeps the new pack visible.
         try {
             server.executeBlocking(() -> {
                 PackRepository repo = server.getPackRepository();
@@ -164,15 +134,13 @@ public final class StudioPackState {
         for (PackInfo candidate : availablePacks) {
             if (candidate.rootPath().toAbsolutePath().normalize().equals(packRoot)) {
                 selectPack(candidate);
-                selectNamespace(safeNamespace);
                 break;
             }
         }
         return info;
     }
 
-    public void ensureNamespace(String namespace) {
-        PackInfo pack = selectedPack.get();
+    public void ensureNamespace(PackInfo pack, String namespace) {
         if (pack == null || !pack.writable() || !Identifier.isValidNamespace(namespace)) return;
 
         Path nsDir = pack.rootPath().resolve("data").resolve(namespace);
@@ -186,18 +154,50 @@ public final class StudioPackState {
                 PackInfo updated = new PackInfo(pack.name(), pack.rootPath(), true, pack.kind(), updatedNs);
                 int idx = availablePacks.indexOf(pack);
                 if (idx >= 0) availablePacks.set(idx, updated);
-                selectedPack.set(updated);
+                if (selectedPack.get() == pack) selectedPack.set(updated);
             }
         } catch (IOException e) {
             System.err.println("Failed to create namespace dir: " + e.getMessage());
         }
     }
 
+    private void persistSelection() {
+        var server = Minecraft.getInstance().getSingleplayerServer();
+        if (server == null) return;
+        Path persistFile = server.getWorldPath(LevelResource.ROOT).resolve(PERSIST_FILE);
+        PackInfo pack = selectedPack.get();
+        try {
+            if (pack == null) {
+                Files.deleteIfExists(persistFile);
+            } else {
+                Files.writeString(persistFile, pack.rootPath().toAbsolutePath().normalize().toString());
+            }
+        } catch (IOException ignored) {}
+    }
+
+    private void restoreSelection(Path datapackDir) {
+        var server = Minecraft.getInstance().getSingleplayerServer();
+        if (server == null) return;
+        Path persistFile = server.getWorldPath(LevelResource.ROOT).resolve(PERSIST_FILE);
+        if (!Files.exists(persistFile)) return;
+
+        try {
+            String savedPath = Files.readString(persistFile).trim();
+            if (savedPath.isEmpty()) return;
+            Path saved = Path.of(savedPath).toAbsolutePath().normalize();
+            for (PackInfo info : availablePacks) {
+                if (info.rootPath().toAbsolutePath().normalize().equals(saved)) {
+                    selectedPack.set(info);
+                    return;
+                }
+            }
+        } catch (IOException ignored) {}
+    }
+
     private PackInfo toPackInfo(Pack pack, Path datapackDir) {
         PackSource source = pack.getPackSource();
         String id = pack.getId();
 
-        // We only expose world datapacks (world/datapacks), never builtins/features/mod packs.
         if (source != PackSource.WORLD) {
             return null;
         }
@@ -257,12 +257,8 @@ public final class StudioPackState {
     }
 
     private static boolean isValidPackName(String name) {
-        if (name.isBlank()) {
-            return false;
-        }
-        if (name.contains("/") || name.contains("\\") || name.contains("..")) {
-            return false;
-        }
+        if (name.isBlank()) return false;
+        if (name.contains("/") || name.contains("\\") || name.contains("..")) return false;
         return name.equals(name.trim());
     }
 }

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.lib.editor.action;
+package fr.hardel.asset_editor.client.javafx.lib.action;
 
 import net.minecraft.resources.Identifier;
 

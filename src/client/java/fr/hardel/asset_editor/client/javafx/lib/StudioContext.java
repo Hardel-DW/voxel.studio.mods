@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
-import fr.hardel.asset_editor.client.javafx.lib.editor.action.EditorActionGateway;
-import fr.hardel.asset_editor.client.javafx.lib.editor.store.LayeredRegistryStore;
+import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
@@ -10,8 +10,9 @@ import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.util.List;
@@ -22,8 +23,8 @@ public final class StudioContext {
     private final StudioUiState uiState = new StudioUiState();
     private final StudioTabsState tabsState = new StudioTabsState();
     private final StudioPackState packState = new StudioPackState();
-    private final LayeredRegistryStore registryStore = new LayeredRegistryStore();
-    private final EditorActionGateway gateway = new EditorActionGateway(packState, registryStore);
+    private final RegistryElementStore elementStore = new RegistryElementStore();
+    private final EditorActionGateway gateway = new EditorActionGateway(packState, elementStore);
     private String worldSessionKey = "";
 
     public StudioRouter router() {
@@ -42,12 +43,30 @@ public final class StudioContext {
         return packState;
     }
 
-    public LayeredRegistryStore registryStore() {
-        return registryStore;
+    public RegistryElementStore elementStore() {
+        return elementStore;
     }
 
     public EditorActionGateway gateway() {
         return gateway;
+    }
+
+    public <T> List<Holder.Reference<T>> registryElements(ResourceKey<Registry<T>> registryKey) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return List.of();
+        return conn.registryAccess()
+                .lookup(registryKey)
+                .map(reg -> reg.listElements().toList())
+                .orElse(List.of());
+    }
+
+    public <T> Holder.Reference<T> findElement(ResourceKey<Registry<T>> registryKey) {
+        String id = tabsState.currentElementId();
+        if (id == null || id.isBlank()) return null;
+        for (var h : registryElements(registryKey)) {
+            if (h.key().identifier().toString().equals(id)) return h;
+        }
+        return null;
     }
 
     public boolean resyncWorldSession(boolean force) {
@@ -60,7 +79,8 @@ public final class StudioContext {
         }
 
         worldSessionKey = nextKey;
-        registryStore.clearAll();
+        elementStore.clearAll();
+        snapshotRegistries();
         tabsState.reset();
         packState.refreshFromServer();
         router.navigate(StudioRoute.overviewOf(router.currentRoute().concept()));
@@ -69,20 +89,20 @@ public final class StudioContext {
 
     public void resetForWorldClose() {
         worldSessionKey = "";
-        registryStore.clearAll();
+        elementStore.clearAll();
         tabsState.reset();
         packState.clearSelection();
         packState.availablePacks().clear();
         router.navigate(StudioRoute.overviewOf(router.currentRoute().concept()));
     }
 
-    public List<Holder.Reference<Enchantment>> enchantments() {
+    private void snapshotRegistries() {
         var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return List.of();
-        return conn.registryAccess()
-                .lookup(Registries.ENCHANTMENT)
-                .map(reg -> reg.listElements().toList())
-                .orElse(List.of());
+        if (conn == null) return;
+        var access = conn.registryAccess();
+
+        access.lookup(Registries.ENCHANTMENT).ifPresent(reg ->
+                elementStore.snapshot("enchantment", reg));
     }
 
     private static String computeWorldSessionKey() {

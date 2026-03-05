@@ -7,8 +7,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -49,7 +49,7 @@ public final class EnchantmentSlotsPage extends VBox {
     }
 
     private void refresh() {
-        Holder.Reference<Enchantment> holder = selectedEnchantment();
+        Holder.Reference<Enchantment> holder = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);
         if (holder == null) {
             content.getChildren().clear();
             return;
@@ -99,13 +99,4 @@ public final class EnchantmentSlotsPage extends VBox {
         return box;
     }
 
-    private Holder.Reference<Enchantment> selectedEnchantment() {
-        String id = context.tabsState().currentElementId();
-        var enchantments = context.enchantments();
-        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
-        for (var h : enchantments) {
-            if (h.key().identifier().toString().equals(id)) return h;
-        }
-        return null;
-    }
 }

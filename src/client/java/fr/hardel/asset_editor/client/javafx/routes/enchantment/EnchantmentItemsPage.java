@@ -72,7 +72,7 @@ public final class EnchantmentItemsPage extends VBox {
     }
 
     private void refreshForSelectedElement() {
-        Holder.Reference<Enchantment> holder = selectedEnchantment();
+        Holder.Reference<Enchantment> holder = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);
         if (holder == null) {
             currentElement = "";
             supportedGrid = null;
@@ -112,13 +112,4 @@ public final class EnchantmentItemsPage extends VBox {
         return grid;
     }
 
-    private Holder.Reference<Enchantment> selectedEnchantment() {
-        String id = context.tabsState().currentElementId();
-        var enchantments = context.enchantments();
-        if (enchantments.isEmpty() || id == null || id.isBlank()) return null;
-        for (var h : enchantments) {
-            if (h.key().identifier().toString().equals(id)) return h;
-        }
-        return null;
-    }
 }
