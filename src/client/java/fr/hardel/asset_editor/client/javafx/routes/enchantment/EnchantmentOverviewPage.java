@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Enchantm
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
@@ -93,7 +94,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             list.setPadding(new Insets(24, 32, 24, 32));
             for (int i = 0; i < entries.size(); i++) {
                 var entry = entries.get(i);
-                var row = new EnchantmentOverviewRow(entry, () -> open(entry.id()));
+                var row = new EnchantmentOverviewRow(context, entry, () -> open(entry.id()));
                 if (i == 0) row.getStyleClass().add("enchantment-row-first");
                 list.getChildren().add(row);
             }
@@ -104,19 +105,20 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         grid.getStyleClass().add("enchantment-overview-grid");
         grid.setPadding(new Insets(24, 32, 24, 32));
         for (var entry : entries) {
-            grid.addItem(new EnchantmentOverviewCard(entry, () -> open(entry.id())));
+            grid.addItem(new EnchantmentOverviewCard(context, entry, () -> open(entry.id())));
         }
         content.getChildren().setAll(grid);
     }
 
     private static boolean matchesFilter(ElementEntry<Enchantment> entry, String filterPath, StudioSidebarView sidebarView) {
         if (filterPath.isEmpty()) return true;
+        ElementEntry<Enchantment> effectiveEntry = EnchantmentMutations.prepareForFlush(entry);
         String[] parts = filterPath.split("/", 2);
         String category = parts[0];
         String leaf = parts.length == 2 ? parts[1] : "";
-        if (!leaf.isEmpty() && !entry.id().getPath().equals(leaf)) return false;
+        if (!leaf.isEmpty() && !effectiveEntry.id().getPath().equals(leaf)) return false;
 
-        Enchantment enchantment = entry.data();
+        Enchantment enchantment = effectiveEntry.data();
         if (sidebarView == StudioSidebarView.SLOTS) {
             SlotConfig config = SlotConfigs.BY_ID.get(category);
             if (config == null) return false;
@@ -134,7 +136,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
                     .map(tag -> tag.location().getPath().equals(itemTag))
                     .orElse(false);
             if (primary) return true;
-            return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
+            return effectiveEntry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
         }
         var tagKey = enchantment.exclusiveSet().unwrapKey();
         if (tagKey.isPresent()) {

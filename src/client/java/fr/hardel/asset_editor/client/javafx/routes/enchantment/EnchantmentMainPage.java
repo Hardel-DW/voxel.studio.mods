@@ -125,8 +125,31 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
 
-        // TODO: mode selector needs a dedicated action once the mode field is supported in the data model
-        return new Selector("enchantment:global.mode.title", "enchantment:global.mode.description", modeOptions, "normal", v -> {});
+        var modeSelector = select(EnchantmentMutations::mode);
+        Selector[] holder = new Selector[1];
+        holder[0] = new Selector(
+                "enchantment:global.mode.title",
+                "enchantment:global.mode.description",
+                modeOptions,
+                modeSelector.get() == null ? EnchantmentMutations.MODE_NORMAL : modeSelector.get(),
+                value -> {
+                    if (value == null || value.equals(modeSelector.get())) {
+                        return;
+                    }
+
+                    var result = applyCustomAction(EnchantmentMutations.mode(value));
+                    if (!result.isApplied()) {
+                        holder[0].setValue(modeSelector.get());
+                    }
+                });
+
+        modeSelector.subscribe(value -> {
+            if (value != null && !value.equals(holder[0].getValue())) {
+                holder[0].setValue(value);
+            }
+        });
+
+        return holder[0];
     }
 
     private StackPane buildSupportCard() {

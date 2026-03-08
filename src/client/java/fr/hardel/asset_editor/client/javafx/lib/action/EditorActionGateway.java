@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.client.javafx.lib.action;
 
 import com.mojang.serialization.Codec;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.FlushAdapter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -12,20 +14,21 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public final class EditorActionGateway {
 
-    private record RegistryBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec) {}
+    private record RegistryBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter) {}
 
     private static final Map<ResourceKey<?>, RegistryBinding<?>> BINDINGS = new HashMap<>();
 
     static {
-        register(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC);
+        register(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentMutations::prepareForFlush);
     }
 
-    private static <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec) {
-        BINDINGS.put(key, new RegistryBinding<>(key, codec));
+    private static <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec, FlushAdapter<T> adapter) {
+        BINDINGS.put(key, new RegistryBinding<>(key, codec, adapter));
     }
 
     private final StudioPackState packState;
@@ -45,8 +48,23 @@ public final class EditorActionGateway {
         if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
 
         T updated = transform.apply(entry.data());
-        if (updated == entry.data()) return EditorActionResult.applied();
+        if (Objects.equals(updated, entry.data())) return EditorActionResult.applied();
         store.put(registry, target, entry.withData(updated));
+
+        return EditorActionResult.applied();
+    }
+
+    public <T> EditorActionResult applyCustom(ResourceKey<Registry<T>> registry, Identifier target,
+                                              UnaryOperator<CustomFields> transform) {
+        var check = validatePack(target);
+        if (check != null) return check;
+
+        ElementEntry<T> entry = store.get(registry, target);
+        if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
+
+        CustomFields updated = transform.apply(entry.custom());
+        if (Objects.equals(updated, entry.custom())) return EditorActionResult.applied();
+        store.put(registry, target, entry.withCustom(updated));
 
         return EditorActionResult.applied();
     }
@@ -82,6 +100,6 @@ public final class EditorActionGateway {
     private <T> void flushRegistry(java.nio.file.Path packRoot, RegistryBinding<?> binding,
                                     net.minecraft.core.HolderLookup.Provider registries) {
         var typed = (RegistryBinding<T>) binding;
-        store.flush(packRoot, typed.registryKey(), typed.codec(), registries);
+        store.flush(packRoot, typed.registryKey(), typed.codec(), registries, typed.adapter());
     }
 }

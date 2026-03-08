@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import javafx.geometry.Insets;
@@ -61,6 +62,12 @@ public abstract class RegistryPage<T> extends VBox implements Page {
 
     protected EditorActionResult applyAction(UnaryOperator<T> transform) {
         var result = context.gateway().apply(registry, currentId, transform);
+        if (!result.isApplied()) handleActionFailure(result);
+        return result;
+    }
+
+    protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform) {
+        var result = context.gateway().applyCustom(registry, currentId, transform);
         if (!result.isApplied()) handleActionFailure(result);
         return result;
     }

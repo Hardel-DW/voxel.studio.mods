@@ -21,23 +21,32 @@ public final class SwitchCard extends SimpleCard {
     private final ToggleSwitch toggle = new ToggleSwitch();
 
     public SwitchCard(String titleKey, String descKey) {
-        this(titleKey, descKey, false, null);
+        this(titleKey, descKey, false, null, true);
     }
 
     public SwitchCard(String titleKey, String descKey, boolean locked, String lockKey) {
+        this(titleKey, descKey, locked, lockKey, true);
+    }
+
+    public SwitchCard(String title, String description, boolean locked, String lockKey, boolean translate) {
         super(new Insets(24));
 
-        Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
-        title.setTextFill(VoxelColors.ZINC_100);
+        Label titleLabel = new Label(translate ? I18n.get(title) : title);
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
+        titleLabel.setTextFill(VoxelColors.ZINC_100);
 
-        String descText = locked && lockKey != null ? I18n.get(lockKey) : I18n.get(descKey);
-        Label desc = new Label(descText);
-        desc.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
-        desc.setTextFill(VoxelColors.ZINC_400);
-        desc.setWrapText(true);
+        String descriptionText;
+        if (locked && lockKey != null) {
+            descriptionText = I18n.get(lockKey);
+        } else {
+            descriptionText = translate ? I18n.get(description) : description;
+        }
+        Label descriptionLabel = new Label(descriptionText);
+        descriptionLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
+        descriptionLabel.setTextFill(VoxelColors.ZINC_400);
+        descriptionLabel.setWrapText(true);
 
-        VBox textBlock = new VBox(4, title, desc);
+        VBox textBlock = new VBox(4, titleLabel, descriptionLabel);
         HBox.setHgrow(textBlock, Priority.ALWAYS);
 
         toggle.setDisable(locked);
@@ -52,4 +61,8 @@ public final class SwitchCard extends SimpleCard {
     public BooleanProperty valueProperty() { return toggle.valueProperty(); }
     public boolean isOn() { return toggle.isOn(); }
     public void setValue(boolean v) { toggle.setValue(v); }
+
+    public static SwitchCard literal(String title, String description) {
+        return new SwitchCard(title, description, false, null, false);
+    }
 }

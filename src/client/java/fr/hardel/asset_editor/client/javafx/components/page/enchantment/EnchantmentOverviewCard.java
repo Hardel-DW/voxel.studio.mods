@@ -4,6 +4,8 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleSwitch;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
@@ -20,6 +22,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
@@ -33,9 +36,10 @@ public final class EnchantmentOverviewCard extends SimpleCard {
             new OverviewCase("enchantment:overview.enchanting_table", feature("block/enchanting_table")),
             new OverviewCase("enchantment:overview.chest", feature("block/chest")),
             new OverviewCase("enchantment:overview.tradeable", feature("item/enchanted_book")),
-            new OverviewCase("enchantment:overview.tradeable_equipment", feature("item/enchanted_item")));
+            new OverviewCase("enchantment:overview.tradeable_equipment", feature("item/enchanted_item")),
+            new OverviewCase("enchantment:overview.price_doubled", feature("title/doubled")));
 
-    public EnchantmentOverviewCard(ElementEntry<Enchantment> entry, Runnable onOpen) {
+    public EnchantmentOverviewCard(StudioContext context, ElementEntry<Enchantment> entry, Runnable onOpen) {
         super(new Insets(16));
         getStyleClass().add("enchantment-card");
         setMaxWidth(Double.MAX_VALUE);
@@ -46,9 +50,9 @@ public final class EnchantmentOverviewCard extends SimpleCard {
 
         String displayName = entry.data().description().getString();
         int maxLevel = entry.data().getMaxLevel();
-        boolean vanilla = "minecraft".equals(entry.id().getNamespace());
+        boolean enabled = !EnchantmentMutations.isSoftDeleted(entry);
 
-        HBox top = buildTopRow(displayName, maxLevel, null, vanilla);
+        HBox top = buildTopRow(context, entry, displayName, maxLevel, EnchantmentMutations.previewTexture(entry.data()), enabled);
         FlowPane cases = buildCases(entry);
 
         Region spacer = new Region();
@@ -68,7 +72,8 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         contentBox.getChildren().setAll(top, cases, spacer, divider, configureWrap);
     }
 
-    private HBox buildTopRow(String displayName, int maxLevel, Identifier previewTexture, boolean vanilla) {
+    private HBox buildTopRow(StudioContext context, ElementEntry<Enchantment> entry,
+                             String displayName, int maxLevel, Identifier previewTexture, boolean enabled) {
         StackPane iconWrap = new StackPane();
         iconWrap.getStyleClass().add("enchantment-card-icon");
         iconWrap.setMinSize(40, 40);
@@ -104,24 +109,28 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         top.setAlignment(Pos.CENTER_LEFT);
         top.setPadding(new Insets(0, 0, 12, 0));
 
-        if (!vanilla) {
-            ToggleSwitch stateSwitch = new ToggleSwitch();
-            stateSwitch.setValue(true);
-            stateSwitch.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
-            top.getChildren().add(stateSwitch);
-        }
+        ToggleSwitch stateSwitch = new ToggleSwitch();
+        stateSwitch.setValue(enabled);
+        stateSwitch.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
+        stateSwitch.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (oldValue == null || newValue == null || oldValue.equals(newValue)) return;
+
+            var current = context.elementStore().get(Registries.ENCHANTMENT, entry.id());
+            boolean currentEnabled = current == null || !EnchantmentMutations.isSoftDeleted(current);
+            if (Boolean.valueOf(newValue).equals(currentEnabled)) return;
+
+            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(), EnchantmentMutations.toggleDisabled());
+            if (!result.isApplied()) {
+                stateSwitch.setValue(currentEnabled);
+            }
+        });
+        top.getChildren().add(stateSwitch);
 
         return top;
     }
 
-    private static final Identifier IN_ENCHANTING_TABLE = Identifier.fromNamespaceAndPath("minecraft", "in_enchanting_table");
-    private static final Identifier ON_RANDOM_LOOT = Identifier.fromNamespaceAndPath("minecraft", "on_random_loot");
-    private static final Identifier TRADEABLE = Identifier.fromNamespaceAndPath("minecraft", "tradeable");
-    private static final Identifier ON_TRADED_EQUIPMENT = Identifier.fromNamespaceAndPath("minecraft", "on_traded_equipment");
-
-    private static final List<Identifier> CASE_TAGS = List.of(IN_ENCHANTING_TABLE, ON_RANDOM_LOOT, TRADEABLE, ON_TRADED_EQUIPMENT);
-
     private FlowPane buildCases(ElementEntry<Enchantment> entry) {
+        ElementEntry<Enchantment> effectiveEntry = EnchantmentMutations.prepareForFlush(entry);
         FlowPane cases = new FlowPane();
         cases.setHgap(8);
         cases.setVgap(8);
@@ -129,7 +138,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
 
         for (int i = 0; i < DEFAULT_CASES.size(); i++) {
             OverviewCase cardCase = DEFAULT_CASES.get(i);
-            boolean hasTag = entry.tags().contains(CASE_TAGS.get(i));
+            boolean hasTag = effectiveEntry.tags().contains(EnchantmentMutations.OVERVIEW_TAGS.get(i));
 
             StackPane caseNode = new StackPane();
             caseNode.getStyleClass().add("enchantment-card-case");

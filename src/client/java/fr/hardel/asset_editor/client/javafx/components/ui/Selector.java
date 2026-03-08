@@ -19,6 +19,8 @@ import java.util.function.Consumer;
  */
 public final class Selector extends SimpleCard {
 
+    private final AnimatedTabs tabs;
+
     public Selector(String titleKey, String descKey, LinkedHashMap<String, String> options,
                     String defaultValue, Consumer<String> onChange) {
         super(new Insets(24, 48, 24, 48));
@@ -37,7 +39,7 @@ public final class Selector extends SimpleCard {
         textBlock.setMinWidth(0);
         HBox.setHgrow(textBlock, Priority.ALWAYS);
 
-        AnimatedTabs tabs = new AnimatedTabs(options, defaultValue, onChange);
+        tabs = new AnimatedTabs(options, defaultValue, onChange);
         tabs.setMinWidth(Region.USE_PREF_SIZE);
         tabs.setMaxWidth(Region.USE_PREF_SIZE);
 
@@ -46,5 +48,13 @@ public final class Selector extends SimpleCard {
         row.setMaxWidth(Double.MAX_VALUE);
 
         contentBox.getChildren().add(row);
+    }
+
+    public void setValue(String value) {
+        tabs.setValue(value);
+    }
+
+    public String getValue() {
+        return tabs.getValue();
     }
 }
