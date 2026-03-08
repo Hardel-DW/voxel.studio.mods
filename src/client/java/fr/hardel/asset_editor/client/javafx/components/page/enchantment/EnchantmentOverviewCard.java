@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleSwitch;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,7 +19,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -35,7 +35,7 @@ public final class EnchantmentOverviewCard extends SimpleCard {
             new OverviewCase("enchantment:overview.tradeable", feature("item/enchanted_book")),
             new OverviewCase("enchantment:overview.tradeable_equipment", feature("item/enchanted_item")));
 
-    public EnchantmentOverviewCard(Holder.Reference<Enchantment> holder, Runnable onOpen) {
+    public EnchantmentOverviewCard(ElementEntry<Enchantment> entry, Runnable onOpen) {
         super(new Insets(16));
         getStyleClass().add("enchantment-card");
         setMaxWidth(Double.MAX_VALUE);
@@ -44,12 +44,12 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         visualCard.getStyleClass().add("enchantment-card-surface");
         installOverviewHover();
 
-        String displayName = holder.value().description().getString();
-        int maxLevel = holder.value().getMaxLevel();
-        boolean vanilla = "minecraft".equals(holder.key().identifier().getNamespace());
+        String displayName = entry.data().description().getString();
+        int maxLevel = entry.data().getMaxLevel();
+        boolean vanilla = "minecraft".equals(entry.id().getNamespace());
 
         HBox top = buildTopRow(displayName, maxLevel, null, vanilla);
-        FlowPane cases = buildCases();
+        FlowPane cases = buildCases(entry);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -114,15 +114,26 @@ public final class EnchantmentOverviewCard extends SimpleCard {
         return top;
     }
 
-    private FlowPane buildCases() {
+    private static final Identifier IN_ENCHANTING_TABLE = Identifier.fromNamespaceAndPath("minecraft", "in_enchanting_table");
+    private static final Identifier ON_RANDOM_LOOT = Identifier.fromNamespaceAndPath("minecraft", "on_random_loot");
+    private static final Identifier TRADEABLE = Identifier.fromNamespaceAndPath("minecraft", "tradeable");
+    private static final Identifier ON_TRADED_EQUIPMENT = Identifier.fromNamespaceAndPath("minecraft", "on_traded_equipment");
+
+    private static final List<Identifier> CASE_TAGS = List.of(IN_ENCHANTING_TABLE, ON_RANDOM_LOOT, TRADEABLE, ON_TRADED_EQUIPMENT);
+
+    private FlowPane buildCases(ElementEntry<Enchantment> entry) {
         FlowPane cases = new FlowPane();
         cases.setHgap(8);
         cases.setVgap(8);
         cases.setPadding(new Insets(0, 0, 16, 0));
 
-        for (OverviewCase cardCase : DEFAULT_CASES) {
+        for (int i = 0; i < DEFAULT_CASES.size(); i++) {
+            OverviewCase cardCase = DEFAULT_CASES.get(i);
+            boolean hasTag = entry.tags().contains(CASE_TAGS.get(i));
+
             StackPane caseNode = new StackPane();
             caseNode.getStyleClass().add("enchantment-card-case");
+            if (!hasTag) caseNode.setOpacity(0.3);
             caseNode.setMinSize(16, 16);
             caseNode.setPrefSize(16, 16);
             caseNode.setMaxSize(16, 16);

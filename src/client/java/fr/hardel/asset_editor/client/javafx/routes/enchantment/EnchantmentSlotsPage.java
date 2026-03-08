@@ -48,9 +48,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
                 EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
                 Card card = new Card(cfg.image(), cfg.nameKey(), false);
 
-                card.setOnMouseClicked(e ->
-                        context().gateway().apply(Registries.ENCHANTMENT, currentId(),
-                                ench -> EnchantmentMutations.toggleSlot(ench, slotGroup)));
+                card.setOnMouseClicked(e -> applyAction(EnchantmentMutations.toggleSlot(slotGroup)));
 
                 var selector = select(entry ->
                         new SlotManager(entry.data().definition().slots()).isActive(slotGroup));

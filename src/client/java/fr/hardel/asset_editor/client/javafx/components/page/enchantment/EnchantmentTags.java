@@ -18,16 +18,12 @@ import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
-/**
- * Tag display card: title + description + up-to-3 tag values + "see more" + actions button.
- * Ring when current enchantment is in the tag list (targetValue).
- * Locked: opacity-50.
- */
 public final class EnchantmentTags extends SimpleCard {
 
     private static final int MAX_DISPLAY = 3;
 
-    public EnchantmentTags(String titleKey, String descKey, Identifier imageId, List<String> values, boolean isTarget, boolean locked) {
+    public EnchantmentTags(String titleKey, String descKey, Identifier imageId, List<String> values,
+                           boolean isTarget, boolean locked, Runnable onAction) {
         super(new Insets(16, 24, 16, 24));
 
         if (locked) setOpacity(0.5);
@@ -49,11 +45,20 @@ public final class EnchantmentTags extends SimpleCard {
             body.getChildren().addAll(hr, tagList);
         }
 
-        HBox bottom = buildBottom(values);
+        HBox bottom = buildBottom(values, locked, onAction);
 
         VBox layout = new VBox(16, body, bottom);
         layout.setMaxWidth(Double.MAX_VALUE);
         contentBox.getChildren().add(layout);
+    }
+
+    public void updateTarget(boolean isTarget) {
+        if (isTarget) {
+            if (!visualCard.getStyleClass().contains("enchantment-tags-targeted"))
+                visualCard.getStyleClass().add("enchantment-tags-targeted");
+        } else {
+            visualCard.getStyleClass().remove("enchantment-tags-targeted");
+        }
     }
 
     private VBox buildHeader(String titleKey, String descKey, Identifier imageId) {
@@ -100,7 +105,7 @@ public final class EnchantmentTags extends SimpleCard {
         return chip;
     }
 
-    private HBox buildBottom(List<String> values) {
+    private HBox buildBottom(List<String> values, boolean locked, Runnable onAction) {
         HBox bottom = new HBox();
         bottom.setAlignment(Pos.CENTER_LEFT);
 
@@ -119,24 +124,23 @@ public final class EnchantmentTags extends SimpleCard {
         bottom.getChildren().add(spacer);
 
         Button actionsBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("generic.actions"));
-        actionsBtn.setMouseTransparent(true);
+        if (locked) {
+            actionsBtn.setMouseTransparent(true);
+        } else {
+            actionsBtn.setOnAction(onAction);
+        }
         bottom.getChildren().add(actionsBtn);
 
         return bottom;
     }
 
     private String resolveTagLabel(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
+        if (value == null || value.isBlank()) return "";
         String clean = value.startsWith("#") ? value.substring(1) : value;
         Identifier identifier = Identifier.tryParse(clean);
-        if (identifier == null) {
-            return value;
-        }
+        if (identifier == null) return value;
         if (BuiltInRegistries.ITEM.containsKey(identifier)) {
-            var item = BuiltInRegistries.ITEM.getValue(identifier);
-            return item.getName().getString();
+            return BuiltInRegistries.ITEM.getValue(identifier).getName().getString();
         }
         return value;
     }

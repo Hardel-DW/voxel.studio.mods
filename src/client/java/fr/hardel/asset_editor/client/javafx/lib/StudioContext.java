@@ -7,14 +7,17 @@ import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.LevelResource;
 
+import java.util.Collection;
 import java.util.List;
 
 public final class StudioContext {
@@ -49,6 +52,18 @@ public final class StudioContext {
 
     public EditorActionGateway gateway() {
         return gateway;
+    }
+
+    public <T> Collection<ElementEntry<?>> allEntries(ResourceKey<Registry<T>> registryKey) {
+        return elementStore.allElements(registryKey);
+    }
+
+    public <T> ElementEntry<T> currentEntry(ResourceKey<Registry<T>> registryKey) {
+        String id = tabsState.currentElementId();
+        if (id == null || id.isBlank()) return null;
+        Identifier identifier = Identifier.tryParse(id);
+        if (identifier == null) return null;
+        return elementStore.get(registryKey, identifier);
     }
 
     public <T> List<Holder.Reference<T>> registryElements(ResourceKey<Registry<T>> registryKey) {

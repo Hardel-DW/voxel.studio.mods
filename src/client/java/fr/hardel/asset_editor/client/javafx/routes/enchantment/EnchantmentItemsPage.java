@@ -5,16 +5,22 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
 
@@ -48,14 +54,40 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         supportedCards.clear();
         primaryCards.clear();
 
-        supportedGrid = buildGridStructure(supportedCards, false);
-        primaryGrid = buildGridStructure(primaryCards, true);
+        supportedGrid = buildGrid(supportedCards, false);
+        primaryGrid = buildGrid(primaryCards, true);
 
-        var selector = select(entry -> entry.data().definition().supportedItems().unwrapKey()
+        var supportedSelector = select(entry -> entry.data().definition().supportedItems().unwrapKey()
                 .map(k -> k.location().getPath()).orElse(""));
-        selector.subscribe(tag -> updateCardsFromTag(tag));
+        supportedSelector.subscribe(tag -> updateCards(supportedCards, tag));
+        if (supportedSelector.get() != null) updateCards(supportedCards, supportedSelector.get());
 
-        if (selector.get() != null) updateCardsFromTag(selector.get());
+        var primarySelector = select(entry -> entry.data().definition().primaryItems()
+                .flatMap(hs -> hs.unwrapKey())
+                .map(k -> k.location().getPath()).orElse(""));
+        primarySelector.subscribe(tag -> {
+            updateCards(primaryCards, tag);
+            if (primaryNoneCard != null) primaryNoneCard.setActive(tag.isEmpty());
+        });
+        if (primarySelector.get() != null) {
+            updateCards(primaryCards, primarySelector.get());
+            if (primaryNoneCard != null) primaryNoneCard.setActive(primarySelector.get().isEmpty());
+        }
+
+        wireCardActions(supportedCards, key -> {
+            var holderSet = resolveItemTag("enchantable/" + key);
+            return holderSet != null ? EnchantmentMutations.supportedItems(holderSet) : null;
+        });
+
+        wireCardActions(primaryCards, key -> {
+            var holderSet = resolveItemTag("enchantable/" + key);
+            return holderSet != null ? EnchantmentMutations.primaryItems(Optional.of(holderSet)) : null;
+        });
+
+        if (primaryNoneCard != null) {
+            primaryNoneCard.setOnMouseClicked(e ->
+                    applyAction(EnchantmentMutations.primaryItems(Optional.empty())));
+        }
     }
 
     @Override
@@ -68,7 +100,7 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         sectionSelector.setContent();
     }
 
-    private ResponsiveGrid buildGridStructure(Map<String, Card> cardMap, boolean includePrimaryNone) {
+    private ResponsiveGrid buildGrid(Map<String, Card> cardMap, boolean includePrimaryNone) {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
@@ -88,15 +120,20 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         return grid;
     }
 
-    private void updateCardsFromTag(String supportedTag) {
-        for (var e : supportedCards.entrySet()) {
-            e.getValue().setActive(supportedTag.equals("enchantable/" + e.getKey()));
+    private void wireCardActions(Map<String, Card> cardMap,
+                                  java.util.function.Function<String, java.util.function.UnaryOperator<Enchantment>> mutationFactory) {
+        for (var entry : cardMap.entrySet()) {
+            String key = entry.getKey();
+            entry.getValue().setOnMouseClicked(e -> {
+                var mutation = mutationFactory.apply(key);
+                if (mutation != null) applyAction(mutation);
+            });
         }
-        for (var e : primaryCards.entrySet()) {
-            e.getValue().setActive(supportedTag.equals("enchantable/" + e.getKey()));
-        }
-        if (primaryNoneCard != null) {
-            primaryNoneCard.setActive(supportedTag.isEmpty());
+    }
+
+    private void updateCards(Map<String, Card> cardMap, String tag) {
+        for (var e : cardMap.entrySet()) {
+            e.getValue().setActive(tag.equals("enchantable/" + e.getKey()));
         }
     }
 
@@ -106,5 +143,14 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         var grid = currentSection.equals("primaryItems") ? primaryGrid : supportedGrid;
         if (grid != null) sectionSelector.setContent(grid);
         else sectionSelector.setContent();
+    }
+
+    private static HolderSet<Item> resolveItemTag(String path) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return null;
+        var lookup = conn.registryAccess().lookup(Registries.ITEM);
+        if (lookup.isEmpty()) return null;
+        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", path));
+        return lookup.get().get(tagKey).orElse(null);
     }
 }

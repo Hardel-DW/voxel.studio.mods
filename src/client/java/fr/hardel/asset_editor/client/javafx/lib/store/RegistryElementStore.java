@@ -39,6 +39,7 @@ public final class RegistryElementStore {
     private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
     private final Map<SelectorKey, List<StoreSelector<?>>> selectors = new HashMap<>();
+    private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
 
     public <T> void snapshot(ResourceKey<Registry<T>> registryKey, HolderLookup.RegistryLookup<T> lookup) {
         String name = registryName(registryKey);
@@ -75,6 +76,19 @@ public final class RegistryElementStore {
         String name = registryName(registry);
         current.computeIfAbsent(name, k -> new LinkedHashMap<>()).put(id, entry);
         notifySelectors(name, id, entry);
+        notifyRegistryListeners(name);
+    }
+
+    public <T> void subscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
+        registryListeners.computeIfAbsent(registryName(registry), k -> new ArrayList<>()).add(listener);
+    }
+
+    public <T> void unsubscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
+        var list = registryListeners.get(registryName(registry));
+        if (list != null) {
+            list.remove(listener);
+            if (list.isEmpty()) registryListeners.remove(registryName(registry));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -129,15 +143,18 @@ public final class RegistryElementStore {
         current.clear();
         selectors.values().forEach(list -> list.forEach(StoreSelector::dispose));
         selectors.clear();
+        registryListeners.clear();
     }
 
     private void notifySelectors(String registry, Identifier id, ElementEntry<?> entry) {
         var list = selectors.get(new SelectorKey(registry, id));
-        if (list == null)
-            return;
-        for (var selector : list) {
-            selector.recompute(entry);
-        }
+        if (list == null) return;
+        for (var selector : list) selector.recompute(entry);
+    }
+
+    private void notifyRegistryListeners(String registry) {
+        var list = registryListeners.get(registry);
+        if (list != null) list.forEach(Runnable::run);
     }
 
     @SuppressWarnings("unchecked")

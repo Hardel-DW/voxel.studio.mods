@@ -19,12 +19,10 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.Enchantment.EnchantmentDefinition;
-import net.minecraft.world.item.enchantment.Enchantment.Cost;
 
 import java.util.List;
 import java.util.function.Function;
-
+import java.util.function.UnaryOperator;
 
 public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
@@ -38,34 +36,21 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     private record CostDef(String key,
                             Function<ElementEntry<Enchantment>, Integer> selector,
-                            CostMutator mutator) {}
-
-    @FunctionalInterface
-    private interface CostMutator {
-        Enchantment apply(Enchantment e, int value);
-    }
+                            java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {}
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",
                     entry -> entry.data().definition().minCost().base(),
-                    (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                            d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                            new Cost(v, d.minCost().perLevelAboveFirst()), d.maxCost(), d.anvilCost(), d.slots()))),
+                    EnchantmentMutations::minCostBase),
             new CostDef("minCostPerLevelAboveFirst",
                     entry -> entry.data().definition().minCost().perLevelAboveFirst(),
-                    (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                            d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                            new Cost(d.minCost().base(), v), d.maxCost(), d.anvilCost(), d.slots()))),
+                    EnchantmentMutations::minCostPerLevel),
             new CostDef("maxCostBase",
                     entry -> entry.data().definition().maxCost().base(),
-                    (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                            d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                            d.minCost(), new Cost(v, d.maxCost().perLevelAboveFirst()), d.anvilCost(), d.slots()))),
+                    EnchantmentMutations::maxCostBase),
             new CostDef("maxCostPerLevelAboveFirst",
                     entry -> entry.data().definition().maxCost().perLevelAboveFirst(),
-                    (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                            d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                            d.minCost(), new Cost(d.maxCost().base(), v), d.anvilCost(), d.slots()))));
+                    EnchantmentMutations::maxCostPerLevel));
 
     public EnchantmentTechnicalPage(StudioContext context) {
         super(context, Registries.ENCHANTMENT, "enchantment-subpage-scroll", 64, new Insets(32));
@@ -90,7 +75,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
             sw.valueProperty().addListener((obs, o, v) -> {
                 if (o == null || v == null || o.equals(v)) return;
                 if (v.equals(selector.get())) return;
-                context().gateway().toggleTag(Registries.ENCHANTMENT, currentId(), tagId);
+                applyTagToggle(tagId);
             });
 
             tagGrid.addItem(sw);
@@ -111,8 +96,8 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
             range.valueProperty().addListener((obs, o, v) -> {
                 if (o == null || v == null || o.intValue() == v.intValue()) return;
                 if (Integer.valueOf(v.intValue()).equals(selector.get())) return;
-                context().gateway().apply(Registries.ENCHANTMENT, currentId(),
-                        e -> field.mutator().apply(e, v.intValue()));
+                var result = applyAction(field.mutation().apply(v.intValue()));
+                if (!result.isApplied()) range.setValue(selector.get());
             });
 
             costGrid.addItem(range);

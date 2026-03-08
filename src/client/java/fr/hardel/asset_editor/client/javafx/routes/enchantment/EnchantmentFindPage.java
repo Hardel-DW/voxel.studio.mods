@@ -40,8 +40,7 @@ public final class EnchantmentFindPage extends RegistryPage<Enchantment> {
 
         for (FindTag ft : FIND_TAGS) {
             Card card = new Card(ft.image(), ft.titleKey(), ft.descKey(), false, false, null);
-            card.setOnMouseClicked(e ->
-                    context().gateway().toggleTag(Registries.ENCHANTMENT, currentId(), ft.tagId()));
+            card.setOnMouseClicked(e -> applyTagToggle(ft.tagId()));
 
             var selector = select(entry -> entry.tags().contains(ft.tagId()));
             selector.subscribe(card::setActive);

@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
@@ -21,7 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
-import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
     private final StudioContext context;
     private final StackPane content = new StackPane();
+    private final Runnable storeListener = this::refresh;
 
     public EnchantmentOverviewPage(StudioContext context) {
         this.context = context;
@@ -57,7 +59,17 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
         context.uiState().viewModeProperty().addListener((obs, oldValue, newValue) -> refresh());
         context.uiState().sidebarViewProperty().addListener((obs, oldValue, newValue) -> refresh());
+    }
+
+    @Override
+    public void onActivate() {
+        context.elementStore().subscribeRegistry(Registries.ENCHANTMENT, storeListener);
         refresh();
+    }
+
+    @Override
+    public void onDeactivate() {
+        context.elementStore().unsubscribeRegistry(Registries.ENCHANTMENT, storeListener);
     }
 
     private void refresh() {
@@ -65,12 +77,12 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
         StudioSidebarView sidebarView = context.uiState().sidebarView();
 
-        List<Holder.Reference<Enchantment>> enchantments = context.registryElements(net.minecraft.core.registries.Registries.ENCHANTMENT).stream()
-                .filter(h -> search.isEmpty() || h.key().identifier().getPath().contains(search))
-                .filter(h -> matchesFilter(h, filterPath, sidebarView))
+        List<ElementEntry<?>> entries = context.allEntries(Registries.ENCHANTMENT).stream()
+                .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
+                .filter(e -> matchesFilter(e, filterPath, sidebarView))
                 .toList();
 
-        if (enchantments.isEmpty()) {
+        if (entries.isEmpty()) {
             content.getChildren().setAll(emptyState());
             return;
         }
@@ -78,9 +90,11 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             VBox list = new VBox(0);
             list.getStyleClass().add("enchantment-overview-list");
             list.setPadding(new Insets(24, 32, 24, 32));
-            for (int i = 0; i < enchantments.size(); i++) {
-                var holder = enchantments.get(i);
-                var row = new EnchantmentOverviewRow(holder, () -> open(holder));
+            for (int i = 0; i < entries.size(); i++) {
+                var entry = entries.get(i);
+                @SuppressWarnings("unchecked")
+                var enchEntry = (ElementEntry<Enchantment>) entry;
+                var row = new EnchantmentOverviewRow(enchEntry, () -> open(entry.id()));
                 if (i == 0) row.getStyleClass().add("enchantment-row-first");
                 list.getChildren().add(row);
             }
@@ -90,20 +104,23 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(280));
         grid.getStyleClass().add("enchantment-overview-grid");
         grid.setPadding(new Insets(24, 32, 24, 32));
-        for (var holder : enchantments) {
-            grid.addItem(new EnchantmentOverviewCard(holder, () -> open(holder)));
+        for (var entry : entries) {
+            @SuppressWarnings("unchecked")
+            var enchEntry = (ElementEntry<Enchantment>) entry;
+            grid.addItem(new EnchantmentOverviewCard(enchEntry, () -> open(entry.id())));
         }
         content.getChildren().setAll(grid);
     }
 
-    private static boolean matchesFilter(Holder.Reference<Enchantment> holder, String filterPath, StudioSidebarView sidebarView) {
+    @SuppressWarnings("unchecked")
+    private static boolean matchesFilter(ElementEntry<?> entry, String filterPath, StudioSidebarView sidebarView) {
         if (filterPath.isEmpty()) return true;
         String[] parts = filterPath.split("/", 2);
         String category = parts[0];
         String leaf = parts.length == 2 ? parts[1] : "";
-        if (!leaf.isEmpty() && !holder.key().identifier().getPath().equals(leaf)) return false;
+        if (!leaf.isEmpty() && !entry.id().getPath().equals(leaf)) return false;
 
-        Enchantment enchantment = holder.value();
+        Enchantment enchantment = ((ElementEntry<Enchantment>) entry).data();
         if (sidebarView == StudioSidebarView.SLOTS) {
             SlotConfig config = SlotConfigs.BY_ID.get(category);
             if (config == null) return false;
@@ -144,8 +161,8 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         return box;
     }
 
-    private void open(Holder.Reference<Enchantment> holder) {
-        context.tabsState().openElement(holder.key().identifier().toString(), StudioRoute.ENCHANTMENT_MAIN);
+    private void open(Identifier id) {
+        context.tabsState().openElement(id.toString(), StudioRoute.ENCHANTMENT_MAIN);
         context.router().navigate(StudioRoute.ENCHANTMENT_MAIN);
     }
 }

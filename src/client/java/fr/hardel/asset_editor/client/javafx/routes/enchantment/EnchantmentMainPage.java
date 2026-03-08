@@ -5,18 +5,14 @@ import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
-import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
-import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
@@ -41,10 +37,10 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.Enchantment.EnchantmentDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
@@ -74,33 +70,27 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                 "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
                 1, 127, 1,
                 entry -> entry.data().getMaxLevel(),
-                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                        d.supportedItems(), d.primaryItems(), d.weight(), v,
-                        d.minCost(), d.maxCost(), d.anvilCost(), d.slots())));
+                EnchantmentMutations::maxLevel);
 
         buildCounter(grid, WEIGHT_ICON,
                 "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
                 1, 1024, 1,
                 entry -> entry.data().getWeight(),
-                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                        d.supportedItems(), d.primaryItems(), v, d.maxLevel(),
-                        d.minCost(), d.maxCost(), d.anvilCost(), d.slots())));
+                EnchantmentMutations::weight);
 
         buildCounter(grid, ANVIL_COST_ICON,
                 "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
                 0, 255, 1,
                 entry -> entry.data().getAnvilCost(),
-                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
-                        d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                        d.minCost(), d.maxCost(), v, d.slots())));
+                EnchantmentMutations::anvilCost);
 
         section.addContent(grid, buildModeSelector());
 
         section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-            if (hasWritablePackSelected()) return;
+            if (hasWritablePack()) return;
             e.consume();
-            if (!context().packState().hasSelectedPack()) showPackRequiredDialog();
-            else showReadonlyPackDialog();
+            if (!context().packState().hasSelectedPack()) applyAction(UnaryOperator.identity());
+            else applyAction(UnaryOperator.identity());
         });
 
         Region spacer = new Region();
@@ -109,16 +99,11 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         content().getChildren().setAll(section, spacer, buildSupportCard());
     }
 
-    @FunctionalInterface
-    private interface CounterMutator {
-        Enchantment apply(Enchantment enchantment, int value);
-    }
-
     private void buildCounter(ResponsiveGrid grid, Identifier icon,
                                String titleKey, String descKey,
                                int min, int max, int step,
                                Function<ElementEntry<Enchantment>, Integer> selectorFn,
-                               CounterMutator mutator) {
+                               java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {
         Counter counter = new Counter(min, max, step, 0);
 
         StoreSelector<Integer> storeSelector = select(selectorFn);
@@ -129,26 +114,11 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
             if (oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) return;
             if (Integer.valueOf(newVal.intValue()).equals(storeSelector.get())) return;
 
-            var result = context().gateway().apply(Registries.ENCHANTMENT, currentId(),
-                    e -> mutator.apply(e, newVal.intValue()));
-            if (!result.isApplied()) {
-                counter.valueProperty().set(storeSelector.get());
-                handleActionFailure(result);
-            }
+            var result = applyAction(mutation.apply(newVal.intValue()));
+            if (!result.isApplied()) counter.valueProperty().set(storeSelector.get());
         });
 
         grid.addItem(new TemplateCard(icon, titleKey, descKey, counter));
-    }
-
-    private boolean hasWritablePackSelected() {
-        var pack = context().packState().selectedPack();
-        return pack != null && pack.writable();
-    }
-
-    private void handleActionFailure(EditorActionResult result) {
-        if (result.status() == EditorActionStatus.PACK_REQUIRED) { showPackRequiredDialog(); return; }
-        if (result.status() == EditorActionStatus.REJECTED) { showReadonlyPackDialog(); return; }
-        showEditorErrorDialog(result.message());
     }
 
     private Selector buildModeSelector() {
@@ -156,6 +126,8 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         modeOptions.put("normal", I18n.get("enchantment:global.mode.enum.normal"));
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
+
+        // TODO: mode selector needs a dedicated action once the mode field is supported in the data model
         return new Selector("enchantment:global.mode.title", "enchantment:global.mode.description", modeOptions, "normal", v -> {});
     }
 
@@ -269,40 +241,5 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);
         return item;
-    }
-
-    private void showPackRequiredDialog() {
-        Label message = new Label(I18n.get("studio:pack.required.message"));
-        message.setTextFill(VoxelColors.ZINC_400);
-        message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
-        message.setWrapText(true);
-
-        Dialog dialog = new Dialog("studio:pack.required.title", message);
-        Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
-        cancelBtn.setOnAction(dialog::close);
-
-        Button createBtn = new Button(Button.Variant.SHIMMER, Button.Size.SM, I18n.get("studio:pack.create"));
-        createBtn.setOnAction(() -> {
-            dialog.close();
-            PackCreateDialog.create(context()).show(getScene().getWindow());
-        });
-
-        dialog.addFooterButton(cancelBtn).addFooterButton(createBtn);
-        dialog.show(getScene().getWindow());
-    }
-
-    private void showReadonlyPackDialog() { showEditorErrorDialog("studio:editor.pack_readonly"); }
-
-    private void showEditorErrorDialog(String messageKey) {
-        Label message = new Label(I18n.get(messageKey == null ? "studio:editor.error" : messageKey));
-        message.setTextFill(VoxelColors.ZINC_400);
-        message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
-        message.setWrapText(true);
-
-        Dialog dialog = new Dialog("studio:pack.select", message);
-        Button closeBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
-        closeBtn.setOnAction(dialog::close);
-        dialog.addFooterButton(closeBtn);
-        dialog.show(getScene().getWindow());
     }
 }

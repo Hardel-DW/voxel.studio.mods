@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleSwitch;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -12,15 +13,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 public final class EnchantmentOverviewRow extends HBox {
 
-    public EnchantmentOverviewRow(
-        Holder.Reference<Enchantment> holder,
-        Runnable onOpen
-    ) {
+    public EnchantmentOverviewRow(ElementEntry<Enchantment> entry, Runnable onOpen) {
         getStyleClass().add("enchantment-row");
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(16);
@@ -38,16 +35,16 @@ public final class EnchantmentOverviewRow extends HBox {
         fallback.getStyleClass().add("enchantment-row-placeholder");
         iconWrap.getChildren().add(fallback);
 
-        Label name = new Label(holder.value().description().getString());
+        Label name = new Label(entry.data().description().getString());
         name.getStyleClass().add("enchantment-row-name");
 
-        Label identifier = new Label(holder.key().identifier().toString());
+        Label identifier = new Label(entry.id().toString());
         identifier.getStyleClass().add("enchantment-row-identifier");
 
         Label bullet = new Label("\u2022");
         bullet.getStyleClass().add("enchantment-row-separator");
 
-        Label level = new Label(I18n.get("enchantment:overview.level") + " " + holder.value().getMaxLevel());
+        Label level = new Label(I18n.get("enchantment:overview.level") + " " + entry.data().getMaxLevel());
         level.getStyleClass().add("enchantment-row-level");
 
         HBox subInfo = new HBox(8, identifier, bullet, level);
@@ -64,7 +61,7 @@ public final class EnchantmentOverviewRow extends HBox {
         HBox right = new HBox(8);
         right.setAlignment(Pos.CENTER_RIGHT);
 
-        if (!"minecraft".equals(holder.key().identifier().getNamespace())) {
+        if (!"minecraft".equals(entry.id().getNamespace())) {
             ToggleSwitch stateSwitch = new ToggleSwitch();
             stateSwitch.setValue(true);
             stateSwitch.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);

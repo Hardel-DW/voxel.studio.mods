@@ -5,19 +5,25 @@ import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public final class EnchantmentTreeBuilder {
 
-    public static TreeNodeModel build(List<Holder.Reference<Enchantment>> enchantments, StudioSidebarView view, int version) {
+    @SuppressWarnings("unchecked")
+    public static TreeNodeModel build(Collection<ElementEntry<?>> entries, StudioSidebarView view, int version) {
+        List<ElementEntry<Enchantment>> enchantments = entries.stream()
+                .map(e -> (ElementEntry<Enchantment>) e)
+                .toList();
+
         TreeNodeModel root = new TreeNodeModel();
         root.setCount(enchantments.size());
         if (view == StudioSidebarView.SLOTS) {
@@ -49,15 +55,12 @@ public final class EnchantmentTreeBuilder {
         return icons;
     }
 
-    private static void buildBySlots(TreeNodeModel root, List<Holder.Reference<Enchantment>> enchantments) {
+    private static void buildBySlots(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
         for (SlotConfig config : SlotConfigs.ALL) {
-            ArrayList<Holder.Reference<Enchantment>> matching = new ArrayList<>();
-            for (var holder : enchantments) {
-                if (holder.value().definition().slots().stream()
-                        .anyMatch(g -> config.slots().contains(g.getSerializedName()))) {
-                    matching.add(holder);
-                }
-            }
+            List<ElementEntry<Enchantment>> matching = enchantments.stream()
+                    .filter(e -> e.data().definition().slots().stream()
+                            .anyMatch(g -> config.slots().contains(g.getSerializedName())))
+                    .toList();
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(config.image());
@@ -67,16 +70,14 @@ public final class EnchantmentTreeBuilder {
         }
     }
 
-    private static void buildByItems(TreeNodeModel root, List<Holder.Reference<Enchantment>> enchantments, int version) {
+    private static void buildByItems(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments, int version) {
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
             if (version < tag.min() || version > tag.max()) continue;
-            ArrayList<Holder.Reference<Enchantment>> matching = new ArrayList<>();
-            for (var holder : enchantments) {
-                boolean matches = holder.value().definition().supportedItems().unwrapKey()
-                        .map(k -> k.location().getPath().endsWith("/" + tag.key()))
-                        .orElse(false);
-                if (matches) matching.add(holder);
-            }
+            List<ElementEntry<Enchantment>> matching = enchantments.stream()
+                    .filter(e -> e.data().definition().supportedItems().unwrapKey()
+                            .map(k -> k.location().getPath().endsWith("/" + tag.key()))
+                            .orElse(false))
+                    .toList();
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(tag.icon());
@@ -86,31 +87,30 @@ public final class EnchantmentTreeBuilder {
         }
     }
 
-    private static void buildByExclusive(TreeNodeModel root, List<Holder.Reference<Enchantment>> enchantments) {
-        LinkedHashMap<String, ArrayList<Holder.Reference<Enchantment>>> grouped = new LinkedHashMap<>();
-        for (var holder : enchantments) {
-            String set = holder.value().exclusiveSet().unwrapKey()
+    private static void buildByExclusive(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
+        LinkedHashMap<String, List<ElementEntry<Enchantment>>> grouped = new LinkedHashMap<>();
+        for (var entry : enchantments) {
+            String set = entry.data().exclusiveSet().unwrapKey()
                     .map(tag -> tag.location().getPath())
                     .orElse("none");
-            grouped.computeIfAbsent(set, key -> new ArrayList<>()).add(holder);
+            grouped.computeIfAbsent(set, k -> new ArrayList<>()).add(entry);
         }
-        for (Map.Entry<String, ArrayList<Holder.Reference<Enchantment>>> entry : grouped.entrySet()) {
-            String key = entry.getKey();
-            TreeNodeModel category = createCategoryNode(entry.getValue());
-            category.setLabel(translationOrDefault("enchantment:exclusive.set." + key + ".title", key));
-            root.children().put(key, category);
+        for (var e : grouped.entrySet()) {
+            TreeNodeModel category = createCategoryNode(e.getValue());
+            category.setLabel(translationOrDefault("enchantment:exclusive.set." + e.getKey() + ".title", e.getKey()));
+            root.children().put(e.getKey(), category);
         }
     }
 
-    private static TreeNodeModel createCategoryNode(List<Holder.Reference<Enchantment>> enchantments) {
+    private static TreeNodeModel createCategoryNode(List<ElementEntry<Enchantment>> enchantments) {
         TreeNodeModel node = new TreeNodeModel();
         node.setCount(enchantments.size());
-        for (var holder : enchantments) {
+        for (var entry : enchantments) {
             TreeNodeModel leaf = new TreeNodeModel();
             leaf.setCount(0);
-            leaf.setElementId(holder.key().identifier().toString());
-            leaf.setLabel(holder.value().description().getString());
-            node.children().put(holder.key().identifier().getPath(), leaf);
+            leaf.setElementId(entry.id().toString());
+            leaf.setLabel(entry.data().description().getString());
+            node.children().put(entry.id().getPath(), leaf);
         }
         return node;
     }

@@ -45,6 +45,7 @@ public final class EditorActionGateway {
         if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
 
         T updated = transform.apply(entry.data());
+        if (updated == entry.data()) return EditorActionResult.applied();
         store.put(registry, target, entry.withData(updated));
 
         return EditorActionResult.applied();
