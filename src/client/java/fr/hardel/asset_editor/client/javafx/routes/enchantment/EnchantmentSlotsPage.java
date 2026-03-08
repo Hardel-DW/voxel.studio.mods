@@ -6,17 +6,20 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
-import javafx.application.Platform;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
@@ -45,29 +48,37 @@ public final class EnchantmentSlotsPage extends VBox {
         content.setPadding(new Insets(32));
 
         context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refresh());
-        Platform.runLater(this::refresh);
+        context.elementStore().versionProperty().addListener((obs, o, v) -> refresh());
+        refresh();
     }
 
     private void refresh() {
-        Holder.Reference<Enchantment> holder = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);
+        var holder = context.findElement(Registries.ENCHANTMENT);
         if (holder == null) {
             content.getChildren().clear();
             return;
         }
 
+        Identifier id = holder.key().identifier();
+        ElementEntry<Enchantment> entry = context.elementStore().get("enchantment", id);
+        Enchantment enchantment = entry != null ? entry.data() : holder.value();
+
         Section section = new Section("enchantment:section.slots.description");
-        var enchantmentSlots = holder.value().definition().slots();
+        var enchantmentSlots = enchantment.definition().slots();
 
         for (List<String> group : GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
                 .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-            for (int i = 0; i < group.size(); i++) {
-                SlotConfig cfg = SlotConfigs.BY_ID.get(group.get(i));
+            for (String slotId : group) {
+                SlotConfig cfg = SlotConfigs.BY_ID.get(slotId);
                 if (cfg == null) continue;
                 boolean active = enchantmentSlots.stream()
                         .anyMatch(g -> cfg.slots().contains(g.getSerializedName()));
+
+                EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
                 Card slot = new Card(cfg.image(), cfg.nameKey(), active);
+                slot.setOnMouseClicked(e -> context.gateway().apply(EnchantmentActions.toggleSlot(id, slotGroup)));
                 row.addItem(slot);
             }
             section.addContent(row);
@@ -98,5 +109,4 @@ public final class EnchantmentSlotsPage extends VBox {
         box.getChildren().addAll(title, list);
         return box;
     }
-
 }

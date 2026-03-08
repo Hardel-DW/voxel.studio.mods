@@ -14,11 +14,10 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorAction;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
-import java.util.function.UnaryOperator;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -116,19 +115,13 @@ public final class EnchantmentMainPage extends VBox {
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         Counter maxLevel = new Counter(1, 127, 1, e.getMaxLevel());
-        bindCounterAction(maxLevel, id, (newVal, d) ->
-                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                        d.weight(), newVal, d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
+        bindCounter(maxLevel, id, EnchantmentActions::setMaxLevel);
 
         Counter weight = new Counter(1, 1024, 1, e.getWeight());
-        bindCounterAction(weight, id, (newVal, d) ->
-                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                        newVal, d.maxLevel(), d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
+        bindCounter(weight, id, EnchantmentActions::setWeight);
 
         Counter anvilCost = new Counter(0, 255, 1, e.getAnvilCost());
-        bindCounterAction(anvilCost, id, (newVal, d) ->
-                new Enchantment.EnchantmentDefinition(d.supportedItems(), d.primaryItems(),
-                        d.weight(), d.maxLevel(), d.minCost(), d.maxCost(), newVal, d.slots()));
+        bindCounter(anvilCost, id, EnchantmentActions::setAnvilCost);
 
         grid.addItem(new TemplateCard(MAX_LEVEL_ICON, "enchantment:global.maxLevel.title",
                 "enchantment:global.explanation.list.1", maxLevel));
@@ -139,36 +132,20 @@ public final class EnchantmentMainPage extends VBox {
         return grid;
     }
 
-    private void bindCounterAction(
-            Counter counter,
-            Identifier id,
-            java.util.function.BiFunction<Integer, Enchantment.EnchantmentDefinition, Enchantment.EnchantmentDefinition> definitionTransform) {
+    private void bindCounter(Counter counter, Identifier id,
+                              java.util.function.BiFunction<Identifier, Integer, fr.hardel.asset_editor.client.javafx.lib.action.EditorAction<Enchantment>> actionFactory) {
         boolean[] rollbackInProgress = { false };
         counter.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (rollbackInProgress[0] || oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) {
-                return;
-            }
+            if (rollbackInProgress[0] || oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) return;
 
-            EditorActionResult result = context.gateway().apply(enchantmentAction(id, ench -> withDefinition(ench, d ->
-                    definitionTransform.apply(newVal.intValue(), d))));
-
-            if (result.isApplied()) {
-                return;
-            }
+            EditorActionResult result = context.gateway().apply(actionFactory.apply(id, newVal.intValue()));
+            if (result.isApplied()) return;
 
             rollbackInProgress[0] = true;
             counter.valueProperty().set(oldVal.intValue());
             rollbackInProgress[0] = false;
             handleActionFailure(result);
         });
-    }
-
-    private static EditorAction<Enchantment> enchantmentAction(Identifier id, UnaryOperator<Enchantment> transform) {
-        return new EditorAction<>("enchantment", id, Enchantment.class, transform);
-    }
-
-    private static Enchantment withDefinition(Enchantment e, UnaryOperator<Enchantment.EnchantmentDefinition> transform) {
-        return new Enchantment(e.description(), transform.apply(e.definition()), e.exclusiveSet(), e.effects());
     }
 
     private boolean hasWritablePackSelected() {
