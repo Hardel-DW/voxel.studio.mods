@@ -41,7 +41,7 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
                 .map(k -> k.location().toString()).orElse(""));
 
         VBox groupSection = new ExclusiveGroupSection(context(), currentId(), exclusiveSelector);
-        VBox singleSection = new ExclusiveSingleSection(context(), currentId(), exclusiveSelector);
+        VBox singleSection = new ExclusiveSingleSection(context(), currentId());
 
         selector.setContent("single".equals(currentMode) ? singleSection : groupSection);
 

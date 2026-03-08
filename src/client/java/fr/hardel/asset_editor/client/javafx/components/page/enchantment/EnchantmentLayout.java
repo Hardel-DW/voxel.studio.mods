@@ -47,11 +47,15 @@ public final class EnchantmentLayout {
                 route -> createPage(context, route),
                 List.of(buildToggle(context))));
 
-        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> {
+        Runnable rebuildTree = () -> {
+            StudioSidebarView v = context.uiState().sidebarView();
             layout.tree().setTree(EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), v, 61));
             layout.tree().setFolderIcons(folderIcons(v));
             layout.tree().setDisableAutoExpand(v == StudioSidebarView.SLOTS);
-        });
+        };
+
+        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> rebuildTree.run());
+        context.elementStore().subscribeRegistry(Registries.ENCHANTMENT, rebuildTree);
 
         return layout;
     }

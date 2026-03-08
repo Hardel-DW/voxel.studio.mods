@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
-import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
@@ -89,8 +88,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
             if (hasWritablePack()) return;
             e.consume();
-            if (!context().packState().hasSelectedPack()) applyAction(UnaryOperator.identity());
-            else applyAction(UnaryOperator.identity());
+            showPackGuard();
         });
 
         Region spacer = new Region();

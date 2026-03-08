@@ -77,7 +77,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
         StudioSidebarView sidebarView = context.uiState().sidebarView();
 
-        List<ElementEntry<?>> entries = context.allEntries(Registries.ENCHANTMENT).stream()
+        List<ElementEntry<Enchantment>> entries = context.allTypedEntries(Registries.ENCHANTMENT).stream()
                 .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
                 .filter(e -> matchesFilter(e, filterPath, sidebarView))
                 .toList();
@@ -92,9 +92,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             list.setPadding(new Insets(24, 32, 24, 32));
             for (int i = 0; i < entries.size(); i++) {
                 var entry = entries.get(i);
-                @SuppressWarnings("unchecked")
-                var enchEntry = (ElementEntry<Enchantment>) entry;
-                var row = new EnchantmentOverviewRow(enchEntry, () -> open(entry.id()));
+                var row = new EnchantmentOverviewRow(entry, () -> open(entry.id()));
                 if (i == 0) row.getStyleClass().add("enchantment-row-first");
                 list.getChildren().add(row);
             }
@@ -105,22 +103,19 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         grid.getStyleClass().add("enchantment-overview-grid");
         grid.setPadding(new Insets(24, 32, 24, 32));
         for (var entry : entries) {
-            @SuppressWarnings("unchecked")
-            var enchEntry = (ElementEntry<Enchantment>) entry;
-            grid.addItem(new EnchantmentOverviewCard(enchEntry, () -> open(entry.id())));
+            grid.addItem(new EnchantmentOverviewCard(entry, () -> open(entry.id())));
         }
         content.getChildren().setAll(grid);
     }
 
-    @SuppressWarnings("unchecked")
-    private static boolean matchesFilter(ElementEntry<?> entry, String filterPath, StudioSidebarView sidebarView) {
+    private static boolean matchesFilter(ElementEntry<Enchantment> entry, String filterPath, StudioSidebarView sidebarView) {
         if (filterPath.isEmpty()) return true;
         String[] parts = filterPath.split("/", 2);
         String category = parts[0];
         String leaf = parts.length == 2 ? parts[1] : "";
         if (!leaf.isEmpty() && !entry.id().getPath().equals(leaf)) return false;
 
-        Enchantment enchantment = ((ElementEntry<Enchantment>) entry).data();
+        Enchantment enchantment = entry.data();
         if (sidebarView == StudioSidebarView.SLOTS) {
             SlotConfig config = SlotConfigs.BY_ID.get(category);
             if (config == null) return false;
@@ -128,9 +123,17 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
                     .anyMatch(g -> config.slots().contains(g.getSerializedName()));
         }
         if (sidebarView == StudioSidebarView.ITEMS) {
-            return enchantment.definition().supportedItems().unwrapKey()
-                    .map(tag -> tag.location().getPath().endsWith("/" + category))
+            String itemTag = "enchantable/" + category;
+            boolean supported = enchantment.definition().supportedItems().unwrapKey()
+                    .map(tag -> tag.location().getPath().equals(itemTag))
                     .orElse(false);
+            if (supported) return true;
+            boolean primary = enchantment.definition().primaryItems()
+                    .flatMap(hs -> hs.unwrapKey())
+                    .map(tag -> tag.location().getPath().equals(itemTag))
+                    .orElse(false);
+            if (primary) return true;
+            return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
         }
         return enchantment.exclusiveSet().unwrapKey()
                 .map(tag -> tag.location().getPath().toLowerCase(Locale.ROOT).equals(category))

@@ -1,13 +1,20 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
 import fr.hardel.asset_editor.client.javafx.lib.SlotManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantment.Cost;
 import net.minecraft.world.item.enchantment.Enchantment.EnchantmentDefinition;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -82,6 +89,45 @@ public final class EnchantmentMutations {
 
     public static UnaryOperator<Enchantment> exclusiveSet(HolderSet<Enchantment> set) {
         return e -> new Enchantment(e.description(), e.definition(), set, e.effects());
+    }
+
+    public static UnaryOperator<Enchantment> toggleExclusive(Identifier enchantmentId) {
+        return e -> {
+            Holder<Enchantment> holder = resolveEnchantmentHolder(enchantmentId);
+            if (holder == null) return e;
+
+            List<Holder<Enchantment>> current = new ArrayList<>(e.exclusiveSet().stream().toList());
+            boolean removed = current.removeIf(h -> h.unwrapKey()
+                    .map(k -> k.identifier().equals(enchantmentId)).orElse(false));
+            if (!removed) current.add(holder);
+
+            HolderSet<Enchantment> newSet = current.isEmpty() ? HolderSet.empty() : HolderSet.direct(current);
+            return new Enchantment(e.description(), e.definition(), newSet, e.effects());
+        };
+    }
+
+    public static HolderSet<Item> resolveItemTag(String path) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return null;
+        return conn.registryAccess().lookup(Registries.ITEM)
+                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", path))))
+                .orElse(null);
+    }
+
+    public static HolderSet<Enchantment> resolveEnchantmentTag(String tagPath) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return null;
+        return conn.registryAccess().lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ENCHANTMENT, Identifier.tryParse(tagPath))))
+                .orElse(null);
+    }
+
+    private static Holder<Enchantment> resolveEnchantmentHolder(Identifier id) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return null;
+        return conn.registryAccess().lookup(Registries.ENCHANTMENT)
+                .flatMap(lookup -> lookup.get(net.minecraft.resources.ResourceKey.create(Registries.ENCHANTMENT, id)))
+                .orElse(null);
     }
 
     private EnchantmentMutations() {}

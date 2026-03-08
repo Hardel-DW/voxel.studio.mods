@@ -18,11 +18,8 @@ import java.util.Map;
 
 public final class EnchantmentTreeBuilder {
 
-    @SuppressWarnings("unchecked")
     public static TreeNodeModel build(Collection<ElementEntry<?>> entries, StudioSidebarView view, int version) {
-        List<ElementEntry<Enchantment>> enchantments = entries.stream()
-                .map(e -> (ElementEntry<Enchantment>) e)
-                .toList();
+        List<ElementEntry<Enchantment>> enchantments = castEntries(entries);
 
         TreeNodeModel root = new TreeNodeModel();
         root.setCount(enchantments.size());
@@ -40,9 +37,7 @@ public final class EnchantmentTreeBuilder {
 
     public static Map<String, Identifier> slotFolderIcons() {
         LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
-        for (SlotConfig config : SlotConfigs.ALL) {
-            icons.put(config.id(), config.image());
-        }
+        for (SlotConfig config : SlotConfigs.ALL) icons.put(config.id(), config.image());
         return icons;
     }
 
@@ -53,6 +48,20 @@ public final class EnchantmentTreeBuilder {
             icons.put(tag.key(), tag.icon());
         }
         return icons;
+    }
+
+    private static boolean matchesItemCategory(ElementEntry<Enchantment> entry, String key) {
+        String itemTag = "enchantable/" + key;
+        boolean supported = entry.data().definition().supportedItems().unwrapKey()
+                .map(k -> k.location().getPath().equals(itemTag))
+                .orElse(false);
+        if (supported) return true;
+        boolean primary = entry.data().definition().primaryItems()
+                .flatMap(hs -> hs.unwrapKey())
+                .map(k -> k.location().getPath().equals(itemTag))
+                .orElse(false);
+        if (primary) return true;
+        return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
     }
 
     private static void buildBySlots(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
@@ -74,9 +83,7 @@ public final class EnchantmentTreeBuilder {
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
             if (version < tag.min() || version > tag.max()) continue;
             List<ElementEntry<Enchantment>> matching = enchantments.stream()
-                    .filter(e -> e.data().definition().supportedItems().unwrapKey()
-                            .map(k -> k.location().getPath().endsWith("/" + tag.key()))
-                            .orElse(false))
+                    .filter(e -> matchesItemCategory(e, tag.key()))
                     .toList();
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
@@ -113,6 +120,11 @@ public final class EnchantmentTreeBuilder {
             node.children().put(entry.id().getPath(), leaf);
         }
         return node;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<ElementEntry<Enchantment>> castEntries(Collection<ElementEntry<?>> entries) {
+        return entries.stream().map(e -> (ElementEntry<Enchantment>) e).toList();
     }
 
     private static String translationOrDefault(String key, String fallback) {

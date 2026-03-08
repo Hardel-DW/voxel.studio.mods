@@ -58,6 +58,10 @@ public final class StudioContext {
         return elementStore.allElements(registryKey);
     }
 
+    public <T> List<ElementEntry<T>> allTypedEntries(ResourceKey<Registry<T>> registryKey) {
+        return elementStore.allTypedElements(registryKey);
+    }
+
     public <T> ElementEntry<T> currentEntry(ResourceKey<Registry<T>> registryKey) {
         String id = tabsState.currentElementId();
         if (id == null || id.isBlank()) return null;

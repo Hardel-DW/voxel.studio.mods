@@ -8,13 +8,9 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
@@ -75,12 +71,12 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         }
 
         wireCardActions(supportedCards, key -> {
-            var holderSet = resolveItemTag("enchantable/" + key);
+            var holderSet = EnchantmentMutations.resolveItemTag("enchantable/" + key);
             return holderSet != null ? EnchantmentMutations.supportedItems(holderSet) : null;
         });
 
         wireCardActions(primaryCards, key -> {
-            var holderSet = resolveItemTag("enchantable/" + key);
+            var holderSet = EnchantmentMutations.resolveItemTag("enchantable/" + key);
             return holderSet != null ? EnchantmentMutations.primaryItems(Optional.of(holderSet)) : null;
         });
 
@@ -145,12 +141,4 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         else sectionSelector.setContent();
     }
 
-    private static HolderSet<Item> resolveItemTag(String path) {
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return null;
-        var lookup = conn.registryAccess().lookup(Registries.ITEM);
-        if (lookup.isEmpty()) return null;
-        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", path));
-        return lookup.get().get(tagKey).orElse(null);
-    }
 }

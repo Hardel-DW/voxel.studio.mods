@@ -76,6 +76,11 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         return pack != null && pack.writable();
     }
 
+    protected void showPackGuard() {
+        if (!context.packState().hasSelectedPack()) showPackRequiredDialog();
+        else showErrorDialog("studio:editor.pack_readonly");
+    }
+
     protected abstract void buildContent();
 
     protected void onReady() {}

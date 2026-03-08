@@ -104,6 +104,13 @@ public final class RegistryElementStore {
         return registryMap == null ? List.of() : registryMap.values();
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> List<ElementEntry<T>> allTypedElements(ResourceKey<Registry<T>> registry) {
+        var registryMap = current.get(registryName(registry));
+        if (registryMap == null) return List.of();
+        return registryMap.values().stream().map(e -> (ElementEntry<T>) e).toList();
+    }
+
     public <T, R> StoreSelector<R> select(ResourceKey<Registry<T>> registry, Identifier id,
             Function<ElementEntry<T>, R> extractor) {
         String name = registryName(registry);
