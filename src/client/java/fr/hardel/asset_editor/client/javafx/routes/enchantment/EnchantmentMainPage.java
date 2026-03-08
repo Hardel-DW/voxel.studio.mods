@@ -18,6 +18,7 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -42,7 +43,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 
-public final class EnchantmentMainPage extends VBox {
+public final class EnchantmentMainPage extends VBox implements EditorPage {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
@@ -74,10 +75,10 @@ public final class EnchantmentMainPage extends VBox {
         content.setPadding(new Insets(16, 32, 28, 32));
         scroll.viewportBoundsProperty().addListener((obs, o, bounds) ->
             content.setMinHeight(Math.max(0, bounds.getHeight())));
-
-        context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refresh());
-        refresh();
     }
+
+    @Override
+    public void onActivate() { refresh(); }
 
     private void refresh() {
         Holder.Reference<Enchantment> selected = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);

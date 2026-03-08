@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Exclusiv
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ExclusiveSingleSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
@@ -12,7 +13,7 @@ import net.minecraft.client.resources.language.I18n;
 
 import java.util.LinkedHashMap;
 
-public final class EnchantmentExclusivePage extends VBox {
+public final class EnchantmentExclusivePage extends VBox implements EditorPage {
 
     private final StudioContext context;
     private final VBox content = new VBox(32);
@@ -31,8 +32,10 @@ public final class EnchantmentExclusivePage extends VBox {
         getChildren().add(scroll);
 
         content.setPadding(new Insets(32));
-        refresh();
     }
+
+    @Override
+    public void onActivate() { refresh(); }
 
     private void refresh() {
         LinkedHashMap<String, String> tabs = new LinkedHashMap<>();

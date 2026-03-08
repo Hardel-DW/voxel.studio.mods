@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Enchantm
 import fr.hardel.asset_editor.client.javafx.components.page.loot_table.LootTableLayout;
 import fr.hardel.asset_editor.client.javafx.components.page.recipe.RecipeLayout;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
@@ -12,22 +13,24 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.ClosePath;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
-import javafx.scene.shape.QuadCurveTo;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.*;
 import javafx.stage.Stage;
+
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public final class StudioEditorRoot extends HBox {
 
+    private static final Map<StudioConcept, Function<StudioContext, ConceptLayout>> LAYOUT_FACTORIES = Map.of(
+            StudioConcept.ENCHANTMENT, EnchantmentLayout::create,
+            StudioConcept.LOOT_TABLE, LootTableLayout::create,
+            StudioConcept.RECIPE, RecipeLayout::create
+    );
+
     private final StudioContext context = new StudioContext();
     private final StackPane contentOutlet = new StackPane();
-    private EnchantmentLayout enchantmentLayout;
-    private LootTableLayout lootTableLayout;
-    private RecipeLayout recipeLayout;
+    private final EnumMap<StudioConcept, ConceptLayout> layouts = new EnumMap<>(StudioConcept.class);
     private ChangesLayout changesLayout;
 
     public StudioContext context() {
@@ -62,11 +65,10 @@ public final class StudioEditorRoot extends HBox {
         StackPane.setAlignment(contentOutlet, Pos.TOP_LEFT);
         VBox.setVgrow(contentSurface, Priority.ALWAYS);
 
-        // Rounded top-left mask + explicit border path to avoid JavaFX border-radius artifacts.
-        contentSurface.widthProperty().addListener((obs, oldWidth, newWidth) ->
-                refreshSurfaceGeometry(newWidth.doubleValue(), contentSurface.getHeight(), contentBody, frame));
-        contentSurface.heightProperty().addListener((obs, oldHeight, newHeight) ->
-                refreshSurfaceGeometry(contentSurface.getWidth(), newHeight.doubleValue(), contentBody, frame));
+        contentSurface.widthProperty().addListener((obs, oldW, newW) ->
+                refreshSurfaceGeometry(newW.doubleValue(), contentSurface.getHeight(), contentBody, frame));
+        contentSurface.heightProperty().addListener((obs, oldH, newH) ->
+                refreshSurfaceGeometry(contentSurface.getWidth(), newH.doubleValue(), contentBody, frame));
 
         VBox workspace = new VBox(header, contentSurface);
         workspace.getStyleClass().add("studio-workspace");
@@ -76,57 +78,23 @@ public final class StudioEditorRoot extends HBox {
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshOutlet());
         refreshOutlet();
 
-        // First pass once the node is in scene to avoid a transient empty clip.
         contentSurface.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene == null)
-                return;
+            if (newScene == null) return;
             refreshSurfaceGeometry(contentSurface.getWidth(), contentSurface.getHeight(), contentBody, frame);
         });
     }
 
     private void refreshOutlet() {
-        if (context.router().currentRoute() == StudioRoute.CHANGES_MAIN) {
-            contentOutlet.getChildren().setAll(getChangesLayout());
+        StudioRoute route = context.router().currentRoute();
+        if (route == StudioRoute.CHANGES_MAIN) {
+            if (changesLayout == null) changesLayout = new ChangesLayout();
+            contentOutlet.getChildren().setAll(changesLayout);
             return;
         }
-        String concept = context.router().currentRoute().concept();
-        if ("loot_table".equals(concept)) {
-            contentOutlet.getChildren().setAll(getLootTableLayout());
-            return;
-        }
-        if ("recipe".equals(concept)) {
-            contentOutlet.getChildren().setAll(getRecipeLayout());
-            return;
-        }
-        contentOutlet.getChildren().setAll(getEnchantmentLayout());
-    }
-
-    private EnchantmentLayout getEnchantmentLayout() {
-        if (enchantmentLayout == null) {
-            enchantmentLayout = new EnchantmentLayout(context);
-        }
-        return enchantmentLayout;
-    }
-
-    private LootTableLayout getLootTableLayout() {
-        if (lootTableLayout == null) {
-            lootTableLayout = new LootTableLayout(context);
-        }
-        return lootTableLayout;
-    }
-
-    private RecipeLayout getRecipeLayout() {
-        if (recipeLayout == null) {
-            recipeLayout = new RecipeLayout(context);
-        }
-        return recipeLayout;
-    }
-
-    private ChangesLayout getChangesLayout() {
-        if (changesLayout == null) {
-            changesLayout = new ChangesLayout();
-        }
-        return changesLayout;
+        StudioConcept concept = StudioConcept.byRoute(route);
+        var factory = LAYOUT_FACTORIES.get(concept);
+        if (factory == null) return;
+        contentOutlet.getChildren().setAll(layouts.computeIfAbsent(concept, c -> factory.apply(context)));
     }
 
     private static void refreshSurfaceGeometry(double width, double height, StackPane contentBody, Path frame) {
@@ -140,36 +108,24 @@ public final class StudioEditorRoot extends HBox {
     }
 
     private static Path buildTlClip(double width, double height) {
-        if (width <= 0 || height <= 0)
-            return new Path();
+        if (width <= 0 || height <= 0) return new Path();
         double r = Math.min(24, Math.min(width, height));
         Path clip = new Path(
-                new MoveTo(r, 0),
-                new LineTo(width, 0),
-                new LineTo(width, height),
-                new LineTo(0, height),
-                new LineTo(0, r),
-                new QuadCurveTo(0, 0, r, 0),
-                new ClosePath());
+                new MoveTo(r, 0), new LineTo(width, 0), new LineTo(width, height),
+                new LineTo(0, height), new LineTo(0, r), new QuadCurveTo(0, 0, r, 0), new ClosePath());
         clip.setFill(Color.WHITE);
         clip.setStroke(null);
         return clip;
     }
 
     private static Path buildTlFrame(double width, double height) {
-        if (width <= 0 || height <= 0)
-            return new Path();
+        if (width <= 0 || height <= 0) return new Path();
         double inset = 0.5;
         double w = Math.max(inset, width - inset);
         double h = Math.max(inset, height - inset);
         double r = Math.max(0, Math.min(24, Math.min(w, h)) - inset);
         return new Path(
-                new MoveTo(inset + r, inset),
-                new QuadCurveTo(inset, inset, inset, inset + r),
-                new LineTo(inset, h),
-                new MoveTo(inset + r, inset),
-                new LineTo(w, inset));
+                new MoveTo(inset + r, inset), new QuadCurveTo(inset, inset, inset, inset + r),
+                new LineTo(inset, h), new MoveTo(inset + r, inset), new LineTo(w, inset));
     }
 }
-
-

@@ -6,8 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
@@ -16,8 +14,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class RegistryElementStore {
+
+    private final List<Consumer<StoreEvent>> listeners = new ArrayList<>();
+
+    public void subscribe(Consumer<StoreEvent> listener) { listeners.add(listener); }
+    public void unsubscribe(Consumer<StoreEvent> listener) { listeners.remove(listener); }
+    private void emit(StoreEvent event) { for (var l : listeners) l.accept(event); }
 
     public record ElementEntry<T>(Identifier id, T data, Set<Identifier> tags) {
         public ElementEntry<T> withData(T newData) {
@@ -43,11 +48,6 @@ public final class RegistryElementStore {
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
-    private final IntegerProperty version = new SimpleIntegerProperty(0);
-
-    public IntegerProperty versionProperty() {
-        return version;
-    }
 
     public <T> void snapshot(String registryName, HolderLookup.RegistryLookup<T> lookup) {
         Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
@@ -94,8 +94,12 @@ public final class RegistryElementStore {
         return registryMap == null ? List.of() : registryMap.values();
     }
 
-    public void incrementVersion() {
-        version.set(version.get() + 1);
+    public void emitElementChanged(String registry, Identifier id) {
+        emit(new StoreEvent.ElementChanged(registry, id));
+    }
+
+    public void emitTagToggled(String registry, Identifier elementId, Identifier tagId) {
+        emit(new StoreEvent.TagToggled(registry, elementId, tagId));
     }
 
     public <T> void flush(Path packRoot, String registry, Codec<T> codec, HolderLookup.Provider registries) {
@@ -205,6 +209,5 @@ public final class RegistryElementStore {
     public void clearAll() {
         vanilla.clear();
         current.clear();
-        version.set(0);
     }
 }

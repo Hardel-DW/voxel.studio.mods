@@ -10,6 +10,8 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.store.StoreEvent;
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -24,7 +26,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public final class EnchantmentTechnicalPage extends VBox {
+public final class EnchantmentTechnicalPage extends VBox implements EditorPage {
 
     private static final List<String> BEHAVIOUR_TAGS = List.of(
             "smelts_loot",
@@ -56,11 +58,13 @@ public final class EnchantmentTechnicalPage extends VBox {
         VBox.setVgrow(scroll, Priority.ALWAYS);
         getChildren().add(scroll);
         content.setPadding(new Insets(32));
-
-        context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refresh());
-        context.elementStore().versionProperty().addListener((obs, o, v) -> refresh());
-        refresh();
     }
+
+    @Override
+    public void onActivate() { refresh(); }
+
+    @Override
+    public void onStoreEvent(StoreEvent event) { refresh(); }
 
     private void refresh() {
         var holder = context.findElement(Registries.ENCHANTMENT);

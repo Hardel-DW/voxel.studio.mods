@@ -1,11 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.routes.recipe;
 
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import net.minecraft.client.resources.language.I18n;
 
-public final class RecipeMainPage extends StackPane {
+public final class RecipeMainPage extends StackPane implements EditorPage {
 
     public RecipeMainPage() {
         getStyleClass().add("concept-main-page");

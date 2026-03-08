@@ -6,6 +6,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.store.StoreEvent;
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
@@ -17,7 +19,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.List;
 import java.util.Set;
 
-public final class EnchantmentFindPage extends VBox {
+public final class EnchantmentFindPage extends VBox implements EditorPage {
 
     private record FindTag(String titleKey, String descKey, Identifier image, Identifier tagId) {}
 
@@ -46,11 +48,13 @@ public final class EnchantmentFindPage extends VBox {
         getChildren().add(scroll);
 
         content.setPadding(new Insets(32));
-
-        context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refresh());
-        context.elementStore().versionProperty().addListener((obs, o, v) -> refresh());
-        refresh();
     }
+
+    @Override
+    public void onActivate() { refresh(); }
+
+    @Override
+    public void onStoreEvent(StoreEvent event) { refresh(); }
 
     private void refresh() {
         var holder = context.findElement(Registries.ENCHANTMENT);

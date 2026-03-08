@@ -46,7 +46,7 @@ public final class EditorActionGateway {
 
         T updated = action.transform().apply(entry.data());
         store.put(action.registry(), action.target(), entry.withData(updated));
-        store.incrementVersion();
+        store.emitElementChanged(action.registry(), action.target());
 
         return EditorActionResult.applied();
     }
@@ -62,7 +62,7 @@ public final class EditorActionGateway {
         packState.ensureNamespace(pack, tagId.getNamespace());
 
         store.put(registry, elementId, entry.toggleTag(tagId));
-        store.incrementVersion();
+        store.emitTagToggled(registry, elementId, tagId);
 
         return EditorActionResult.applied();
     }

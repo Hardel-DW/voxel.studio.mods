@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
@@ -17,7 +18,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public final class EnchantmentItemsPage extends VBox {
+public final class EnchantmentItemsPage extends VBox implements EditorPage {
 
     private static final List<String> ENCHANTABLE_KEYS = List.of(
             "sword", "trident", "mace", "bow", "crossbow", "range", "fishing", "shield", "weapon",
@@ -55,10 +56,10 @@ public final class EnchantmentItemsPage extends VBox {
             this::onSectionChange
         );
         content.getChildren().setAll(selector);
-
-        context.tabsState().currentElementIdProperty().addListener((obs, o, v) -> refreshForSelectedElement());
-        refreshForSelectedElement();
     }
+
+    @Override
+    public void onActivate() { refreshForSelectedElement(); }
 
     private void onSectionChange(String section) {
         if (section.equals(currentSection)) return;
