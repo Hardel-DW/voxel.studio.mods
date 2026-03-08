@@ -96,9 +96,15 @@ public final class EnchantmentMutations {
             Holder<Enchantment> holder = resolveEnchantmentHolder(enchantmentId);
             if (holder == null) return e;
 
+            if (e.exclusiveSet().unwrapKey().isPresent()) {
+                // Aligns with web behavior: switching from tag mode to single-id mode.
+                return new Enchantment(e.description(), e.definition(), HolderSet.direct(List.of(holder)), e.effects());
+            }
+
             List<Holder<Enchantment>> current = new ArrayList<>(e.exclusiveSet().stream().toList());
             boolean removed = current.removeIf(h -> h.unwrapKey()
-                    .map(k -> k.identifier().equals(enchantmentId)).orElse(false));
+                    .map(k -> k.identifier().equals(enchantmentId))
+                    .orElse(false));
             if (!removed) current.add(holder);
 
             HolderSet<Enchantment> newSet = current.isEmpty() ? HolderSet.empty() : HolderSet.direct(current);
@@ -115,10 +121,12 @@ public final class EnchantmentMutations {
     }
 
     public static HolderSet<Enchantment> resolveEnchantmentTag(String tagPath) {
+        Identifier tagId = Identifier.tryParse(tagPath);
+        if (tagId == null) return null;
         var conn = Minecraft.getInstance().getConnection();
         if (conn == null) return null;
         return conn.registryAccess().lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ENCHANTMENT, Identifier.tryParse(tagPath))))
+                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ENCHANTMENT, tagId)))
                 .orElse(null);
     }
 

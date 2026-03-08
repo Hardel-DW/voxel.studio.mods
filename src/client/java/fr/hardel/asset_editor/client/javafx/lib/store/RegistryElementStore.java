@@ -80,7 +80,8 @@ public final class RegistryElementStore {
     }
 
     public <T> void subscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
-        registryListeners.computeIfAbsent(registryName(registry), k -> new ArrayList<>()).add(listener);
+        var list = registryListeners.computeIfAbsent(registryName(registry), k -> new ArrayList<>());
+        if (!list.contains(listener)) list.add(listener);
     }
 
     public <T> void unsubscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {

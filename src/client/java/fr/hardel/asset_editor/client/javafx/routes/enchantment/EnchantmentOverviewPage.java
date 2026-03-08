@@ -27,6 +27,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public final class EnchantmentOverviewPage extends VBox implements Page {
 
@@ -135,9 +136,17 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             if (primary) return true;
             return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
         }
-        return enchantment.exclusiveSet().unwrapKey()
-                .map(tag -> tag.location().getPath().toLowerCase(Locale.ROOT).equals(category))
-                .orElse(false);
+        var tagKey = enchantment.exclusiveSet().unwrapKey();
+        if (tagKey.isPresent()) {
+            String full = tagKey.get().location().toString().toLowerCase(Locale.ROOT);
+            String path = tagKey.get().location().getPath().toLowerCase(Locale.ROOT);
+            return full.equals(category) || path.equals(category);
+        }
+        return enchantment.exclusiveSet().stream()
+                .map(holder -> holder.unwrapKey().map(k -> k.identifier()).orElse(null))
+                .filter(Objects::nonNull)
+                .anyMatch(id -> id.toString().toLowerCase(Locale.ROOT).equals(category)
+                        || id.getPath().toLowerCase(Locale.ROOT).equals(category));
     }
 
     private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");

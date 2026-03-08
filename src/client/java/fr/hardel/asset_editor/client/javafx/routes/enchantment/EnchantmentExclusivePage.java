@@ -11,7 +11,10 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
+import java.util.Objects;
+import java.util.Set;
 
 public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
@@ -39,9 +42,23 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
         var exclusiveSelector = select(entry -> entry.data().exclusiveSet().unwrapKey()
                 .map(k -> k.location().toString()).orElse(""));
+        var directExclusiveSelector = select(entry -> {
+            if (entry.data().exclusiveSet().unwrapKey().isPresent()) {
+                return Set.<String>of();
+            }
+            return entry.data().exclusiveSet().stream()
+                    .map(holder -> holder.unwrapKey()
+                            .map(k -> k.identifier().toString())
+                            .orElse(null))
+                    .filter(Objects::nonNull)
+                    .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        });
 
         VBox groupSection = new ExclusiveGroupSection(context(), currentId(), exclusiveSelector);
-        VBox singleSection = new ExclusiveSingleSection(context(), currentId());
+        VBox singleSection = new ExclusiveSingleSection(
+                context(),
+                directExclusiveSelector,
+                mutation -> applyAction(mutation).isApplied());
 
         selector.setContent("single".equals(currentMode) ? singleSection : groupSection);
 

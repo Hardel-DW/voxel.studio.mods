@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public final class EnchantmentTreeBuilder {
 
@@ -97,14 +98,29 @@ public final class EnchantmentTreeBuilder {
     private static void buildByExclusive(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
         LinkedHashMap<String, List<ElementEntry<Enchantment>>> grouped = new LinkedHashMap<>();
         for (var entry : enchantments) {
-            String set = entry.data().exclusiveSet().unwrapKey()
-                    .map(tag -> tag.location().getPath())
-                    .orElse("none");
-            grouped.computeIfAbsent(set, k -> new ArrayList<>()).add(entry);
+            var tagKey = entry.data().exclusiveSet().unwrapKey();
+            if (tagKey.isPresent()) {
+                grouped.computeIfAbsent(tagKey.get().location().getPath(), k -> new ArrayList<>()).add(entry);
+                continue;
+            }
+
+            List<Identifier> directIds = entry.data().exclusiveSet().stream()
+                    .map(holder -> holder.unwrapKey().map(k -> k.identifier()).orElse(null))
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (directIds.isEmpty()) {
+                grouped.computeIfAbsent("none", k -> new ArrayList<>()).add(entry);
+                continue;
+            }
+            for (Identifier id : directIds) {
+                grouped.computeIfAbsent(id.toString(), k -> new ArrayList<>()).add(entry);
+            }
         }
         for (var e : grouped.entrySet()) {
             TreeNodeModel category = createCategoryNode(e.getValue());
-            category.setLabel(translationOrDefault("enchantment:exclusive.set." + e.getKey() + ".title", e.getKey()));
+            String key = e.getKey();
+            String fallback = key.contains(":") ? key.substring(key.lastIndexOf(':') + 1) : key;
+            category.setLabel(translationOrDefault("enchantment:exclusive.set." + key + ".title", fallback));
             root.children().put(e.getKey(), category);
         }
     }
