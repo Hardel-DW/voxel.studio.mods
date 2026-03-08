@@ -20,7 +20,7 @@ public class AssetEditorClient implements ClientModInitializer {
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
             Identifier.fromNamespaceAndPath("asset_editor", "main"));
     private static final KeyMapping OPEN_STUDIO = KeyBindingHelper.registerKeyBinding(
-            new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_V, CATEGORY));
+            new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
     private boolean hadWorld;
 
     @Override

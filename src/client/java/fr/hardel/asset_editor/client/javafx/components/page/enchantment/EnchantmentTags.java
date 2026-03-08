@@ -142,6 +142,17 @@ public final class EnchantmentTags extends SimpleCard {
         if (BuiltInRegistries.ITEM.containsKey(identifier)) {
             return BuiltInRegistries.ITEM.getValue(identifier).getName().getString();
         }
+        var conn = net.minecraft.client.Minecraft.getInstance().getConnection();
+        if (conn != null) {
+            var enchantmentLookup = conn.registryAccess().lookup(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            if (enchantmentLookup.isPresent()) {
+                var holder = enchantmentLookup.get().get(
+                        net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, identifier));
+                if (holder.isPresent()) {
+                    return holder.get().value().description().getString();
+                }
+            }
+        }
         return value;
     }
 }

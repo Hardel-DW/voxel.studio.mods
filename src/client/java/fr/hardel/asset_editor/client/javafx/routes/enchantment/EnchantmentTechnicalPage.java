@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -33,13 +34,13 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
                             java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {}
 
     private static final List<BehaviourTag> BEHAVIOUR_TAGS = List.of(
-            behaviour(EnchantmentMutations.CURSE_TAG),
-            behaviour(EnchantmentMutations.DOUBLE_TRADE_PRICE_TAG),
-            behaviour(EnchantmentMutations.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG),
-            behaviour(EnchantmentMutations.PREVENTS_DECORATED_POT_SHATTERING_TAG),
-            behaviour(EnchantmentMutations.PREVENTS_ICE_MELTING_TAG),
-            behaviour(EnchantmentMutations.PREVENTS_INFESTED_SPAWNS_TAG),
-            behaviour(EnchantmentMutations.SMELTS_LOOT_TAG));
+            new BehaviourTag(EnchantmentMutations.CURSE_TAG, "enchantment:find.curse.title", "enchantment:find.curse.description"),
+            new BehaviourTag(EnchantmentMutations.DOUBLE_TRADE_PRICE_TAG, "enchantment:technical.price_doubled.title", "enchantment:technical.price_doubled.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG, "enchantment:technical.prevent_bee_spawning.title", "enchantment:technical.prevent_bee_spawning.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_DECORATED_POT_SHATTERING_TAG, "enchantment:technical.prevent_pot_shattering.title", "enchantment:technical.prevent_pot_shattering.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_ICE_MELTING_TAG, "enchantment:technical.prevent_ice_melting.title", "enchantment:technical.prevent_ice_melting.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_INFESTED_SPAWNS_TAG, "enchantment:technical.prevent_infested_block_spawning.title", "enchantment:technical.prevent_infested_block_spawning.description"),
+            new BehaviourTag(EnchantmentMutations.SMELTS_LOOT_TAG, "enchantment:technical.smelts_loot.title", "enchantment:technical.smelts_loot.description"));
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",
@@ -66,7 +67,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
                 .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
 
         for (BehaviourTag field : BEHAVIOUR_TAGS) {
-            SwitchCard sw = SwitchCard.literal(field.title(), field.description());
+            SwitchCard sw = SwitchCard.literal(I18n.get(field.title()), I18n.get(field.description()));
 
             var selector = select(entry -> entry.tags().contains(field.tagId()));
             selector.subscribe(sw::setValue);
@@ -127,7 +128,9 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
                 .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
 
         for (String effectId : effects) {
-            SwitchCard card = SwitchCard.literal(labelOf(effectId), effectId);
+            String effectKey = "effects:" + effectId;
+            String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : labelOf(effectId);
+            SwitchCard card = SwitchCard.literal(effectLabel, effectId);
             var selector = select(entry -> EnchantmentMutations.isEffectDisabled(entry, effectId));
             selector.subscribe(disabled -> {
                 if (disabled != null) {
@@ -153,11 +156,6 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
         section.addContent(grid);
         return section;
-    }
-
-    private static BehaviourTag behaviour(Identifier tagId) {
-        String label = labelOf(tagId.getPath());
-        return new BehaviourTag(tagId, label, tagId.toString());
     }
 
     private static String labelOf(String raw) {

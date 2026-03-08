@@ -142,6 +142,7 @@ public final class VoxelStudioWindow {
             editorRoot = new StudioEditorRoot(stage);
             if (scene != null)
                 scene.setRoot(editorRoot);
+            resyncOnOpenOrFocus();
         });
         delay.play();
         return splash;

@@ -152,6 +152,7 @@ public final class RegistryElementStore {
 
         vanilla.put(name, Map.copyOf(entries));
         current.put(name, new LinkedHashMap<>(entries));
+        notifyRegistryListeners(name);
     }
 
     @SuppressWarnings("unchecked")
@@ -245,7 +246,6 @@ public final class RegistryElementStore {
         current.clear();
         selectors.values().forEach(list -> list.forEach(StoreSelector::dispose));
         selectors.clear();
-        registryListeners.clear();
     }
 
     private void notifySelectors(String registry, Identifier id, ElementEntry<?> entry) {

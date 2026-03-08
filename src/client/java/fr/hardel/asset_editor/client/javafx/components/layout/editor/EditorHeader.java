@@ -174,6 +174,10 @@ public final class EditorHeader extends VBox {
         }
         String id = tree.currentElementId();
         if (id == null || id.isBlank()) return I18n.get(concept.titleKey());
+        if (concept == StudioConcept.ENCHANTMENT) {
+            var entry = context.currentEntry(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            if (entry != null) return entry.data().description().getString();
+        }
         StudioElementId parsed = StudioElementId.parse(id);
         return parsed == null ? id : parsed.resourceLeaf();
     }

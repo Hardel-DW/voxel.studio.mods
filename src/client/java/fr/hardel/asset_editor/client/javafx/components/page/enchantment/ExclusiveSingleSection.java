@@ -31,17 +31,20 @@ public final class ExclusiveSingleSection extends VBox {
             .filter(id -> id.getNamespace().equals("minecraft"))
             .toList();
 
-        getChildren().add(new EnchantmentCategory(
-                "enchantment:exclusive.custom.title",
-                custom,
-                directExclusiveSelector,
-                applyMutation));
+        var store = context.elementStore();
         if (!vanilla.isEmpty()) {
             getChildren().add(new EnchantmentCategory(
                     "enchantment:exclusive.vanilla.title",
                     vanilla,
                     directExclusiveSelector,
-                    applyMutation));
+                    applyMutation,
+                    store));
         }
+        getChildren().add(new EnchantmentCategory(
+                "enchantment:exclusive.custom.title",
+                custom,
+                directExclusiveSelector,
+                applyMutation,
+                store));
     }
 }

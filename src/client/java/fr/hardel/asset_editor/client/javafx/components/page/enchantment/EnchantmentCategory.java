@@ -4,8 +4,10 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.components.ui.InlineCard;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -18,16 +20,15 @@ public final class EnchantmentCategory extends Category {
 
     public EnchantmentCategory(String titleKey, List<Identifier> identifiers,
                                StoreSelector<Set<String>> directExclusiveSelector,
-                               Function<UnaryOperator<Enchantment>, Boolean> applyMutation) {
+                               Function<UnaryOperator<Enchantment>, Boolean> applyMutation,
+                               RegistryElementStore store) {
         super(titleKey);
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (Identifier id : identifiers) {
-            String name = id.getPath().contains("/")
-                    ? id.getPath().substring(id.getPath().lastIndexOf('/') + 1)
-                    : id.getPath();
+            String name = resolveEnchantmentName(store, id);
 
             boolean active = directExclusiveSelector.get() != null
                     && directExclusiveSelector.get().contains(id.toString());
@@ -43,5 +44,12 @@ public final class EnchantmentCategory extends Category {
         }
 
         addContent(grid);
+    }
+
+    private static String resolveEnchantmentName(RegistryElementStore store, Identifier id) {
+        var entry = store.get(Registries.ENCHANTMENT, id);
+        if (entry != null) return entry.data().description().getString();
+        String path = id.getPath();
+        return path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
     }
 }
