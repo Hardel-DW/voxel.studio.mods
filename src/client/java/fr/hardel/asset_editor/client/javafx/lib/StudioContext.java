@@ -69,13 +69,13 @@ public final class StudioContext {
         return null;
     }
 
-    public boolean resyncWorldSession(boolean force) {
+    public void resyncWorldSession(boolean force) {
         String nextKey = computeWorldSessionKey();
         if (worldSessionKey.equals(nextKey)) {
             if (force) {
                 packState.refreshFromServer();
             }
-            return false;
+            return;
         }
 
         worldSessionKey = nextKey;
@@ -84,7 +84,6 @@ public final class StudioContext {
         tabsState.reset();
         packState.refreshFromServer();
         router.navigate(StudioRoute.overviewOf(router.currentRoute().concept()));
-        return true;
     }
 
     public void resetForWorldClose() {
@@ -102,7 +101,7 @@ public final class StudioContext {
         var access = conn.registryAccess();
 
         access.lookup(Registries.ENCHANTMENT).ifPresent(reg ->
-                elementStore.snapshot("enchantment", reg));
+                elementStore.snapshot(Registries.ENCHANTMENT, reg));
     }
 
     private static String computeWorldSessionKey() {
@@ -118,7 +117,7 @@ public final class StudioContext {
         }
 
         ServerData data = mc.getCurrentServer();
-        if (data != null && data.ip != null && !data.ip.isBlank()) {
+        if (data != null && !data.ip.isBlank()) {
             return "mp:" + data.ip;
         }
 

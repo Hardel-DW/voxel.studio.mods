@@ -120,4 +120,5 @@ public final class Card extends SimpleCard {
 
     public BooleanProperty activeProperty() { return active; }
     public boolean isActive() { return active.get(); }
+    public void setActive(boolean v) { active.set(v); }
 }

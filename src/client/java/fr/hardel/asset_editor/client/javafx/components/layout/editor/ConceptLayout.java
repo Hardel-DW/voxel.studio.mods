@@ -3,8 +3,7 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreEvent;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import javafx.scene.Node;
 import javafx.scene.layout.HBox;
@@ -36,7 +35,7 @@ public final class ConceptLayout extends HBox {
     private final Function<StudioRoute, Node> pageFactory;
     private final EnumMap<StudioRoute, Node> pageCache = new EnumMap<>(StudioRoute.class);
     private final StackPane outlet = new StackPane();
-    private EditorPage activePage;
+    private Page activePage;
 
     public ConceptLayout(StudioContext context, Config config) {
         this.context = context;
@@ -64,8 +63,6 @@ public final class ConceptLayout extends HBox {
 
         getChildren().addAll(sidebar, main);
 
-        context.elementStore().subscribe(this::onStoreEvent);
-
         context.router().routeProperty().addListener((obs, old, route) -> {
             if (getScene() == null) return;
             switchPage(route);
@@ -80,16 +77,6 @@ public final class ConceptLayout extends HBox {
     }
 
     public TreeController tree() { return tree; }
-
-    private void onStoreEvent(StoreEvent event) {
-        if (getScene() == null) return;
-        String eventRegistry = switch (event) {
-            case StoreEvent.ElementChanged e -> e.registry();
-            case StoreEvent.TagToggled e -> e.registry();
-        };
-        if (!concept.registry().equals(eventRegistry)) return;
-        if (activePage != null) activePage.onStoreEvent(event);
-    }
 
     private void switchPage(StudioRoute route) {
         if (!concept.registry().equals(route.concept())) return;
@@ -107,7 +94,7 @@ public final class ConceptLayout extends HBox {
     private void setOutlet(StudioRoute route) {
         Node page = pageCache.computeIfAbsent(route, pageFactory);
         outlet.getChildren().setAll(page);
-        activePage = page instanceof EditorPage ep ? ep : null;
+        activePage = page instanceof Page ep ? ep : null;
         if (activePage != null) activePage.onActivate();
     }
 

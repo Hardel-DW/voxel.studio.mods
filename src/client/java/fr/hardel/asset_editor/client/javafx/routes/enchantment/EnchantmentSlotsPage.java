@@ -2,31 +2,27 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
-import fr.hardel.asset_editor.client.javafx.components.ui.Card;
+import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
+import fr.hardel.asset_editor.client.javafx.lib.SlotManager;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreEvent;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 
-public final class EnchantmentSlotsPage extends VBox implements EditorPage {
+public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
     private static final List<List<String>> GROUPS = List.of(
         List.of("mainhand", "offhand"),
@@ -34,41 +30,13 @@ public final class EnchantmentSlotsPage extends VBox implements EditorPage {
         List.of("head", "chest", "legs", "feet")
     );
 
-    private final StudioContext context;
-    private final VBox content = new VBox(16);
-
     public EnchantmentSlotsPage(StudioContext context) {
-        this.context = context;
-
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("enchantment-subpage-scroll");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        getChildren().add(scroll);
-
-        content.setPadding(new Insets(32));
+        super(context, Registries.ENCHANTMENT, "enchantment-subpage-scroll", 16, new Insets(32));
     }
 
     @Override
-    public void onActivate() { refresh(); }
-
-    @Override
-    public void onStoreEvent(StoreEvent event) { refresh(); }
-
-    private void refresh() {
-        var holder = context.findElement(Registries.ENCHANTMENT);
-        if (holder == null) {
-            content.getChildren().clear();
-            return;
-        }
-
-        Identifier id = holder.key().identifier();
-        ElementEntry<Enchantment> entry = context.elementStore().get("enchantment", id);
-        Enchantment enchantment = entry != null ? entry.data() : holder.value();
-
+    protected void buildContent() {
         Section section = new Section("enchantment:section.slots.description");
-        var enchantmentSlots = enchantment.definition().slots();
 
         for (List<String> group : GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
@@ -77,19 +45,25 @@ public final class EnchantmentSlotsPage extends VBox implements EditorPage {
             for (String slotId : group) {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(slotId);
                 if (cfg == null) continue;
-                boolean active = enchantmentSlots.stream()
-                        .anyMatch(g -> cfg.slots().contains(g.getSerializedName()));
-
                 EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
-                Card slot = new Card(cfg.image(), cfg.nameKey(), active);
-                slot.setOnMouseClicked(e -> context.gateway().apply(EnchantmentActions.toggleSlot(id, slotGroup)));
-                row.addItem(slot);
+                Card card = new Card(cfg.image(), cfg.nameKey(), false);
+
+                card.setOnMouseClicked(e ->
+                        context().gateway().apply(Registries.ENCHANTMENT, currentId(),
+                                ench -> EnchantmentMutations.toggleSlot(ench, slotGroup)));
+
+                var selector = select(entry ->
+                        new SlotManager(entry.data().definition().slots()).isActive(slotGroup));
+                selector.subscribe(card::setActive);
+                if (selector.get() != null) card.setActive(selector.get());
+
+                row.addItem(card);
             }
             section.addContent(row);
         }
 
         section.addContent(buildExplanation());
-        content.getChildren().setAll(section);
+        content().getChildren().setAll(section);
     }
 
     private VBox buildExplanation() {

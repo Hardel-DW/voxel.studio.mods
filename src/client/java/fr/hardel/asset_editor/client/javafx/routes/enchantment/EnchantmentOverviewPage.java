@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Enchantm
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
@@ -27,7 +27,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.List;
 import java.util.Locale;
 
-public final class EnchantmentOverviewPage extends VBox implements EditorPage {
+public final class EnchantmentOverviewPage extends VBox implements Page {
 
     private final StudioContext context;
     private final StackPane content = new StackPane();

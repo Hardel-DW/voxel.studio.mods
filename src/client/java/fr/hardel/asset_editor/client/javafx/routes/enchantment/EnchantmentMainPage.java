@@ -3,30 +3,31 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
-import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
-import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
+import fr.hardel.asset_editor.client.javafx.components.ui.Button;
+import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
 import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
-import fr.hardel.asset_editor.client.javafx.components.ui.Button;
-import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.Section;
+import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
+import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
+import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
+import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -37,132 +38,116 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantment.EnchantmentDefinition;
 
 import java.util.LinkedHashMap;
+import java.util.function.Function;
 
-public final class EnchantmentMainPage extends VBox implements EditorPage {
+public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier MAX_LEVEL_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/tools/max_level.svg");
-    private static final Identifier WEIGHT_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/tools/weight.svg");
-    private static final Identifier ANVIL_COST_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/tools/anvil_cost.svg");
-    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/company/patreon.svg");
+    private static final Identifier MAX_LEVEL_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/max_level.svg");
+    private static final Identifier WEIGHT_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/weight.svg");
+    private static final Identifier ANVIL_COST_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/anvil_cost.svg");
+    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/patreon.svg");
 
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
-    private final StudioContext context;
-    private final VBox content = new VBox(32);
-
     public EnchantmentMainPage(StudioContext context) {
-        this.context = context;
-
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("enchantment-main-scroll");
-        VBox.setVgrow(scroll, Priority.ALWAYS);
-        getChildren().add(scroll);
-
-        content.setPadding(new Insets(16, 32, 28, 32));
-        scroll.viewportBoundsProperty().addListener((obs, o, bounds) ->
-            content.setMinHeight(Math.max(0, bounds.getHeight())));
+        super(context, Registries.ENCHANTMENT, "enchantment-main-scroll", 32, new Insets(16, 32, 28, 32));
+        ((javafx.scene.control.ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
+                .addListener((obs, o, bounds) -> content().setMinHeight(Math.max(0, bounds.getHeight())));
     }
 
     @Override
-    public void onActivate() { refresh(); }
-
-    private void refresh() {
-        Holder.Reference<Enchantment> selected = context.findElement(net.minecraft.core.registries.Registries.ENCHANTMENT);
-        if (selected == null) {
-            content.getChildren().clear();
-            return;
-        }
-
+    protected void buildContent() {
         Section section = new Section("enchantment:section.global.description");
+        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
+                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-        ResponsiveGrid cardsGrid = buildCardsGrid(selected);
-        section.addContent(cardsGrid, buildModeSelector());
+        buildCounter(grid, MAX_LEVEL_ICON,
+                "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
+                1, 127, 1,
+                entry -> entry.data().getMaxLevel(),
+                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
+                        d.supportedItems(), d.primaryItems(), d.weight(), v,
+                        d.minCost(), d.maxCost(), d.anvilCost(), d.slots())));
+
+        buildCounter(grid, WEIGHT_ICON,
+                "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
+                1, 1024, 1,
+                entry -> entry.data().getWeight(),
+                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
+                        d.supportedItems(), d.primaryItems(), v, d.maxLevel(),
+                        d.minCost(), d.maxCost(), d.anvilCost(), d.slots())));
+
+        buildCounter(grid, ANVIL_COST_ICON,
+                "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
+                0, 255, 1,
+                entry -> entry.data().getAnvilCost(),
+                (e, v) -> EnchantmentMutations.withDefinition(e, d -> new EnchantmentDefinition(
+                        d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
+                        d.minCost(), d.maxCost(), v, d.slots())));
+
+        section.addContent(grid, buildModeSelector());
 
         section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
             if (hasWritablePackSelected()) return;
             e.consume();
-            if (!context.packState().hasSelectedPack()) {
-                showPackRequiredDialog();
-            } else {
-                showReadonlyPackDialog();
-            }
+            if (!context().packState().hasSelectedPack()) showPackRequiredDialog();
+            else showReadonlyPackDialog();
         });
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        content.getChildren().setAll(section, spacer, buildSupportCard());
+        content().getChildren().setAll(section, spacer, buildSupportCard());
     }
 
-    private ResponsiveGrid buildCardsGrid(Holder.Reference<Enchantment> holder) {
-        Enchantment e = holder.value();
-        Identifier id = holder.key().identifier();
-
-        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
-            .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
-
-        Counter maxLevel = new Counter(1, 127, 1, e.getMaxLevel());
-        bindCounter(maxLevel, id, EnchantmentActions::setMaxLevel);
-
-        Counter weight = new Counter(1, 1024, 1, e.getWeight());
-        bindCounter(weight, id, EnchantmentActions::setWeight);
-
-        Counter anvilCost = new Counter(0, 255, 1, e.getAnvilCost());
-        bindCounter(anvilCost, id, EnchantmentActions::setAnvilCost);
-
-        grid.addItem(new TemplateCard(MAX_LEVEL_ICON, "enchantment:global.maxLevel.title",
-                "enchantment:global.explanation.list.1", maxLevel));
-        grid.addItem(new TemplateCard(WEIGHT_ICON, "enchantment:global.weight.title",
-                "enchantment:global.explanation.list.2", weight));
-        grid.addItem(new TemplateCard(ANVIL_COST_ICON, "enchantment:global.anvilCost.title",
-                "enchantment:global.explanation.list.3", anvilCost));
-        return grid;
+    @FunctionalInterface
+    private interface CounterMutator {
+        Enchantment apply(Enchantment enchantment, int value);
     }
 
-    private void bindCounter(Counter counter, Identifier id,
-                              java.util.function.BiFunction<Identifier, Integer, fr.hardel.asset_editor.client.javafx.lib.action.EditorAction<Enchantment>> actionFactory) {
-        boolean[] rollbackInProgress = { false };
+    private void buildCounter(ResponsiveGrid grid, Identifier icon,
+                               String titleKey, String descKey,
+                               int min, int max, int step,
+                               Function<ElementEntry<Enchantment>, Integer> selectorFn,
+                               CounterMutator mutator) {
+        Counter counter = new Counter(min, max, step, 0);
+
+        StoreSelector<Integer> storeSelector = select(selectorFn);
+        storeSelector.subscribe(val -> { if (val != null) counter.valueProperty().set(val); });
+        if (storeSelector.get() != null) counter.valueProperty().set(storeSelector.get());
+
         counter.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (rollbackInProgress[0] || oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) return;
+            if (oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) return;
+            if (Integer.valueOf(newVal.intValue()).equals(storeSelector.get())) return;
 
-            EditorActionResult result = context.gateway().apply(actionFactory.apply(id, newVal.intValue()));
-            if (result.isApplied()) return;
-
-            rollbackInProgress[0] = true;
-            counter.valueProperty().set(oldVal.intValue());
-            rollbackInProgress[0] = false;
-            handleActionFailure(result);
+            var result = context().gateway().apply(Registries.ENCHANTMENT, currentId(),
+                    e -> mutator.apply(e, newVal.intValue()));
+            if (!result.isApplied()) {
+                counter.valueProperty().set(storeSelector.get());
+                handleActionFailure(result);
+            }
         });
+
+        grid.addItem(new TemplateCard(icon, titleKey, descKey, counter));
     }
 
     private boolean hasWritablePackSelected() {
-        var pack = context.packState().selectedPack();
+        var pack = context().packState().selectedPack();
         return pack != null && pack.writable();
     }
 
     private void handleActionFailure(EditorActionResult result) {
-        if (result.status() == EditorActionStatus.PACK_REQUIRED) {
-            showPackRequiredDialog();
-            return;
-        }
-        if (result.status() == EditorActionStatus.REJECTED) {
-            showReadonlyPackDialog();
-            return;
-        }
+        if (result.status() == EditorActionStatus.PACK_REQUIRED) { showPackRequiredDialog(); return; }
+        if (result.status() == EditorActionStatus.REJECTED) { showReadonlyPackDialog(); return; }
         showEditorErrorDialog(result.message());
     }
 
@@ -171,12 +156,7 @@ public final class EnchantmentMainPage extends VBox implements EditorPage {
         modeOptions.put("normal", I18n.get("enchantment:global.mode.enum.normal"));
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
-
-        return new Selector(
-                "enchantment:global.mode.title",
-                "enchantment:global.mode.description",
-                modeOptions, "normal", v -> {
-                });
+        return new Selector("enchantment:global.mode.title", "enchantment:global.mode.description", modeOptions, "normal", v -> {});
     }
 
     private StackPane buildSupportCard() {
@@ -207,13 +187,11 @@ public final class EnchantmentMainPage extends VBox implements EditorPage {
         VBox advantagesSection = new VBox(advantagesHeading, advantagesGrid);
         HBox.setHgrow(advantagesSection, Priority.ALWAYS);
 
-        Button donateBtn = new Button(Button.Variant.SHIMMER, Button.Size.LG,
-                I18n.get("donate"));
+        Button donateBtn = new Button(Button.Variant.SHIMMER, Button.Size.LG, I18n.get("donate"));
         donateBtn.setOnAction(() -> BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip"));
 
         SvgIcon patreonIcon = new SvgIcon(PATREON_ICON, 16, Color.WHITE);
-        Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG,
-                I18n.get("supports.become"), patreonIcon);
+        Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG, I18n.get("supports.become"), patreonIcon);
         patreonBtn.setOnAction(() -> BrowserUtils.openBrowser("https://www.patreon.com/hardel"));
         donateBtn.setMaxWidth(Double.MAX_VALUE);
         patreonBtn.setMaxWidth(Double.MAX_VALUE);
@@ -300,26 +278,20 @@ public final class EnchantmentMainPage extends VBox implements EditorPage {
         message.setWrapText(true);
 
         Dialog dialog = new Dialog("studio:pack.required.title", message);
-
-        Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM,
-                I18n.get("studio:action.cancel"));
+        Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
         cancelBtn.setOnAction(dialog::close);
 
-        Button createBtn = new Button(Button.Variant.SHIMMER, Button.Size.SM,
-                I18n.get("studio:pack.create"));
+        Button createBtn = new Button(Button.Variant.SHIMMER, Button.Size.SM, I18n.get("studio:pack.create"));
         createBtn.setOnAction(() -> {
             dialog.close();
-            var createDialog = PackCreateDialog.create(context);
-            createDialog.show(getScene().getWindow());
+            PackCreateDialog.create(context()).show(getScene().getWindow());
         });
 
         dialog.addFooterButton(cancelBtn).addFooterButton(createBtn);
         dialog.show(getScene().getWindow());
     }
 
-    private void showReadonlyPackDialog() {
-        showEditorErrorDialog("studio:editor.pack_readonly");
-    }
+    private void showReadonlyPackDialog() { showEditorErrorDialog("studio:editor.pack_readonly"); }
 
     private void showEditorErrorDialog(String messageKey) {
         Label message = new Label(I18n.get(messageKey == null ? "studio:editor.error" : messageKey));
@@ -333,5 +305,4 @@ public final class EnchantmentMainPage extends VBox implements EditorPage {
         dialog.addFooterButton(closeBtn);
         dialog.show(getScene().getWindow());
     }
-
 }

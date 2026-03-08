@@ -24,12 +24,15 @@ import net.minecraft.client.resources.language.I18n;
 public final class Range extends VBox {
 
     private final IntegerProperty value;
+    private final Slider slider;
+    private final int step;
 
     public Range(String labelKey, int min, int max, int step, int initialValue) {
         this(labelKey, min, max, step, initialValue, false, null);
     }
 
     public Range(String labelKey, int min, int max, int step, int initialValue, boolean locked, String lockKey) {
+        this.step = step;
         setSpacing(4);
         setMaxWidth(Double.MAX_VALUE);
 
@@ -50,7 +53,7 @@ public final class Range extends VBox {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(0, 0, 2, 0));
 
-        Slider slider = new Slider(min, max, initialValue);
+        slider = new Slider(min, max, initialValue);
         slider.setBlockIncrement(step);
         slider.setMajorTickUnit(Math.max(1, (max - min) / 10.0));
         slider.setShowTickMarks(false);
@@ -72,6 +75,11 @@ public final class Range extends VBox {
 
         if (locked) setOpacity(0.5);
         getChildren().addAll(header, slider);
+    }
+
+    public void setValue(int v) {
+        int rounded = (int) Math.round((double) v / step) * step;
+        slider.setValue(rounded);
     }
 
     private static void updateTrackFill(Slider slider) {

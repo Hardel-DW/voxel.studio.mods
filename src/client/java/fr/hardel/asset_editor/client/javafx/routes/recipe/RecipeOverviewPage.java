@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.routes.recipe;
 
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import fr.hardel.asset_editor.client.javafx.lib.Page;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -10,7 +10,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 
-public final class RecipeOverviewPage extends VBox implements EditorPage {
+public final class RecipeOverviewPage extends VBox implements Page {
 
     public RecipeOverviewPage(StudioContext context) {
         getStyleClass().add("concept-overview-page");

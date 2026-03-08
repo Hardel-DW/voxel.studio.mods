@@ -8,56 +8,48 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 public final class RegistryElementStore {
-
-    private final List<Consumer<StoreEvent>> listeners = new ArrayList<>();
-
-    public void subscribe(Consumer<StoreEvent> listener) { listeners.add(listener); }
-    public void unsubscribe(Consumer<StoreEvent> listener) { listeners.remove(listener); }
-    private void emit(StoreEvent event) { for (var l : listeners) l.accept(event); }
 
     public record ElementEntry<T>(Identifier id, T data, Set<Identifier> tags) {
         public ElementEntry<T> withData(T newData) {
             return new ElementEntry<>(id, newData, tags);
         }
 
-        public ElementEntry<T> withTag(Identifier tagId) {
-            var copy = new HashSet<>(tags);
-            copy.add(tagId);
-            return new ElementEntry<>(id, data, Set.copyOf(copy));
-        }
-
-        public ElementEntry<T> withoutTag(Identifier tagId) {
-            var copy = new HashSet<>(tags);
-            copy.remove(tagId);
-            return new ElementEntry<>(id, data, Set.copyOf(copy));
-        }
-
         public ElementEntry<T> toggleTag(Identifier tagId) {
-            return tags.contains(tagId) ? withoutTag(tagId) : withTag(tagId);
+            var copy = new HashSet<>(tags);
+            if (!copy.remove(tagId))
+                copy.add(tagId);
+            return new ElementEntry<>(id, data, Set.copyOf(copy));
         }
+    }
+
+    private record SelectorKey(String registry, Identifier elementId) {
     }
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
+    private final Map<SelectorKey, List<StoreSelector<?>>> selectors = new HashMap<>();
 
-    public <T> void snapshot(String registryName, HolderLookup.RegistryLookup<T> lookup) {
+    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, HolderLookup.RegistryLookup<T> lookup) {
+        String name = registryName(registryKey);
         Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         lookup.listTags().forEach(named -> {
             Identifier tagId = named.key().location();
             for (Holder<T> holder : named.stream().toList()) {
-                holder.unwrapKey().ifPresent(key ->
-                        tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
+                holder.unwrapKey().ifPresent(
+                        key -> tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
             }
         });
 
@@ -67,65 +59,100 @@ public final class RegistryElementStore {
             entries.put(id, new ElementEntry<>(id, holder.value(), Set.copyOf(tags)));
         });
 
-        vanilla.put(registryName, Map.copyOf(entries));
-        current.put(registryName, new LinkedHashMap<>(entries));
+        vanilla.put(name, Map.copyOf(entries));
+        current.put(name, new LinkedHashMap<>(entries));
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ElementEntry<T> get(String registry, Identifier id) {
-        var registryMap = current.get(registry);
-        if (registryMap == null) return null;
+    public <T> ElementEntry<T> get(ResourceKey<Registry<T>> registry, Identifier id) {
+        var registryMap = current.get(registryName(registry));
+        if (registryMap == null)
+            return null;
         return (ElementEntry<T>) registryMap.get(id);
     }
 
-    public <T> void put(String registry, Identifier id, ElementEntry<T> entry) {
-        current.computeIfAbsent(registry, k -> new LinkedHashMap<>()).put(id, entry);
+    public <T> void put(ResourceKey<Registry<T>> registry, Identifier id, ElementEntry<T> entry) {
+        String name = registryName(registry);
+        current.computeIfAbsent(name, k -> new LinkedHashMap<>()).put(id, entry);
+        notifySelectors(name, id, entry);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ElementEntry<T> getVanilla(String registry, Identifier id) {
-        var registryMap = vanilla.get(registry);
-        if (registryMap == null) return null;
+    public <T> ElementEntry<T> getVanilla(ResourceKey<Registry<T>> registry, Identifier id) {
+        var registryMap = vanilla.get(registryName(registry));
+        if (registryMap == null)
+            return null;
         return (ElementEntry<T>) registryMap.get(id);
     }
 
-    public Collection<ElementEntry<?>> allElements(String registry) {
-        var registryMap = current.get(registry);
+    public <T> Collection<ElementEntry<?>> allElements(ResourceKey<Registry<T>> registry) {
+        var registryMap = current.get(registryName(registry));
         return registryMap == null ? List.of() : registryMap.values();
     }
 
-    public void emitElementChanged(String registry, Identifier id) {
-        emit(new StoreEvent.ElementChanged(registry, id));
+    public <T, R> StoreSelector<R> select(ResourceKey<Registry<T>> registry, Identifier id,
+            Function<ElementEntry<T>, R> extractor) {
+        String name = registryName(registry);
+        ElementEntry<T> entry = get(registry, id);
+        var selector = new StoreSelector<>(extractor, entry);
+        selectors.computeIfAbsent(new SelectorKey(name, id), k -> new ArrayList<>()).add(selector);
+        return selector;
     }
 
-    public void emitTagToggled(String registry, Identifier elementId, Identifier tagId) {
-        emit(new StoreEvent.TagToggled(registry, elementId, tagId));
+    public void disposeSelectors(List<StoreSelector<?>> toDispose) {
+        for (var selector : toDispose) {
+            selector.dispose();
+        }
+        for (var list : selectors.values()) {
+            list.removeAll(toDispose);
+        }
+        selectors.entrySet().removeIf(e -> e.getValue().isEmpty());
     }
 
-    public <T> void flush(Path packRoot, String registry, Codec<T> codec, HolderLookup.Provider registries) {
-        var vanillaMap = vanilla.get(registry);
-        var currentMap = current.get(registry);
-        if (vanillaMap == null || currentMap == null) return;
+    public <T> void flush(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
+            HolderLookup.Provider registries) {
+        String name = registryName(registry);
+        var vanillaMap = vanilla.get(name);
+        var currentMap = current.get(name);
+        if (vanillaMap == null || currentMap == null)
+            return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-        flushElements(packRoot, registry, vanillaMap, currentMap, codec, ops, gson);
-        flushTags(packRoot, registry, vanillaMap, currentMap, gson);
+        flushElements(packRoot, name, vanillaMap, currentMap, codec, ops, gson);
+        flushTags(packRoot, name, vanillaMap, currentMap, gson);
+    }
+
+    public void clearAll() {
+        vanilla.clear();
+        current.clear();
+        selectors.values().forEach(list -> list.forEach(StoreSelector::dispose));
+        selectors.clear();
+    }
+
+    private void notifySelectors(String registry, Identifier id, ElementEntry<?> entry) {
+        var list = selectors.get(new SelectorKey(registry, id));
+        if (list == null)
+            return;
+        for (var selector : list) {
+            selector.recompute(entry);
+        }
     }
 
     @SuppressWarnings("unchecked")
     private <T> void flushElements(Path packRoot, String registry,
-                                    Map<Identifier, ElementEntry<?>> vanillaMap,
-                                    Map<Identifier, ElementEntry<?>> currentMap,
-                                    Codec<T> codec, com.mojang.serialization.DynamicOps<JsonElement> ops,
-                                    com.google.gson.Gson gson) {
+            Map<Identifier, ElementEntry<?>> vanillaMap,
+            Map<Identifier, ElementEntry<?>> currentMap,
+            Codec<T> codec, com.mojang.serialization.DynamicOps<JsonElement> ops,
+            com.google.gson.Gson gson) {
         for (var entry : currentMap.entrySet()) {
             Identifier id = entry.getKey();
             var currentEntry = (ElementEntry<T>) entry.getValue();
             var vanillaEntry = (ElementEntry<T>) vanillaMap.get(id);
 
-            if (vanillaEntry != null && vanillaEntry.data() == currentEntry.data()) continue;
+            if (vanillaEntry != null && vanillaEntry.data() == currentEntry.data())
+                continue;
 
             JsonElement json = codec.encodeStart(ops, currentEntry.data())
                     .getOrThrow(msg -> new IllegalStateException("Encode failed: " + msg));
@@ -145,9 +172,9 @@ public final class RegistryElementStore {
     }
 
     private void flushTags(Path packRoot, String registry,
-                           Map<Identifier, ElementEntry<?>> vanillaMap,
-                           Map<Identifier, ElementEntry<?>> currentMap,
-                           com.google.gson.Gson gson) {
+            Map<Identifier, ElementEntry<?>> vanillaMap,
+            Map<Identifier, ElementEntry<?>> currentMap,
+            com.google.gson.Gson gson) {
         Map<Identifier, Set<Identifier>> vanillaTags = collectTagMemberships(vanillaMap);
         Map<Identifier, Set<Identifier>> currentTags = collectTagMemberships(currentMap);
 
@@ -159,10 +186,8 @@ public final class RegistryElementStore {
             Set<Identifier> vanillaMembers = vanillaTags.getOrDefault(tagId, Set.of());
             Set<Identifier> currentMembers = currentTags.getOrDefault(tagId, Set.of());
 
-            if (vanillaMembers.equals(currentMembers)) continue;
-
-            Set<Identifier> added = new HashSet<>(currentMembers);
-            added.removeAll(vanillaMembers);
+            if (vanillaMembers.equals(currentMembers))
+                continue;
 
             Set<Identifier> removed = new HashSet<>(vanillaMembers);
             removed.removeAll(currentMembers);
@@ -172,12 +197,16 @@ public final class RegistryElementStore {
             if (removed.isEmpty()) {
                 tagJson.addProperty("replace", false);
                 JsonArray values = new JsonArray();
-                for (Identifier id : added) values.add(id.toString());
+                Set<Identifier> added = new HashSet<>(currentMembers);
+                added.removeAll(vanillaMembers);
+                for (Identifier id : added)
+                    values.add(id.toString());
                 tagJson.add("values", values);
             } else {
                 tagJson.addProperty("replace", true);
                 JsonArray values = new JsonArray();
-                for (Identifier id : currentMembers) values.add(id.toString());
+                for (Identifier id : currentMembers)
+                    values.add(id.toString());
                 tagJson.add("values", values);
             }
 
@@ -206,8 +235,7 @@ public final class RegistryElementStore {
         return result;
     }
 
-    public void clearAll() {
-        vanilla.clear();
-        current.clear();
+    static String registryName(ResourceKey<?> key) {
+        return key.identifier().getPath();
     }
 }

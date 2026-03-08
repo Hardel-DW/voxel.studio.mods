@@ -4,7 +4,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Exclusiv
 import fr.hardel.asset_editor.client.javafx.components.page.enchantment.ExclusiveSingleSection;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.EditorPage;
+import fr.hardel.asset_editor.client.javafx.lib.Page;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
@@ -13,7 +13,7 @@ import net.minecraft.client.resources.language.I18n;
 
 import java.util.LinkedHashMap;
 
-public final class EnchantmentExclusivePage extends VBox implements EditorPage {
+public final class EnchantmentExclusivePage extends VBox implements Page {
 
     private final StudioContext context;
     private final VBox content = new VBox(32);
