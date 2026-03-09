@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
@@ -67,7 +67,7 @@ public final class ExclusiveGroupSection extends VBox {
             StoreSelector<String> exclusiveSelector) {
         Category category = new Category("enchantment:exclusive.custom.title");
 
-        List<Identifier> customTags = EnchantmentMutations
+        List<Identifier> customTags = EnchantmentActions
                 .customExclusiveTags(context.allTypedEntries(Registries.ENCHANTMENT));
         if (customTags.isEmpty()) {
             Label fallback = new Label(I18n.get("enchantment:exclusive.custom.fallback"));
@@ -108,14 +108,14 @@ public final class ExclusiveGroupSection extends VBox {
 
         if (currentlyTarget) {
             context.gateway().apply(Registries.ENCHANTMENT, elementId,
-                    EnchantmentMutations.exclusiveSet(HolderSet.empty()));
+                    EnchantmentActions.exclusiveSet(HolderSet.empty()));
             if (currentlyMember) {
                 context.gateway().toggleTag(Registries.ENCHANTMENT, elementId, tagId);
             }
             return;
         }
 
-        context.gateway().apply(Registries.ENCHANTMENT, elementId, EnchantmentMutations.exclusiveSet(tagId));
+        context.gateway().apply(Registries.ENCHANTMENT, elementId, EnchantmentActions.exclusiveSet(tagId));
         if (!currentlyMember) {
             context.gateway().toggleTag(Registries.ENCHANTMENT, elementId, tagId);
         }

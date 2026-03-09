@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
@@ -122,7 +122,7 @@ public final class StudioContext {
 
         access.lookup(Registries.ENCHANTMENT).ifPresent(reg ->
                 elementStore.snapshot(Registries.ENCHANTMENT, reg,
-                        entry -> EnchantmentMutations.initializeCustom(entry.data(), entry.tags())));
+                        entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
     }
 
     private static String computeWorldSessionKey() {

@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.components.ui.SwitchCard;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
@@ -36,38 +36,38 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
     }
 
     private static final List<BehaviourTag> BEHAVIOUR_TAGS = List.of(
-            new BehaviourTag(EnchantmentMutations.CURSE_TAG, "enchantment:find.curse.title",
+            new BehaviourTag(EnchantmentActions.CURSE_TAG, "enchantment:find.curse.title",
                     "enchantment:find.curse.description"),
-            new BehaviourTag(EnchantmentMutations.DOUBLE_TRADE_PRICE_TAG, "enchantment:technical.price_doubled.title",
+            new BehaviourTag(EnchantmentActions.DOUBLE_TRADE_PRICE_TAG, "enchantment:technical.price_doubled.title",
                     "enchantment:technical.price_doubled.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG,
+            new BehaviourTag(EnchantmentActions.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG,
                     "enchantment:technical.prevent_bee_spawning.title",
                     "enchantment:technical.prevent_bee_spawning.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_DECORATED_POT_SHATTERING_TAG,
+            new BehaviourTag(EnchantmentActions.PREVENTS_DECORATED_POT_SHATTERING_TAG,
                     "enchantment:technical.prevent_pot_shattering.title",
                     "enchantment:technical.prevent_pot_shattering.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_ICE_MELTING_TAG,
+            new BehaviourTag(EnchantmentActions.PREVENTS_ICE_MELTING_TAG,
                     "enchantment:technical.prevent_ice_melting.title",
                     "enchantment:technical.prevent_ice_melting.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_INFESTED_SPAWNS_TAG,
+            new BehaviourTag(EnchantmentActions.PREVENTS_INFESTED_SPAWNS_TAG,
                     "enchantment:technical.prevent_infested_block_spawning.title",
                     "enchantment:technical.prevent_infested_block_spawning.description"),
-            new BehaviourTag(EnchantmentMutations.SMELTS_LOOT_TAG, "enchantment:technical.smelts_loot.title",
+            new BehaviourTag(EnchantmentActions.SMELTS_LOOT_TAG, "enchantment:technical.smelts_loot.title",
                     "enchantment:technical.smelts_loot.description"));
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",
                     entry -> entry.data().definition().minCost().base(),
-                    EnchantmentMutations::minCostBase),
+                    EnchantmentActions::minCostBase),
             new CostDef("minCostPerLevelAboveFirst",
                     entry -> entry.data().definition().minCost().perLevelAboveFirst(),
-                    EnchantmentMutations::minCostPerLevel),
+                    EnchantmentActions::minCostPerLevel),
             new CostDef("maxCostBase",
                     entry -> entry.data().definition().maxCost().base(),
-                    EnchantmentMutations::maxCostBase),
+                    EnchantmentActions::maxCostBase),
             new CostDef("maxCostPerLevelAboveFirst",
                     entry -> entry.data().definition().maxCost().perLevelAboveFirst(),
-                    EnchantmentMutations::maxCostPerLevel));
+                    EnchantmentActions::maxCostPerLevel));
 
     public EnchantmentTechnicalPage(StudioContext context) {
         super(context, Registries.ENCHANTMENT, "enchantment-subpage-scroll", 64, new Insets(32));
@@ -103,7 +103,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     private VBox buildEffectsSection() {
         Section section = new Section("enchantment:technical.effects.title");
-        var effectsSelector = select(entry -> EnchantmentMutations.availableEffects(entry.data()));
+        var effectsSelector = select(entry -> EnchantmentActions.availableEffects(entry.data()));
         List<String> effects = effectsSelector.get() == null ? List.of() : effectsSelector.get();
 
         if (effects.isEmpty()) {
@@ -125,8 +125,8 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
             String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : TextUtils.humanize(effectId);
             SwitchCard card = SwitchCard.literal(effectLabel, effectId);
             bindToggle(card.valueProperty(),
-                    entry -> !EnchantmentMutations.isEffectDisabled(entry, effectId),
-                    () -> applyCustomAction(EnchantmentMutations.toggleDisabledEffect(effectId)));
+                    entry -> !EnchantmentActions.isEffectDisabled(entry, effectId),
+                    () -> applyCustomAction(EnchantmentActions.toggleDisabledEffect(effectId)));
             grid.addItem(card);
         }
 

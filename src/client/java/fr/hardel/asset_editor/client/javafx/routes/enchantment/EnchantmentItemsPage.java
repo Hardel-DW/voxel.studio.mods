@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
@@ -64,18 +64,18 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         });
 
         wireCardActions(supportedCards, key -> {
-            var holderSet = EnchantmentMutations.resolveItemTag("enchantable/" + key);
-            return holderSet != null ? EnchantmentMutations.supportedItems(holderSet) : null;
+            var holderSet = EnchantmentActions.resolveItemTag("enchantable/" + key);
+            return holderSet != null ? EnchantmentActions.supportedItems(holderSet) : null;
         });
 
         wireCardActions(primaryCards, key -> {
-            var holderSet = EnchantmentMutations.resolveItemTag("enchantable/" + key);
-            return holderSet != null ? EnchantmentMutations.primaryItems(Optional.of(holderSet)) : null;
+            var holderSet = EnchantmentActions.resolveItemTag("enchantable/" + key);
+            return holderSet != null ? EnchantmentActions.primaryItems(Optional.of(holderSet)) : null;
         });
 
         if (primaryNoneCard != null) {
             primaryNoneCard.setOnMouseClicked(e ->
-                    applyAction(EnchantmentMutations.primaryItems(Optional.empty())));
+                    applyAction(EnchantmentActions.primaryItems(Optional.empty())));
         }
     }
 

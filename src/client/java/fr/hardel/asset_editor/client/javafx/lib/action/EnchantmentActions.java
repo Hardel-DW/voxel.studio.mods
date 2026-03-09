@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-public final class EnchantmentMutations {
+public final class EnchantmentActions {
 
     public static final String MODE_KEY = "mode";
     public static final String DISABLED_EFFECTS_KEY = "disabledEffects";
@@ -127,7 +127,7 @@ public final class EnchantmentMutations {
 
     public static List<String> availableEffects(Enchantment enchantment) {
         return enchantment.effects().keySet().stream()
-                .map(EnchantmentMutations::effectId)
+                .map(EnchantmentActions::effectId)
                 .filter(id -> id != null && !id.isBlank())
                 .sorted()
                 .toList();
@@ -368,5 +368,5 @@ public final class EnchantmentMutations {
         return Identifier.fromNamespaceAndPath("minecraft", path);
     }
 
-    private EnchantmentMutations() {}
+    private EnchantmentActions() {}
 }

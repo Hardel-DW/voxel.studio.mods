@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.components.ui.InlineCard;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
@@ -35,7 +35,7 @@ public final class EnchantmentCategory extends Category {
             InlineCard card = new InlineCard(name, id.getNamespace(), active, false, null);
 
             card.setOnMouseClicked(e -> {
-                applyMutation.apply(EnchantmentMutations.toggleExclusive(id));
+                applyMutation.apply(EnchantmentActions.toggleExclusive(id));
             });
             directExclusiveSelector.subscribe(ids ->
                     card.activeProperty().set(ids != null && ids.contains(id.toString())));

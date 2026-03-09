@@ -5,10 +5,8 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Row;
 import fr.hardel.asset_editor.client.javafx.lib.InfiniteScrollPane;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
-import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
-import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
+import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -28,7 +26,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 public final class EnchantmentOverviewPage extends VBox implements Page {
 
@@ -98,13 +95,13 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         row.setContent(name, subInfo);
 
         var sw = row.toggle();
-        sw.setValue(!EnchantmentMutations.isSoftDeleted(entry));
+        sw.setValue(!EnchantmentActions.isSoftDeleted(entry));
         sw.valueProperty().addListener((obs, o, v) -> {
             if (o == null || v == null || o.equals(v)) return;
             var current = context.elementStore().get(Registries.ENCHANTMENT, entry.id());
-            boolean enabled = current == null || !EnchantmentMutations.isSoftDeleted(current);
+            boolean enabled = current == null || !EnchantmentActions.isSoftDeleted(current);
             if (Boolean.valueOf(v).equals(enabled)) return;
-            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(), EnchantmentMutations.toggleDisabled());
+            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(), EnchantmentActions.toggleDisabled());
             if (!result.isApplied()) sw.setValue(enabled);
         });
 
@@ -117,7 +114,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         iconWrap.setMinSize(32, 32);
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
-        var texture = EnchantmentMutations.previewTexture(entry.data());
+        var texture = EnchantmentActions.previewTexture(entry.data());
         if (texture != null) {
             iconWrap.getChildren().add(new ResourceImageIcon(texture, 32));
         } else {
@@ -141,53 +138,12 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
     private List<ElementEntry<Enchantment>> filteredEntries() {
         String search = context.uiState().search() == null ? "" : context.uiState().search().trim().toLowerCase(Locale.ROOT);
         String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
-        StudioSidebarView sidebarView = context.uiState().sidebarView();
+        var sidebarView = context.uiState().sidebarView();
 
         return context.allTypedEntries(Registries.ENCHANTMENT).stream()
                 .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
-                .filter(e -> matchesFilter(e, filterPath, sidebarView))
+                .filter(e -> EnchantmentViewMatchers.matches(e, filterPath, sidebarView))
                 .toList();
-    }
-
-    private static boolean matchesFilter(ElementEntry<Enchantment> entry, String filterPath, StudioSidebarView sidebarView) {
-        if (filterPath.isEmpty()) return true;
-        ElementEntry<Enchantment> effectiveEntry = EnchantmentMutations.prepareForFlush(entry);
-        String[] parts = filterPath.split("/", 2);
-        String category = parts[0];
-        String leaf = parts.length == 2 ? parts[1] : "";
-        if (!leaf.isEmpty() && !effectiveEntry.id().getPath().equals(leaf)) return false;
-
-        Enchantment enchantment = effectiveEntry.data();
-        if (sidebarView == StudioSidebarView.SLOTS) {
-            SlotConfig config = SlotConfigs.BY_ID.get(category);
-            if (config == null) return false;
-            return enchantment.definition().slots().stream()
-                    .anyMatch(g -> config.slots().contains(g.getSerializedName()));
-        }
-        if (sidebarView == StudioSidebarView.ITEMS) {
-            String itemTag = "enchantable/" + category;
-            boolean supported = enchantment.definition().supportedItems().unwrapKey()
-                    .map(tag -> tag.location().getPath().equals(itemTag))
-                    .orElse(false);
-            if (supported) return true;
-            boolean primary = enchantment.definition().primaryItems()
-                    .flatMap(hs -> hs.unwrapKey())
-                    .map(tag -> tag.location().getPath().equals(itemTag))
-                    .orElse(false);
-            if (primary) return true;
-            return effectiveEntry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
-        }
-        var tagKey = enchantment.exclusiveSet().unwrapKey();
-        if (tagKey.isPresent()) {
-            String full = tagKey.get().location().toString().toLowerCase(Locale.ROOT);
-            String path = tagKey.get().location().getPath().toLowerCase(Locale.ROOT);
-            return full.equals(category) || path.equals(category);
-        }
-        return enchantment.exclusiveSet().stream()
-                .map(holder -> holder.unwrapKey().map(k -> k.identifier()).orElse(null))
-                .filter(Objects::nonNull)
-                .anyMatch(id -> id.toString().toLowerCase(Locale.ROOT).equals(category)
-                        || id.getPath().toLowerCase(Locale.ROOT).equals(category));
     }
 
     private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");

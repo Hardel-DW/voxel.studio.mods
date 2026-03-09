@@ -26,7 +26,7 @@ public final class EditorActionGateway {
     private static final Map<ResourceKey<?>, RegistryBinding<?>> BINDINGS = new HashMap<>();
 
     static {
-        register(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentMutations::prepareForFlush);
+        register(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentActions::prepareForFlush);
     }
 
     private static <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec, FlushAdapter<T> adapter) {

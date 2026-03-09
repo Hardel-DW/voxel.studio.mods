@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
 import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import javafx.geometry.Insets;
@@ -48,19 +48,19 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                 "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
                 1, 127, 1,
                 entry -> entry.data().getMaxLevel(),
-                EnchantmentMutations::maxLevel);
+                EnchantmentActions::maxLevel);
 
         buildCounter(grid, WEIGHT_ICON,
                 "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
                 1, 1024, 1,
                 entry -> entry.data().getWeight(),
-                EnchantmentMutations::weight);
+                EnchantmentActions::weight);
 
         buildCounter(grid, ANVIL_COST_ICON,
                 "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
                 0, 255, 1,
                 entry -> entry.data().getAnvilCost(),
-                EnchantmentMutations::anvilCost);
+                EnchantmentActions::anvilCost);
 
         section.addContent(grid, buildModeSelector());
 
@@ -92,19 +92,19 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
 
-        var modeSelector = select(EnchantmentMutations::mode);
+        var modeSelector = select(EnchantmentActions::mode);
         Selector[] holder = new Selector[1];
         holder[0] = new Selector(
                 "enchantment:global.mode.title",
                 "enchantment:global.mode.description",
                 modeOptions,
-                modeSelector.get() == null ? EnchantmentMutations.MODE_NORMAL : modeSelector.get(),
+                modeSelector.get() == null ? EnchantmentActions.MODE_NORMAL : modeSelector.get(),
                 value -> {
                     if (value == null || value.equals(modeSelector.get())) {
                         return;
                     }
 
-                    var result = applyCustomAction(EnchantmentMutations.mode(value));
+                    var result = applyCustomAction(EnchantmentActions.mode(value));
                     if (!result.isApplied()) {
                         holder[0].setValue(modeSelector.get());
                     }
