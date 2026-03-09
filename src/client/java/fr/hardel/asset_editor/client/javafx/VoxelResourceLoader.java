@@ -10,7 +10,7 @@ import java.io.InputStream;
  * Thread-safe bridge that provides access to Minecraft's ResourceManager
  * from the JavaFX thread. Updated by the asset reload listener.
  */
-public final class ResourceLoader {
+public final class VoxelResourceLoader {
 
     private static volatile ResourceManager current = ResourceManager.Empty.INSTANCE;
 
@@ -22,7 +22,7 @@ public final class ResourceLoader {
         return current.open(location);
     }
 
-    private ResourceLoader() {}
+    private VoxelResourceLoader() {}
 }
 
 

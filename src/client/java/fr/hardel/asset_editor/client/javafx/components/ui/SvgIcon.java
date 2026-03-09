@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -27,7 +27,7 @@ public final class SvgIcon extends Pane {
         setMinSize(size, size);
         setMaxSize(size, size);
 
-        try (InputStream is = ResourceLoader.open(location)) {
+        try (InputStream is = VoxelResourceLoader.open(location)) {
             var doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
             var svg = doc.getDocumentElement();
             double[] vb = parseViewBox(svg.getAttribute("viewBox"));

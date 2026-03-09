@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.geometry.Insets;
@@ -72,7 +72,7 @@ public final class Dialog {
         dialogCard.getStyleClass().add("dialog-content");
         dialogCard.getChildren().add(layout);
 
-        try (var stream = ResourceLoader.open(SHINE)) {
+        try (var stream = VoxelResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             shine.setPreserveRatio(false);
             shine.setOpacity(0.15);

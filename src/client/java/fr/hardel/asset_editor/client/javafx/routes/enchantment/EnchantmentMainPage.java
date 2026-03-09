@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
@@ -199,7 +199,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         card.getStyleClass().add("support-card");
         card.setAlignment(Pos.TOP_LEFT);
 
-        try (var stream = ResourceLoader.open(SHINE)) {
+        try (var stream = VoxelResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             ColorAdjust shineEffect = new ColorAdjust();
             shineEffect.setHue(0.5);

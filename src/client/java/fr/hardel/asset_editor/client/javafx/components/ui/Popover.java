@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
@@ -35,7 +35,7 @@ public final class Popover extends Popup {
         StackPane inner = new StackPane(content);
         inner.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        try (var stream = ResourceLoader.open(SHINE)) {
+        try (var stream = VoxelResourceLoader.open(SHINE)) {
             ImageView shine = new ImageView(new Image(stream));
             shine.setPreserveRatio(false);
             shine.setOpacity(0.12);

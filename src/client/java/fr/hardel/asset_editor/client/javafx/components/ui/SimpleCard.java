@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Cursor;
 import javafx.geometry.Insets;
@@ -93,7 +93,7 @@ public class SimpleCard extends StackPane {
             if (shineImage != null) {
                 return shineImage;
             }
-            try (var stream = ResourceLoader.open(SHINE)) {
+            try (var stream = VoxelResourceLoader.open(SHINE)) {
                 shineImage = new Image(stream);
             } catch (Exception ignored) {
                 shineImage = null;

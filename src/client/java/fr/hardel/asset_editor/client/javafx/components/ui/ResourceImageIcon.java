@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.ResourceLoader;
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import net.minecraft.resources.Identifier;
@@ -31,7 +31,7 @@ public final class ResourceImageIcon extends ImageView {
             setImage(cached);
             return;
         }
-        try (var stream = ResourceLoader.open(location)) {
+        try (var stream = VoxelResourceLoader.open(location)) {
             Image image = new Image(stream, size, size, true, false);
             CACHE.put(cacheKey, image);
             setImage(image);

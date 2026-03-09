@@ -94,7 +94,7 @@ public final class VoxelStudioWindow {
     }
 
     private void createWindow() {
-        ResourceLoader.update(Minecraft.getInstance().getResourceManager());
+        VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadFonts();
 
         Rectangle2D sb = Screen.getPrimary().getVisualBounds();
@@ -152,7 +152,7 @@ public final class VoxelStudioWindow {
     private void loadFonts() {
         for (var variant : VoxelFonts.Variant.values()) {
             Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + variant.fileName + ".ttf");
-            try (var is = ResourceLoader.open(id)) {
+            try (var is = VoxelResourceLoader.open(id)) {
                 VoxelFonts.register(variant, Font.loadFont(is, 12));
             } catch (Exception ignored) {
             }
