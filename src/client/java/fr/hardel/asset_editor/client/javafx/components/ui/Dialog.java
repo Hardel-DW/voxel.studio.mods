@@ -22,6 +22,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 public final class Dialog {
@@ -38,7 +39,7 @@ public final class Dialog {
     public Dialog(String titleKey, Node content) {
         stage.initModality(Modality.WINDOW_MODAL);
 
-        Label title = new Label(net.minecraft.client.resources.language.I18n.get(titleKey));
+        Label title = new Label(I18n.get(titleKey));
         title.setTextFill(VoxelColors.ZINC_100);
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
 

@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
@@ -44,7 +45,7 @@ public final class InlineCard extends SimpleCard {
         descLabel.setTextFill(VoxelColors.ZINC_400);
         descLabel.setWrapText(true);
 
-        javafx.scene.layout.VBox textBlock = new javafx.scene.layout.VBox(4, titleLabel, descLabel);
+        VBox textBlock = new VBox(4, titleLabel, descLabel);
         HBox.setHgrow(textBlock, Priority.ALWAYS);
 
         Region iconSlot;

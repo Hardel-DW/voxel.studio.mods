@@ -9,6 +9,7 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Cursor;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -71,7 +72,7 @@ public final class Counter extends StackPane {
         valueLabel.setText(String.valueOf(initialValue));
         valueLabel.setTextFill(Color.WHITE);
         valueLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
-        valueLabel.setCursor(javafx.scene.Cursor.TEXT);
+        valueLabel.setCursor(Cursor.TEXT);
 
         valueField.setText(String.valueOf(initialValue));
         valueField.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 20; -fx-font-weight: bold; -fx-alignment: center; -fx-border-color: transparent;");
@@ -175,12 +176,12 @@ public final class Counter extends StackPane {
         arrow.setStrokeWidth(2.0);
         arrow.setStrokeLineCap(StrokeLineCap.ROUND);
         arrow.setStrokeLineJoin(StrokeLineJoin.ROUND);
-        arrow.setCursor(javafx.scene.Cursor.HAND);
+        arrow.setCursor(Cursor.HAND);
 
         StackPane pane = new StackPane(arrow);
         pane.setPrefSize(12, 12);
         pane.setMaxSize(12, 12);
-        pane.setCursor(javafx.scene.Cursor.HAND);
+        pane.setCursor(Cursor.HAND);
         return pane;
     }
 

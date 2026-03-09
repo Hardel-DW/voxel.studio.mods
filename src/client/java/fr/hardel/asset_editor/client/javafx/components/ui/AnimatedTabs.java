@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -140,8 +141,8 @@ public final class AnimatedTabs extends StackPane {
         indicatorTimeline.stop();
         indicatorTimeline.getKeyFrames().setAll(
             new KeyFrame(Duration.millis(300),
-                new KeyValue(indicator.xProperty(), targetX, javafx.animation.Interpolator.EASE_OUT),
-                new KeyValue(indicator.widthProperty(), targetW, javafx.animation.Interpolator.EASE_OUT))
+                new KeyValue(indicator.xProperty(), targetX, Interpolator.EASE_OUT),
+                new KeyValue(indicator.widthProperty(), targetW, Interpolator.EASE_OUT))
         );
         indicatorTimeline.playFromStart();
     }

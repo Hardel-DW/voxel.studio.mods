@@ -1,8 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.lib.store;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -263,8 +265,8 @@ public final class RegistryElementStore {
     private <T> void flushElements(Path packRoot, String registry,
             Map<Identifier, ElementEntry<?>> vanillaMap,
             Map<Identifier, ElementEntry<?>> currentMap,
-            Codec<T> codec, com.mojang.serialization.DynamicOps<JsonElement> ops,
-            com.google.gson.Gson gson, FlushAdapter<T> adapter) {
+            Codec<T> codec, DynamicOps<JsonElement> ops,
+            Gson gson, FlushAdapter<T> adapter) {
         for (var entry : currentMap.entrySet()) {
             Identifier id = entry.getKey();
             var currentEntry = adapter.prepare((ElementEntry<T>) entry.getValue());
@@ -295,7 +297,7 @@ public final class RegistryElementStore {
     private void flushTags(Path packRoot, String registry,
             Map<Identifier, ElementEntry<?>> vanillaMap,
             Map<Identifier, ElementEntry<?>> currentMap,
-            com.google.gson.Gson gson, FlushAdapter<?> adapter) {
+            Gson gson, FlushAdapter<?> adapter) {
         Map<Identifier, Set<Identifier>> vanillaTags = collectTagMemberships(vanillaMap, adapter);
         Map<Identifier, Set<Identifier>> currentTags = collectTagMemberships(currentMap, adapter);
 

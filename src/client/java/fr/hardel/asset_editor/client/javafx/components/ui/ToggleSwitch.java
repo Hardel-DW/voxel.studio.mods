@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -60,7 +61,7 @@ public final class ToggleSwitch extends Pane {
         knob.setFill(on ? KNOB_ON : VoxelColors.SWITCH_KNOB_OFF);
         knobTransition.stop();
         knobTransition.getKeyFrames().setAll(new KeyFrame(Duration.millis(200),
-                new KeyValue(knob.centerXProperty(), targetX, javafx.animation.Interpolator.EASE_BOTH)));
+                new KeyValue(knob.centerXProperty(), targetX, Interpolator.EASE_BOTH)));
         knobTransition.playFromStart();
     }
 

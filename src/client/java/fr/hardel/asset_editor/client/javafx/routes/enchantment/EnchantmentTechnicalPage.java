@@ -114,7 +114,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
         List<String> effects = effectsSelector.get() == null ? List.of() : effectsSelector.get();
 
         if (effects.isEmpty()) {
-            Label empty = new Label(net.minecraft.client.resources.language.I18n.get("enchantment:technical.empty_effects"));
+            Label empty = new Label(I18n.get("enchantment:technical.empty_effects"));
             empty.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
             empty.setTextFill(VoxelColors.ZINC_400);
             empty.setPadding(new Insets(16, 0, 16, 0));

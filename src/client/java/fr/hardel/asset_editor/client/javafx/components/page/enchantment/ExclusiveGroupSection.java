@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Category;
@@ -71,7 +72,7 @@ public final class ExclusiveGroupSection extends VBox {
         if (customTags.isEmpty()) {
             Label fallback = new Label(I18n.get("enchantment:exclusive.custom.fallback"));
             fallback.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
-            fallback.setTextFill(fr.hardel.asset_editor.client.javafx.VoxelColors.ZINC_400);
+            fallback.setTextFill(VoxelColors.ZINC_400);
             fallback.setPadding(new Insets(0, 16, 0, 16));
 
             category.addContent(fallback);

@@ -23,6 +23,7 @@ import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -55,7 +56,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
     public EnchantmentMainPage(StudioContext context) {
         super(context, Registries.ENCHANTMENT, "enchantment-main-scroll", 32, new Insets(16, 32, 28, 32));
-        ((javafx.scene.control.ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
+        ((ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
                 .addListener((obs, o, bounds) -> content().setMinHeight(Math.max(0, bounds.getHeight())));
     }
 

@@ -6,12 +6,14 @@ import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.Custo
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.FlushAdapter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -82,7 +84,7 @@ public final class EditorActionGateway {
         return EditorActionResult.applied();
     }
 
-    public void flushAll(java.nio.file.Path packRoot, net.minecraft.core.HolderLookup.Provider registries) {
+    public void flushAll(Path packRoot, HolderLookup.Provider registries) {
         for (var binding : BINDINGS.values()) {
             flushRegistry(packRoot, binding, registries);
         }
@@ -97,8 +99,8 @@ public final class EditorActionGateway {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> void flushRegistry(java.nio.file.Path packRoot, RegistryBinding<?> binding,
-                                    net.minecraft.core.HolderLookup.Provider registries) {
+    private <T> void flushRegistry(Path packRoot, RegistryBinding<?> binding,
+                                    HolderLookup.Provider registries) {
         var typed = (RegistryBinding<T>) binding;
         store.flush(packRoot, typed.registryKey(), typed.codec(), registries, typed.adapter());
     }

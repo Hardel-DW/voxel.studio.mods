@@ -11,6 +11,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -154,7 +155,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
     private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");
 
     private VBox emptyState() {
-        var icon = new fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon(SEARCH_ICON, 40, Color.WHITE);
+        var icon = new SvgIcon(SEARCH_ICON, 40, Color.WHITE);
         icon.setOpacity(0.2);
         StackPane circle = new StackPane(icon);
         circle.getStyleClass().add("enchantment-overview-empty-circle");

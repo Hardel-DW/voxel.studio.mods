@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.ResourceLoader;
 import javafx.animation.TranslateTransition;
+import javafx.scene.Cursor;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
@@ -30,7 +31,7 @@ public class SimpleCard extends StackPane {
     protected final VBox contentBox = new VBox();
 
     protected SimpleCard(Insets padding) {
-        setCursor(javafx.scene.Cursor.HAND);
+        setCursor(Cursor.HAND);
 
         // Visual card: has border/background styling, translates on hover.
         // The outer StackPane (this) acts as the stable hit area since it never translates.

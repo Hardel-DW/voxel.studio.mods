@@ -9,6 +9,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -440,7 +441,7 @@ public final class VoxelStudioWindow {
                     || n.getOnMouseClicked() != null
                     || n.getOnMousePressed() != null
                     || n.getOnMouseReleased() != null
-                    || n instanceof javafx.scene.control.ButtonBase)
+                    || n instanceof ButtonBase)
                 return true;
         }
         return false;

@@ -2,19 +2,24 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SimpleCard;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 
 import java.util.List;
 
@@ -79,8 +84,7 @@ public final class EnchantmentTags extends SimpleCard {
         row.setAlignment(Pos.CENTER_LEFT);
 
         if (imageId != null) {
-            fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon icon =
-                new fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon(imageId, 32);
+            ResourceImageIcon icon = new ResourceImageIcon(imageId, 32);
             row.getChildren().add(0, icon);
         }
 
@@ -115,7 +119,7 @@ public final class EnchantmentTags extends SimpleCard {
             seeMore.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
             seeMore.setTextFill(VoxelColors.ZINC_400);
             seeMore.setPadding(new Insets(0, 8, 0, 0));
-            seeMore.setCursor(javafx.scene.Cursor.HAND);
+            seeMore.setCursor(Cursor.HAND);
             bottom.getChildren().add(seeMore);
         }
 
@@ -142,12 +146,12 @@ public final class EnchantmentTags extends SimpleCard {
         if (BuiltInRegistries.ITEM.containsKey(identifier)) {
             return BuiltInRegistries.ITEM.getValue(identifier).getName().getString();
         }
-        var conn = net.minecraft.client.Minecraft.getInstance().getConnection();
+        var conn = Minecraft.getInstance().getConnection();
         if (conn != null) {
-            var enchantmentLookup = conn.registryAccess().lookup(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            var enchantmentLookup = conn.registryAccess().lookup(Registries.ENCHANTMENT);
             if (enchantmentLookup.isPresent()) {
                 var holder = enchantmentLookup.get().get(
-                        net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, identifier));
+                        ResourceKey.create(Registries.ENCHANTMENT, identifier));
                 if (holder.isPresent()) {
                     return holder.get().value().description().getString();
                 }

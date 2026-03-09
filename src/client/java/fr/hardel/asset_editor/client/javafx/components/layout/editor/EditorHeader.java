@@ -21,6 +21,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 
 import java.util.Locale;
@@ -175,7 +176,7 @@ public final class EditorHeader extends VBox {
         String id = tree.currentElementId();
         if (id == null || id.isBlank()) return I18n.get(concept.titleKey());
         if (concept == StudioConcept.ENCHANTMENT) {
-            var entry = context.currentEntry(net.minecraft.core.registries.Registries.ENCHANTMENT);
+            var entry = context.currentEntry(Registries.ENCHANTMENT);
             if (entry != null) return entry.data().description().getString();
         }
         StudioElementId parsed = StudioElementId.parse(id);

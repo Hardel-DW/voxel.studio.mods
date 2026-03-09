@@ -6,6 +6,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -28,8 +30,8 @@ public class Category extends VBox {
         leftLine.setPrefHeight(4);
         leftLine.setMinHeight(4);
         leftLine.setMaxHeight(4);
-        leftLine.setBackground(new javafx.scene.layout.Background(
-            new javafx.scene.layout.BackgroundFill(VoxelColors.ZINC_700, null, null)));
+        leftLine.setBackground(new Background(
+            new BackgroundFill(VoxelColors.ZINC_700, null, null)));
         HBox.setHgrow(leftLine, Priority.ALWAYS);
 
         Label title = new Label(I18n.get(titleKey));
@@ -41,8 +43,8 @@ public class Category extends VBox {
         rightLine.setPrefHeight(4);
         rightLine.setMinHeight(4);
         rightLine.setMaxHeight(4);
-        rightLine.setBackground(new javafx.scene.layout.Background(
-            new javafx.scene.layout.BackgroundFill(VoxelColors.ZINC_700, null, null)));
+        rightLine.setBackground(new Background(
+            new BackgroundFill(VoxelColors.ZINC_700, null, null)));
         HBox.setHgrow(rightLine, Priority.ALWAYS);
 
         HBox separator = new HBox();

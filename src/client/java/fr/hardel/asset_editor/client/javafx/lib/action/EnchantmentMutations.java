@@ -11,6 +11,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.Item;
@@ -294,7 +295,7 @@ public final class EnchantmentMutations {
         var conn = Minecraft.getInstance().getConnection();
         if (conn == null) return null;
         return conn.registryAccess().lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(net.minecraft.resources.ResourceKey.create(Registries.ENCHANTMENT, id)))
+                .flatMap(lookup -> lookup.get(ResourceKey.create(Registries.ENCHANTMENT, id)))
                 .orElse(null);
     }
 

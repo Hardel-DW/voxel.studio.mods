@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -8,6 +9,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -39,7 +44,7 @@ public final class Button extends StackPane {
         content.setAlignment(Pos.CENTER);
         content.setSpacing(8);
         if (text != null && !text.isEmpty()) {
-            javafx.scene.control.Label label = new javafx.scene.control.Label(text);
+            Label label = new Label(text);
             label.getStyleClass().add("studio-button-label");
             label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 14));
             label.setTextFill(variant == Variant.SHIMMER ? Color.web("#080507") : Color.WHITE);
@@ -130,8 +135,8 @@ public final class Button extends StackPane {
 
         Region baseLayer = new Region();
         baseLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        baseLayer.setBackground(new javafx.scene.layout.Background(
-            new javafx.scene.layout.BackgroundFill(base, new javafx.scene.layout.CornerRadii(12), Insets.EMPTY)
+        baseLayer.setBackground(new Background(
+            new BackgroundFill(base, new CornerRadii(12), Insets.EMPTY)
         ));
 
         Region stripe = new Region();
@@ -168,7 +173,7 @@ public final class Button extends StackPane {
 
     private void animateOpacity(double target) {
         Timeline timeline = new Timeline(
-            new KeyFrame(Duration.millis(150), new KeyValue(opacityProperty(), target, javafx.animation.Interpolator.EASE_BOTH))
+            new KeyFrame(Duration.millis(150), new KeyValue(opacityProperty(), target, Interpolator.EASE_BOTH))
         );
         timeline.play();
     }
