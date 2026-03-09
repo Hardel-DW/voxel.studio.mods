@@ -14,7 +14,6 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -104,19 +103,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                                Function<ElementEntry<Enchantment>, Integer> selectorFn,
                                java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {
         Counter counter = new Counter(min, max, step, 0);
-
-        StoreSelector<Integer> storeSelector = select(selectorFn);
-        storeSelector.subscribe(val -> { if (val != null) counter.valueProperty().set(val); });
-        if (storeSelector.get() != null) counter.valueProperty().set(storeSelector.get());
-
-        counter.valueProperty().addListener((obs, oldVal, newVal) -> {
-            if (oldVal == null || newVal == null || oldVal.intValue() == newVal.intValue()) return;
-            if (Integer.valueOf(newVal.intValue()).equals(storeSelector.get())) return;
-
-            var result = applyAction(mutation.apply(newVal.intValue()));
-            if (!result.isApplied()) counter.valueProperty().set(storeSelector.get());
-        });
-
+        bindInt(counter.valueProperty(), selectorFn, mutation);
         grid.addItem(new TemplateCard(icon, titleKey, descKey, counter));
     }
 

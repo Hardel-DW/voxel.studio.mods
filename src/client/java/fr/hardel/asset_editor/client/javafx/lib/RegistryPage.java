@@ -20,9 +20,15 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public abstract class RegistryPage<T> extends VBox implements Page {
@@ -76,6 +82,41 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         var result = context.gateway().toggleTag(registry, currentId, tagId);
         if (!result.isApplied()) handleActionFailure(result);
         return result;
+    }
+
+    protected void bindInt(IntegerProperty property,
+                           Function<ElementEntry<T>, Integer> extractor,
+                           IntFunction<UnaryOperator<T>> mutation) {
+        var selector = select(extractor);
+        if (selector.get() != null) property.set(selector.get());
+        selector.subscribe(val -> { if (val != null) property.set(val); });
+        property.addListener((obs, o, v) -> {
+            if (o == null || v == null || o.intValue() == v.intValue()) return;
+            if (Integer.valueOf(v.intValue()).equals(selector.get())) return;
+            var result = applyAction(mutation.apply(v.intValue()));
+            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+        });
+    }
+
+    protected void bindToggle(BooleanProperty property,
+                              Function<ElementEntry<T>, Boolean> extractor,
+                              Supplier<EditorActionResult> action) {
+        var selector = select(extractor);
+        if (selector.get() != null) property.set(selector.get());
+        selector.subscribe(val -> { if (val != null) property.set(val); });
+        property.addListener((obs, o, v) -> {
+            if (o == null || v == null || o.equals(v)) return;
+            if (v.equals(selector.get())) return;
+            var result = action.get();
+            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+        });
+    }
+
+    protected <R> StoreSelector<R> bindView(Function<ElementEntry<T>, R> extractor, Consumer<R> setter) {
+        var selector = select(extractor);
+        if (selector.get() != null) setter.accept(selector.get());
+        selector.subscribe(val -> { if (val != null) setter.accept(val); });
+        return selector;
     }
 
     protected boolean hasWritablePack() {

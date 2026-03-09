@@ -49,11 +49,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
                 Card card = new Card(cfg.image(), cfg.nameKey(), false);
 
                 card.setOnMouseClicked(e -> applyAction(EnchantmentMutations.toggleSlot(slotGroup)));
-
-                var selector = select(entry ->
-                        new SlotManager(entry.data().definition().slots()).isActive(slotGroup));
-                selector.subscribe(card::setActive);
-                if (selector.get() != null) card.setActive(selector.get());
+                bindView(entry -> new SlotManager(entry.data().definition().slots()).isActive(slotGroup), card::setActive);
 
                 row.addItem(card);
             }

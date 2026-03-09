@@ -27,20 +27,33 @@ import java.util.function.UnaryOperator;
 
 public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
-    private record BehaviourTag(Identifier tagId, String title, String description) {}
+    private record BehaviourTag(Identifier tagId, String title, String description) {
+    }
 
     private record CostDef(String key,
-                            Function<ElementEntry<Enchantment>, Integer> selector,
-                            java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {}
+            Function<ElementEntry<Enchantment>, Integer> selector,
+            java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {
+    }
 
     private static final List<BehaviourTag> BEHAVIOUR_TAGS = List.of(
-            new BehaviourTag(EnchantmentMutations.CURSE_TAG, "enchantment:find.curse.title", "enchantment:find.curse.description"),
-            new BehaviourTag(EnchantmentMutations.DOUBLE_TRADE_PRICE_TAG, "enchantment:technical.price_doubled.title", "enchantment:technical.price_doubled.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG, "enchantment:technical.prevent_bee_spawning.title", "enchantment:technical.prevent_bee_spawning.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_DECORATED_POT_SHATTERING_TAG, "enchantment:technical.prevent_pot_shattering.title", "enchantment:technical.prevent_pot_shattering.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_ICE_MELTING_TAG, "enchantment:technical.prevent_ice_melting.title", "enchantment:technical.prevent_ice_melting.description"),
-            new BehaviourTag(EnchantmentMutations.PREVENTS_INFESTED_SPAWNS_TAG, "enchantment:technical.prevent_infested_block_spawning.title", "enchantment:technical.prevent_infested_block_spawning.description"),
-            new BehaviourTag(EnchantmentMutations.SMELTS_LOOT_TAG, "enchantment:technical.smelts_loot.title", "enchantment:technical.smelts_loot.description"));
+            new BehaviourTag(EnchantmentMutations.CURSE_TAG, "enchantment:find.curse.title",
+                    "enchantment:find.curse.description"),
+            new BehaviourTag(EnchantmentMutations.DOUBLE_TRADE_PRICE_TAG, "enchantment:technical.price_doubled.title",
+                    "enchantment:technical.price_doubled.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG,
+                    "enchantment:technical.prevent_bee_spawning.title",
+                    "enchantment:technical.prevent_bee_spawning.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_DECORATED_POT_SHATTERING_TAG,
+                    "enchantment:technical.prevent_pot_shattering.title",
+                    "enchantment:technical.prevent_pot_shattering.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_ICE_MELTING_TAG,
+                    "enchantment:technical.prevent_ice_melting.title",
+                    "enchantment:technical.prevent_ice_melting.description"),
+            new BehaviourTag(EnchantmentMutations.PREVENTS_INFESTED_SPAWNS_TAG,
+                    "enchantment:technical.prevent_infested_block_spawning.title",
+                    "enchantment:technical.prevent_infested_block_spawning.description"),
+            new BehaviourTag(EnchantmentMutations.SMELTS_LOOT_TAG, "enchantment:technical.smelts_loot.title",
+                    "enchantment:technical.smelts_loot.description"));
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",
@@ -68,17 +81,8 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
         for (BehaviourTag field : BEHAVIOUR_TAGS) {
             SwitchCard sw = SwitchCard.literal(I18n.get(field.title()), I18n.get(field.description()));
-
-            var selector = select(entry -> entry.tags().contains(field.tagId()));
-            selector.subscribe(sw::setValue);
-            if (selector.get() != null) sw.setValue(selector.get());
-
-            sw.valueProperty().addListener((obs, o, v) -> {
-                if (o == null || v == null || o.equals(v)) return;
-                if (v.equals(selector.get())) return;
-                applyTagToggle(field.tagId());
-            });
-
+            bindToggle(sw.valueProperty(), entry -> entry.tags().contains(field.tagId()),
+                    () -> applyTagToggle(field.tagId()));
             tagGrid.addItem(sw);
         }
         behaviour.addContent(tagGrid);
@@ -89,18 +93,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
         for (CostDef field : COST_FIELDS) {
             Range range = new Range("enchantment:global." + field.key() + ".title", 0, 100, 1, 0);
-
-            var selector = select(field.selector());
-            selector.subscribe(val -> { if (val != null) range.setValue(val); });
-            if (selector.get() != null) range.setValue(selector.get());
-
-            range.valueProperty().addListener((obs, o, v) -> {
-                if (o == null || v == null || o.intValue() == v.intValue()) return;
-                if (Integer.valueOf(v.intValue()).equals(selector.get())) return;
-                var result = applyAction(field.mutation().apply(v.intValue()));
-                if (!result.isApplied()) range.setValue(selector.get());
-            });
-
+            bindInt(range.valueProperty(), field.selector(), field.mutation());
             costGrid.addItem(range);
         }
         costs.addContent(costGrid);
@@ -131,26 +124,9 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
             String effectKey = "effects:" + effectId;
             String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : labelOf(effectId);
             SwitchCard card = SwitchCard.literal(effectLabel, effectId);
-            var selector = select(entry -> EnchantmentMutations.isEffectDisabled(entry, effectId));
-            selector.subscribe(disabled -> {
-                if (disabled != null) {
-                    card.setValue(!disabled);
-                }
-            });
-            if (selector.get() != null) {
-                card.setValue(!selector.get());
-            }
-
-            card.valueProperty().addListener((obs, oldValue, newValue) -> {
-                if (oldValue == null || newValue == null || oldValue.equals(newValue)) return;
-                Boolean currentEnabled = selector.get() == null ? Boolean.TRUE : !selector.get();
-                if (Boolean.valueOf(newValue).equals(currentEnabled)) return;
-
-                var result = applyCustomAction(EnchantmentMutations.toggleDisabledEffect(effectId));
-                if (!result.isApplied()) {
-                    card.setValue(currentEnabled);
-                }
-            });
+            bindToggle(card.valueProperty(),
+                    entry -> !EnchantmentMutations.isEffectDisabled(entry, effectId),
+                    () -> applyCustomAction(EnchantmentMutations.toggleDisabledEffect(effectId)));
             grid.addItem(card);
         }
 
@@ -163,8 +139,10 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
         String[] parts = clean.split("_");
         StringBuilder builder = new StringBuilder();
         for (String part : parts) {
-            if (part.isBlank()) continue;
-            if (!builder.isEmpty()) builder.append(' ');
+            if (part.isBlank())
+                continue;
+            if (!builder.isEmpty())
+                builder.append(' ');
             builder.append(part.substring(0, 1).toUpperCase(Locale.ROOT));
             builder.append(part.substring(1));
         }

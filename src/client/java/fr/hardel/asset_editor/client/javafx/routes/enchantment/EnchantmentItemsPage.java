@@ -53,22 +53,15 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         supportedGrid = buildGrid(supportedCards, false);
         primaryGrid = buildGrid(primaryCards, true);
 
-        var supportedSelector = select(entry -> entry.data().definition().supportedItems().unwrapKey()
-                .map(k -> k.location().getPath()).orElse(""));
-        supportedSelector.subscribe(tag -> updateCards(supportedCards, tag));
-        if (supportedSelector.get() != null) updateCards(supportedCards, supportedSelector.get());
+        bindView(entry -> entry.data().definition().supportedItems().unwrapKey()
+                .map(k -> k.location().getPath()).orElse(""), tag -> updateCards(supportedCards, tag));
 
-        var primarySelector = select(entry -> entry.data().definition().primaryItems()
+        bindView(entry -> entry.data().definition().primaryItems()
                 .flatMap(hs -> hs.unwrapKey())
-                .map(k -> k.location().getPath()).orElse(""));
-        primarySelector.subscribe(tag -> {
+                .map(k -> k.location().getPath()).orElse(""), tag -> {
             updateCards(primaryCards, tag);
             if (primaryNoneCard != null) primaryNoneCard.setActive(tag.isEmpty());
         });
-        if (primarySelector.get() != null) {
-            updateCards(primaryCards, primarySelector.get());
-            if (primaryNoneCard != null) primaryNoneCard.setActive(primarySelector.get().isEmpty());
-        }
 
         wireCardActions(supportedCards, key -> {
             var holderSet = EnchantmentMutations.resolveItemTag("enchantable/" + key);
