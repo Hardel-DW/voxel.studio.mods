@@ -11,6 +11,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -21,7 +22,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -122,7 +122,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
         for (String effectId : effects) {
             String effectKey = "effects:" + effectId;
-            String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : labelOf(effectId);
+            String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : TextUtils.humanize(effectId);
             SwitchCard card = SwitchCard.literal(effectLabel, effectId);
             bindToggle(card.valueProperty(),
                     entry -> !EnchantmentMutations.isEffectDisabled(entry, effectId),
@@ -134,18 +134,4 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
         return section;
     }
 
-    private static String labelOf(String raw) {
-        String clean = raw.contains(":") ? raw.substring(raw.indexOf(':') + 1) : raw;
-        String[] parts = clean.split("_");
-        StringBuilder builder = new StringBuilder();
-        for (String part : parts) {
-            if (part.isBlank())
-                continue;
-            if (!builder.isEmpty())
-                builder.append(' ');
-            builder.append(part.substring(0, 1).toUpperCase(Locale.ROOT));
-            builder.append(part.substring(1));
-        }
-        return builder.toString();
-    }
 }
