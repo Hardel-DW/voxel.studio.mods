@@ -9,6 +9,7 @@
     "back": "Back",
     "explore": "Explore",
     "editor.all": "All",
+    "configure": "Configure",
     "donate": "Make a donation",
     "common.help.discord": "Need Help?",
     "studio.concept.enchantment": "Enchantment",
@@ -29,7 +30,6 @@
     "enchantment:overview.tradeable": "This enchantment can be traded by villagers like a book",
     "enchantment:overview.tradeable_equipment": "This enchantment can be traded by villagers like an item",
     "enchantment:overview.price_doubled": "The price of the trade is doubled",
-    "configure": "Configure",
     "enchantment:items.no_results.title": "No enchantment found",
     "enchantment:items.no_results.description": "Try changing your search or filters.",
     "enchantment:section.global": "Global Settings",
@@ -73,18 +73,15 @@
     "recipe:overview.no.recipes.found": "No recipes found",
     "recipe:overview.try.adjusting.search.or.filter": "Try adjusting your search or filter",
     "recipe:section.main": "Main",
-
     "enchantment:section.slots.description": "When the enchantment effect should be activated.",
     "enchantment:section.supported.description": "Which items are compatible with this enchantment.",
     "enchantment:section.exclusive.description": "Non-combinable enchantments.",
     "enchantment:section.technical.description": "Technical settings for enchantments.",
     "enchantment:section.costs": "Costs",
-
     "enchantment:toggle.supported.title": "Supported",
     "enchantment:toggle.primary.title": "Enchanting Table",
     "enchantment:toggle.group.title": "Predefined Group",
     "enchantment:toggle.individual.title": "Arbitrary Choice",
-
     "enchantment:slots.mainhand.title": "Main Hand",
     "enchantment:slots.offhand.title": "Off Hand",
     "enchantment:slots.body.title": "Body (Dog - Horse)",
@@ -96,7 +93,6 @@
     "enchantment:slots.explanation.title": "Here's how enchantment slots work and when their effects kick in:",
     "enchantment:slots.explanation.list.1": "Take Fire Aspect for example - if you put it on your main hand or offhand weapon, it'll set enemies on fire when you hit them.",
     "enchantment:slots.explanation.list.2": "And if you put Fire Aspect on any armor piece (head, chest, legs or feet) and you equip it, it'll light up enemies every time you attack.",
-
     "enchantment:supported.sword.title": "Sword",
     "enchantment:supported.trident.title": "Trident",
     "enchantment:supported.mace.title": "Mace",
@@ -121,7 +117,6 @@
     "enchantment:supported.durability.title": "Durability",
     "enchantment:supported.mining_loot.title": "Mining loot",
     "enchantment:supported.none.title": "Default",
-
     "enchantment:find.enchanting_table.title": "Enchanting Table",
     "enchantment:find.enchanting_table.description": "This enchantment can be obtained from the enchanting table.",
     "enchantment:find.mob_equipment.title": "Mob Equipment",
@@ -139,7 +134,6 @@
     "enchantment:find.treasure.title": "Treasure",
     "enchantment:find.treasure.description": "Used in loot tables like fishing rewards.",
     "enchantment:technical.lock.reason": "Enabled by \"no treasure\"",
-
     "enchantment:technical.smelts_loot.title": "Smelts loot",
     "enchantment:technical.smelts_loot.description": "Items dropped by mobs will be smelted.",
     "enchantment:technical.prevent_ice_melting.title": "Prevents ice from melting",
@@ -154,12 +148,10 @@
     "enchantment:technical.price_doubled.description": "This enchantment is charged twice as much in villager trades.",
     "enchantment:technical.effects.title": "Enchantment effects",
     "enchantment:technical.empty_effects": "This enchantment has no effects.",
-
     "enchantment:global.minCostBase.title": "Minimum base cost",
     "enchantment:global.minCostPerLevelAboveFirst.title": "Minimum cost per level above the first",
     "enchantment:global.maxCostBase.title": "Maximum base cost",
     "enchantment:global.maxCostPerLevelAboveFirst.title": "Maximum cost per level above the first",
-
     "enchantment:exclusive.vanilla.title": "Vanilla",
     "enchantment:exclusive.custom.title": "Custom",
     "enchantment:exclusive.custom.fallback": "Does not contain any custom enchantment lists.",
@@ -183,10 +175,8 @@
     "enchantment:exclusive.actions.membership.title": "Belong",
     "enchantment:exclusive.actions.membership.subtitle": "Tags",
     "enchantment:exclusive.actions.membership.description": "Adds this enchantment to the tags list",
-
     "generic.see.more": "See more",
     "generic.actions": "Actions",
-
     "studio:pack.none": "No Pack",
     "studio:pack.select": "Select a pack",
     "studio:pack.create": "Create Pack",

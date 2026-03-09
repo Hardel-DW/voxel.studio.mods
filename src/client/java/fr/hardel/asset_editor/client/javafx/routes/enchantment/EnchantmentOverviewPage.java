@@ -1,23 +1,22 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
-import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewCard;
-import fr.hardel.asset_editor.client.javafx.components.page.enchantment.EnchantmentOverviewRow;
+import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
+import fr.hardel.asset_editor.client.javafx.components.ui.Row;
+import fr.hardel.asset_editor.client.javafx.lib.InfiniteScrollPane;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentMutations;
+import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -35,6 +34,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
     private final StudioContext context;
     private final StackPane content = new StackPane();
+    private final InfiniteScrollPane<ElementEntry<Enchantment>> scrollPane;
     private final Runnable storeListener = this::refresh;
 
     public EnchantmentOverviewPage(StudioContext context) {
@@ -50,18 +50,17 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         toolbar.getStyleClass().add("enchantment-overview-toolbar");
         toolbar.setPadding(new Insets(16, 32, 16, 32));
 
-        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane = new InfiniteScrollPane<>(16, this::buildRow);
         scrollPane.getStyleClass().add("enchantment-overview-scroll");
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.content().getStyleClass().add("enchantment-overview-list");
+        scrollPane.content().setPadding(new Insets(24, 32, 24, 32));
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        getChildren().addAll(toolbar, scrollPane);
+        getChildren().addAll(toolbar, content);
 
-        context.uiState().searchProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.uiState().viewModeProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.uiState().sidebarViewProperty().addListener((obs, oldValue, newValue) -> refresh());
+        context.uiState().searchProperty().addListener((obs, o, v) -> refresh());
+        context.uiState().filterPathProperty().addListener((obs, o, v) -> refresh());
+        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> refresh());
     }
 
     @Override
@@ -75,40 +74,79 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         context.elementStore().unsubscribeRegistry(Registries.ENCHANTMENT, storeListener);
     }
 
+    private Row buildRow(ElementEntry<Enchantment> entry) {
+        Row row = new Row();
+        row.getStyleClass().add("enchantment-row");
+        row.setOnClick(() -> open(entry.id()));
+        row.setIcon(buildIcon(entry));
+
+        Label name = new Label(entry.data().description().getString());
+        name.getStyleClass().add("enchantment-row-name");
+
+        Label identifier = new Label(entry.id().toString());
+        identifier.getStyleClass().add("enchantment-row-identifier");
+
+        Label bullet = new Label("\u2022");
+        bullet.getStyleClass().add("enchantment-row-separator");
+
+        Label level = new Label(I18n.get("enchantment:overview.level") + " " + entry.data().getMaxLevel());
+        level.getStyleClass().add("enchantment-row-level");
+
+        HBox subInfo = new HBox(8, identifier, bullet, level);
+        subInfo.setAlignment(Pos.CENTER_LEFT);
+
+        row.setContent(name, subInfo);
+
+        var sw = row.toggle();
+        sw.setValue(!EnchantmentMutations.isSoftDeleted(entry));
+        sw.valueProperty().addListener((obs, o, v) -> {
+            if (o == null || v == null || o.equals(v)) return;
+            var current = context.elementStore().get(Registries.ENCHANTMENT, entry.id());
+            boolean enabled = current == null || !EnchantmentMutations.isSoftDeleted(current);
+            if (Boolean.valueOf(v).equals(enabled)) return;
+            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(), EnchantmentMutations.toggleDisabled());
+            if (!result.isApplied()) sw.setValue(enabled);
+        });
+
+        return row;
+    }
+
+    private static StackPane buildIcon(ElementEntry<Enchantment> entry) {
+        StackPane iconWrap = new StackPane();
+        iconWrap.getStyleClass().add("enchantment-row-icon");
+        iconWrap.setMinSize(32, 32);
+        iconWrap.setPrefSize(32, 32);
+        iconWrap.setMaxSize(32, 32);
+        var texture = EnchantmentMutations.previewTexture(entry.data());
+        if (texture != null) {
+            iconWrap.getChildren().add(new ResourceImageIcon(texture, 32));
+        } else {
+            Label fallback = new Label("?");
+            fallback.getStyleClass().add("enchantment-row-placeholder");
+            iconWrap.getChildren().add(fallback);
+        }
+        return iconWrap;
+    }
+
     private void refresh() {
-        String search = context.uiState().search() == null ? "" : context.uiState().search().trim().toLowerCase(Locale.ROOT);
-        String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
-        StudioSidebarView sidebarView = context.uiState().sidebarView();
-
-        List<ElementEntry<Enchantment>> entries = context.allTypedEntries(Registries.ENCHANTMENT).stream()
-                .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
-                .filter(e -> matchesFilter(e, filterPath, sidebarView))
-                .toList();
-
+        List<ElementEntry<Enchantment>> entries = filteredEntries();
         if (entries.isEmpty()) {
             content.getChildren().setAll(emptyState());
             return;
         }
-        if (context.uiState().viewMode() == StudioViewMode.LIST) {
-            VBox list = new VBox(0);
-            list.getStyleClass().add("enchantment-overview-list");
-            list.setPadding(new Insets(24, 32, 24, 32));
-            for (int i = 0; i < entries.size(); i++) {
-                var entry = entries.get(i);
-                var row = new EnchantmentOverviewRow(context, entry, () -> open(entry.id()));
-                if (i == 0) row.getStyleClass().add("enchantment-row-first");
-                list.getChildren().add(row);
-            }
-            content.getChildren().setAll(list);
-            return;
-        }
-        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(280));
-        grid.getStyleClass().add("enchantment-overview-grid");
-        grid.setPadding(new Insets(24, 32, 24, 32));
-        for (var entry : entries) {
-            grid.addItem(new EnchantmentOverviewCard(context, entry, () -> open(entry.id())));
-        }
-        content.getChildren().setAll(grid);
+        scrollPane.setItems(entries);
+        content.getChildren().setAll(scrollPane);
+    }
+
+    private List<ElementEntry<Enchantment>> filteredEntries() {
+        String search = context.uiState().search() == null ? "" : context.uiState().search().trim().toLowerCase(Locale.ROOT);
+        String filterPath = context.uiState().filterPath() == null ? "" : context.uiState().filterPath().trim().toLowerCase(Locale.ROOT);
+        StudioSidebarView sidebarView = context.uiState().sidebarView();
+
+        return context.allTypedEntries(Registries.ENCHANTMENT).stream()
+                .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
+                .filter(e -> matchesFilter(e, filterPath, sidebarView))
+                .toList();
     }
 
     private static boolean matchesFilter(ElementEntry<Enchantment> entry, String filterPath, StudioSidebarView sidebarView) {
