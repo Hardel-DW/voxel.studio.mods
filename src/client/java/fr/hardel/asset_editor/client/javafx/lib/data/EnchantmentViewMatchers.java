@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.javafx.lib.data;
 
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -25,14 +24,13 @@ public final class EnchantmentViewMatchers {
     public static boolean matches(ElementEntry<Enchantment> entry, String filterPath, StudioSidebarView sidebarView) {
         if (filterPath.isEmpty()) return true;
 
-        ElementEntry<Enchantment> effectiveEntry = EnchantmentActions.prepareForFlush(entry);
         String[] parts = filterPath.split("/", 2);
         String category = parts[0];
         String leaf = parts.length == 2 ? parts[1] : "";
-        if (!leaf.isEmpty() && !effectiveEntry.id().getPath().equals(leaf)) return false;
+        if (!leaf.isEmpty() && !entry.id().getPath().equals(leaf)) return false;
 
         ViewMatcher matcher = MATCHERS.get(sidebarView);
-        return matcher != null && matcher.matches(effectiveEntry, category);
+        return matcher != null && matcher.matches(entry, category);
     }
 
     public static boolean matchesSlot(ElementEntry<Enchantment> entry, String category) {

@@ -19,6 +19,8 @@ import java.util.Set;
 public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
     private SectionSelector selector;
+    private VBox groupSection;
+    private VBox singleSection;
     private String currentMode = "group";
 
     public EnchantmentExclusivePage(StudioContext context) {
@@ -54,24 +56,19 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
                     .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
         });
 
-        VBox groupSection = new ExclusiveGroupSection(context(), currentId(), exclusiveSelector);
-        VBox singleSection = new ExclusiveSingleSection(
+        groupSection = new ExclusiveGroupSection(context(), currentId(), exclusiveSelector);
+        singleSection = new ExclusiveSingleSection(
                 context(),
                 directExclusiveSelector,
                 mutation -> applyAction(mutation).isApplied());
 
         selector.setContent("single".equals(currentMode) ? singleSection : groupSection);
-
-        onModeChangeInternal = mode -> {
-            currentMode = mode;
-            selector.setContent("single".equals(mode) ? singleSection : groupSection);
-        };
     }
 
-    private java.util.function.Consumer<String> onModeChangeInternal;
-
     private void onModeChange(String mode) {
-        if (onModeChangeInternal != null) onModeChangeInternal.accept(mode);
-        else currentMode = mode;
+        currentMode = mode;
+        if (selector != null) {
+            selector.setContent("single".equals(mode) ? singleSection : groupSection);
+        }
     }
 }
