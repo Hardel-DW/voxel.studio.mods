@@ -14,11 +14,15 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public final class ExclusiveGroupSection extends VBox {
 
@@ -26,13 +30,26 @@ public final class ExclusiveGroupSection extends VBox {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 
+        Function<String, String> labelResolver = value -> {
+            if (value == null || value.isBlank()) return "";
+            String clean = value.startsWith("#") ? value.substring(1) : value;
+            Identifier id = Identifier.tryParse(clean);
+            if (id == null) return value;
+            if (BuiltInRegistries.ITEM.containsKey(id)) {
+                return BuiltInRegistries.ITEM.getValue(id).getName().getString();
+            }
+            return context.resolveHolder(Registries.ENCHANTMENT, id)
+                    .map(holder -> holder.value().description().getString())
+                    .orElse(value);
+        };
+
         getChildren().addAll(
-                buildVanillaCategory(context, elementId, exclusiveSelector),
-                buildCustomCategory(context, elementId, exclusiveSelector));
+                buildVanillaCategory(context, elementId, exclusiveSelector, labelResolver),
+                buildCustomCategory(context, elementId, exclusiveSelector, labelResolver));
     }
 
     private Category buildVanillaCategory(StudioContext context, Identifier elementId,
-            StoreSelector<String> exclusiveSelector) {
+            StoreSelector<String> exclusiveSelector, Function<String, String> labelResolver) {
         Category category = new Category("enchantment:exclusive.vanilla.title");
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
@@ -52,7 +69,8 @@ public final class ExclusiveGroupSection extends VBox {
                     tagMembers,
                     isTarget,
                     false,
-                    () -> toggleGroup(context, elementId, tagIdentifier, rawTag, exclusiveSelector));
+                    () -> toggleGroup(context, elementId, tagIdentifier, rawTag, exclusiveSelector),
+                    labelResolver);
 
             exclusiveSelector.subscribe(val -> card.updateTarget(rawTag.equals(val)));
 
@@ -64,7 +82,7 @@ public final class ExclusiveGroupSection extends VBox {
     }
 
     private Category buildCustomCategory(StudioContext context, Identifier elementId,
-            StoreSelector<String> exclusiveSelector) {
+            StoreSelector<String> exclusiveSelector, Function<String, String> labelResolver) {
         Category category = new Category("enchantment:exclusive.custom.title");
 
         List<Identifier> customTags = EnchantmentActions
@@ -91,7 +109,8 @@ public final class ExclusiveGroupSection extends VBox {
                     resolveExclusiveTagMembers(context, tagId),
                     rawTag.equals(exclusiveSelector.get()),
                     false,
-                    () -> toggleGroup(context, elementId, tagId, rawTag, exclusiveSelector));
+                    () -> toggleGroup(context, elementId, tagId, rawTag, exclusiveSelector),
+                    labelResolver);
 
             exclusiveSelector.subscribe(value -> card.updateTarget(rawTag.equals(value)));
             grid.addItem(card);
@@ -115,7 +134,9 @@ public final class ExclusiveGroupSection extends VBox {
             return;
         }
 
-        context.gateway().apply(Registries.ENCHANTMENT, elementId, EnchantmentActions.exclusiveSet(tagId));
+        HolderSet<Enchantment> resolved = context.resolveTag(Registries.ENCHANTMENT,
+                TagKey.create(Registries.ENCHANTMENT, tagId)).orElse(HolderSet.empty());
+        context.gateway().apply(Registries.ENCHANTMENT, elementId, EnchantmentActions.exclusiveSet(resolved));
         if (!currentlyMember) {
             context.gateway().toggleTag(Registries.ENCHANTMENT, elementId, tagId);
         }

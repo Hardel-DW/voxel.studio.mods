@@ -3,15 +3,12 @@ package fr.hardel.asset_editor.client.javafx.lib.action;
 import fr.hardel.asset_editor.client.javafx.lib.SlotManager;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.Item;
@@ -25,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -133,13 +131,12 @@ public final class EnchantmentActions {
                 .toList();
     }
 
-    public static Identifier previewTexture(Enchantment enchantment) {
-        Identifier primary = firstItemIdentifier(enchantment.definition().primaryItems());
-        if (primary != null) {
-            return textureOf(primary);
-        }
+    public static Identifier previewTexture(Enchantment enchantment,
+                                             Function<TagKey<Item>, Optional<HolderSet<Item>>> itemTagResolver) {
+        Identifier primary = firstItemIdentifier(enchantment.definition().primaryItems(), itemTagResolver);
+        if (primary != null) return textureOf(primary);
 
-        Identifier supported = firstItemIdentifier(Optional.of(enchantment.definition().supportedItems()));
+        Identifier supported = firstItemIdentifier(Optional.of(enchantment.definition().supportedItems()), itemTagResolver);
         return supported != null ? textureOf(supported) : null;
     }
 
@@ -236,20 +233,9 @@ public final class EnchantmentActions {
         return e -> new Enchantment(e.description(), e.definition(), set, e.effects());
     }
 
-    public static UnaryOperator<Enchantment> exclusiveSet(Identifier tagId) {
+    public static UnaryOperator<Enchantment> toggleExclusive(Holder<Enchantment> holder, Identifier enchantmentId) {
         return e -> {
-            HolderSet<Enchantment> holderSet = resolveEnchantmentTag(tagId.toString());
-            return holderSet != null ? exclusiveSet(holderSet).apply(e) : e;
-        };
-    }
-
-    public static UnaryOperator<Enchantment> toggleExclusive(Identifier enchantmentId) {
-        return e -> {
-            Holder<Enchantment> holder = resolveEnchantmentHolder(enchantmentId);
-            if (holder == null) return e;
-
             if (e.exclusiveSet().unwrapKey().isPresent()) {
-                // Aligns with web behavior: switching from tag mode to single-id mode.
                 return new Enchantment(e.description(), e.definition(), HolderSet.direct(List.of(holder)), e.effects());
             }
 
@@ -264,24 +250,6 @@ public final class EnchantmentActions {
         };
     }
 
-    public static HolderSet<Item> resolveItemTag(String path) {
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return null;
-        return conn.registryAccess().lookup(Registries.ITEM)
-                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", path))))
-                .orElse(null);
-    }
-
-    public static HolderSet<Enchantment> resolveEnchantmentTag(String tagPath) {
-        Identifier tagId = Identifier.tryParse(tagPath);
-        if (tagId == null) return null;
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return null;
-        return conn.registryAccess().lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ENCHANTMENT, tagId)))
-                .orElse(null);
-    }
-
     public static List<Identifier> customExclusiveTags(List<ElementEntry<Enchantment>> entries) {
         return entries.stream()
                 .flatMap(entry -> collectExclusiveTags(entry).stream())
@@ -289,14 +257,6 @@ public final class EnchantmentActions {
                 .distinct()
                 .sorted(Comparator.comparing(Identifier::toString))
                 .toList();
-    }
-
-    private static Holder<Enchantment> resolveEnchantmentHolder(Identifier id) {
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return null;
-        return conn.registryAccess().lookup(Registries.ENCHANTMENT)
-                .flatMap(lookup -> lookup.get(ResourceKey.create(Registries.ENCHANTMENT, id)))
-                .orElse(null);
     }
 
     private static String deriveMode(Enchantment enchantment, Set<Identifier> tags) {
@@ -336,28 +296,19 @@ public final class EnchantmentActions {
         return List.copyOf(tags);
     }
 
-    private static Identifier firstItemIdentifier(Optional<HolderSet<Item>> items) {
+    private static Identifier firstItemIdentifier(Optional<HolderSet<Item>> items,
+                                                   Function<TagKey<Item>, Optional<HolderSet<Item>>> tagResolver) {
         return items.flatMap(set -> set.stream()
                         .map(holder -> holder.unwrapKey().map(key -> key.identifier()).orElse(null))
                         .filter(java.util.Objects::nonNull)
                         .findFirst())
                 .orElseGet(() -> items.flatMap(HolderSet::unwrapKey)
-                        .flatMap(key -> resolveFirstItemFromTag(key.location()))
+                        .flatMap(tagResolver)
+                        .flatMap(resolved -> resolved.stream()
+                                .map(holder -> holder.unwrapKey().map(key -> key.identifier()).orElse(null))
+                                .filter(java.util.Objects::nonNull)
+                                .findFirst())
                         .orElse(null));
-    }
-
-    private static Optional<Identifier> resolveFirstItemFromTag(Identifier tagId) {
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) {
-            return Optional.empty();
-        }
-
-        return conn.registryAccess().lookup(Registries.ITEM)
-                .flatMap(lookup -> lookup.get(TagKey.create(Registries.ITEM, tagId)))
-                .flatMap(set -> set.stream()
-                        .map(holder -> holder.unwrapKey().map(key -> key.identifier()).orElse(null))
-                        .filter(java.util.Objects::nonNull)
-                        .findFirst());
     }
 
     private static Identifier textureOf(Identifier itemId) {

@@ -12,6 +12,7 @@ import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
@@ -59,13 +60,17 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         });
 
         wireCardActions(supportedCards, key -> {
-            var holderSet = EnchantmentActions.resolveItemTag("enchantable/" + key);
-            return holderSet != null ? EnchantmentActions.supportedItems(holderSet) : null;
+            var tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + key));
+            return context().resolveTag(Registries.ITEM, tagKey)
+                    .map(holderSet -> EnchantmentActions.supportedItems(holderSet))
+                    .orElse(null);
         });
 
         wireCardActions(primaryCards, key -> {
-            var holderSet = EnchantmentActions.resolveItemTag("enchantable/" + key);
-            return holderSet != null ? EnchantmentActions.primaryItems(Optional.of(holderSet)) : null;
+            var tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + key));
+            return context().resolveTag(Registries.ITEM, tagKey)
+                    .map(holderSet -> EnchantmentActions.primaryItems(Optional.of(holderSet)))
+                    .orElse(null);
         });
 
         if (primaryNoneCard != null) {

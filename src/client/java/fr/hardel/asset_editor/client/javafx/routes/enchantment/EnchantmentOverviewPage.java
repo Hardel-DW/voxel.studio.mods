@@ -108,13 +108,14 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         return row;
     }
 
-    private static StackPane buildIcon(ElementEntry<Enchantment> entry) {
+    private StackPane buildIcon(ElementEntry<Enchantment> entry) {
         StackPane iconWrap = new StackPane();
         iconWrap.getStyleClass().add("enchantment-row-icon");
         iconWrap.setMinSize(32, 32);
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
-        var texture = EnchantmentActions.previewTexture(entry.data());
+        var texture = EnchantmentActions.previewTexture(entry.data(),
+                tag -> context.resolveTag(Registries.ITEM, tag));
         if (texture != null) {
             iconWrap.getChildren().add(new ResourceImageIcon(texture, 32));
         } else {

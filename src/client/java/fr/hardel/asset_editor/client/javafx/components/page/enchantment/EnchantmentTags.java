@@ -14,22 +14,22 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 
 import java.util.List;
+import java.util.function.Function;
 
 public final class EnchantmentTags extends SimpleCard {
 
     private static final int MAX_DISPLAY = 3;
+    private final Function<String, String> labelResolver;
 
     public EnchantmentTags(String titleKey, String descKey, Identifier imageId, List<String> values,
-                           boolean isTarget, boolean locked, Runnable onAction) {
+                           boolean isTarget, boolean locked, Runnable onAction,
+                           Function<String, String> labelResolver) {
         super(new Insets(16, 24, 16, 24));
+        this.labelResolver = labelResolver;
 
         if (locked) setOpacity(0.5);
         if (isTarget) visualCard.getStyleClass().add("enchantment-tags-targeted");
@@ -101,7 +101,7 @@ public final class EnchantmentTags extends SimpleCard {
     }
 
     private Label buildTagChip(String value) {
-        Label chip = new Label(resolveTagLabel(value));
+        Label chip = new Label(labelResolver.apply(value));
         chip.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
         chip.setTextFill(VoxelColors.ZINC_400);
         chip.getStyleClass().add("enchantment-tags-value");
@@ -136,27 +136,5 @@ public final class EnchantmentTags extends SimpleCard {
         bottom.getChildren().add(actionsBtn);
 
         return bottom;
-    }
-
-    private String resolveTagLabel(String value) {
-        if (value == null || value.isBlank()) return "";
-        String clean = value.startsWith("#") ? value.substring(1) : value;
-        Identifier identifier = Identifier.tryParse(clean);
-        if (identifier == null) return value;
-        if (BuiltInRegistries.ITEM.containsKey(identifier)) {
-            return BuiltInRegistries.ITEM.getValue(identifier).getName().getString();
-        }
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn != null) {
-            var enchantmentLookup = conn.registryAccess().lookup(Registries.ENCHANTMENT);
-            if (enchantmentLookup.isPresent()) {
-                var holder = enchantmentLookup.get().get(
-                        ResourceKey.create(Registries.ENCHANTMENT, identifier));
-                if (holder.isPresent()) {
-                    return holder.get().value().description().getString();
-                }
-            }
-        }
-        return value;
     }
 }

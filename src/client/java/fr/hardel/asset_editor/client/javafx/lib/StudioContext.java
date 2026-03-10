@@ -12,14 +12,17 @@ import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.Eleme
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public final class StudioContext {
 
@@ -78,6 +81,20 @@ public final class StudioContext {
                 .lookup(registryKey)
                 .map(reg -> reg.listElements().toList())
                 .orElse(List.of());
+    }
+
+    public <T> Optional<HolderSet<T>> resolveTag(ResourceKey<Registry<T>> registryKey, TagKey<T> tagKey) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return Optional.empty();
+        return conn.registryAccess().lookup(registryKey)
+                .flatMap(reg -> reg.get(tagKey))
+                .<HolderSet<T>>map(named -> named);
+    }
+
+    public <T> Optional<Holder.Reference<T>> resolveHolder(ResourceKey<Registry<T>> registryKey, Identifier id) {
+        var conn = Minecraft.getInstance().getConnection();
+        if (conn == null) return Optional.empty();
+        return conn.registryAccess().lookup(registryKey).flatMap(reg -> reg.get(ResourceKey.create(registryKey, id)));
     }
 
     public <T> Holder.Reference<T> findElement(ResourceKey<Registry<T>> registryKey) {
