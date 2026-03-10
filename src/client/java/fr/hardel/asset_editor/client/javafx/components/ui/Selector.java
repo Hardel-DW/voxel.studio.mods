@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -56,5 +57,9 @@ public final class Selector extends SimpleCard {
 
     public String getValue() {
         return tabs.getValue();
+    }
+
+    public StringProperty valueProperty() {
+        return tabs.valueProperty();
     }
 }

@@ -92,30 +92,16 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
 
-        var modeSelector = select(EnchantmentActions::mode);
-        Selector[] holder = new Selector[1];
-        holder[0] = new Selector(
+        Selector selector = new Selector(
                 "enchantment:global.mode.title",
                 "enchantment:global.mode.description",
                 modeOptions,
-                modeSelector.get() == null ? EnchantmentActions.MODE_NORMAL : modeSelector.get(),
-                value -> {
-                    if (value == null || value.equals(modeSelector.get())) {
-                        return;
-                    }
+                EnchantmentActions.MODE_NORMAL,
+                null);
 
-                    var result = applyCustomAction(EnchantmentActions.mode(value));
-                    if (!result.isApplied()) {
-                        holder[0].setValue(modeSelector.get());
-                    }
-                });
+        bindString(selector.valueProperty(), EnchantmentActions::mode,
+                v -> applyCustomAction(EnchantmentActions.mode(v)));
 
-        modeSelector.subscribe(value -> {
-            if (value != null && !value.equals(holder[0].getValue())) {
-                holder[0].setValue(value);
-            }
-        });
-
-        return holder[0];
+        return selector;
     }
 }

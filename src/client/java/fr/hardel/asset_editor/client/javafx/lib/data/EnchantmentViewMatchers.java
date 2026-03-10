@@ -35,23 +35,22 @@ public final class EnchantmentViewMatchers {
         return matcher != null && matcher.matches(effectiveEntry, category);
     }
 
-    private static boolean matchesSlot(ElementEntry<Enchantment> entry, String category) {
+    public static boolean matchesSlot(ElementEntry<Enchantment> entry, String category) {
         SlotConfig config = SlotConfigs.BY_ID.get(category);
         if (config == null) return false;
         return entry.data().definition().slots().stream()
                 .anyMatch(g -> config.slots().contains(g.getSerializedName()));
     }
 
-    private static boolean matchesItem(ElementEntry<Enchantment> entry, String category) {
+    public static boolean matchesItem(ElementEntry<Enchantment> entry, String category) {
         String itemTag = "enchantable/" + category;
-        Enchantment enchantment = entry.data();
 
-        boolean supported = enchantment.definition().supportedItems().unwrapKey()
+        boolean supported = entry.data().definition().supportedItems().unwrapKey()
                 .map(tag -> tag.location().getPath().equals(itemTag))
                 .orElse(false);
         if (supported) return true;
 
-        boolean primary = enchantment.definition().primaryItems()
+        boolean primary = entry.data().definition().primaryItems()
                 .flatMap(hs -> hs.unwrapKey())
                 .map(tag -> tag.location().getPath().equals(itemTag))
                 .orElse(false);

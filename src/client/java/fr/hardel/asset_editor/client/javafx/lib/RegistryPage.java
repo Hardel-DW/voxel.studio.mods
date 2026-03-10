@@ -22,6 +22,7 @@ import net.minecraft.resources.ResourceKey;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.StringProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,6 +109,20 @@ public abstract class RegistryPage<T> extends VBox implements Page {
             if (o == null || v == null || o.equals(v)) return;
             if (v.equals(selector.get())) return;
             var result = action.get();
+            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+        });
+    }
+
+    protected void bindString(StringProperty property,
+                              Function<ElementEntry<T>, String> extractor,
+                              Function<String, EditorActionResult> action) {
+        var selector = select(extractor);
+        if (selector.get() != null) property.set(selector.get());
+        selector.subscribe(val -> { if (val != null) property.set(val); });
+        property.addListener((obs, o, v) -> {
+            if (o == null || v == null || o.equals(v)) return;
+            if (v.equals(selector.get())) return;
+            var result = action.apply(v);
             if (!result.isApplied() && selector.get() != null) property.set(selector.get());
         });
     }

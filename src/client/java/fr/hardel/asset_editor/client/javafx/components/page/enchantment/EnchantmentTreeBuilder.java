@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
+import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
@@ -19,7 +20,7 @@ import java.util.Objects;
 
 public final class EnchantmentTreeBuilder {
 
-    public static TreeNodeModel build(Collection<ElementEntry<?>> entries, StudioSidebarView view, int version) {
+    public static TreeNodeModel build(Collection<ElementEntry<?>> entries, StudioSidebarView view) {
         List<ElementEntry<Enchantment>> enchantments = castEntries(entries);
 
         TreeNodeModel root = new TreeNodeModel();
@@ -29,7 +30,7 @@ public final class EnchantmentTreeBuilder {
             return root;
         }
         if (view == StudioSidebarView.ITEMS) {
-            buildByItems(root, enchantments, version);
+            buildByItems(root, enchantments);
             return root;
         }
         buildByExclusive(root, enchantments);
@@ -42,34 +43,18 @@ public final class EnchantmentTreeBuilder {
         return icons;
     }
 
-    public static Map<String, Identifier> itemFolderIcons(int version) {
+    public static Map<String, Identifier> itemFolderIcons() {
         LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
-            if (version < tag.min() || version > tag.max()) continue;
             icons.put(tag.key(), tag.icon());
         }
         return icons;
     }
 
-    private static boolean matchesItemCategory(ElementEntry<Enchantment> entry, String key) {
-        String itemTag = "enchantable/" + key;
-        boolean supported = entry.data().definition().supportedItems().unwrapKey()
-                .map(k -> k.location().getPath().equals(itemTag))
-                .orElse(false);
-        if (supported) return true;
-        boolean primary = entry.data().definition().primaryItems()
-                .flatMap(hs -> hs.unwrapKey())
-                .map(k -> k.location().getPath().equals(itemTag))
-                .orElse(false);
-        if (primary) return true;
-        return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
-    }
-
     private static void buildBySlots(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
         for (SlotConfig config : SlotConfigs.ALL) {
             List<ElementEntry<Enchantment>> matching = enchantments.stream()
-                    .filter(e -> e.data().definition().slots().stream()
-                            .anyMatch(g -> config.slots().contains(g.getSerializedName())))
+                    .filter(e -> EnchantmentViewMatchers.matchesSlot(e, config.id()))
                     .toList();
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
@@ -80,11 +65,10 @@ public final class EnchantmentTreeBuilder {
         }
     }
 
-    private static void buildByItems(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments, int version) {
+    private static void buildByItems(TreeNodeModel root, List<ElementEntry<Enchantment>> enchantments) {
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
-            if (version < tag.min() || version > tag.max()) continue;
             List<ElementEntry<Enchantment>> matching = enchantments.stream()
-                    .filter(e -> matchesItemCategory(e, tag.key()))
+                    .filter(e -> EnchantmentViewMatchers.matchesItem(e, tag.key()))
                     .toList();
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);

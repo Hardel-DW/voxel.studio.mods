@@ -32,7 +32,7 @@ public final class EnchantmentLayout {
                 StudioRoute.CHANGES_MAIN,
                 StudioConcept.ENCHANTMENT.registry(),
                 StudioConcept.ENCHANTMENT.tabRoutes(),
-                EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), initialView, 61),
+                EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), initialView),
                 ICON,
                 folderIcons(initialView),
                 initialView == StudioSidebarView.SLOTS,
@@ -49,7 +49,7 @@ public final class EnchantmentLayout {
 
         Runnable rebuildTree = () -> {
             StudioSidebarView v = context.uiState().sidebarView();
-            layout.tree().setTree(EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), v, 61));
+            layout.tree().setTree(EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), v));
             layout.tree().setFolderIcons(folderIcons(v));
             layout.tree().setDisableAutoExpand(v == StudioSidebarView.SLOTS);
         };
@@ -93,7 +93,7 @@ public final class EnchantmentLayout {
 
     private static Map<String, Identifier> folderIcons(StudioSidebarView view) {
         if (view == StudioSidebarView.SLOTS) return EnchantmentTreeBuilder.slotFolderIcons();
-        if (view == StudioSidebarView.ITEMS) return EnchantmentTreeBuilder.itemFolderIcons(61);
+        if (view == StudioSidebarView.ITEMS) return EnchantmentTreeBuilder.itemFolderIcons();
         return Map.of();
     }
 

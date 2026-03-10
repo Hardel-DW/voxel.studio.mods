@@ -6,6 +6,8 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -27,12 +29,21 @@ public final class AnimatedTabs extends StackPane {
     private final Rectangle indicator = new Rectangle();
     private final HBox tabsRow = new HBox();
     private final Timeline indicatorTimeline = new Timeline();
-    private String activeValue;
+    private final SimpleStringProperty activeValue;
     private Consumer<String> onValueChange;
 
     public AnimatedTabs(LinkedHashMap<String, String> options, String defaultValue, Consumer<String> onChange) {
-        this.activeValue = defaultValue;
+        this.activeValue = new SimpleStringProperty(defaultValue);
         this.onValueChange = onChange;
+
+        activeValue.addListener((obs, old, val) -> {
+            buttons.forEach((k, btn) -> {
+                btn.getStyleClass().remove("animated-tabs-button-active");
+                if (k.equals(val)) btn.getStyleClass().add("animated-tabs-button-active");
+            });
+            animateIndicator();
+            if (onValueChange != null) onValueChange.accept(val);
+        });
 
         getStyleClass().add("animated-tabs");
         setAlignment(Pos.CENTER_LEFT);
@@ -84,7 +95,7 @@ public final class AnimatedTabs extends StackPane {
         Button btn = new Button(label);
         btn.getStyleClass().add("animated-tabs-button");
         btn.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 14));
-        if (value.equals(activeValue)) {
+        if (value.equals(activeValue.get())) {
             btn.getStyleClass().add("animated-tabs-button-active");
         }
         btn.setMinWidth(0);
@@ -104,21 +115,15 @@ public final class AnimatedTabs extends StackPane {
     }
 
     private void select(String value) {
-        if (value.equals(activeValue)) {
+        if (value.equals(activeValue.get())) {
             snapIndicator();
             return;
         }
-        activeValue = value;
-        buttons.forEach((k, btn) -> {
-            btn.getStyleClass().remove("animated-tabs-button-active");
-            if (k.equals(activeValue)) btn.getStyleClass().add("animated-tabs-button-active");
-        });
-        animateIndicator();
-        if (onValueChange != null) onValueChange.accept(value);
+        activeValue.set(value);
     }
 
     private void snapIndicator() {
-        Button active = buttons.get(activeValue);
+        Button active = buttons.get(activeValue.get());
         if (active == null) return;
         Bounds bounds = active.getBoundsInParent();
         double x = tabsRow.getLayoutX() + bounds.getMinX();
@@ -132,7 +137,7 @@ public final class AnimatedTabs extends StackPane {
     }
 
     private void animateIndicator() {
-        Button active = buttons.get(activeValue);
+        Button active = buttons.get(activeValue.get());
         if (active == null) return;
         Bounds bounds = active.getBoundsInParent();
         double targetX = tabsRow.getLayoutX() + bounds.getMinX();
@@ -148,5 +153,6 @@ public final class AnimatedTabs extends StackPane {
     }
 
     public void setValue(String value) { select(value); }
-    public String getValue() { return activeValue; }
+    public String getValue() { return activeValue.get(); }
+    public StringProperty valueProperty() { return activeValue; }
 }

@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
+import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
@@ -14,16 +15,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
-
-    private static final List<String> ENCHANTABLE_KEYS = List.of(
-            "sword", "trident", "mace", "bow", "crossbow", "range", "fishing", "shield", "weapon",
-            "melee", "head_armor", "chest_armor", "leg_armor", "foot_armor", "elytra", "armor",
-            "equippable", "axes", "shovels", "hoes", "pickaxes", "durability", "mining_loot");
 
     private final SectionSelector sectionSelector;
     private String currentSection = "supportedItems";
@@ -93,10 +88,9 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-        for (String key : ENCHANTABLE_KEYS) {
-            Identifier img = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/" + key + ".png");
-            Card card = new Card(img, "enchantment:supported." + key + ".title", false);
-            cardMap.put(key, card);
+        for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
+            Card card = new Card(tag.icon(), "enchantment:supported." + tag.key() + ".title", false);
+            cardMap.put(tag.key(), card);
             grid.addItem(card);
         }
 
