@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
-import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
+import fr.hardel.asset_editor.client.javafx.components.ui.ItemSprite;
 import fr.hardel.asset_editor.client.javafx.components.ui.Row;
 import fr.hardel.asset_editor.client.javafx.lib.InfiniteScrollPane;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -114,10 +114,10 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         iconWrap.setMinSize(32, 32);
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
-        var texture = EnchantmentActions.previewTexture(entry.data(),
+        var itemId = EnchantmentActions.previewItemId(entry.data(),
                 tag -> context.resolveTag(Registries.ITEM, tag));
-        if (texture != null) {
-            iconWrap.getChildren().add(new ResourceImageIcon(texture, 32));
+        if (itemId != null) {
+            iconWrap.getChildren().add(new ItemSprite(itemId, 32));
         } else {
             Label fallback = new Label("?");
             fallback.getStyleClass().add("enchantment-row-placeholder");

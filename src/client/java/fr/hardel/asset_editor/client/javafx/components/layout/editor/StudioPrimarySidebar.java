@@ -28,6 +28,7 @@ public final class StudioPrimarySidebar extends VBox {
 
     private static final Identifier LOGO     = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier SETTINGS = Identifier.fromNamespaceAndPath("asset_editor", "icons/settings.svg");
+    private static final Identifier DEBUG    = Identifier.fromNamespaceAndPath("asset_editor", "icons/debug.svg");
 
     private final StudioContext context;
     private final VBox concepts = new VBox(12);
@@ -96,23 +97,30 @@ public final class StudioPrimarySidebar extends VBox {
     }
 
     private VBox buildBottom() {
-        SvgIcon gear = new SvgIcon(SETTINGS, 24, VoxelColors.ZINC_400);
-        gear.setOpacity(0.7);
+        StackPane debugBtn = buildBottomButton(DEBUG, () -> context.router().navigate(StudioRoute.DEBUG_ITEMS));
+        StackPane settingsBtn = buildBottomButton(SETTINGS, null);
 
-        StackPane btn = new StackPane(gear);
+        VBox bottom = new VBox(8, debugBtn, settingsBtn);
+        bottom.setAlignment(Pos.BOTTOM_CENTER);
+        bottom.setPadding(new Insets(0, 0, 12, 0));
+        return bottom;
+    }
+
+    private static StackPane buildBottomButton(Identifier icon, Runnable onClick) {
+        SvgIcon svg = new SvgIcon(icon, 24, VoxelColors.ZINC_400);
+        svg.setOpacity(0.7);
+
+        StackPane btn = new StackPane(svg);
         btn.getStyleClass().add("studio-settings-button");
         btn.setPrefSize(40, 40);
         btn.setMinSize(40, 40);
         btn.setMaxSize(40, 40);
         btn.setAlignment(Pos.CENTER);
         btn.setCursor(Cursor.HAND);
-        btn.setOnMouseEntered(e -> { gear.setIconFill(Color.WHITE); gear.setOpacity(1.0); });
-        btn.setOnMouseExited(e -> { gear.setIconFill(VoxelColors.ZINC_400); gear.setOpacity(0.7); });
-
-        VBox bottom = new VBox(8, btn);
-        bottom.setAlignment(Pos.BOTTOM_CENTER);
-        bottom.setPadding(new Insets(0, 0, 12, 0));
-        return bottom;
+        btn.setOnMouseEntered(e -> { svg.setIconFill(Color.WHITE); svg.setOpacity(1.0); });
+        btn.setOnMouseExited(e -> { svg.setIconFill(VoxelColors.ZINC_400); svg.setOpacity(0.7); });
+        if (onClick != null) btn.setOnMouseClicked(e -> onClick.run());
+        return btn;
     }
 }
 

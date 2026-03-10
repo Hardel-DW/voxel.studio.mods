@@ -131,13 +131,13 @@ public final class EnchantmentActions {
                 .toList();
     }
 
-    public static Identifier previewTexture(Enchantment enchantment,
-                                             Function<TagKey<Item>, Optional<HolderSet<Item>>> itemTagResolver) {
+    public static Identifier previewItemId(Enchantment enchantment,
+                                            Function<TagKey<Item>, Optional<HolderSet<Item>>> itemTagResolver) {
         Identifier primary = firstItemIdentifier(enchantment.definition().primaryItems(), itemTagResolver);
-        if (primary != null) return textureOf(primary);
+        if (primary != null) return primary;
 
         Identifier supported = firstItemIdentifier(Optional.of(enchantment.definition().supportedItems()), itemTagResolver);
-        return supported != null ? textureOf(supported) : null;
+        return supported;
     }
 
     public static ElementEntry<Enchantment> prepareForFlush(ElementEntry<Enchantment> entry) {
@@ -309,10 +309,6 @@ public final class EnchantmentActions {
                                 .filter(java.util.Objects::nonNull)
                                 .findFirst())
                         .orElse(null));
-    }
-
-    private static Identifier textureOf(Identifier itemId) {
-        return Identifier.fromNamespaceAndPath(itemId.getNamespace(), "textures/item/" + itemId.getPath() + ".png");
     }
 
     private static Identifier enchantmentTag(String path) {

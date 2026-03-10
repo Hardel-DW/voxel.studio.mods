@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.recipe.RecipeLayout;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.client.javafx.routes.debug.DebugItemsPage;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -32,6 +33,7 @@ public final class StudioEditorRoot extends HBox {
     private final StackPane contentOutlet = new StackPane();
     private final EnumMap<StudioConcept, ConceptLayout> layouts = new EnumMap<>(StudioConcept.class);
     private ChangesLayout changesLayout;
+    private DebugItemsPage debugItemsPage;
 
     public StudioContext context() {
         return context;
@@ -89,6 +91,11 @@ public final class StudioEditorRoot extends HBox {
         if (route == StudioRoute.CHANGES_MAIN) {
             if (changesLayout == null) changesLayout = new ChangesLayout();
             contentOutlet.getChildren().setAll(changesLayout);
+            return;
+        }
+        if (route == StudioRoute.DEBUG_ITEMS) {
+            if (debugItemsPage == null) debugItemsPage = new DebugItemsPage();
+            contentOutlet.getChildren().setAll(debugItemsPage);
             return;
         }
         StudioConcept concept = StudioConcept.byRoute(route);
