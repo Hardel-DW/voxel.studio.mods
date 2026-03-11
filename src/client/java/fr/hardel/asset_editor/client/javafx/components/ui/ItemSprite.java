@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator;
-import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator.AtlasEntry;
+import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer.AtlasEntry;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;

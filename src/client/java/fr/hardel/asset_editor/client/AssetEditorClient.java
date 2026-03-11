@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
-import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator;
+import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -50,7 +50,7 @@ public class AssetEditorClient implements ClientModInitializer {
         @Override
         public void onResourceManagerReload(@NonNull ResourceManager manager) {
             VoxelResourceLoader.update(manager);
-            ItemAtlasGenerator.requestGeneration();
+            ItemAtlasRenderer.requestGeneration();
             VoxelStudioWindow.onResourceReload();
         }
     }

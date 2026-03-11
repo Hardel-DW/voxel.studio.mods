@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.javafx.routes.debug;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ItemSprite;
-import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator;
+import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,7 +22,7 @@ public final class DebugItemsPage extends StackPane implements Page {
     public DebugItemsPage() {
         getStyleClass().add("concept-main-page");
 
-        if (!ItemAtlasGenerator.isReady()) {
+        if (!ItemAtlasRenderer.isReady()) {
             Label loading = new Label("Item atlas is generating...");
             loading.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
             loading.setTextFill(VoxelColors.ZINC_400);

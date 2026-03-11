@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.mixin.client;
 
-import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator;
+import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class GameRendererMixin {
     @Inject(method = "render", at = @At("HEAD"))
     private void onRenderStart(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
-        ItemAtlasGenerator.tryGenerate();
+        ItemAtlasRenderer.tryGenerate();
     }
 }
