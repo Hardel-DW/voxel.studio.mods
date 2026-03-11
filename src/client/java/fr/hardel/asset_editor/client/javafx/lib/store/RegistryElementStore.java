@@ -9,10 +9,13 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagFile;
+import net.minecraft.tags.TagLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -122,39 +125,61 @@ public final class RegistryElementStore {
     private record SelectorKey(String registry, Identifier elementId) {
     }
 
-    private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
+    private record RegistryRef<T>(ResourceKey<Registry<T>> key, Registry<T> registry) {
+    }
+
+    private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
+    private final Map<String, RegistryRef<?>> registryRefs = new HashMap<>();
     private final Map<SelectorKey, List<StoreSelector<?>>> selectors = new HashMap<>();
     private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
 
-    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, HolderLookup.RegistryLookup<T> lookup) {
-        snapshot(registryKey, lookup, entry -> CustomFields.EMPTY);
+    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
+                             ResourceManager referenceResources) {
+        snapshot(registryKey, registry, referenceResources, entry -> CustomFields.EMPTY);
     }
 
-    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, HolderLookup.RegistryLookup<T> lookup,
+    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
+                             ResourceManager referenceResources,
                              Function<ElementEntry<T>, CustomFields> customInitializer) {
         String name = registryName(registryKey);
-        Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
+        registryRefs.put(name, new RegistryRef<>(registryKey, registry));
 
-        Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
-        lookup.listTags().forEach(named -> {
+        Map<Identifier, Set<Identifier>> refTagsByElement = loadTags(registryKey, referenceResources, registry);
+
+        Map<Identifier, Set<Identifier>> curTagsByElement = new HashMap<>();
+        registry.listTags().forEach(named -> {
             Identifier tagId = named.key().location();
             for (Holder<T> holder : named.stream().toList()) {
                 holder.unwrapKey().ifPresent(
-                        key -> tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
+                        key -> curTagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
             }
         });
 
-        lookup.listElements().forEach(holder -> {
+        Map<Identifier, ElementEntry<?>> refEntries = new LinkedHashMap<>();
+        Map<Identifier, ElementEntry<?>> curEntries = new LinkedHashMap<>();
+
+        registry.listElements().forEach(holder -> {
             Identifier id = holder.key().identifier();
-            Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
-            ElementEntry<T> entry = new ElementEntry<>(id, holder.value(), Set.copyOf(tags), CustomFields.EMPTY);
-            entries.put(id, entry.withCustom(customInitializer.apply(entry)));
+            Set<Identifier> refTags = refTagsByElement.getOrDefault(id, Set.of());
+            Set<Identifier> curTags = curTagsByElement.getOrDefault(id, Set.of());
+
+            ElementEntry<T> refEntry = new ElementEntry<>(id, holder.value(), Set.copyOf(refTags), CustomFields.EMPTY);
+            refEntries.put(id, refEntry.withCustom(customInitializer.apply(refEntry)));
+
+            ElementEntry<T> curEntry = new ElementEntry<>(id, holder.value(), Set.copyOf(curTags), CustomFields.EMPTY);
+            curEntries.put(id, curEntry.withCustom(customInitializer.apply(curEntry)));
         });
 
-        vanilla.put(name, Map.copyOf(entries));
-        current.put(name, new LinkedHashMap<>(entries));
+        reference.put(name, Map.copyOf(refEntries));
+        current.put(name, new LinkedHashMap<>(curEntries));
         notifyRegistryListeners(name);
+    }
+
+    public void reloadReference(ResourceManager referenceResources) {
+        for (var ref : registryRefs.values()) {
+            reloadReferenceFor(ref, referenceResources);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -189,8 +214,8 @@ public final class RegistryElementStore {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ElementEntry<T> getVanilla(ResourceKey<Registry<T>> registry, Identifier id) {
-        var registryMap = vanilla.get(registryName(registry));
+    public <T> ElementEntry<T> getReference(ResourceKey<Registry<T>> registry, Identifier id) {
+        var registryMap = reference.get(registryName(registry));
         if (registryMap == null)
             return null;
         return (ElementEntry<T>) registryMap.get(id);
@@ -230,24 +255,58 @@ public final class RegistryElementStore {
     public <T> void flush(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
             HolderLookup.Provider registries, FlushAdapter<T> adapter) {
         String name = registryName(registry);
-        var vanillaMap = vanilla.get(name);
+        var referenceMap = reference.get(name);
         var currentMap = current.get(name);
-        if (vanillaMap == null || currentMap == null)
+        if (referenceMap == null || currentMap == null)
             return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
         var flushAdapter = adapter == null ? FlushAdapter.<T>identity() : adapter;
-        flushElements(packRoot, name, vanillaMap, currentMap, codec, ops, gson, flushAdapter);
-        flushTags(packRoot, name, vanillaMap, currentMap, gson, flushAdapter);
+        flushElements(packRoot, name, referenceMap, currentMap, codec, ops, gson, flushAdapter);
+        flushTags(packRoot, name, referenceMap, currentMap, gson, flushAdapter);
     }
 
     public void clearAll() {
-        vanilla.clear();
+        reference.clear();
         current.clear();
+        registryRefs.clear();
         selectors.values().forEach(list -> list.forEach(StoreSelector::dispose));
         selectors.clear();
+    }
+
+    private <T> void reloadReferenceFor(RegistryRef<T> ref, ResourceManager referenceResources) {
+        String name = registryName(ref.key());
+        var refMap = reference.get(name);
+        if (refMap == null) return;
+
+        Map<Identifier, Set<Identifier>> refTagsByElement = loadTags(ref.key(), referenceResources, ref.registry());
+
+        Map<Identifier, ElementEntry<?>> updated = new LinkedHashMap<>();
+        for (var entry : refMap.entrySet()) {
+            Set<Identifier> tags = refTagsByElement.getOrDefault(entry.getKey(), Set.of());
+            updated.put(entry.getKey(), entry.getValue().withTags(tags));
+        }
+        reference.put(name, Map.copyOf(updated));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Map<Identifier, Set<Identifier>> loadTags(ResourceKey<Registry<T>> registryKey,
+                                                           ResourceManager resourceManager,
+                                                           Registry<T> registry) {
+        var loader = new TagLoader<>(
+                (TagLoader.ElementLookup<Holder<T>>) TagLoader.ElementLookup.fromFrozenRegistry(registry),
+                Registries.tagsDirPath(registryKey));
+
+        Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
+        loader.build(loader.load(resourceManager)).forEach((tagId, holders) -> {
+            for (var holder : holders) {
+                holder.unwrapKey().ifPresent(key ->
+                        tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
+            }
+        });
+        return tagsByElement;
     }
 
     private void notifySelectors(String registry, Identifier id, ElementEntry<?> entry) {
@@ -263,18 +322,18 @@ public final class RegistryElementStore {
 
     @SuppressWarnings("unchecked")
     private <T> void flushElements(Path packRoot, String registry,
-            Map<Identifier, ElementEntry<?>> vanillaMap,
+            Map<Identifier, ElementEntry<?>> referenceMap,
             Map<Identifier, ElementEntry<?>> currentMap,
             Codec<T> codec, DynamicOps<JsonElement> ops,
             Gson gson, FlushAdapter<T> adapter) {
         for (var entry : currentMap.entrySet()) {
             Identifier id = entry.getKey();
             var currentEntry = adapter.prepare((ElementEntry<T>) entry.getValue());
-            var vanillaEntry = vanillaMap.containsKey(id)
-                    ? adapter.prepare((ElementEntry<T>) vanillaMap.get(id))
+            var referenceEntry = referenceMap.containsKey(id)
+                    ? adapter.prepare((ElementEntry<T>) referenceMap.get(id))
                     : null;
 
-            if (vanillaEntry != null && Objects.equals(vanillaEntry.data(), currentEntry.data()))
+            if (referenceEntry != null && Objects.equals(referenceEntry.data(), currentEntry.data()))
                 continue;
 
             JsonElement json = codec.encodeStart(ops, currentEntry.data())
@@ -295,30 +354,42 @@ public final class RegistryElementStore {
     }
 
     private void flushTags(Path packRoot, String registry,
-            Map<Identifier, ElementEntry<?>> vanillaMap,
+            Map<Identifier, ElementEntry<?>> referenceMap,
             Map<Identifier, ElementEntry<?>> currentMap,
             Gson gson, FlushAdapter<?> adapter) {
-        Map<Identifier, Set<Identifier>> vanillaTags = collectTagMemberships(vanillaMap, adapter);
-        Map<Identifier, Set<Identifier>> currentTags = collectTagMemberships(currentMap, adapter);
+        Map<Identifier, Set<Identifier>> refTags = collectTagMemberships(referenceMap, adapter);
+        Map<Identifier, Set<Identifier>> curTags = collectTagMemberships(currentMap, adapter);
 
         Set<Identifier> allTagIds = new HashSet<>();
-        allTagIds.addAll(vanillaTags.keySet());
-        allTagIds.addAll(currentTags.keySet());
+        allTagIds.addAll(refTags.keySet());
+        allTagIds.addAll(curTags.keySet());
 
         for (Identifier tagId : allTagIds) {
-            Set<Identifier> vanillaMembers = vanillaTags.getOrDefault(tagId, Set.of());
-            Set<Identifier> currentMembers = currentTags.getOrDefault(tagId, Set.of());
+            Set<Identifier> referenceMembers = refTags.getOrDefault(tagId, Set.of());
+            Set<Identifier> currentMembers = curTags.getOrDefault(tagId, Set.of());
 
-            if (vanillaMembers.equals(currentMembers))
+            Path filePath = packRoot.resolve("data")
+                    .resolve(tagId.getNamespace())
+                    .resolve("tags")
+                    .resolve(registry)
+                    .resolve(tagId.getPath() + ".json");
+
+            if (referenceMembers.equals(currentMembers)) {
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    System.err.println("Failed to delete stale tag: " + filePath + " - " + e.getMessage());
+                }
                 continue;
+            }
 
-            Set<Identifier> removed = new HashSet<>(vanillaMembers);
+            Set<Identifier> removed = new HashSet<>(referenceMembers);
             removed.removeAll(currentMembers);
 
             List<TagEntry> values = new ArrayList<>();
             if (removed.isEmpty()) {
                 Set<Identifier> added = new HashSet<>(currentMembers);
-                added.removeAll(vanillaMembers);
+                added.removeAll(referenceMembers);
                 for (Identifier id : added)
                     values.add(TagEntry.element(id));
             } else {
@@ -328,12 +399,6 @@ public final class RegistryElementStore {
 
             JsonElement tagJson = TagFile.CODEC.encodeStart(JsonOps.INSTANCE, new TagFile(values, !removed.isEmpty()))
                     .getOrThrow(msg -> new IllegalStateException("Tag encode failed: " + msg));
-
-            Path filePath = packRoot.resolve("data")
-                    .resolve(tagId.getNamespace())
-                    .resolve("tags")
-                    .resolve(registry)
-                    .resolve(tagId.getPath() + ".json");
 
             try {
                 Files.createDirectories(filePath.getParent());

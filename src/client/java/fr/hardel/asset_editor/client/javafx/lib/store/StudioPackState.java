@@ -32,7 +32,7 @@ public final class StudioPackState {
 
     public enum PackKind { DIRECTORY, ZIP, JAR, BUILTIN }
 
-    public record PackInfo(String name, Path rootPath, boolean writable, PackKind kind, List<String> namespaces) {}
+    public record PackInfo(String packId, String name, Path rootPath, boolean writable, PackKind kind, List<String> namespaces) {}
 
     private static final String PERSIST_FILE = ".voxel_studio_last_pack";
 
@@ -114,7 +114,7 @@ public final class StudioPackState {
             return null;
         }
 
-        PackInfo info = new PackInfo(safeName, packRoot, true, PackKind.DIRECTORY, new ArrayList<>(List.of(safeNamespace)));
+        PackInfo info = new PackInfo("file/" + safeName, safeName, packRoot, true, PackKind.DIRECTORY, new ArrayList<>(List.of(safeNamespace)));
         availablePacks.add(info);
         selectPack(info);
 
@@ -151,7 +151,7 @@ public final class StudioPackState {
             var updatedNs = new ArrayList<>(pack.namespaces());
             if (!updatedNs.contains(namespace)) {
                 updatedNs.add(namespace);
-                PackInfo updated = new PackInfo(pack.name(), pack.rootPath(), true, pack.kind(), updatedNs);
+                PackInfo updated = new PackInfo(pack.packId(), pack.name(), pack.rootPath(), true, pack.kind(), updatedNs);
                 int idx = availablePacks.indexOf(pack);
                 if (idx >= 0) availablePacks.set(idx, updated);
                 if (selectedPack.get() == pack) selectedPack.set(updated);
@@ -211,6 +211,7 @@ public final class StudioPackState {
                 }
                 List<String> namespaces = scanNamespaces(rootPath);
                 return new PackInfo(
+                        pack.getId(),
                         pack.getTitle().getString(),
                         rootPath, true, PackKind.DIRECTORY,
                         namespaces
@@ -224,7 +225,7 @@ public final class StudioPackState {
                 return null;
             }
             PackKind kind = fileName.endsWith(".jar") ? PackKind.JAR : PackKind.ZIP;
-            return new PackInfo(pack.getTitle().getString(), archivePath, false, kind, List.of());
+            return new PackInfo(pack.getId(), pack.getTitle().getString(), archivePath, false, kind, List.of());
         }
     }
 
