@@ -13,8 +13,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.resources.ResourceManager;
+import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import net.minecraft.tags.TagEntry;
-import net.minecraft.tags.TagFile;
 import net.minecraft.tags.TagLoader;
 
 import java.io.IOException;
@@ -383,21 +383,16 @@ public final class RegistryElementStore {
                 continue;
             }
 
+            Set<Identifier> added = new HashSet<>(currentMembers);
+            added.removeAll(referenceMembers);
+
             Set<Identifier> removed = new HashSet<>(referenceMembers);
             removed.removeAll(currentMembers);
 
-            List<TagEntry> values = new ArrayList<>();
-            if (removed.isEmpty()) {
-                Set<Identifier> added = new HashSet<>(currentMembers);
-                added.removeAll(referenceMembers);
-                for (Identifier id : added)
-                    values.add(TagEntry.element(id));
-            } else {
-                for (Identifier id : currentMembers)
-                    values.add(TagEntry.element(id));
-            }
+            List<TagEntry> values = added.stream().map(TagEntry::element).toList();
+            List<TagEntry> exclude = removed.stream().map(TagEntry::element).toList();
 
-            JsonElement tagJson = TagFile.CODEC.encodeStart(JsonOps.INSTANCE, new TagFile(values, !removed.isEmpty()))
+            JsonElement tagJson = ExtendedTagFile.CODEC.encodeStart(JsonOps.INSTANCE, new ExtendedTagFile(values, exclude, false))
                     .getOrThrow(msg -> new IllegalStateException("Tag encode failed: " + msg));
 
             try {
