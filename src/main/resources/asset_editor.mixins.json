@@ -4,6 +4,7 @@
     "package": "fr.hardel.asset_editor.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
+        "TagLoaderMixin"
     ],
     "injectors": {
         "defaultRequire": 1
