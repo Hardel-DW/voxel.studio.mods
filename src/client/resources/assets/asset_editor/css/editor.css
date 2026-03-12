@@ -155,14 +155,14 @@
 
 .studio-content-body {
     -fx-background-color:
-            linear-gradient(from 0% 0% to 0% 100%, #1b1b20 0%, #17171a 20%, #17171a 100%);
-    -fx-border-color: #202024 transparent transparent #202024;
+            linear-gradient(from 0% 0% to 0% 100%, #18181d 0%, #151418 22%, #151418 100%);
+    -fx-border-color: rgba(39, 39, 42, 0.5) transparent transparent rgba(39, 39, 42, 0.5);
     -fx-border-width: 1 0 0 1;
 }
 
 .studio-content-frame {
     -fx-fill: transparent;
-    -fx-stroke: #202024;
+    -fx-stroke: rgba(39, 39, 42, 0.5);
     -fx-stroke-width: 1.25;
 }
 
@@ -182,23 +182,23 @@
 
 /* ===== EDITOR OVERVIEW PAGE ===== */
 .editor-overview-page {
-    -fx-background-color: rgba(9, 9, 11, 0.5);
+    -fx-background-color: rgba(9, 9, 11, 0.4);
 }
 
 .editor-overview-toolbar {
-    -fx-background-color: rgba(9, 9, 11, 0.75);
+    -fx-background-color: rgba(9, 9, 11, 0.62);
     -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .editor-overview-search {
     -fx-background-color: #151518;
-    -fx-border-color: #303033;
+    -fx-border-color: #27272a;
     -fx-border-width: 1;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-text-fill: #f4f4f5;
-    -fx-prompt-text-fill: #48484f;
+    -fx-prompt-text-fill: #52525b;
     -fx-font-size: 13;
     -fx-padding: 8 12 8 12;
     -fx-max-width: 576;
@@ -251,8 +251,8 @@
 }
 
 .editor-overview-row {
-    -fx-background-color: rgba(24, 24, 27, 0.3);
-    -fx-border-color: transparent transparent rgba(63, 63, 70, 0.3) transparent;
+    -fx-background-color: rgba(9, 9, 11, 0.3);
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.35) transparent;
     -fx-border-width: 0 0 1 0;
     -fx-cursor: hand;
 }
@@ -329,8 +329,8 @@
     -fx-pref-width: 288;
     -fx-min-width: 288;
     -fx-max-width: 288;
-    -fx-background-color: #101011;
-    -fx-border-color: transparent #202024 transparent transparent;
+    -fx-background-color: #151418;
+    -fx-border-color: transparent rgba(39, 39, 42, 0.5) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
 
@@ -372,15 +372,15 @@
 }
 
 .editor-sidebar-discord-wrapper {
-    -fx-background-color: #0f0f11;
-    -fx-border-color: #202024 transparent transparent transparent;
+    -fx-background-color: #151418;
+    -fx-border-color: rgba(39, 39, 42, 0.5) transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
 
 .editor-sidebar-discord-card {
-    -fx-background-color: #141418;
+    -fx-background-color: rgba(9, 9, 11, 0.42);
     -fx-background-radius: 8;
-    -fx-border-color: #202024;
+    -fx-border-color: #1f1f23;
     -fx-border-radius: 8;
     -fx-border-width: 1;
     -fx-alignment: center-left;
@@ -572,12 +572,12 @@
 
 /* ===== GENERIC EDITOR HEADER ===== */
 .editor-header {
-    -fx-border-color: transparent transparent #202024 transparent;
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
     -fx-border-width: 0 0 1 0;
 }
 
 .editor-header-surface {
-    -fx-background-color: #19181c;
+    -fx-background-color: #151418;
 }
 
 .editor-header-gradient {
@@ -603,27 +603,30 @@
 }
 
 .editor-breadcrumb-root {
-    -fx-text-fill: #71717a;
+    -fx-text-fill: #a1a1aa;
     -fx-font-size: 12;
     -fx-font-weight: 500;
+    -fx-opacity: 0.5;
 }
 
 .editor-breadcrumb-separator {
-    -fx-text-fill: #3f3f46;
+    -fx-text-fill: #71717a;
     -fx-font-size: 12;
+    -fx-opacity: 0.3;
 }
 
 .editor-breadcrumb-segment {
-    -fx-text-fill: #71717a;
+    -fx-text-fill: #a1a1aa;
     -fx-font-size: 12;
     -fx-font-weight: 500;
+    -fx-opacity: 0.5;
 }
 
 .editor-breadcrumb-leaf {
     -fx-text-fill: #d4d4d8;
-    -fx-background-color: #151418;
+    -fx-background-color: rgba(0, 0, 0, 0.2);
     -fx-background-radius: 6;
-    -fx-border-color: #1f1c21;
+    -fx-border-color: rgba(255, 255, 255, 0.05);
     -fx-border-radius: 6;
     -fx-border-width: 1;
     -fx-padding: 2 8 2 8;
@@ -647,9 +650,9 @@
 }
 
 .editor-header-simulation {
-    -fx-background-color: #202024;
+    -fx-background-color: #18181b;
     -fx-text-fill: #a1a1aa;
-    -fx-border-color: #303033;
+    -fx-border-color: #27272a;
     -fx-border-width: 1;
     -fx-background-radius: 8;
     -fx-border-radius: 8;
@@ -687,7 +690,7 @@
 .editor-header-tab-button-active {
     -fx-background-color: #1f1f23;
     -fx-text-fill: white;
-    -fx-border-color: transparent transparent #999999 transparent;
+    -fx-border-color: transparent transparent #a1a1aa transparent;
 }
 
 /* ===== POPOVER ===== */
@@ -697,7 +700,7 @@
     -fx-border-width: 1;
     -fx-background-radius: 16;
     -fx-border-radius: 16;
-    -fx-padding: 12;
+    -fx-padding: 16;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 20, 0, 0, 6);
 }
 
@@ -882,8 +885,8 @@
 /* ===== SIMPLE CARD ===== */
 /* bg-black/35 border border-zinc-900 rounded-xl py-6 px-8 cursor-pointer */
 .ui-simple-card {
-    -fx-background-color: #0b0b0b;
-    -fx-border-color: #202024;
+    -fx-background-color: rgba(0, 0, 0, 0.35);
+    -fx-border-color: #18181b;
     -fx-border-width: 1;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
@@ -1101,18 +1104,18 @@
 
 /* ===== ENCHANTMENT TAGS ===== */
 .enchantment-tags-value {
-    -fx-text-fill: #a8a8b2;
+    -fx-text-fill: #a1a1aa;
     -fx-font-size: 12;
-    -fx-background-color: rgba(39, 39, 42, 0.2);
-    -fx-background-radius: 4;
-    -fx-border-color: #202024;
+    -fx-background-color: rgba(24, 24, 27, 0.2);
+    -fx-background-radius: 6;
+    -fx-border-color: #18181b;
     -fx-border-width: 1;
-    -fx-border-radius: 4;
+    -fx-border-radius: 6;
     -fx-padding: 2 8 2 8;
 }
 
 .enchantment-tags-hr {
-    -fx-background-color: #48484f;
+    -fx-background-color: #3f3f46;
     -fx-pref-height: 1;
     -fx-min-height: 1;
     -fx-max-height: 1;
@@ -1120,10 +1123,70 @@
 
 /* Ring when enchantment is a target of this exclusive set */
 .enchantment-tags-targeted {
-    -fx-border-color: #5c5c66;
+    -fx-border-color: #52525b;
     -fx-border-width: 1;
     -fx-border-radius: 12;
     -fx-background-radius: 12;
+}
+
+.enchantment-tags-in-list {
+    -fx-opacity: 0.9;
+}
+
+.enchantment-tags-see-more {
+    -fx-text-fill: #a1a1aa;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.enchantment-tags-see-more:hover {
+    -fx-text-fill: #e4e4e7;
+}
+
+.enchantment-tags-actions-button {
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.enchantment-tags-popover-list {
+    -fx-min-width: 240;
+}
+
+.enchantment-tags-actions-popover {
+    -fx-min-width: 320;
+}
+
+.enchantment-tags-action-row {
+    -fx-padding: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.enchantment-tags-action-row:hover {
+    -fx-background-color: rgba(24, 24, 27, 0.5);
+}
+
+.enchantment-tags-action-title {
+    -fx-text-fill: #e4e4e7;
+    -fx-font-size: 13;
+    -fx-font-weight: 500;
+}
+
+.enchantment-tags-action-subtitle {
+    -fx-text-fill: #71717a;
+    -fx-font-size: 10;
+    -fx-background-color: rgba(24, 24, 27, 0.2);
+    -fx-border-color: #18181b;
+    -fx-border-width: 1;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-padding: 1 6 1 6;
+}
+
+.enchantment-tags-action-description {
+    -fx-text-fill: #71717a;
+    -fx-font-size: 11;
 }
 
 /* ===== ENCHANTMENT SUBPAGE SCROLL ===== */

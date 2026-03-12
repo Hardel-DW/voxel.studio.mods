@@ -1,19 +1,30 @@
 # Les tickets organisés par catégories 
 
 ## Les Bugs
-- [] Dans la page Non Combinable, le bouton action ne fait rien. Il est censés ouvrir le popover avec les deux actions possibles. (Actuellement ont peut cliquer sur la carte ce qui n'a aucun sens)
-- [] Dans la page "Items supportés", il y a un énorme espace vide en dessous de la page, je peux scroll dessous alors qu'il n'y a pas de contenu.
-- [] Dans la page "Items supportés", il manque l'image de croix rouge. Il faut la copier de la version web.
 - [] À traiter en dernier car mineur, quand on arrive sur une page pendant une frame leur taille semble différente ce qui crée un scroll temporaire de quelques millisecondes, sûrement un rendu initial différent.
+- [] Certains cases dans "Items supportés" ne fonctionne pas, peut être que le tags n'existe pas ou autre chose. Inclus épée, bouclier, je crois que c'est les tags voxel.
 
 ## Le UI/UX (Interface utilisateur)
-- Dans le Header et Breadcrumbs, le titre est parfois pas traduis. Exemple je suis sur la page "Main Principale" je vois "Mainhand" alors que je suis en français.
 - [] La couleur dans la sidebar doit être la même que la couleur du header.
-- [] Dans les breadcrumbs on voit "bane_of_arthropods" alors qu'on voudrait "Bane of Arthropods" basé sur le même système de traduction que Header.
-- [] La page overview de enchantment faut vérifier les padding/couleurs/bordures, il semble différent. Le web semble plus foncé et mieux intégré.
-- [] Pour les Tags donc Items et Exclusif ça semble compliqué d'avoir une trad. Normalement il y a une convention fabric pour ça mais je ne sais pas si c'est pertinent de l'utiliser.
-- [] Vérifie Height/Padding/Gap dans le Header. Il semble être différent de quelques pixels.
-- [] Les bordures semblent plus claires que la version web.
-- [] Dans la page Non Combinable, le bouton action doit être en bas à droite, à cause du "Grid" le bouton essaye de se mettre en bas, mais le parent ne prend pas toute la hauteur, donc il n'est pas totalement en bas.
+- [] Les AnimatedTabs, donc les tabs avec l'inner qui bouge, au rendu initial la taille de cette inner n'est pas bonne, je pense qu'elle est calculée sur la version anglaises, ou je sais pas. (Aprés un clique elle se calibre correctement)
+- [] Traduire tout les messages d'erreur avec i18n "error:*".
+- [] Quand je clique sur un SVG (Pas tous) exemple celui dans le Tree, le Chevron qui permet d'expand, si je double clique ça réduit/augmente la fenétre. ça agis comme la title bar du window.
+- [] Le bouton configurer ne fait rien dans overview. Il doit avoir la même action que quand ont clique sur la row.
+- [] Dans la page "Items supportés", lorsque je réduit la fenétre et la remet en grand, la taille des cartes est abusément élévé en hauteur
 
-## Les Performances
+## A refactor:
+- [] Retravailler le I18n faire en sorte de ccentralisés absoluement toutes la logique entiére dans un même fichier et le rendre le plus générique possible, extensible gérer tout les cas au même endroit. Les Pages/Composant doivent juste appeler ces fonction et ne rien calculer. (Hormis une concaténation).
+
+## Projet du futur pour la V1
+- Travailler une API de debugging modernes et universelles pour le projet entier, qui soit propre, senior et future proof, générique et extensible.
+- [] Travailler le debugging, pouvoir voir les éléménets re-render quel composant et la duréer d'un render par composant.
+- [] Avoir des logs détaillés des actions, des erreurs/warnings et informations utiles de render long.
+- [] Pouvoir voir le contenu de certaines variables dans le debugging.
+
+- [] Créer la page "Vos Modification", qui permet de consulter les modifications effectuées dans le projet, et les annuler. Ont peut se calquer sur la version web.
+    * [] La sidebar avec deux vues, une qui affiche par concept, une qui affiche par fichier.
+    * [] Créer une API de highlight et de diff (Ont pourrais prendre l'api github et pour le JSON s'inspirer de l'api du package propriétaire que j'ai fait)
+    * [] Un éditeur de texte rudimentaire pour le json, avec possibilité d'ouvrir VSC facilement.
+
+- [] Créer le concept de Loot Table, qui permet de gérer les loot tables de Minecraft. Visuel calquer sur la version web.
+- [] Créer le concept de Recipe. Visuel calquer sur la version web.

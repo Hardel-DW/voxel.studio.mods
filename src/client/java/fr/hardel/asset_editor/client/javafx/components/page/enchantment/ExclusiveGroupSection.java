@@ -8,7 +8,6 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -22,13 +21,36 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public final class ExclusiveGroupSection extends VBox {
 
-    public ExclusiveGroupSection(StudioContext context, Identifier elementId, StoreSelector<String> exclusiveSelector) {
+    private final StudioContext context;
+    private final Identifier elementId;
+    private final Function<UnaryOperator<Enchantment>, Boolean> applyMutation;
+    private final Function<Identifier, Boolean> applyTag;
+    private EnchantmentTags currentTargetCard;
+
+    public ExclusiveGroupSection(StudioContext context, Identifier elementId,
+            Function<UnaryOperator<Enchantment>, Boolean> applyMutation,
+            Function<Identifier, Boolean> applyTag) {
+        this.context = context;
+        this.elementId = elementId;
+        this.applyMutation = applyMutation;
+        this.applyTag = applyTag;
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
+
+        var entry = context.currentEntry(Registries.ENCHANTMENT);
+        String currentExclusiveTag = "";
+        Set<Identifier> currentTags = Set.of();
+        if (entry != null) {
+            currentExclusiveTag = entry.data().exclusiveSet().unwrapKey()
+                    .map(k -> k.location().toString()).orElse("");
+            currentTags = entry.tags();
+        }
 
         Function<String, String> labelResolver = value -> {
             if (value == null || value.isBlank()) return "";
@@ -44,12 +66,12 @@ public final class ExclusiveGroupSection extends VBox {
         };
 
         getChildren().addAll(
-                buildVanillaCategory(context, elementId, exclusiveSelector, labelResolver),
-                buildCustomCategory(context, elementId, exclusiveSelector, labelResolver));
+                buildVanillaCategory(currentExclusiveTag, currentTags, labelResolver),
+                buildCustomCategory(currentExclusiveTag, currentTags, labelResolver));
     }
 
-    private Category buildVanillaCategory(StudioContext context, Identifier elementId,
-            StoreSelector<String> exclusiveSelector, Function<String, String> labelResolver) {
+    private Category buildVanillaCategory(String currentExclusiveTag, Set<Identifier> currentTags,
+            Function<String, String> labelResolver) {
         Category category = new Category("enchantment:exclusive.vanilla.title");
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
@@ -57,23 +79,13 @@ public final class ExclusiveGroupSection extends VBox {
 
         for (ExclusiveSetGroup group : ExclusiveSetGroup.ALL) {
             String rawTag = group.value().startsWith("#") ? group.value().substring(1) : group.value();
-            Identifier tagIdentifier = Identifier.tryParse(rawTag);
-
-            boolean isTarget = rawTag.equals(exclusiveSelector.get());
-            List<String> tagMembers = resolveExclusiveTagMembers(context, tagIdentifier);
-
-            EnchantmentTags card = new EnchantmentTags(
+            Identifier tagId = Identifier.tryParse(rawTag);
+            EnchantmentTags card = buildCard(
                     "enchantment:exclusive.set." + group.id() + ".title",
                     "enchantment:exclusive.set." + group.id() + ".description",
-                    group.image(),
-                    tagMembers,
-                    isTarget,
-                    false,
-                    () -> toggleGroup(context, elementId, tagIdentifier, rawTag, exclusiveSelector),
-                    labelResolver);
-
-            exclusiveSelector.subscribe(val -> card.updateTarget(rawTag.equals(val)));
-
+                    group.image(), tagId, rawTag,
+                    currentExclusiveTag, currentTags, labelResolver);
+            if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
             grid.addItem(card);
         }
 
@@ -81,8 +93,8 @@ public final class ExclusiveGroupSection extends VBox {
         return category;
     }
 
-    private Category buildCustomCategory(StudioContext context, Identifier elementId,
-            StoreSelector<String> exclusiveSelector, Function<String, String> labelResolver) {
+    private Category buildCustomCategory(String currentExclusiveTag, Set<Identifier> currentTags,
+            Function<String, String> labelResolver) {
         Category category = new Category("enchantment:exclusive.custom.title");
 
         List<Identifier> customTags = EnchantmentActions
@@ -92,7 +104,6 @@ public final class ExclusiveGroupSection extends VBox {
             fallback.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
             fallback.setTextFill(VoxelColors.ZINC_400);
             fallback.setPadding(new Insets(0, 16, 0, 16));
-
             category.addContent(fallback);
             return category;
         }
@@ -100,19 +111,18 @@ public final class ExclusiveGroupSection extends VBox {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
                 .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-        for (Identifier tagId : customTags) {
-            String rawTag = tagId.toString();
-            EnchantmentTags card = new EnchantmentTags(
-                    tagId.getPath(),
-                    rawTag,
-                    Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg"),
-                    resolveExclusiveTagMembers(context, tagId),
-                    rawTag.equals(exclusiveSelector.get()),
-                    false,
-                    () -> toggleGroup(context, elementId, tagId, rawTag, exclusiveSelector),
-                    labelResolver);
+        for (Identifier tagIdent : customTags) {
+            String rawTag = tagIdent.toString();
+            String title = tagIdent.getPath().contains("/")
+                    ? tagIdent.getPath().substring(tagIdent.getPath().lastIndexOf('/') + 1)
+                    : tagIdent.getPath();
 
-            exclusiveSelector.subscribe(value -> card.updateTarget(rawTag.equals(value)));
+            EnchantmentTags card = buildCard(
+                    title, rawTag,
+                    Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg"),
+                    tagIdent, rawTag,
+                    currentExclusiveTag, currentTags, labelResolver);
+            if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
             grid.addItem(card);
         }
 
@@ -120,31 +130,72 @@ public final class ExclusiveGroupSection extends VBox {
         return category;
     }
 
-    private void toggleGroup(StudioContext context, Identifier elementId, Identifier tagId, String rawTag,
-            StoreSelector<String> exclusiveSelector) {
-        boolean currentlyTarget = rawTag.equals(exclusiveSelector.get());
-        boolean currentlyMember = context.elementStore().get(Registries.ENCHANTMENT, elementId).tags().contains(tagId);
+    private EnchantmentTags buildCard(String titleKey, String descriptionKey, Identifier imageId,
+            Identifier tagId, String rawTag, String currentExclusiveTag,
+            Set<Identifier> currentTags, Function<String, String> labelResolver) {
 
-        if (currentlyTarget) {
-            context.gateway().apply(Registries.ENCHANTMENT, elementId,
-                    EnchantmentActions.exclusiveSet(HolderSet.empty()));
-            if (currentlyMember) {
-                context.gateway().toggleTag(Registries.ENCHANTMENT, elementId, tagId);
-            }
-            return;
+        List<String> members = resolveTagMembers(tagId);
+        boolean isTarget = rawTag.equals(currentExclusiveTag);
+        boolean isMember = currentTags.contains(tagId);
+
+        EnchantmentTags[] holder = { null };
+        EnchantmentTags card = new EnchantmentTags(
+                titleKey, descriptionKey, imageId, members, isTarget, isMember, false,
+                checked -> handleTargetToggle(holder[0], tagId, checked),
+                checked -> handleMembershipToggle(holder[0], tagId, checked),
+                labelResolver);
+        holder[0] = card;
+        return card;
+    }
+
+    private void handleTargetToggle(EnchantmentTags card, Identifier tagId, boolean checked) {
+        EnchantmentTags previousTarget = currentTargetCard;
+
+        if (checked && previousTarget != null && previousTarget != card) {
+            previousTarget.updateTarget(false);
+        }
+        card.updateTarget(checked);
+        currentTargetCard = checked ? card : null;
+
+        boolean ok;
+        if (!checked) {
+            ok = applyMutation.apply(EnchantmentActions.exclusiveSet(HolderSet.empty()));
+        } else {
+            HolderSet<Enchantment> resolved = context.resolveTag(
+                    Registries.ENCHANTMENT,
+                    TagKey.create(Registries.ENCHANTMENT, tagId)).orElse(HolderSet.empty());
+            ok = applyMutation.apply(EnchantmentActions.exclusiveSet(resolved));
         }
 
-        HolderSet<Enchantment> resolved = context.resolveTag(Registries.ENCHANTMENT,
-                TagKey.create(Registries.ENCHANTMENT, tagId)).orElse(HolderSet.empty());
-        context.gateway().apply(Registries.ENCHANTMENT, elementId, EnchantmentActions.exclusiveSet(resolved));
-        if (!currentlyMember) {
-            context.gateway().toggleTag(Registries.ENCHANTMENT, elementId, tagId);
+        if (!ok) {
+            card.updateTarget(!checked);
+            if (previousTarget != null && previousTarget != card) {
+                previousTarget.updateTarget(true);
+            }
+            currentTargetCard = previousTarget;
         }
     }
 
-    private List<String> resolveExclusiveTagMembers(StudioContext context, Identifier tagId) {
-        if (tagId == null)
-            return List.of();
+    private void handleMembershipToggle(EnchantmentTags card, Identifier tagId, boolean checked) {
+        List<String> before = card.getValues();
+
+        card.updateMembership(checked);
+        List<String> after = new ArrayList<>(before);
+        String enchId = elementId.toString();
+        if (checked && !after.contains(enchId)) after.add(enchId);
+        if (!checked) after.remove(enchId);
+        card.updateValues(after);
+
+        boolean ok = applyTag.apply(tagId);
+
+        if (!ok) {
+            card.updateMembership(!checked);
+            card.updateValues(before);
+        }
+    }
+
+    private List<String> resolveTagMembers(Identifier tagId) {
+        if (tagId == null) return List.of();
         List<String> members = new ArrayList<>();
         for (var entry : context.allTypedEntries(Registries.ENCHANTMENT)) {
             if (entry.tags().contains(tagId)) {
@@ -153,5 +204,4 @@ public final class ExclusiveGroupSection extends VBox {
         }
         return members;
     }
-
 }

@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
+import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
@@ -24,6 +25,8 @@ import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public final class EditorHeader extends VBox {
@@ -83,9 +86,10 @@ public final class EditorHeader extends VBox {
     private void refresh() {
         content.getChildren().clear();
 
-        HBox row = new HBox(16);
+        List<String> segments = buildBreadcrumbSegments();
+        HBox row = new HBox(32);
         row.setAlignment(Pos.BOTTOM_LEFT);
-        Label title = new Label(resolveTitle());
+        Label title = new Label(resolveTitle(segments));
         title.getStyleClass().add("editor-header-title");
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.MINECRAFT_TEN, 36));
 
@@ -99,9 +103,8 @@ public final class EditorHeader extends VBox {
 
         EditorBreadcrumb breadcrumb = new EditorBreadcrumb(
                 I18n.get(concept.titleKey()),
-                tree.filterPath(),
-                tree.currentElementId(),
-                isOverview(),
+                segments,
+                !isOverview(),
                 () -> context.router().navigate(concept.overviewRoute()));
         VBox left = new VBox(8, breadcrumb, title, colorLine);
         HBox.setHgrow(left, Priority.ALWAYS);
@@ -109,7 +112,9 @@ public final class EditorHeader extends VBox {
 
         content.getChildren().add(row);
         if (showTabs()) {
-            content.getChildren().add(buildTabs());
+            HBox tabs = buildTabs();
+            VBox.setMargin(tabs, new Insets(0, 0, -8, 0));
+            content.getChildren().add(tabs);
         }
     }
 
@@ -173,14 +178,9 @@ public final class EditorHeader extends VBox {
         return route.concept().equals(concept.registry()) && concept.tabRoutes().contains(route);
     }
 
-    private String resolveTitle() {
-        if (isOverview()) {
-            String filterPath = tree.filterPath();
-            if (filterPath == null || filterPath.isBlank())
-                return I18n.get("generic:all");
-            String[] parts = filterPath.split("/");
-            return parts[parts.length - 1];
-        }
+    private String resolveTitle(List<String> segments) {
+        if (isOverview())
+            return segments.isEmpty() ? I18n.get("generic:all") : segments.getLast();
         String id = tree.currentElementId();
         if (id == null || id.isBlank())
             return I18n.get(concept.titleKey());
@@ -197,6 +197,54 @@ public final class EditorHeader extends VBox {
         }
         String id = ColorUtils.normalizeColorKey(tree.currentElementId());
         return (id == null || id.isBlank()) ? concept.registry() : id;
+    }
+
+    private List<String> buildBreadcrumbSegments() {
+        if (isOverview())
+            return resolveFilterPathLabels();
+
+        String id = tree.currentElementId();
+        if (id == null || id.isBlank())
+            return List.of();
+        StudioElementId parsed = StudioElementId.parse(id);
+        if (parsed == null)
+            return List.of(id);
+
+        List<String> segments = new ArrayList<>();
+        segments.add(parsed.namespace());
+        String[] pathParts = parsed.resourcePath().split("/");
+        for (int i = 0; i < pathParts.length; i++) {
+            segments.add(i == pathParts.length - 1
+                    ? TextUtils.resolveDisplayName(parsed.identifier(), concept.registryKey())
+                    : TextUtils.humanize(pathParts[i]));
+        }
+        return segments;
+    }
+
+    private List<String> resolveFilterPathLabels() {
+        String filterPath = tree.filterPath();
+        if (filterPath == null || filterPath.isBlank())
+            return List.of();
+
+        String[] parts = filterPath.split("/");
+        List<String> labels = new ArrayList<>(parts.length);
+        TreeNodeModel cursor = tree.tree();
+        for (String part : parts) {
+            if (cursor == null) {
+                labels.add(TextUtils.humanize(part));
+                continue;
+            }
+            TreeNodeModel child = cursor.children().get(part);
+            if (child == null) {
+                labels.add(TextUtils.humanize(part));
+                cursor = null;
+                continue;
+            }
+            String nodeLabel = child.label();
+            labels.add(nodeLabel == null || nodeLabel.isBlank() ? TextUtils.humanize(part) : nodeLabel);
+            cursor = child;
+        }
+        return labels;
     }
 
     private boolean isOverview() {

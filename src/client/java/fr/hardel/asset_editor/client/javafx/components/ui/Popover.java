@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -16,6 +15,7 @@ import net.minecraft.resources.Identifier;
 public final class Popover extends Popup {
 
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static volatile Image shineImage;
     private static Popover active;
 
     private final Node trigger;
@@ -35,16 +35,17 @@ public final class Popover extends Popup {
         StackPane inner = new StackPane(content);
         inner.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        try (var stream = VoxelResourceLoader.open(SHINE)) {
-            ImageView shine = new ImageView(new Image(stream));
-            shine.setPreserveRatio(false);
-            shine.setOpacity(0.12);
-            shine.setMouseTransparent(true);
-            shine.setManaged(false);
-            shine.fitWidthProperty().bind(container.widthProperty());
-            shine.fitHeightProperty().bind(container.heightProperty().multiply(0.35));
-            inner.getChildren().addFirst(shine);
-        } catch (Exception ignored) {}
+        Image shine = getShineImage();
+        if (shine != null) {
+            ImageView shineView = new ImageView(shine);
+            shineView.setPreserveRatio(false);
+            shineView.setOpacity(0.12);
+            shineView.setMouseTransparent(true);
+            shineView.setManaged(false);
+            shineView.fitWidthProperty().bind(container.widthProperty());
+            shineView.fitHeightProperty().bind(container.heightProperty().multiply(0.35));
+            inner.getChildren().addFirst(shineView);
+        }
 
         Rectangle clip = new Rectangle();
         clip.setArcWidth(32);
@@ -74,18 +75,24 @@ public final class Popover extends Popup {
 
     private void onSceneClick(MouseEvent e) {
         if (!isShowing()) return;
+        if (trigger.getScene() == null) {
+            hide();
+            return;
+        }
 
         Bounds triggerBounds = trigger.localToScene(trigger.getBoundsInLocal());
         if (triggerBounds.contains(e.getSceneX(), e.getSceneY())) return;
 
-        Point2D popoverScreen = new Point2D(getX(), getY());
-        double pw = container.getWidth();
-        double ph = container.getHeight();
         Window window = trigger.getScene().getWindow();
+        if (window == null) {
+            hide();
+            return;
+        }
+
         double sx = e.getSceneX() + window.getX() + trigger.getScene().getX();
         double sy = e.getSceneY() + window.getY() + trigger.getScene().getY();
-        if (sx >= popoverScreen.getX() && sx <= popoverScreen.getX() + pw
-                && sy >= popoverScreen.getY() && sy <= popoverScreen.getY() + ph) return;
+        if (sx >= getX() && sx <= getX() + container.getWidth()
+                && sy >= getY() && sy <= getY() + container.getHeight()) return;
 
         hide();
     }
@@ -99,6 +106,7 @@ public final class Popover extends Popup {
             hide();
             return;
         }
+        if (trigger.getScene() == null) return;
         if (active != null && active != this) active.hide();
         active = this;
 
@@ -117,6 +125,20 @@ public final class Popover extends Popup {
         double screenBottom = window.getY() + window.getHeight();
         if (getY() + container.getHeight() > screenBottom) {
             setY(bounds.getMinY() - container.getHeight() - 8);
+        }
+    }
+
+    private static Image getShineImage() {
+        Image current = shineImage;
+        if (current != null) return current;
+        synchronized (Popover.class) {
+            if (shineImage != null) return shineImage;
+            try (var stream = VoxelResourceLoader.open(SHINE)) {
+                shineImage = new Image(stream);
+            } catch (Exception ignored) {
+                shineImage = null;
+            }
+            return shineImage;
         }
     }
 }

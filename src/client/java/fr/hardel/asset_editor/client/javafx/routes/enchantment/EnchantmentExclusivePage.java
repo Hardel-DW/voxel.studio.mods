@@ -11,10 +11,11 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
@@ -42,8 +43,11 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
         content().getChildren().setAll(selector);
 
-        var exclusiveSelector = select(entry -> entry.data().exclusiveSet().unwrapKey()
-                .map(k -> k.location().toString()).orElse(""));
+        groupSection = new ExclusiveGroupSection(
+                context(), currentId(),
+                mutation -> applyAction(mutation).isApplied(),
+                tagId -> applyTagToggle(tagId).isApplied());
+
         var directExclusiveSelector = select(entry -> {
             if (entry.data().exclusiveSet().unwrapKey().isPresent()) {
                 return Set.<String>of();
@@ -53,10 +57,9 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
                             .map(k -> k.identifier().toString())
                             .orElse(null))
                     .filter(Objects::nonNull)
-                    .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         });
 
-        groupSection = new ExclusiveGroupSection(context(), currentId(), exclusiveSelector);
         singleSection = new ExclusiveSingleSection(
                 context(),
                 directExclusiveSelector,
