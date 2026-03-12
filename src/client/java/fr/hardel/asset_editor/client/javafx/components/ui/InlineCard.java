@@ -16,14 +16,14 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 /**
- * Inline button card: px-6 py-4, title + description on left, check/lock icon on right.
+ * Inline button card: px-6 py-4, title + description on left, check/lock icon
+ * on right.
  * Active: bg-zinc-950/50 + zinc-700 ring. Locked: opacity-50.
- * Used in ExclusiveSingleSection / EnchantmentCategory grids.
  */
 public final class InlineCard extends SimpleCard {
 
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier LOCK  = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
+    private static final Identifier LOCK = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
 
     private final BooleanProperty active = new SimpleBooleanProperty(false);
 
@@ -80,6 +80,11 @@ public final class InlineCard extends SimpleCard {
         }
     }
 
-    public BooleanProperty activeProperty() { return active; }
-    public boolean isActive() { return active.get(); }
+    public BooleanProperty activeProperty() {
+        return active;
+    }
+
+    public boolean isActive() {
+        return active.get();
+    }
 }

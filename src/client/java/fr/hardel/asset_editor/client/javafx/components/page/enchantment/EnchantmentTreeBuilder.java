@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -93,7 +94,6 @@ public final class EnchantmentTreeBuilder {
                     .filter(Objects::nonNull)
                     .toList();
             if (directIds.isEmpty()) {
-                grouped.computeIfAbsent("none", k -> new ArrayList<>()).add(entry);
                 continue;
             }
             for (Identifier id : directIds) {
@@ -103,8 +103,9 @@ public final class EnchantmentTreeBuilder {
         for (var e : grouped.entrySet()) {
             TreeNodeModel category = createCategoryNode(e.getValue());
             String key = e.getKey();
-            String fallback = key.contains(":") ? key.substring(key.lastIndexOf(':') + 1) : key;
-            category.setLabel(translationOrDefault("enchantment:exclusive.set." + key + ".title", fallback));
+            String leaf = key.contains("/") ? key.substring(key.lastIndexOf('/') + 1) : key;
+            String cleanLeaf = leaf.contains(":") ? leaf.substring(leaf.lastIndexOf(':') + 1) : leaf;
+            category.setLabel(translationOrDefault("enchantment:exclusive.set." + cleanLeaf + ".title", TextUtils.humanize(cleanLeaf)));
             root.children().put(e.getKey(), category);
         }
     }

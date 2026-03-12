@@ -18,7 +18,8 @@ public final class EditorBreadcrumb extends HBox {
 
     private static final Identifier BACK_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/back.svg");
 
-    public EditorBreadcrumb(String rootLabel, String filterPath, String elementId, boolean isOverview, Runnable onBack) {
+    public EditorBreadcrumb(String rootLabel, String filterPath, String elementId, boolean isOverview,
+            Runnable onBack) {
         getStyleClass().add("editor-breadcrumb");
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(2);
@@ -27,7 +28,7 @@ public final class EditorBreadcrumb extends HBox {
             SvgIcon back = new SvgIcon(BACK_ICON, 14, VoxelColors.ZINC_400);
             back.setOpacity(0.5);
 
-            Label backLabel = new Label(I18n.get("back"));
+            Label backLabel = new Label(I18n.get("generic:back"));
             backLabel.getStyleClass().add("editor-breadcrumb-back-label");
 
             HBox backBtn = new HBox(6, back, backLabel);
@@ -66,12 +67,14 @@ public final class EditorBreadcrumb extends HBox {
     private static List<String> buildSegments(String filterPath, String elementId, boolean isOverview) {
         ArrayList<String> segments = new ArrayList<>();
         if (isOverview) {
-            if (filterPath == null || filterPath.isBlank()) return segments;
+            if (filterPath == null || filterPath.isBlank())
+                return segments;
             segments.addAll(List.of(filterPath.split("/")));
             return segments;
         }
 
-        if (elementId == null || elementId.isBlank()) return segments;
+        if (elementId == null || elementId.isBlank())
+            return segments;
         StudioElementId parsed = StudioElementId.parse(elementId);
         if (parsed == null) {
             segments.add(elementId);

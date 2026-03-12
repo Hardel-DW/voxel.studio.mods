@@ -49,7 +49,8 @@ public final class TitleBar extends VBox {
             }
         });
         bar.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) stage.setMaximized(!stage.isMaximized());
+            if (e.getClickCount() == 2)
+                stage.setMaximized(!stage.isMaximized());
         });
 
         bar.getChildren().addAll(left, drag, controls);
@@ -59,7 +60,7 @@ public final class TitleBar extends VBox {
     private HBox buildLeft() {
         SvgIcon logo = new SvgIcon(LOGO, 16, Color.WHITE);
 
-        Text title = new Text(I18n.get("tauri:app.title"));
+        Text title = new Text(I18n.get("app:title"));
         title.getStyleClass().add("title-bar-logo-label");
         title.setFill(VoxelColors.ZINC_400);
 
@@ -83,6 +84,3 @@ public final class TitleBar extends VBox {
         return sep;
     }
 }
-
-
-

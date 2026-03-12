@@ -26,9 +26,11 @@ import net.minecraft.resources.Identifier;
 public final class SupportCard extends StackPane {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor",
+            "textures/studio/shine.png");
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/patreon.svg");
+    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/company/patreon.svg");
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
     public SupportCard() {
@@ -40,12 +42,12 @@ public final class SupportCard extends StackPane {
         logo.setManaged(false);
         logo.setMouseTransparent(true);
 
-        Label title = new Label(I18n.get("supports.title"));
+        Label title = new Label(I18n.get("supports:title"));
         title.getStyleClass().add("support-card-title");
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 30));
         title.setWrapText(true);
 
-        Label desc = new Label(I18n.get("supports.description"));
+        Label desc = new Label(I18n.get("supports:description"));
         desc.getStyleClass().add("support-card-desc");
         desc.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         desc.setWrapText(true);
@@ -53,7 +55,7 @@ public final class SupportCard extends StackPane {
 
         VBox textBlock = new VBox(title, desc);
 
-        Label advantagesHeading = new Label(I18n.get("supports.advantages"));
+        Label advantagesHeading = new Label(I18n.get("supports:advantages"));
         advantagesHeading.getStyleClass().add("support-card-advantages-heading");
         advantagesHeading.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
         VBox.setMargin(advantagesHeading, new Insets(24, 0, 16, 0));
@@ -62,11 +64,12 @@ public final class SupportCard extends StackPane {
         VBox advantagesSection = new VBox(advantagesHeading, advantagesGrid);
         HBox.setHgrow(advantagesSection, Priority.ALWAYS);
 
-        Button donateBtn = new Button(Button.Variant.SHIMMER, Button.Size.LG, I18n.get("donate"));
+        Button donateBtn = new Button(Button.Variant.SHIMMER, Button.Size.LG, I18n.get("supports:donate"));
         donateBtn.setOnAction(() -> BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip"));
 
         SvgIcon patreonIcon = new SvgIcon(PATREON_ICON, 16, Color.WHITE);
-        Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG, I18n.get("supports.become"), patreonIcon);
+        Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG, I18n.get("supports:become"),
+                patreonIcon);
         patreonBtn.setOnAction(() -> BrowserUtils.openBrowser("https://www.patreon.com/hardel"));
         donateBtn.setMaxWidth(Double.MAX_VALUE);
         patreonBtn.setMaxWidth(Double.MAX_VALUE);
@@ -101,7 +104,8 @@ public final class SupportCard extends StackPane {
             shine.fitWidthProperty().bind(widthProperty());
             shine.fitHeightProperty().bind(heightProperty());
             getChildren().add(shine);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         logo.layoutXProperty().bind(widthProperty().subtract(288));
         logo.setLayoutY(-96);
@@ -125,7 +129,7 @@ public final class SupportCard extends StackPane {
             grid.getColumnConstraints().add(c);
         }
         for (int i = 0; i < ADVANTAGES.length; i++) {
-            grid.add(buildAdvantageItem("supports.advantages." + ADVANTAGES[i]), i % 2, i / 2);
+            grid.add(buildAdvantageItem("supports:advantages." + ADVANTAGES[i]), i % 2, i / 2);
         }
         return grid;
     }

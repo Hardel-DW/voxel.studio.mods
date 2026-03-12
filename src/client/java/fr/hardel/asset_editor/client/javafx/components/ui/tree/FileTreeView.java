@@ -63,10 +63,6 @@ public final class FileTreeView extends VBox {
         boolean hasActiveChild = !tree.disableAutoExpand() && TreeUtils.hasActiveDescendant(node, activeElementId);
         boolean defaultOpen = forceOpen || hasActiveChild;
         boolean isOpen = openState.computeIfAbsent(path, key -> defaultOpen);
-        if (hasActiveChild && !isOpen) {
-            openState.put(path, true);
-            isOpen = true;
-        }
 
         String filterPath = tree.filterPath();
         boolean isHighlighted = isElement

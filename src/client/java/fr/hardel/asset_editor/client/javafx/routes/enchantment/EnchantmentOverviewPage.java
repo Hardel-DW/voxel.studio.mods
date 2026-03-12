@@ -24,6 +24,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -144,6 +145,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         return context.allTypedEntries(Registries.ENCHANTMENT).stream()
                 .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
                 .filter(e -> EnchantmentViewMatchers.matches(e, filterPath, sidebarView))
+                .sorted(Comparator.comparing(e -> e.data().description().getString()))
                 .toList();
     }
 

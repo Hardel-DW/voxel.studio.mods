@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -21,15 +22,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 
 import java.util.Locale;
 
 public final class EditorHeader extends VBox {
 
-    private static final Identifier GRID_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/overview/grid.svg");
-    private static final Identifier LIST_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/overview/list.svg");
+    private static final Identifier GRID_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/tools/overview/grid.svg");
+    private static final Identifier LIST_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/tools/overview/list.svg");
 
     private final StudioContext context;
     private final TreeController tree;
@@ -41,7 +43,8 @@ public final class EditorHeader extends VBox {
     private final Region gradientLayer = new Region();
     private final VBox content = new VBox();
 
-    public EditorHeader(StudioContext context, TreeController tree, StudioConcept concept, boolean showViewToggle, StudioRoute simulationRoute) {
+    public EditorHeader(StudioContext context, TreeController tree, StudioConcept concept, boolean showViewToggle,
+            StudioRoute simulationRoute) {
         this.context = context;
         this.tree = tree;
         this.concept = concept;
@@ -116,7 +119,8 @@ public final class EditorHeader extends VBox {
         actions.setAlignment(Pos.CENTER_RIGHT);
         actions.setFillHeight(false);
         actions.setMaxHeight(Region.USE_PREF_SIZE);
-        if (!isOverview()) return actions;
+        if (!isOverview())
+            return actions;
 
         if (simulationRoute != null) {
             Button simulation = new Button(I18n.get("enchantment:simulation"));
@@ -129,7 +133,8 @@ public final class EditorHeader extends VBox {
         if (showViewToggle) {
             ToggleGroup toggle = new ToggleGroup(
                     () -> context.uiState().viewMode().name().toLowerCase(Locale.ROOT),
-                    value -> context.uiState().setViewMode("list".equals(value) ? StudioViewMode.LIST : StudioViewMode.GRID));
+                    value -> context.uiState()
+                            .setViewMode("list".equals(value) ? StudioViewMode.LIST : StudioViewMode.GRID));
             toggle.addIconOption("grid", GRID_ICON);
             toggle.addIconOption("list", LIST_ICON);
             toggle.setMinHeight(Region.USE_PREF_SIZE);
@@ -159,9 +164,11 @@ public final class EditorHeader extends VBox {
     }
 
     private boolean showTabs() {
-        if (concept.tabs().size() <= 1) return false;
+        if (concept.tabs().size() <= 1)
+            return false;
         String current = tree.currentElementId();
-        if (current == null || current.isBlank()) return false;
+        if (current == null || current.isBlank())
+            return false;
         StudioRoute route = context.router().currentRoute();
         return route.concept().equals(concept.registry()) && concept.tabRoutes().contains(route);
     }
@@ -169,18 +176,18 @@ public final class EditorHeader extends VBox {
     private String resolveTitle() {
         if (isOverview()) {
             String filterPath = tree.filterPath();
-            if (filterPath == null || filterPath.isBlank()) return I18n.get("editor.all");
+            if (filterPath == null || filterPath.isBlank())
+                return I18n.get("generic:all");
             String[] parts = filterPath.split("/");
             return parts[parts.length - 1];
         }
         String id = tree.currentElementId();
-        if (id == null || id.isBlank()) return I18n.get(concept.titleKey());
-        if (concept == StudioConcept.ENCHANTMENT) {
-            var entry = context.currentEntry(Registries.ENCHANTMENT);
-            if (entry != null) return entry.data().description().getString();
-        }
+        if (id == null || id.isBlank())
+            return I18n.get(concept.titleKey());
         StudioElementId parsed = StudioElementId.parse(id);
-        return parsed == null ? id : parsed.resourceLeaf();
+        if (parsed == null)
+            return id;
+        return TextUtils.resolveDisplayName(parsed.identifier(), concept.registryKey());
     }
 
     private String resolveColorKey() {

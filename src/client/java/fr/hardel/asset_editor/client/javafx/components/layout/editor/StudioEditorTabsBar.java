@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
+import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -85,7 +86,8 @@ public final class StudioEditorTabsBar extends HBox {
     private HBox createTab(StudioOpenTab tab, boolean active, int index) {
         HBox item = new HBox(8);
         item.getStyleClass().add("studio-editor-tab-item");
-        if (active) item.getStyleClass().add("studio-editor-tab-item-active");
+        if (active)
+            item.getStyleClass().add("studio-editor-tab-item-active");
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(6, 12, 6, 12)); // px-3 py-1.5
         item.setMinHeight(Region.USE_PREF_SIZE);
@@ -100,7 +102,11 @@ public final class StudioEditorTabsBar extends HBox {
         ResourceImageIcon icon = new ResourceImageIcon(StudioConcept.byRoute(tab.route()).icon(), 16); // size-4
         icon.setOpacity(active ? 1.0 : 0.85);
 
-        Label label = new Label(displayName(tab.elementId()));
+        StudioElementId parsed = StudioElementId.parse(tab.elementId());
+        String displayName = parsed != null
+                ? TextUtils.resolveDisplayName(parsed.identifier(), StudioConcept.byRoute(tab.route()).registryKey())
+                : (tab.elementId() != null ? tab.elementId() : "");
+        Label label = new Label(displayName);
         label.getStyleClass().add("studio-editor-tab-label");
         label.getStyleClass().add(active ? "studio-editor-tab-label-active" : "studio-editor-tab-label-inactive");
         label.setMaxWidth(192);
@@ -134,10 +140,5 @@ public final class StudioEditorTabsBar extends HBox {
             context.router().navigate(next != null ? next.route() : fallback);
         });
         return btn;
-    }
-
-    private String displayName(String elementId) {
-        StudioElementId parsed = StudioElementId.parse(elementId);
-        return parsed == null ? (elementId == null ? "" : elementId) : parsed.resourceLeaf();
     }
 }

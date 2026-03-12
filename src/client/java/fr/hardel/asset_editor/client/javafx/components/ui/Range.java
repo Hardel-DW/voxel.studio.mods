@@ -63,6 +63,12 @@ public final class Range extends VBox {
         slider.setMaxWidth(Double.MAX_VALUE);
 
         value = new SimpleIntegerProperty(initialValue);
+        value.addListener((obs, o, v) -> {
+            int target = v.intValue();
+            if ((int) Math.round(slider.getValue() / step) * step != target) {
+                slider.setValue(target);
+            }
+        });
         slider.valueProperty().addListener((obs, o, v) -> {
             int rounded = (int) Math.round(v.doubleValue() / step) * step;
             value.set(rounded);

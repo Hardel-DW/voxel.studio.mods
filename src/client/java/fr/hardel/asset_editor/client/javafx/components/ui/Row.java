@@ -16,7 +16,7 @@ public class Row extends HBox {
 
     private final VBox main = new VBox(2);
     private final ToggleSwitch toggle = new ToggleSwitch();
-    private final Label actionLabel = new Label(I18n.get("configure"));
+    private final Label actionLabel = new Label(I18n.get("generic:configure"));
     private Node icon;
 
     public Row() {
@@ -50,9 +50,11 @@ public class Row extends HBox {
     }
 
     public Row setIcon(Node icon) {
-        if (this.icon != null) getChildren().remove(this.icon);
+        if (this.icon != null)
+            getChildren().remove(this.icon);
         this.icon = icon;
-        if (icon != null) getChildren().addFirst(icon);
+        if (icon != null)
+            getChildren().addFirst(icon);
         return this;
     }
 

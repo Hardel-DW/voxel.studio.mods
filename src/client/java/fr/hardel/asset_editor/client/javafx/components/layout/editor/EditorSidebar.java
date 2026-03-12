@@ -26,9 +26,11 @@ import java.util.List;
 
 public final class EditorSidebar extends VBox {
 
-    private static final Identifier DISCORD_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/discord.svg");
+    private static final Identifier DISCORD_ICON = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/company/discord.svg");
 
-    public EditorSidebar(StudioContext context, TreeController tree, String titleKey, Identifier iconPath, List<Node> topContent) {
+    public EditorSidebar(StudioContext context, TreeController tree, String titleKey, Identifier iconPath,
+            List<Node> topContent) {
         getStyleClass().add("editor-sidebar");
 
         Button title = new Button(I18n.get(titleKey));
@@ -36,7 +38,7 @@ public final class EditorSidebar extends VBox {
         title.setGraphic(new ResourceImageIcon(iconPath, 20));
         title.setOnAction(event -> tree.selectAll());
 
-        Label subtitle = new Label(I18n.get("explore"));
+        Label subtitle = new Label(I18n.get("generic:explore"));
         subtitle.getStyleClass().add("editor-sidebar-subtitle");
 
         VBox header = new VBox(2, title, subtitle);
@@ -63,7 +65,7 @@ public final class EditorSidebar extends VBox {
     }
 
     private Node buildDiscordSection() {
-        Label text = new Label(I18n.get("common.help.discord"));
+        Label text = new Label(I18n.get("supports:help.discord"));
         text.getStyleClass().add("editor-sidebar-discord-text");
         text.setWrapText(true);
 

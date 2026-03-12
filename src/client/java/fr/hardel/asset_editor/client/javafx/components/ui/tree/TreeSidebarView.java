@@ -41,16 +41,17 @@ public final class TreeSidebarView extends VBox {
 
     private void refresh() {
         getChildren().setAll(
-                createRow(PENCIL_ICON, I18n.get("tree.updated"), "updated", tree.modifiedCount(), false, () -> {
+                createRow(PENCIL_ICON, I18n.get("generic:updated"), "updated", tree.modifiedCount(), false, () -> {
                     tree.clearSelection();
                     context.router().navigate(tree.changesRoute());
                 }),
-                createRow(SEARCH_ICON, I18n.get("tree.all"), "all", tree.tree().count(), tree.isAllActive(), tree::selectAll),
-                fileTree
-        );
+                createRow(SEARCH_ICON, I18n.get("generic:all"), "all", tree.tree().count(), tree.isAllActive(),
+                        tree::selectAll),
+                fileTree);
     }
 
-    private HBox createRow(Identifier iconPath, String text, String colorKey, int count, boolean active, Runnable onClick) {
+    private HBox createRow(Identifier iconPath, String text, String colorKey, int count, boolean active,
+            Runnable onClick) {
         HBox row = new HBox(8);
         row.getStyleClass().add("tree-sidebar-row");
         row.getStyleClass().add(active ? "tree-sidebar-row-active" : "tree-sidebar-row-inactive");

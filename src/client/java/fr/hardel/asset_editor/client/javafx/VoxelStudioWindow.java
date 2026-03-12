@@ -102,7 +102,7 @@ public final class VoxelStudioWindow {
         double h = Math.max(MIN_HEIGHT, sb.getHeight() * 0.75);
 
         stage = new Stage(StageStyle.UNDECORATED);
-        stage.setTitle(I18n.get("tauri:app.title"));
+        stage.setTitle(I18n.get("app:title"));
         stage.setWidth(w);
         stage.setHeight(h);
         stage.setX(sb.getMinX() + (sb.getWidth() - w) / 2);

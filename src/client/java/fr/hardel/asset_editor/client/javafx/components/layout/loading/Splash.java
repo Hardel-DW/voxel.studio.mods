@@ -26,15 +26,16 @@ import net.minecraft.resources.Identifier;
 /**
  * Matches the Splash component (Splash.tsx) exactly
  * Z-order (bottom → top):
- *   0 – GridBackground   (fills scene)
- *   1 – DashedFrame      (margins: top 48, LRB 24)
- *   2 – CenterContent    (fills scene, mouse-transparent)
- *   3 – TitleBar         (aligned to top)
+ * 0 – GridBackground (fills scene)
+ * 1 – DashedFrame (margins: top 48, LRB 24)
+ * 2 – CenterContent (fills scene, mouse-transparent)
+ * 3 – TitleBar (aligned to top)
  */
 public final class Splash extends StackPane {
 
-    private static final Identifier LOGO   = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-    private static final Identifier GITHUB = Identifier.fromNamespaceAndPath("asset_editor", "icons/company/github.svg");
+    private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
+    private static final Identifier GITHUB = Identifier.fromNamespaceAndPath("asset_editor",
+            "icons/company/github.svg");
 
     public Splash(Stage stage) {
         setStyle("-fx-background-color: black;");
@@ -115,7 +116,7 @@ public final class Splash extends StackPane {
     }
 
     private HBox buildFrameBottom() {
-        Label help = new Label(I18n.get("tauri:splash.help"));
+        Label help = new Label(I18n.get("splash:help"));
         help.getStyleClass().add("help-label");
         help.setTextFill(VoxelColors.ZINC_600);
         help.setCursor(Cursor.HAND);
@@ -141,14 +142,14 @@ public final class Splash extends StackPane {
     private VBox buildCenterColumn() {
         StackPane logoGroup = buildLogoGroup();
 
-        Text title = new Text(I18n.get("tauri:splash.title"));
+        Text title = new Text(I18n.get("splash:title"));
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.EXTRA_BOLD, 36));
         title.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
                 new Stop(0, Color.WHITE),
                 new Stop(1, VoxelColors.ZINC_400)));
 
         SpacedText subtitle = new SpacedText(
-                I18n.get("tauri:splash.subtitle").toUpperCase(),
+                I18n.get("splash:subtitle").toUpperCase(),
                 VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 12),
                 VoxelColors.ZINC_500,
                 0.3);
@@ -177,7 +178,7 @@ public final class Splash extends StackPane {
 
     private SpacedText buildLoadingText() {
         SpacedText loading = new SpacedText(
-                I18n.get("tauri:splash.loading").toUpperCase(),
+                I18n.get("splash:loading").toUpperCase(),
                 Font.font("Consolas", 10),
                 VoxelColors.ZINC_400,
                 0.1);
@@ -206,6 +207,3 @@ public final class Splash extends StackPane {
         return r;
     }
 }
-
-
-

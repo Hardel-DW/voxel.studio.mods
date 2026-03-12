@@ -118,6 +118,7 @@ public final class Button extends StackPane {
 
         background.getStyleClass().add(styleClass);
         background.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        background.setMouseTransparent(true);
         if (variant == Variant.SHIMMER || variant == Variant.PATREON) {
             getStyleClass().add(styleClass);
         }

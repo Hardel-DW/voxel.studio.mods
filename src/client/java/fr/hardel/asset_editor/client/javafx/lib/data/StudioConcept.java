@@ -1,13 +1,16 @@
 package fr.hardel.asset_editor.client.javafx.lib.data;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 
 import java.util.List;
 
 public enum StudioConcept {
     ENCHANTMENT(
-            "enchantment",
+            Registries.ENCHANTMENT,
             "studio.concept.enchantment",
             StudioRoute.ENCHANTMENT_OVERVIEW,
             Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/enchantment.png"),
@@ -20,7 +23,7 @@ public enum StudioConcept {
                     new StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.ENCHANTMENT_TECHNICAL)
             )),
     LOOT_TABLE(
-            "loot_table",
+            Registries.LOOT_TABLE,
             "studio.concept.loot_table",
             StudioRoute.LOOT_TABLE_OVERVIEW,
             Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/loot_table.png"),
@@ -29,7 +32,7 @@ public enum StudioConcept {
                     new StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LOOT_TABLE_POOLS)
             )),
     RECIPE(
-            "recipe",
+            Registries.RECIPE,
             "studio.concept.recipe",
             StudioRoute.RECIPE_OVERVIEW,
             Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/recipe.png"),
@@ -37,28 +40,32 @@ public enum StudioConcept {
                     new StudioTabDefinition("main", "recipe:section.main", StudioRoute.RECIPE_MAIN)
             )),
     STRUCTURE(
-            "structure",
+            Registries.STRUCTURE,
             "studio.concept.structure",
             StudioRoute.ENCHANTMENT_OVERVIEW,
             Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/structure.png"),
             List.of());
 
-    private final String registry;
+    private final ResourceKey<? extends Registry<?>> registryKey;
     private final String titleKey;
     private final StudioRoute overviewRoute;
     private final Identifier icon;
     private final List<StudioTabDefinition> tabs;
 
-    StudioConcept(String registry, String titleKey, StudioRoute overviewRoute, Identifier icon, List<StudioTabDefinition> tabs) {
-        this.registry = registry;
+    StudioConcept(ResourceKey<? extends Registry<?>> registryKey, String titleKey, StudioRoute overviewRoute, Identifier icon, List<StudioTabDefinition> tabs) {
+        this.registryKey = registryKey;
         this.titleKey = titleKey;
         this.overviewRoute = overviewRoute;
         this.icon = icon;
         this.tabs = tabs;
     }
 
+    public ResourceKey<? extends Registry<?>> registryKey() {
+        return registryKey;
+    }
+
     public String registry() {
-        return registry;
+        return registryKey.identifier().getPath();
     }
 
     public String titleKey() {
@@ -83,7 +90,7 @@ public enum StudioConcept {
 
     public static StudioConcept byRegistry(String registry) {
         for (StudioConcept concept : values()) {
-            if (concept.registry.equals(registry)) return concept;
+            if (concept.registry().equals(registry)) return concept;
         }
         return ENCHANTMENT;
     }
