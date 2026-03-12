@@ -166,298 +166,32 @@
     -fx-stroke-width: 1.25;
 }
 
-/* ===== ENCHANTMENT LAYOUT ===== */
-.enchantment-layout {
+/* ===== CONCEPT LAYOUT ===== */
+.layout-concept {
     -fx-background-color: transparent;
 }
 
-/* ===== ENCHANTMENT SIDEBAR (w-72 = 288px) ===== */
-.enchantment-sidebar {
-    -fx-pref-width: 288;
-    -fx-min-width: 288;
-    -fx-max-width: 288;
-    -fx-background-color: #0f0f11;
-    -fx-border-color: transparent #2c2c30 transparent transparent;
-    -fx-border-width: 0 1 0 0;
-}
-
-.enchantment-sidebar-title {
+.changes-layout {
     -fx-background-color: transparent;
-    -fx-text-fill: #f4f4f5;
-    -fx-font-size: 18;
-    -fx-font-weight: 700;
-    -fx-padding: 0;
-    -fx-alignment: center-left;
-    -fx-content-display: left;
-    -fx-graphic-text-gap: 8;
-    -fx-cursor: hand;
 }
 
-.enchantment-sidebar-subtitle {
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 11;
-    -fx-padding: 0 0 0 28;
-}
-
-.enchantment-sidebar-toggle-button {
-    -fx-background-color: #151518;
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 11;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-border-color: #202024;
-    -fx-border-width: 1;
-    -fx-padding: 5 10 5 10;
-    -fx-cursor: hand;
-}
-
-.enchantment-sidebar-toggle-button-active {
-    -fx-background-color: #202024;
-    -fx-text-fill: #f4f4f5;
-    -fx-border-color: #48484f;
-}
-
-/* ===== DISCORD / NEED HELP SECTION ===== */
-.enchantment-sidebar-discord-wrapper {
-    -fx-background-color: #111114;
-    -fx-border-color: #242427 transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-}
-
-.enchantment-sidebar-discord-card {
-    -fx-background-color: #161619;
-    -fx-background-radius: 8;
-    -fx-border-color: #242427;
-    -fx-border-radius: 8;
-    -fx-border-width: 1;
-}
-
-.enchantment-sidebar-discord-card-hover {
-    -fx-border-color: #2e2e31;
-    -fx-background-color: #1a1a1d;
-}
-
-.enchantment-sidebar-discord-text {
-    -fx-text-fill: #d9d9dd;
-    -fx-font-size: 13;
-    -fx-font-weight: 500;
-}
-
-.enchantment-sidebar-discord-circle {
-    -fx-background-color: #252528;
-    -fx-background-radius: 100;
-}
-
-.enchantment-sidebar-discord-circle-hover {
-    -fx-background-color: #303033;
-    -fx-background-radius: 100;
-}
-
-/* ===== TREE SIDEBAR ===== */
-.enchantment-tree {
-    -fx-padding: 8 0 8 0;
-}
-
-.enchantment-tree-group,
-.enchantment-tree-leaf {
-    -fx-background-color: transparent;
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 12;
-    -fx-alignment: center-left;
-    -fx-padding: 5 8 5 8;
-    -fx-cursor: hand;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-}
-
-.enchantment-tree-group {
-    -fx-font-weight: 600;
-    -fx-text-fill: #a8a8b2;
-}
-
-.enchantment-tree-group-active,
-.enchantment-tree-leaf-active {
-    -fx-background-color: #2d2d32;
-    -fx-background-radius: 6;
-    -fx-text-fill: #f4f4f5;
-}
-
-.enchantment-tree-leaves {
-    -fx-padding: 0 0 4 10;
-}
-
-/* ===== ENCHANTMENT MAIN AREA ===== */
-.enchantment-main {
+/* ===== CONCEPT MAIN AREA ===== */
+.layout-concept-main {
     -fx-background-color: #0f0e0e;
 }
 
-/* ===== EDITOR HEADER ===== */
-.enchantment-header {
-    -fx-background-color: linear-gradient(from 0% 100% to 0% 0%, #111114 0%, transparent 80%), #19181c;
-    -fx-border-color: transparent transparent #2c2c30 transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-/* Breadcrumb */
-.enchantment-breadcrumb {
-    -fx-alignment: center-left;
-}
-
-.enchantment-breadcrumb-back {
-    -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: #a8a8b2;
-    -fx-padding: 2 8 2 0;
-    -fx-font-size: 11;
-    -fx-cursor: hand;
-}
-
-.enchantment-breadcrumb-root {
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 11;
-    -fx-font-weight: 500;
-}
-
-.enchantment-breadcrumb-separator {
-    -fx-text-fill: #48484f;
-    -fx-font-size: 11;
-}
-
-.enchantment-breadcrumb-segment {
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 10;
-    -fx-font-weight: 500;
-}
-
-.enchantment-breadcrumb-back {
-    -fx-cursor: hand;
-}
-
-.enchantment-breadcrumb-back-label {
-    -fx-text-fill: #a8a8b2;
-    -fx-font-size: 11;
-    -fx-font-weight: 500;
-}
-
-.enchantment-breadcrumb-leaf {
-    -fx-text-fill: #d9d9dd;
-    -fx-background-color: #151418;
-    -fx-background-radius: 6;
-    -fx-border-color: #1f1c21;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
-    -fx-padding: 2 8 2 8;
-    -fx-font-size: 10;
-    -fx-font-weight: 500;
-}
-
-/* Title (font set programmatically via VoxelFonts.minecraft) */
-.enchantment-header-title {
-    -fx-text-fill: white;
-}
-
-/* Colored underline (h-px w-24) */
-.enchantment-header-color-line {
-    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, #5c5c66 0%, transparent 100%);
-    -fx-pref-height: 1;
-    -fx-min-height: 1;
-    -fx-max-height: 1;
-    -fx-pref-width: 96;
-    -fx-min-width: 96;
-    -fx-max-width: 96;
-}
-
-/* Header actions row */
-.enchantment-header-actions {
-    -fx-alignment: center-right;
-}
-
-.enchantment-header-simulation {
-    -fx-background-color: #202024;
-    -fx-text-fill: #a8a8b2;
-    -fx-border-color: #303033;
-    -fx-border-width: 1;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 8 14 8 14;
-    -fx-cursor: hand;
-    -fx-font-size: 13;
-}
-
-.enchantment-header-simulation:hover {
-    -fx-background-color: #303033;
-    -fx-text-fill: #d9d9dd;
-}
-
-/* View toggle wrapper */
-.enchantment-header-view-toggle {
-    -fx-background-color: #151518;
-    -fx-background-radius: 8;
-    -fx-border-color: #202024;
-    -fx-border-radius: 8;
-    -fx-border-width: 1;
-    -fx-padding: 2;
-}
-
-/* Grid/List icon buttons */
-.enchantment-header-view-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 6;
-    -fx-cursor: hand;
-    -fx-pref-width: 28;
-    -fx-min-width: 28;
-    -fx-max-width: 28;
-    -fx-pref-height: 28;
-    -fx-min-height: 28;
-    -fx-max-height: 28;
-}
-
-.enchantment-header-view-button-active {
-    -fx-background-color: #303033;
-}
-
-/* Header section tabs nav */
-.enchantment-header-tabs {
-    -fx-alignment: center-left;
-}
-
-/* Tab button (px-4 py-2 text-sm font-medium rounded-t-lg border-b-2) */
-.enchantment-header-tab-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #a8a8b2;
-    -fx-font-size: 13;
-    -fx-font-weight: 500;
-    -fx-border-color: transparent;
-    -fx-border-width: 0 0 2 0;
-    -fx-padding: 8 16 8 16;
-    -fx-cursor: hand;
-    -fx-background-radius: 8 8 0 0;
-    -fx-border-radius: 0;
-}
-
-.enchantment-header-tab-button:hover {
-    -fx-text-fill: #d9d9dd;
-    -fx-background-color: #1f1d21;
-}
-
-.enchantment-header-tab-button-active {
-    -fx-background-color: #1f1d21;
-    -fx-text-fill: white;
-    -fx-border-color: transparent transparent #999999 transparent;
-}
-
-/* ===== OVERVIEW PAGE ===== */
-.enchantment-overview-page {
+/* ===== EDITOR OVERVIEW PAGE ===== */
+.editor-overview-page {
     -fx-background-color: rgba(9, 9, 11, 0.5);
 }
 
-.enchantment-overview-toolbar {
+.editor-overview-toolbar {
     -fx-background-color: rgba(9, 9, 11, 0.75);
     -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
     -fx-border-width: 0 0 1 0;
 }
 
-.enchantment-overview-search {
+.editor-overview-search {
     -fx-background-color: #151518;
     -fx-border-color: #303033;
     -fx-border-width: 1;
@@ -470,25 +204,25 @@
     -fx-max-width: 576;
 }
 
-.enchantment-overview-search:focused {
+.editor-overview-search:focused {
     -fx-border-color: #5c5c66;
 }
 
-.enchantment-overview-scroll {
+.editor-overview-scroll {
     -fx-background-color: transparent;
 }
 
-.enchantment-overview-scroll > .viewport {
+.editor-overview-scroll > .viewport {
     -fx-background-color: transparent;
 }
 
 /* Empty state */
-.enchantment-overview-empty {
+.editor-overview-empty {
     -fx-alignment: center;
     -fx-padding: 40;
 }
 
-.enchantment-overview-empty-circle {
+.editor-overview-empty-circle {
     -fx-background-color: rgba(24, 24, 27, 0.5);
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -496,146 +230,71 @@
     -fx-border-radius: 999;
 }
 
-.enchantment-overview-empty-title {
+.editor-overview-empty-title {
     -fx-text-fill: #d9d9dd;
     -fx-font-size: 18;
     -fx-font-weight: 500;
 }
 
-.enchantment-overview-empty-body {
+.editor-overview-empty-body {
     -fx-text-fill: #7a7a85;
     -fx-font-size: 12;
     -fx-max-width: 320;
     -fx-alignment: center;
 }
 
-/* ===== CARD (grid view): bg-zinc-950/70 border border-zinc-900 rounded-xl ===== */
-.enchantment-card-icon {
-    -fx-background-color: transparent;
-    -fx-background-radius: 999;
-    -fx-alignment: center;
-}
-
-.enchantment-card {
-    -fx-cursor: hand;
-}
-
-.simple-card.enchantment-card-surface {
-    -fx-background-color: #131215;
-    -fx-border-color: #202024;
-    -fx-border-width: 1;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-}
-
-.simple-card.enchantment-card-surface:hover {
-    -fx-border-color: #303033;
-}
-
-.enchantment-card-resource-name {
-    -fx-text-fill: #e4e4e7;
-    -fx-font-size: 14;
-    -fx-font-weight: 600;
-}
-
-.enchantment-card-level {
-    -fx-text-fill: #a8a8b2;
-    -fx-font-size: 10;
-}
-
-.enchantment-card-placeholder {
-    -fx-text-fill: #71717a;
-    -fx-font-size: 10;
-    -fx-font-weight: 600;
-}
-
-.enchantment-card-case {
-    -fx-cursor: hand;
-}
-
-.enchantment-card-divider {
-    -fx-background-color: rgba(63, 63, 70, 0.5);
-    -fx-pref-height: 1;
-    -fx-min-height: 1;
-    -fx-max-height: 1;
-}
-
-.enchantment-card-configure {
-    -fx-background-color: rgba(39, 39, 42, 0.4);
-    -fx-border-color: rgba(63, 63, 70, 0.4);
-    -fx-border-width: 1;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 8 12 8 12;
-    -fx-text-fill: #a8a8b2;
-    -fx-font-size: 12;
-    -fx-font-weight: 500;
-    -fx-cursor: hand;
-    -fx-alignment: center;
-}
-
-.enchantment-card-configure:hover {
-    -fx-background-color: rgba(63, 63, 70, 0.5);
-    -fx-text-fill: #f4f4f5;
-}
-
-/* ===== ROW (list view) ===== */
-.enchantment-row-icon {
+/* ===== EDITOR OVERVIEW ROW ===== */
+.editor-overview-row-icon {
     -fx-background-color: transparent;
     -fx-background-radius: 8;
     -fx-alignment: center;
 }
 
-.enchantment-row {
+.editor-overview-row {
     -fx-background-color: rgba(24, 24, 27, 0.3);
     -fx-border-color: transparent transparent rgba(63, 63, 70, 0.3) transparent;
     -fx-border-width: 0 0 1 0;
     -fx-cursor: hand;
 }
 
-.enchantment-row-first {
-    -fx-border-color: rgba(63, 63, 70, 0.3) transparent rgba(63, 63, 70, 0.3) transparent;
-    -fx-border-width: 1 0 1 0;
-}
-
-.enchantment-row:hover {
+.editor-overview-row:hover {
     -fx-background-color: rgba(24, 24, 27, 0.6);
 }
 
-.enchantment-row-name {
+.editor-overview-row-name {
     -fx-text-fill: #e4e4e7;
     -fx-font-size: 14;
     -fx-font-weight: 500;
 }
 
-.enchantment-row-identifier {
+.editor-overview-row-identifier {
     -fx-text-fill: #71717a;
     -fx-font-size: 10;
     -fx-font-family: "Consolas", monospace;
     -fx-opacity: 0.6;
 }
 
-.enchantment-row-separator {
+.editor-overview-row-separator {
     -fx-text-fill: #5c5c66;
     -fx-font-size: 10;
 }
 
-.enchantment-row-level {
+.editor-overview-row-level {
     -fx-text-fill: #71717a;
     -fx-font-size: 10;
 }
 
-.row-divider, .enchantment-row-divider {
+.ui-row-divider {
     -fx-background-color: rgba(63, 63, 70, 0.5);
 }
 
-.enchantment-row-placeholder {
+.editor-overview-row-placeholder {
     -fx-text-fill: #71717a;
     -fx-font-size: 10;
     -fx-font-weight: 600;
 }
 
-.row-action {
+.ui-row-action {
     -fx-background-color: #18181b;
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -650,125 +309,19 @@
     -fx-alignment: center;
 }
 
-.row-action:hover {
+.ui-row-action:hover {
     -fx-background-color: #3f3f46;
     -fx-text-fill: white;
 }
 
-/* ===== MAIN EDITING PAGE ===== */
-.enchantment-main-page {
-    -fx-background-color: transparent;
-}
-
-.enchantment-main-scroll {
+/* ===== EDITOR MAIN SCROLL ===== */
+.editor-main-scroll {
     -fx-background-color: transparent;
     -fx-background: transparent;
 }
 
-.enchantment-main-scroll > .viewport {
+.editor-main-scroll > .viewport {
     -fx-background-color: transparent;
-}
-
-.enchantment-main-section-title {
-    -fx-text-fill: #f4f4f5;
-    -fx-font-size: 13;
-    -fx-font-weight: 600;
-}
-
-.enchantment-main-card {
-    -fx-background-color: #1b1a1f;
-    -fx-border-color: #2e2e33;
-    -fx-border-width: 1;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-}
-
-.enchantment-main-card-title {
-    -fx-text-fill: #f4f4f5;
-    -fx-font-size: 13;
-    -fx-font-weight: 600;
-}
-
-.enchantment-main-card-description {
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 11;
-}
-
-.enchantment-main-card-value {
-    -fx-text-fill: #f4f4f5;
-    -fx-font-size: 22;
-    -fx-font-weight: 700;
-}
-
-.enchantment-main-mode-row {
-    -fx-background-color: #131316;
-    -fx-border-color: #2c2c30;
-    -fx-border-width: 1;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-padding: 12;
-}
-
-.enchantment-main-mode-title {
-    -fx-text-fill: #f4f4f5;
-    -fx-font-size: 13;
-}
-
-.enchantment-main-mode-description {
-    -fx-text-fill: #7a7a85;
-    -fx-font-size: 11;
-}
-
-/* ===== SUPPORT CARD ===== */
-.enchantment-support-card {
-    -fx-background-color: #0a0a0a;
-    -fx-border-color: #202024 transparent transparent #202024;
-    -fx-border-width: 2 0 0 2;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-}
-
-.enchantment-support-title {
-    -fx-text-fill: white;
-    -fx-font-size: 28;
-    -fx-font-weight: 600;
-}
-
-.enchantment-support-description {
-    -fx-text-fill: #a8a8b2;
-    -fx-font-size: 12;
-}
-
-.enchantment-support-heading {
-    -fx-text-fill: white;
-    -fx-font-size: 18;
-    -fx-font-weight: 700;
-}
-
-.enchantment-support-benefit {
-    -fx-text-fill: #d9d9dd;
-    -fx-font-size: 12;
-    -fx-font-weight: 600;
-}
-
-.enchantment-support-action {
-    -fx-background-color: #f4f4f5;
-    -fx-text-fill: #080507;
-    -fx-padding: 8 20 8 20;
-    -fx-background-radius: 8;
-    -fx-font-size: 12;
-    -fx-font-weight: 700;
-    -fx-cursor: hand;
-}
-
-.enchantment-support-action-patreon {
-    -fx-background-color: #e85b46;
-    -fx-text-fill: white;
-    -fx-padding: 8 20 8 20;
-    -fx-background-radius: 8;
-    -fx-font-size: 12;
-    -fx-font-weight: 700;
-    -fx-cursor: hand;
 }
 
 /* ===== GENERIC EDITOR SIDEBAR ===== */
@@ -854,7 +407,7 @@
 }
 
 /* ===== TOGGLE GROUP ===== */
-.toggle-group {
+.ui-toggle-group {
     -fx-background-color: #151518;
     -fx-border-color: #202024;
     -fx-border-width: 1;
@@ -864,7 +417,7 @@
     -fx-spacing: 0;
 }
 
-.toggle-group-option {
+.ui-toggle-group-option {
     -fx-background-color: transparent;
     -fx-text-fill: #71717a;
     -fx-font-size: 10;
@@ -878,16 +431,16 @@
     -fx-text-alignment: center;
 }
 
-.toggle-group-option:hover {
+.ui-toggle-group-option:hover {
     -fx-text-fill: #d4d4d8;
 }
 
-.toggle-group-option-active {
+.ui-toggle-group-option-active {
     -fx-background-color: #18181b;
     -fx-text-fill: #f4f4f5;
 }
 
-.toggle-group-option-icon {
+.ui-toggle-group-option-icon {
     -fx-padding: 6;
     -fx-pref-width: 28;
     -fx-min-width: 28;
@@ -898,42 +451,42 @@
 }
 
 /* ===== TREE SIDEBAR ===== */
-.tree-sidebar {
+.ui-tree-sidebar {
     -fx-padding: 16 0 0 0;
     -fx-spacing: 4;
 }
 
-.tree-sidebar-row {
+.ui-tree-sidebar-row {
     -fx-background-radius: 8;
     -fx-padding: 8 12 8 0;
     -fx-cursor: hand;
     -fx-alignment: center-left;
 }
 
-.tree-sidebar-row-inactive {
+.ui-tree-sidebar-row-inactive {
     -fx-background-color: transparent;
 }
 
-.tree-sidebar-row-inactive:hover {
+.ui-tree-sidebar-row-inactive:hover {
     -fx-background-color: #151518;
 }
 
-.tree-sidebar-row-active {
+.ui-tree-sidebar-row-active {
     -fx-background-color: #232328;
 }
 
-.tree-row-accent {
+.ui-tree-row-accent {
     -fx-background-radius: 0 999 999 0;
     -fx-effect: dropshadow(gaussian, #8a8a93, 8, 0.2, 0, 0);
 }
 
-.tree-sidebar-row-label {
+.ui-tree-sidebar-row-label {
     -fx-text-fill: #a1a1aa;
     -fx-font-size: 14;
     -fx-font-weight: 500;
 }
 
-.tree-sidebar-row-count {
+.ui-tree-sidebar-row-count {
     -fx-text-fill: #52525b;
     -fx-font-size: 10;
     -fx-font-family: "Consolas";
@@ -945,32 +498,32 @@
     -fx-padding: 0 6 0 6;
 }
 
-.tree-file {
+.ui-tree-file {
     -fx-spacing: 0;
 }
 
-.tree-row {
+.ui-tree-row {
     -fx-background-radius: 8;
     -fx-alignment: center-left;
 }
 
-.tree-row-depth {
+.ui-tree-row-depth {
     -fx-padding: 2 8 0 8;
 }
 
-.tree-row-inactive {
+.ui-tree-row-inactive {
     -fx-background-color: transparent;
 }
 
-.tree-row-inactive:hover {
+.ui-tree-row-inactive:hover {
     -fx-background-color: #151518;
 }
 
-.tree-row-active {
+.ui-tree-row-active {
     -fx-background-color: #232328;
 }
 
-.tree-chevron {
+.ui-tree-chevron {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 2;
@@ -979,11 +532,11 @@
     -fx-translate-x: -4;
 }
 
-.tree-chevron-hoverable:hover {
+.ui-tree-chevron-hoverable:hover {
     -fx-background-color: #2f2f36;
 }
 
-.tree-main-button {
+.ui-tree-main-button {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
     -fx-padding: 8 12 8 12;
@@ -991,13 +544,13 @@
     -fx-alignment: center-left;
 }
 
-.tree-row-label {
+.ui-tree-row-label {
     -fx-text-fill: #a1a1aa;
     -fx-font-size: 14;
     -fx-font-weight: 500;
 }
 
-.tree-row-count {
+.ui-tree-row-count {
     -fx-text-fill: #52525b;
     -fx-font-size: 10;
     -fx-font-family: "Consolas";
@@ -1009,7 +562,7 @@
     -fx-padding: 0 6 0 6;
 }
 
-.tree-children {
+.ui-tree-children {
     -fx-spacing: 0;
     -fx-padding: 4 0 4 4;
     -fx-border-color: transparent transparent transparent #202024;
@@ -1110,31 +663,6 @@
     -fx-text-fill: #d4d4d8;
 }
 
-.editor-header-view-toggle {
-    -fx-background-color: #151518;
-    -fx-background-radius: 8;
-    -fx-border-color: #202024;
-    -fx-border-radius: 8;
-    -fx-border-width: 1;
-    -fx-padding: 0;
-}
-
-.editor-header-view-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 6;
-    -fx-cursor: hand;
-    -fx-pref-width: 28;
-    -fx-min-width: 28;
-    -fx-max-width: 28;
-    -fx-pref-height: 28;
-    -fx-min-height: 28;
-    -fx-max-height: 28;
-}
-
-.editor-header-view-button-active {
-    -fx-background-color: #303033;
-}
-
 .editor-header-tabs {
     -fx-alignment: center-left;
 }
@@ -1163,7 +691,7 @@
 }
 
 /* ===== POPOVER ===== */
-.popover {
+.ui-popover {
     -fx-background-color: #09090b;
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -1174,11 +702,11 @@
 }
 
 /* ===== DIALOG ===== */
-.dialog-backdrop {
+.ui-dialog-backdrop {
     -fx-background-color: rgba(0, 0, 0, 0.5);
 }
 
-.dialog-content {
+.ui-dialog-content {
     -fx-background-color: #09090b;
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -1187,13 +715,13 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 24, 0, 0, 8);
 }
 
-.dialog-close {
+.ui-dialog-close {
     -fx-background-color: transparent;
     -fx-background-radius: 6;
     -fx-cursor: hand;
 }
 
-.dialog-close:hover {
+.ui-dialog-close:hover {
     -fx-background-color: #27272a;
 }
 
@@ -1220,46 +748,6 @@
     -fx-background-color: #3f3f46;
 }
 
-/* ===== PACK POPOVER ===== */
-.pack-popover-selected {
-    -fx-background-color: #141418;
-    -fx-border-color: #27272a;
-    -fx-border-width: 1;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-}
-
-.pack-popover-namespace {
-    -fx-background-color: #1a1a1f;
-    -fx-border-color: #27272a;
-    -fx-border-width: 1;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-cursor: hand;
-}
-
-.pack-popover-namespace-hover {
-    -fx-background-color: #27272a;
-    -fx-border-color: #3f3f46;
-}
-
-.pack-popover-namespace-active {
-    -fx-background-color: #27272a;
-    -fx-border-color: #52525b;
-    -fx-border-width: 1;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-}
-
-.pack-popover-ns-scroll {
-    -fx-background-color: transparent;
-    -fx-background: transparent;
-}
-
-.pack-popover-ns-scroll > .viewport {
-    -fx-background-color: transparent;
-}
-
 .pack-popover-row {
     -fx-background-color: transparent;
     -fx-background-radius: 8;
@@ -1283,7 +771,7 @@
 }
 
 /* ===== TEXT INPUT ===== */
-.text-input {
+.ui-text-input {
     -fx-background-color: rgba(39, 39, 42, 0.3);
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -1291,12 +779,12 @@
     -fx-background-radius: 20;
 }
 
-.text-input:focused-within {
+.ui-text-input:focused-within {
     -fx-border-color: #3f3f46;
     -fx-background-color: rgba(63, 63, 70, 0.2);
 }
 
-.text-input-field {
+.ui-text-input-field {
     -fx-background-color: transparent;
     -fx-text-fill: #f4f4f5;
     -fx-prompt-text-fill: #52525b;
@@ -1308,7 +796,7 @@
 }
 
 /* ===== FILE INPUT ===== */
-.file-input {
+.ui-file-input {
     -fx-background-color: rgba(39, 39, 42, 0.15);
     -fx-border-color: #27272a;
     -fx-border-width: 1;
@@ -1317,12 +805,12 @@
     -fx-background-radius: 12;
 }
 
-.file-input:hover {
+.ui-file-input:hover {
     -fx-border-color: #3f3f46;
     -fx-background-color: rgba(39, 39, 42, 0.3);
 }
 
-.file-input-drag {
+.ui-file-input-drag {
     -fx-border-color: #52525b;
     -fx-background-color: rgba(63, 63, 70, 0.2);
 }
@@ -1393,7 +881,7 @@
 
 /* ===== SIMPLE CARD ===== */
 /* bg-black/35 border border-zinc-900 rounded-xl py-6 px-8 cursor-pointer */
-.simple-card {
+.ui-simple-card {
     -fx-background-color: #0b0b0b;
     -fx-border-color: #202024;
     -fx-border-width: 1;
@@ -1496,7 +984,7 @@
 
 /* ===== ANIMATED TABS ===== */
 /* h-fit w-fit bg-zinc-900/70 rounded-2xl border border-zinc-800 p-1 */
-.animated-tabs {
+.ui-animated-tabs {
     -fx-background-color: #18181b;
     -fx-border-color: #303033;
     -fx-border-width: 1;
@@ -1505,7 +993,7 @@
 }
 
 /* Tab button: text-zinc-500 rounded-xl px-3 py-1.5 font-medium */
-.animated-tabs-button {
+.ui-animated-tabs-button {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-text-fill: #71717a;
@@ -1520,28 +1008,22 @@
     -fx-faint-focus-color: transparent;
 }
 
-.animated-tabs-button:hover {
+.ui-animated-tabs-button:hover {
     -fx-text-fill: white;
 }
 
-.animated-tabs-button-active {
+.ui-animated-tabs-button-active {
     -fx-text-fill: white;
-}
-
-/* Sliding indicator: bg-white/10 rounded-xl */
-.animated-tabs-indicator {
-    -fx-background-color: #2b2b31;
-    -fx-background-radius: 12;
 }
 
 /* ===== TOOL SECTION ===== */
 /* h2: text-2xl font-semibold */
-.tool-section-title {
+.ui-tool-section-title {
     -fx-text-fill: #f4f4f5;
 }
 
 /* hr: gradient line, opacity 0.25 */
-.tool-section-hr {
+.ui-tool-section-hr {
     -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, transparent, white, transparent);
     -fx-pref-height: 1;
     -fx-min-height: 1;
@@ -1551,29 +1033,29 @@
 
 /* ===== TEMPLATE CARD ===== */
 /* h3: text-lg font-semibold mb-1 */
-.template-card-title {
+.ui-template-card-title {
     -fx-text-fill: #f4f4f5;
 }
 
 /* p: text-sm text-zinc-400 */
-.template-card-desc {
+.ui-template-card-desc {
     -fx-text-fill: #a8a8b2;
 }
 
 /* ===== TOOL SELECTOR ===== */
 /* title: text-white line-clamp-1 */
-.tool-selector-title {
+.ui-tool-selector-title {
     -fx-text-fill: white;
 }
 
 /* desc: text-xs text-zinc-400 font-light line-clamp-2 */
-.tool-selector-desc {
+.ui-tool-selector-desc {
     -fx-text-fill: #a8a8b2;
 }
 
 /* ===== TOOL SLOT ===== */
 /* Active: bg-zinc-950/50 ring-1 ring-zinc-700 */
-.tool-slot-active {
+.ui-tool-slot-active {
     -fx-background-color: #0d0d0e;
     -fx-border-color: #48484f;
     -fx-border-width: 1;
@@ -1583,19 +1065,19 @@
 }
 
 /* ===== TOOL RANGE SLIDER ===== */
-.tool-range-slider {
+.ui-tool-range-slider {
     -fx-pref-height: 24;
     -fx-padding: 0;
 }
 
-.tool-range-slider .track {
+.ui-tool-range-slider .track {
     -fx-background-color: #303033;
     -fx-background-radius: 8;
     -fx-pref-height: 8;
     -fx-padding: 0;
 }
 
-.tool-range-slider .thumb {
+.ui-tool-range-slider .thumb {
     -fx-background-color: #0f0f11;
     -fx-background-radius: 12;
     -fx-pref-width: 24;
@@ -1606,55 +1088,15 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 4, 0, 0, 1);
 }
 
-.tool-range-slider .thumb:hover {
+.ui-tool-range-slider .thumb:hover {
     -fx-background-color: #202024;
 }
 
 /* ===== TOOL SECTION SELECTOR TABS ===== */
-.tool-section-selector-header {
+.ui-tool-section-selector-header {
     -fx-alignment: center-left;
     -fx-padding: 8;
     -fx-spacing: 16;
-}
-
-/* bg-black/35 border border-zinc-900 rounded-2xl overflow-hidden */
-.tool-section-selector-tabs {
-    -fx-background-color: #0b0b0b;
-    -fx-border-color: #202024;
-    -fx-border-width: 1;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-    -fx-padding: 0;
-}
-
-/* Tab button: px-4 py-2 rounded-xl font-semibold */
-.tool-section-selector-tab {
-    -fx-background-color: transparent;
-    -fx-text-fill: #d9d9dd;
-    -fx-font-size: 12;
-    -fx-font-weight: 600;
-    -fx-padding: 8 16 8 16;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-    -fx-cursor: hand;
-    -fx-focus-color: transparent;
-    -fx-faint-focus-color: transparent;
-}
-
-.tool-section-selector-tab:hover {
-    -fx-background-color: #18181b;
-    -fx-text-fill: #f4f4f5;
-}
-
-.tool-section-selector-tab-active {
-    -fx-background-color: #d9d9dd;
-    -fx-text-fill: #121212;
-}
-
-.tool-section-selector-tab-active:hover {
-    -fx-background-color: #d9d9dd;
 }
 
 /* ===== ENCHANTMENT TAGS ===== */
@@ -1695,9 +1137,20 @@
     -fx-background-color: transparent;
 }
 
+/* ===== DEBUG SUBPAGE SCROLL ===== */
+.debug-subpage-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.debug-subpage-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
 /* ===== SUPPORT CARD ===== */
 /* bg-black/35 border-t-2 border-l-2 rounded-2xl border-stone-900 */
-.support-card {
+.layout-support-card {
     -fx-background-color: #0b0b0b;
     -fx-border-color: #1c1917 transparent transparent #1c1917;
     -fx-border-width: 2 0 0 2;
@@ -1706,22 +1159,22 @@
 }
 
 /* h1: text-3xl tracking-wide font-semibold white */
-.support-card-title {
+.layout-support-card-title {
     -fx-text-fill: white;
 }
 
 /* p: text-sm text-zinc-400 lg:w-3/4 */
-.support-card-desc {
+.layout-support-card-desc {
     -fx-text-fill: #a8a8b2;
     -fx-max-width: 480;
 }
 
 /* h3: font-bold text-xl white */
-.support-card-advantages-heading {
+.layout-support-card-advantages-heading {
     -fx-text-fill: white;
 }
 
 /* span: text-zinc-300 text-sm font-semibold */
-.support-card-benefit {
+.layout-support-card-benefit {
     -fx-text-fill: #d9d9dd;
 }

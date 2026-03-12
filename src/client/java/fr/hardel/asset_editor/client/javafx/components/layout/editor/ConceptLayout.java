@@ -42,7 +42,7 @@ public final class ConceptLayout extends HBox {
         this.concept = config.concept();
         this.pageFactory = config.pageFactory();
 
-        getStyleClass().add("enchantment-layout");
+        getStyleClass().add("layout-concept");
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         tree = new TreeController(context, config.treeConfig());
@@ -57,7 +57,7 @@ public final class ConceptLayout extends HBox {
                 new EditorHeader(context, tree, config.concept(), config.showViewModeToggle(), config.simulationRoute()),
                 outlet);
         main.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        main.getStyleClass().add("enchantment-main");
+        main.getStyleClass().add("layout-concept-main");
         VBox.setVgrow(outlet, Priority.ALWAYS);
         HBox.setHgrow(main, Priority.ALWAYS);
 

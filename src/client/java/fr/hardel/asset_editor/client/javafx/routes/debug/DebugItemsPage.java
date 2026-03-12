@@ -49,7 +49,7 @@ public final class DebugItemsPage extends StackPane implements Page {
         ScrollPane scroll = new ScrollPane(column);
         scroll.setFitToWidth(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.getStyleClass().add("enchantment-subpage-scroll");
+        scroll.getStyleClass().add("debug-subpage-scroll");
 
         getChildren().add(scroll);
     }

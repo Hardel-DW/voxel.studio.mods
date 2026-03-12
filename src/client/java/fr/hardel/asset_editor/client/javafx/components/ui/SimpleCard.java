@@ -16,15 +16,19 @@ import net.minecraft.resources.Identifier;
 
 /**
  * bg-black/35 border border-zinc-900 rounded-xl py-6 px-8
- * Shine image (top half, brightness-15 ≈ opacity 0.15) absolutely behind content.
+ * Shine image (top half, brightness-15 ≈ opacity 0.15) absolutely behind
+ * content.
  * hover:-translate-y-1 (4px, 150ms ease-out).
  *
- * The outer StackPane is the fixed hit-area. Only the inner visualCard translates,
- * so the hover zone never shifts (fixes the CSS-translate vs JavaFX-pickBounds mismatch).
+ * The outer StackPane is the fixed hit-area. Only the inner visualCard
+ * translates,
+ * so the hover zone never shifts (fixes the CSS-translate vs JavaFX-pickBounds
+ * mismatch).
  */
 public class SimpleCard extends StackPane {
 
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor",
+            "textures/studio/shine.png");
     private static volatile Image shineImage;
 
     protected final StackPane visualCard = new StackPane();
@@ -32,20 +36,13 @@ public class SimpleCard extends StackPane {
 
     protected SimpleCard(Insets padding) {
         setCursor(Cursor.HAND);
-
-        // Visual card: has border/background styling, translates on hover.
-        // The outer StackPane (this) acts as the stable hit area since it never translates.
-        // JavaFX picks on layout bounds (not transformed), so the outer StackPane's hover
-        // zone stays fixed even when visualCard shifts up.
-        visualCard.getStyleClass().add("simple-card");
+        visualCard.getStyleClass().add("ui-simple-card");
         visualCard.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
         contentBox.setPadding(padding);
         contentBox.setMaxWidth(Double.MAX_VALUE);
 
         Pane shinePane = new Pane();
         shinePane.setMouseTransparent(true);
-        // Overlay only: keep it out of parent size computation to avoid layout feedback.
         shinePane.setManaged(false);
         shinePane.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         Image sharedShine = getShineImage();

@@ -59,7 +59,7 @@ public final class Range extends VBox {
         slider.setShowTickMarks(false);
         slider.setShowTickLabels(false);
         slider.setDisable(locked);
-        slider.getStyleClass().add("tool-range-slider");
+        slider.getStyleClass().add("ui-tool-range-slider");
         slider.setMaxWidth(Double.MAX_VALUE);
 
         value = new SimpleIntegerProperty(initialValue);

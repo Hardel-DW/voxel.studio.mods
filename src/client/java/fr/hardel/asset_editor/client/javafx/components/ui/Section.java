@@ -23,12 +23,12 @@ public final class Section extends VBox {
         titleRow.setPadding(new Insets(8, 8, 8, 8));
 
         Label title = new Label(I18n.get(titleKey));
-        title.getStyleClass().add("tool-section-title");
+        title.getStyleClass().add("ui-tool-section-title");
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 24));
         title.setTextFill(VoxelColors.ZINC_100);
 
         Region hr = new Region();
-        hr.getStyleClass().add("tool-section-hr");
+        hr.getStyleClass().add("ui-tool-section-hr");
         hr.setMaxWidth(Double.MAX_VALUE);
 
         VBox titleBlock = new VBox(8, title, hr);

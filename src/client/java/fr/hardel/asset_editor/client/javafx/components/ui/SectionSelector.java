@@ -33,7 +33,7 @@ public final class SectionSelector extends VBox {
         title.setTextFill(VoxelColors.ZINC_100);
 
         Region hr = new Region();
-        hr.getStyleClass().add("tool-section-hr");
+        hr.getStyleClass().add("ui-tool-section-hr");
         hr.setMaxWidth(Double.MAX_VALUE);
 
         VBox titleBlock = new VBox(8, title, hr);
@@ -48,7 +48,7 @@ public final class SectionSelector extends VBox {
         tabsCard.setMaxWidth(Region.USE_PREF_SIZE);
 
         HBox header = new HBox(16, titleBlock, spacer, tabsCard);
-        header.getStyleClass().add("tool-section-selector-header");
+        header.getStyleClass().add("ui-tool-section-selector-header");
         header.setAlignment(Pos.CENTER_LEFT);
 
         childrenBox.setPadding(new Insets(16, 0, 0, 0));

@@ -38,14 +38,14 @@ public final class AnimatedTabs extends StackPane {
 
         activeValue.addListener((obs, old, val) -> {
             buttons.forEach((k, btn) -> {
-                btn.getStyleClass().remove("animated-tabs-button-active");
-                if (k.equals(val)) btn.getStyleClass().add("animated-tabs-button-active");
+                btn.getStyleClass().remove("ui-animated-tabs-button-active");
+                if (k.equals(val)) btn.getStyleClass().add("ui-animated-tabs-button-active");
             });
             animateIndicator();
             if (onValueChange != null) onValueChange.accept(val);
         });
 
-        getStyleClass().add("animated-tabs");
+        getStyleClass().add("ui-animated-tabs");
         setAlignment(Pos.CENTER_LEFT);
         setMinWidth(Region.USE_PREF_SIZE);
         setMaxWidth(Region.USE_PREF_SIZE);
@@ -93,10 +93,10 @@ public final class AnimatedTabs extends StackPane {
 
     private Button buildTabButton(String value, String label) {
         Button btn = new Button(label);
-        btn.getStyleClass().add("animated-tabs-button");
+        btn.getStyleClass().add("ui-animated-tabs-button");
         btn.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 14));
         if (value.equals(activeValue.get())) {
-            btn.getStyleClass().add("animated-tabs-button-active");
+            btn.getStyleClass().add("ui-animated-tabs-button-active");
         }
         btn.setMinWidth(0);
         btn.setOnAction(e -> select(value));

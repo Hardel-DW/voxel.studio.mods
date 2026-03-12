@@ -34,7 +34,7 @@ public final class SupportCard extends StackPane {
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
     public SupportCard() {
-        getStyleClass().add("support-card");
+        getStyleClass().add("layout-support-card");
         setAlignment(Pos.TOP_LEFT);
 
         SvgIcon logo = new SvgIcon(LOGO, 384, Color.WHITE);
@@ -43,12 +43,12 @@ public final class SupportCard extends StackPane {
         logo.setMouseTransparent(true);
 
         Label title = new Label(I18n.get("supports:title"));
-        title.getStyleClass().add("support-card-title");
+        title.getStyleClass().add("layout-support-card-title");
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 30));
         title.setWrapText(true);
 
         Label desc = new Label(I18n.get("supports:description"));
-        desc.getStyleClass().add("support-card-desc");
+        desc.getStyleClass().add("layout-support-card-desc");
         desc.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         desc.setWrapText(true);
         VBox.setMargin(desc, new Insets(8, 0, 0, 0));
@@ -56,7 +56,7 @@ public final class SupportCard extends StackPane {
         VBox textBlock = new VBox(title, desc);
 
         Label advantagesHeading = new Label(I18n.get("supports:advantages"));
-        advantagesHeading.getStyleClass().add("support-card-advantages-heading");
+        advantagesHeading.getStyleClass().add("layout-support-card-advantages-heading");
         advantagesHeading.setFont(VoxelFonts.of(VoxelFonts.Variant.BOLD, 20));
         VBox.setMargin(advantagesHeading, new Insets(24, 0, 16, 0));
 
@@ -137,7 +137,7 @@ public final class SupportCard extends StackPane {
     private static HBox buildAdvantageItem(String key) {
         SvgIcon check = new SvgIcon(CHECK, 16, Color.WHITE);
         Label text = new Label(I18n.get(key));
-        text.getStyleClass().add("support-card-benefit");
+        text.getStyleClass().add("layout-support-card-benefit");
         text.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 14));
         HBox item = new HBox(8, check, text);
         item.setAlignment(Pos.CENTER_LEFT);

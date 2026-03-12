@@ -34,13 +34,13 @@ public class Row extends HBox {
         toggle.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
 
         Region divider = new Region();
-        divider.getStyleClass().add("row-divider");
+        divider.getStyleClass().add("ui-row-divider");
         divider.setMinSize(1, 16);
         divider.setPrefSize(1, 16);
         divider.setMaxSize(1, 16);
         HBox.setMargin(divider, new Insets(0, 8, 0, 8));
 
-        actionLabel.getStyleClass().add("row-action");
+        actionLabel.getStyleClass().add("ui-row-action");
         actionLabel.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
 
         HBox right = new HBox(8, toggle, divider, actionLabel);

@@ -28,11 +28,11 @@ public final class Selector extends SimpleCard {
         contentBox.setSpacing(0);
 
         Label titleLabel = new Label(I18n.get(titleKey));
-        titleLabel.getStyleClass().add("tool-selector-title");
+        titleLabel.getStyleClass().add("ui-tool-selector-title");
         titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
 
         Label descLabel = new Label(I18n.get(descKey));
-        descLabel.getStyleClass().add("tool-selector-desc");
+        descLabel.getStyleClass().add("ui-tool-selector-desc");
         descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         descLabel.setWrapText(true);
 

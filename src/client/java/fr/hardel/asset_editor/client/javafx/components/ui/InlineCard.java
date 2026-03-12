@@ -74,9 +74,9 @@ public final class InlineCard extends SimpleCard {
 
     private void applyActive(boolean on) {
         if (on) {
-            visualCard.getStyleClass().add("tool-slot-active");
+            visualCard.getStyleClass().add("ui-tool-slot-active");
         } else {
-            visualCard.getStyleClass().remove("tool-slot-active");
+            visualCard.getStyleClass().remove("ui-tool-slot-active");
         }
     }
 

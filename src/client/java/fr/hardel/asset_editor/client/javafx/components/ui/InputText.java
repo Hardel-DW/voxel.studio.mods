@@ -13,7 +13,7 @@ public final class InputText extends HBox {
     private final TextField field = new TextField();
 
     public InputText(String promptKey) {
-        getStyleClass().add("text-input");
+        getStyleClass().add("ui-text-input");
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(0, 12, 0, 12));
         setMinHeight(40);
@@ -21,7 +21,7 @@ public final class InputText extends HBox {
         setMaxHeight(40);
 
         field.setPromptText(I18n.get(promptKey));
-        field.getStyleClass().add("text-input-field");
+        field.getStyleClass().add("ui-text-input-field");
         field.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         HBox.setHgrow(field, Priority.ALWAYS);
 

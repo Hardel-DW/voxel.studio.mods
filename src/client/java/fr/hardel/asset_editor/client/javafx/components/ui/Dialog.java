@@ -45,7 +45,7 @@ public final class Dialog {
 
         SvgIcon closeIcon = new SvgIcon(CLOSE_ICON, 14, VoxelColors.ZINC_400);
         StackPane closeBtn = new StackPane(closeIcon);
-        closeBtn.getStyleClass().add("dialog-close");
+        closeBtn.getStyleClass().add("ui-dialog-close");
         closeBtn.setPrefSize(28, 28);
         closeBtn.setMaxSize(28, 28);
         closeBtn.setCursor(Cursor.HAND);
@@ -69,7 +69,7 @@ public final class Dialog {
         VBox layout = new VBox(header, body, footer);
         layout.setMaxSize(Double.MAX_VALUE, Region.USE_PREF_SIZE);
 
-        dialogCard.getStyleClass().add("dialog-content");
+        dialogCard.getStyleClass().add("ui-dialog-content");
         dialogCard.getChildren().add(layout);
 
         try (var stream = VoxelResourceLoader.open(SHINE)) {
@@ -94,7 +94,7 @@ public final class Dialog {
         dialogCard.heightProperty().addListener((obs, o, h) -> clip.setHeight(h.doubleValue()));
         dialogCard.setClip(clip);
 
-        backdrop.getStyleClass().add("dialog-backdrop");
+        backdrop.getStyleClass().add("ui-dialog-backdrop");
         backdrop.getChildren().add(dialogCard);
         backdrop.setAlignment(Pos.CENTER);
         backdrop.setOnMouseClicked(e -> {

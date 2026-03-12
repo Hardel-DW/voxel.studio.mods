@@ -53,7 +53,7 @@ public final class Popover extends Popup {
         container.heightProperty().addListener((obs, o, h) -> clip.setHeight(h.doubleValue()));
         container.setClip(clip);
 
-        container.getStyleClass().add("popover");
+        container.getStyleClass().add("ui-popover");
         container.getChildren().add(inner);
         getContent().add(container);
 

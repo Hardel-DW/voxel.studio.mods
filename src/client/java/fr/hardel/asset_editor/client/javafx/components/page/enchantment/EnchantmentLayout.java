@@ -81,7 +81,6 @@ public final class EnchantmentLayout {
                     case "exclusive" -> StudioSidebarView.EXCLUSIVE;
                     default -> StudioSidebarView.SLOTS;
                 }));
-        toggle.getStyleClass().add("enchantment-sidebar-toggle");
         toggle.setMaxWidth(Double.MAX_VALUE);
         VBox.setMargin(toggle, new Insets(16, 0, 0, 0));
         toggle.addOption("slots", I18n.get("enchantment:overview.sidebar.slots"));

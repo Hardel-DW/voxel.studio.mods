@@ -29,7 +29,7 @@ public final class TreeSidebarView extends VBox {
         this.context = context;
         this.tree = tree;
         this.fileTree = new FileTreeView(context, tree);
-        getStyleClass().add("tree-sidebar");
+        getStyleClass().add("ui-tree-sidebar");
         setSpacing(4);
         setPadding(new Insets(16, 0, 0, 0));
 
@@ -53,14 +53,14 @@ public final class TreeSidebarView extends VBox {
     private HBox createRow(Identifier iconPath, String text, String colorKey, int count, boolean active,
             Runnable onClick) {
         HBox row = new HBox(8);
-        row.getStyleClass().add("tree-sidebar-row");
-        row.getStyleClass().add(active ? "tree-sidebar-row-active" : "tree-sidebar-row-inactive");
+        row.getStyleClass().add("ui-tree-sidebar-row");
+        row.getStyleClass().add(active ? "ui-tree-sidebar-row-active" : "ui-tree-sidebar-row-inactive");
         row.setAlignment(Pos.CENTER_LEFT);
         row.setOnMouseClicked(event -> onClick.run());
 
         if (active) {
             Region accent = new Region();
-            accent.getStyleClass().add("tree-row-accent");
+            accent.getStyleClass().add("ui-tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
@@ -80,12 +80,12 @@ public final class TreeSidebarView extends VBox {
         row.getChildren().add(icon);
 
         Label label = new Label(text);
-        label.getStyleClass().add("tree-sidebar-row-label");
+        label.getStyleClass().add("ui-tree-sidebar-row-label");
         HBox.setHgrow(label, Priority.ALWAYS);
         row.getChildren().add(label);
 
         Label countLabel = new Label(String.valueOf(count));
-        countLabel.getStyleClass().add("tree-sidebar-row-count");
+        countLabel.getStyleClass().add("ui-tree-sidebar-row-count");
         row.getChildren().add(countLabel);
 
         return row;

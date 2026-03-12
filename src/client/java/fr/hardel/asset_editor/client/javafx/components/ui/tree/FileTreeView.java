@@ -35,7 +35,7 @@ public final class FileTreeView extends VBox {
 
     public FileTreeView(StudioContext context, TreeController tree) {
         this.tree = tree;
-        getStyleClass().add("tree-file");
+        getStyleClass().add("ui-tree-file");
 
         context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
         context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refresh());
@@ -87,15 +87,15 @@ public final class FileTreeView extends VBox {
         }
 
         VBox wrapper = new VBox();
-        wrapper.getStyleClass().add("tree-node-wrapper");
+        wrapper.getStyleClass().add("ui-tree-node-wrapper");
         StackPane rowContainer = new StackPane();
         rowContainer.setAlignment(Pos.CENTER_LEFT);
 
         HBox row = new HBox(8);
-        row.getStyleClass().add("tree-row");
-        row.getStyleClass().add(isHighlighted ? "tree-row-active" : "tree-row-inactive");
+        row.getStyleClass().add("ui-tree-row");
+        row.getStyleClass().add(isHighlighted ? "ui-tree-row-active" : "ui-tree-row-inactive");
         if (depth > 0)
-            row.getStyleClass().add("tree-row-depth");
+            row.getStyleClass().add("ui-tree-row-depth");
         row.setPadding(new Insets(0, 8, 0, depth * 8 + 8));
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
@@ -107,7 +107,7 @@ public final class FileTreeView extends VBox {
         if (isHighlighted) {
             Color accentColor = ColorUtils.accentColor(isElement ? node.elementId() : path);
             Region accent = new Region();
-            accent.getStyleClass().add("tree-row-accent");
+            accent.getStyleClass().add("ui-tree-row-accent");
             accent.setPrefWidth(4);
             accent.setMinWidth(4);
             accent.setMaxWidth(4);
@@ -121,12 +121,12 @@ public final class FileTreeView extends VBox {
             Node chevronIcon = new SvgIcon(CHEVRON_ICON, 12, Color.WHITE);
             chevronIcon.setRotate(isOpen ? 0 : -90);
             chevronIcon.setOpacity(hasChildren ? 0.6 : 0.2);
-            chevronIcon.getStyleClass().add("tree-chevron-icon");
+            chevronIcon.getStyleClass().add("ui-tree-chevron-icon");
 
             Button chevron = new Button();
-            chevron.getStyleClass().add("tree-chevron");
+            chevron.getStyleClass().add("ui-tree-chevron");
             if (hasChildren)
-                chevron.getStyleClass().add("tree-chevron-hoverable");
+                chevron.getStyleClass().add("ui-tree-chevron-hoverable");
             chevron.setGraphic(chevronIcon);
             chevron.setOnAction(event -> {
                 event.consume();
@@ -142,20 +142,20 @@ public final class FileTreeView extends VBox {
         Node iconNode = IconUtils.isSvgIcon(icon)
                 ? new SvgIcon(icon, 20, Color.WHITE)
                 : new ResourceImageIcon(icon, 20);
-        iconNode.getStyleClass().add("tree-row-icon");
+        iconNode.getStyleClass().add("ui-tree-row-icon");
         if (isDefaultFolderIcon)
             iconNode.setOpacity(isHighlighted ? 1.0 : 0.6);
         content.getChildren().add(iconNode);
 
         String labelText = node.label() == null || node.label().isBlank() ? name : node.label();
         Label label = new Label(labelText);
-        label.getStyleClass().add("tree-row-label");
+        label.getStyleClass().add("ui-tree-row-label");
         label.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(label, Priority.ALWAYS);
         content.getChildren().add(label);
 
         Button mainButton = new Button();
-        mainButton.getStyleClass().add("tree-main-button");
+        mainButton.getStyleClass().add("ui-tree-main-button");
         mainButton.setGraphic(content);
         mainButton.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(mainButton, Priority.ALWAYS);
@@ -173,7 +173,7 @@ public final class FileTreeView extends VBox {
 
         if (!isElement) {
             Label count = new Label(String.valueOf(node.count()));
-            count.getStyleClass().add("tree-row-count");
+            count.getStyleClass().add("ui-tree-row-count");
             row.getChildren().add(count);
         }
 
@@ -182,7 +182,7 @@ public final class FileTreeView extends VBox {
 
         if (hasChildren && isOpen) {
             VBox childrenBox = new VBox();
-            childrenBox.getStyleClass().add("tree-children");
+            childrenBox.getStyleClass().add("ui-tree-children");
             for (Map.Entry<String, TreeNodeModel> child : sortedEntries(node.children())) {
                 boolean childForceOpen = node.children().size() == 1;
                 childrenBox.getChildren().add(createNode(

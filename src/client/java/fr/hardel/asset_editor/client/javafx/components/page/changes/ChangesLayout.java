@@ -6,7 +6,7 @@ import javafx.scene.layout.StackPane;
 public final class ChangesLayout extends StackPane {
 
     public ChangesLayout() {
-        getStyleClass().add("enchantment-layout");
+        getStyleClass().add("changes-layout");
         getChildren().add(new ChangesMainPage());
     }
 }

@@ -24,7 +24,7 @@ public final class ToggleGroup extends HBox {
     public ToggleGroup(Supplier<String> valueSupplier, Consumer<String> onChange) {
         this.valueSupplier = valueSupplier;
         this.onChange = onChange;
-        getStyleClass().add("toggle-group");
+        getStyleClass().add("ui-toggle-group");
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(4));
         setSpacing(0);
@@ -32,7 +32,7 @@ public final class ToggleGroup extends HBox {
 
     public void addOption(String value, String label) {
         Button button = new Button(label == null ? "" : label.toUpperCase(Locale.ROOT));
-        button.getStyleClass().add("toggle-group-option");
+        button.getStyleClass().add("ui-toggle-group-option");
         button.setAlignment(Pos.CENTER);
         button.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(button, Priority.ALWAYS);
@@ -56,8 +56,8 @@ public final class ToggleGroup extends HBox {
 
         Button button = new Button();
         button.setGraphic(graphic);
-        button.getStyleClass().add("toggle-group-option");
-        button.getStyleClass().add("toggle-group-option-icon");
+        button.getStyleClass().add("ui-toggle-group-option");
+        button.getStyleClass().add("ui-toggle-group-option-icon");
         button.setAlignment(Pos.CENTER);
         button.setOnAction(event -> {
             onChange.accept(value);
@@ -74,13 +74,13 @@ public final class ToggleGroup extends HBox {
         for (Map.Entry<String, ToggleOption> option : options.entrySet()) {
             ToggleOption toggleOption = option.getValue();
             Button button = toggleOption.button();
-            button.getStyleClass().remove("toggle-group-option-active");
+            button.getStyleClass().remove("ui-toggle-group-option-active");
             if (toggleOption.icon() != null) {
                 toggleOption.icon().setOpacity(0.65);
             }
 
             if (option.getKey().equals(active)) {
-                button.getStyleClass().add("toggle-group-option-active");
+                button.getStyleClass().add("ui-toggle-group-option-active");
                 if (toggleOption.icon() != null) {
                     toggleOption.icon().setOpacity(1.0);
                 }

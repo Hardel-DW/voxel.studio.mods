@@ -37,20 +37,19 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
     public EnchantmentOverviewPage(StudioContext context) {
         this.context = context;
-        getStyleClass().add("enchantment-overview-page");
+        getStyleClass().add("editor-overview-page");
 
         TextField search = new TextField();
-        search.getStyleClass().add("enchantment-overview-search");
+        search.getStyleClass().add("editor-overview-search");
         search.setPromptText(I18n.get("enchantment:overview.search"));
         search.textProperty().bindBidirectional(context.uiState().searchProperty());
 
         VBox toolbar = new VBox(search);
-        toolbar.getStyleClass().add("enchantment-overview-toolbar");
+        toolbar.getStyleClass().add("editor-overview-toolbar");
         toolbar.setPadding(new Insets(16, 32, 16, 32));
 
         scrollPane = new InfiniteScrollPane<>(16, this::buildRow);
-        scrollPane.getStyleClass().add("enchantment-overview-scroll");
-        scrollPane.content().getStyleClass().add("enchantment-overview-list");
+        scrollPane.getStyleClass().add("editor-overview-scroll");
         scrollPane.content().setPadding(new Insets(24, 32, 24, 32));
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
@@ -74,21 +73,21 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
     private Row buildRow(ElementEntry<Enchantment> entry) {
         Row row = new Row();
-        row.getStyleClass().add("enchantment-row");
+        row.getStyleClass().add("editor-overview-row");
         row.setOnClick(() -> open(entry.id()));
         row.setIcon(buildIcon(entry));
 
         Label name = new Label(entry.data().description().getString());
-        name.getStyleClass().add("enchantment-row-name");
+        name.getStyleClass().add("editor-overview-row-name");
 
         Label identifier = new Label(entry.id().toString());
-        identifier.getStyleClass().add("enchantment-row-identifier");
+        identifier.getStyleClass().add("editor-overview-row-identifier");
 
         Label bullet = new Label("\u2022");
-        bullet.getStyleClass().add("enchantment-row-separator");
+        bullet.getStyleClass().add("editor-overview-row-separator");
 
         Label level = new Label(I18n.get("enchantment:overview.level") + " " + entry.data().getMaxLevel());
-        level.getStyleClass().add("enchantment-row-level");
+        level.getStyleClass().add("editor-overview-row-level");
 
         HBox subInfo = new HBox(8, identifier, bullet, level);
         subInfo.setAlignment(Pos.CENTER_LEFT);
@@ -111,7 +110,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
     private StackPane buildIcon(ElementEntry<Enchantment> entry) {
         StackPane iconWrap = new StackPane();
-        iconWrap.getStyleClass().add("enchantment-row-icon");
+        iconWrap.getStyleClass().add("editor-overview-row-icon");
         iconWrap.setMinSize(32, 32);
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
@@ -121,7 +120,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             iconWrap.getChildren().add(new ItemSprite(itemId, 32));
         } else {
             Label fallback = new Label("?");
-            fallback.getStyleClass().add("enchantment-row-placeholder");
+            fallback.getStyleClass().add("editor-overview-row-placeholder");
             iconWrap.getChildren().add(fallback);
         }
         return iconWrap;
@@ -155,20 +154,20 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         var icon = new SvgIcon(SEARCH_ICON, 40, Color.WHITE);
         icon.setOpacity(0.2);
         StackPane circle = new StackPane(icon);
-        circle.getStyleClass().add("enchantment-overview-empty-circle");
+        circle.getStyleClass().add("editor-overview-empty-circle");
         circle.setPrefSize(96, 96);
         circle.setMaxSize(96, 96);
         circle.setAlignment(Pos.CENTER);
 
         Label title = new Label(I18n.get("enchantment:items.no_results.title"));
-        title.getStyleClass().add("enchantment-overview-empty-title");
+        title.getStyleClass().add("editor-overview-empty-title");
         Label body = new Label(I18n.get("enchantment:items.no_results.description"));
-        body.getStyleClass().add("enchantment-overview-empty-body");
+        body.getStyleClass().add("editor-overview-empty-body");
         body.setWrapText(true);
 
         VBox box = new VBox(6, circle, title, body);
         VBox.setMargin(circle, new Insets(0, 0, 18, 0));
-        box.getStyleClass().add("enchantment-overview-empty");
+        box.getStyleClass().add("editor-overview-empty");
         box.setOpacity(0.6);
         return box;
     }

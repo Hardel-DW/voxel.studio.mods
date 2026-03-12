@@ -21,7 +21,7 @@ public final class FileInput extends VBox {
 
     public FileInput(String promptKey, String accept, Consumer<File> onFileSelected) {
         this.onFileSelected = onFileSelected;
-        getStyleClass().add("file-input");
+        getStyleClass().add("ui-file-input");
         setAlignment(Pos.CENTER);
         setMinHeight(80);
         setPrefHeight(80);
@@ -39,19 +39,19 @@ public final class FileInput extends VBox {
         setOnDragOver(e -> {
             if (e.getDragboard().hasFiles()) {
                 e.acceptTransferModes(TransferMode.COPY);
-                getStyleClass().add("file-input-drag");
+                getStyleClass().add("ui-file-input-drag");
             }
             e.consume();
         });
 
         setOnDragExited(e -> {
-            getStyleClass().remove("file-input-drag");
+            getStyleClass().remove("ui-file-input-drag");
             e.consume();
         });
 
         setOnDragDropped(e -> {
             Dragboard db = e.getDragboard();
-            getStyleClass().remove("file-input-drag");
+            getStyleClass().remove("ui-file-input-drag");
             if (db.hasFiles()) {
                 File file = db.getFiles().getFirst();
                 acceptFile(file);

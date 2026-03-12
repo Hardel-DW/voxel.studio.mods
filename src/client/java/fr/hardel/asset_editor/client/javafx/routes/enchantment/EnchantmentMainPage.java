@@ -33,7 +33,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
     private static final Identifier ANVIL_COST_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/anvil_cost.svg");
 
     public EnchantmentMainPage(StudioContext context) {
-        super(context, Registries.ENCHANTMENT, "enchantment-main-scroll", 32, new Insets(16, 32, 28, 32));
+        super(context, Registries.ENCHANTMENT, "editor-main-scroll", 32, new Insets(16, 32, 28, 32));
         ((ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
                 .addListener((obs, o, bounds) -> content().setMinHeight(Math.max(0, bounds.getHeight())));
     }
