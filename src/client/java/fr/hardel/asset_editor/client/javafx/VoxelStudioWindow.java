@@ -9,7 +9,7 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.ButtonBase;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
@@ -25,8 +25,6 @@ import net.minecraft.resources.Identifier;
 public final class VoxelStudioWindow {
 
     private static final int RESIZE_MARGIN = 10;
-    private static final int DRAG_TOP_HEIGHT = 48;
-    private static final int DRAG_LEFT_WIDTH = 64;
     private static final int SNAP_MARGIN = 5;
     private static final double MIN_WIDTH = 680;
     private static final double MIN_HEIGHT = 440;
@@ -71,6 +69,13 @@ public final class VoxelStudioWindow {
         if (instance != null && instance.platformStarted) {
             Platform.runLater(instance::handleWorldClosed);
         }
+    }
+
+    public static void bindDragArea(Node dragArea) {
+        if (instance == null || instance.stage == null || dragArea == null) {
+            return;
+        }
+        instance.attachDragAreaHandlers(dragArea);
     }
 
     private void show() {
@@ -346,12 +351,6 @@ public final class VoxelStudioWindow {
                 return;
             }
             activeZone = ResizeZone.NONE;
-
-            if (isDragZone(e.getX(), e.getY()) && !isInteractiveTarget(e.getTarget())) {
-                dragging = true;
-                moveOffsetX = e.getScreenX() - stage.getX();
-                moveOffsetY = e.getScreenY() - stage.getY();
-            }
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
@@ -363,47 +362,18 @@ public final class VoxelStudioWindow {
                 e.consume();
                 return;
             }
-            if (!dragging)
-                return;
-
-            if (isSnapped()) {
-                double prevW = scene.getWidth();
-                unsnap();
-                moveOffsetX = stage.getWidth() * Math.clamp(e.getX() / Math.max(1, prevW), 0.1, 0.9);
-                moveOffsetY = Math.min(24, e.getY());
-            }
-            stage.setX(e.getScreenX() - moveOffsetX);
-            stage.setY(e.getScreenY() - moveOffsetY);
-            e.consume();
         });
 
         scene.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
             boolean wasResizing = resizing;
-            if (dragging)
-                applySnap(e.getScreenX(), e.getScreenY());
             activeZone = ResizeZone.NONE;
             resizing = false;
-            dragging = false;
             clearCursorOverride();
             scene.setCursor(Cursor.DEFAULT);
             if (wasResizing) {
                 suppressNextClick = true;
                 e.consume();
             }
-        });
-
-        scene.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
-            if (suppressNextClick) {
-                suppressNextClick = false;
-                e.consume();
-                return;
-            }
-            if (e.getClickCount() != 2)
-                return;
-            if (!isDragZone(e.getX(), e.getY()) || isInteractiveTarget(e.getTarget()))
-                return;
-            toggleMaximize();
-            e.consume();
         });
     }
 
@@ -429,22 +399,53 @@ public final class VoxelStudioWindow {
         return ResizeZone.NONE;
     }
 
-    private boolean isDragZone(double x, double y) {
-        return y <= DRAG_TOP_HEIGHT || x <= DRAG_LEFT_WIDTH;
-    }
+    private void attachDragAreaHandlers(Node dragArea) {
+        dragArea.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+            if (e.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
+            dragging = true;
+            moveOffsetX = e.getScreenX() - stage.getX();
+            moveOffsetY = e.getScreenY() - stage.getY();
+            e.consume();
+        });
 
-    private static boolean isInteractiveTarget(Object target) {
-        if (!(target instanceof Node node))
-            return false;
-        for (Node n = node; n != null; n = n.getParent()) {
-            if (n.getCursor() == Cursor.HAND
-                    || n.getOnMouseClicked() != null
-                    || n.getOnMousePressed() != null
-                    || n.getOnMouseReleased() != null
-                    || n instanceof ButtonBase)
-                return true;
-        }
-        return false;
+        dragArea.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
+            if (!dragging) {
+                return;
+            }
+            if (isSnapped()) {
+                double prevW = scene.getWidth();
+                unsnap();
+                moveOffsetX = stage.getWidth() * Math.clamp(e.getX() / Math.max(1, prevW), 0.1, 0.9);
+                moveOffsetY = Math.min(24, e.getY());
+            }
+            stage.setX(e.getScreenX() - moveOffsetX);
+            stage.setY(e.getScreenY() - moveOffsetY);
+            e.consume();
+        });
+
+        dragArea.addEventHandler(MouseEvent.MOUSE_RELEASED, e -> {
+            if (!dragging) {
+                return;
+            }
+            applySnap(e.getScreenX(), e.getScreenY());
+            dragging = false;
+            e.consume();
+        });
+
+        dragArea.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+            if (suppressNextClick) {
+                suppressNextClick = false;
+                e.consume();
+                return;
+            }
+            if (e.getButton() != MouseButton.PRIMARY || e.getClickCount() != 2) {
+                return;
+            }
+            toggleMaximize();
+            e.consume();
+        });
     }
 
     private enum ResizeZone {
