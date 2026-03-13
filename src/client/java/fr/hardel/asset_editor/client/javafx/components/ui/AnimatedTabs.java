@@ -66,6 +66,8 @@ public final class AnimatedTabs extends StackPane {
             Button btn = buildTabButton(entry.getKey(), entry.getValue());
             buttons.put(entry.getKey(), btn);
             tabsRow.getChildren().add(btn);
+            btn.widthProperty().addListener((obs, o, b) -> snapIndicator());
+            btn.heightProperty().addListener((obs, o, b) -> snapIndicator());
             btn.layoutBoundsProperty().addListener((obs, o, b) -> snapIndicator());
         }
 
@@ -84,11 +86,9 @@ public final class AnimatedTabs extends StackPane {
         tabsRow.layoutBoundsProperty().addListener((obs, o, b) -> snapIndicator());
         tabsRow.layoutXProperty().addListener((obs, o, x) -> snapIndicator());
         tabsRow.layoutYProperty().addListener((obs, o, y) -> snapIndicator());
+        sceneProperty().addListener((obs, oldScene, newScene) -> scheduleSnap());
 
-        Platform.runLater(() -> Platform.runLater(() -> {
-            normalizeButtonWidths();
-            snapIndicator();
-        }));
+        scheduleSnap();
     }
 
     private Button buildTabButton(String value, String label) {
@@ -101,17 +101,6 @@ public final class AnimatedTabs extends StackPane {
         btn.setMinWidth(0);
         btn.setOnAction(e -> select(value));
         return btn;
-    }
-
-    private void normalizeButtonWidths() {
-        double maxWidth = 0;
-        for (Button button : buttons.values()) {
-            maxWidth = Math.max(maxWidth, button.prefWidth(-1));
-        }
-        if (maxWidth <= 0) return;
-        for (Button button : buttons.values()) {
-            button.setPrefWidth(maxWidth);
-        }
     }
 
     private void select(String value) {
@@ -130,6 +119,7 @@ public final class AnimatedTabs extends StackPane {
         double y = tabsRow.getLayoutY() + bounds.getMinY();
         double w = bounds.getWidth() > 0 ? bounds.getWidth() : active.prefWidth(-1);
         double h = bounds.getHeight() > 0 ? bounds.getHeight() : active.prefHeight(-1);
+        if (w <= 0 || h <= 0) return;
         indicator.setX(x);
         indicator.setY(y);
         indicator.setWidth(w);
@@ -155,4 +145,8 @@ public final class AnimatedTabs extends StackPane {
     public void setValue(String value) { select(value); }
     public String getValue() { return activeValue.get(); }
     public StringProperty valueProperty() { return activeValue; }
+
+    private void scheduleSnap() {
+        Platform.runLater(() -> Platform.runLater(this::snapIndicator));
+    }
 }

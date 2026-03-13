@@ -7,7 +7,7 @@ public record EditorActionResult(EditorActionStatus status, String message) {
     }
 
     public static EditorActionResult packRequired() {
-        return new EditorActionResult(EditorActionStatus.PACK_REQUIRED, "studio:editor.pack_required");
+        return new EditorActionResult(EditorActionStatus.PACK_REQUIRED, "error:pack_required");
     }
 
     public static EditorActionResult rejected(String reason) {

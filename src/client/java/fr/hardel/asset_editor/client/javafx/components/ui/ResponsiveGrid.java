@@ -90,8 +90,6 @@ public final class ResponsiveGrid extends GridPane {
             setRowIndex(child, row);
             setHgrow(child, Priority.ALWAYS);
             setFillWidth(child, true);
-            setVgrow(child, Priority.ALWAYS);
-            setFillHeight(child, true);
 
             col++;
             if (col >= columns) {

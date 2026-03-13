@@ -189,5 +189,13 @@
     "studio:pack.required.title": "Pack required",
     "studio:pack.required.message": "You need to select or create a pack before editing. Vanilla content is read-only.",
     "studio:action.cancel": "Cancel",
-    "studio:action.create": "Create"
+    "studio:action.create": "Create",
+    "error:dialog.title": "Error",
+    "error:unknown": "An unexpected error occurred.",
+    "error:pack_required": "You need to select or create a pack before editing.",
+    "error:pack_readonly": "The selected pack is read-only.",
+    "error:element_not_found": "The requested element could not be found.",
+    "error:pack_name_and_namespace_required": "Pack name and namespace are required.",
+    "error:invalid_namespace": "Invalid namespace. Use only [a-z0-9_.-].",
+    "error:pack_create_failed": "Unable to create the pack. Check the name and datapack directory."
 }

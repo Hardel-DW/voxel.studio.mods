@@ -47,7 +47,7 @@ public final class EditorActionGateway {
         if (check != null) return check;
 
         ElementEntry<T> entry = store.get(registry, target);
-        if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
+        if (entry == null) return EditorActionResult.error("error:element_not_found");
 
         T updated = transform.apply(entry.data());
         if (Objects.equals(updated, entry.data())) return EditorActionResult.applied();
@@ -62,7 +62,7 @@ public final class EditorActionGateway {
         if (check != null) return check;
 
         ElementEntry<T> entry = store.get(registry, target);
-        if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
+        if (entry == null) return EditorActionResult.error("error:element_not_found");
 
         CustomFields updated = transform.apply(entry.custom());
         if (Objects.equals(updated, entry.custom())) return EditorActionResult.applied();
@@ -77,7 +77,7 @@ public final class EditorActionGateway {
         if (check != null) return check;
 
         ElementEntry<T> entry = store.get(registry, elementId);
-        if (entry == null) return EditorActionResult.error("studio:editor.element_not_found");
+        if (entry == null) return EditorActionResult.error("error:element_not_found");
 
         store.put(registry, elementId, entry.toggleTag(tagId));
 
@@ -93,7 +93,7 @@ public final class EditorActionGateway {
     private EditorActionResult validatePack(Identifier namespaceSource) {
         var pack = packState.selectedPack();
         if (pack == null) return EditorActionResult.packRequired();
-        if (!pack.writable()) return EditorActionResult.rejected("studio:editor.pack_readonly");
+        if (!pack.writable()) return EditorActionResult.rejected("error:pack_readonly");
         packState.ensureNamespace(pack, namespaceSource.getNamespace());
         return null;
     }

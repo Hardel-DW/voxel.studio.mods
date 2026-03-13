@@ -141,7 +141,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
 
     protected void showPackGuard() {
         if (!context.packState().hasSelectedPack()) showPackRequiredDialog();
-        else showErrorDialog("studio:editor.pack_readonly");
+        else showErrorDialog("error:pack_readonly");
     }
 
     protected abstract void buildContent();
@@ -189,7 +189,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
             return;
         }
         if (result.status() == EditorActionStatus.REJECTED) {
-            showErrorDialog("studio:editor.pack_readonly");
+            showErrorDialog("error:pack_readonly");
             return;
         }
         showErrorDialog(result.message());
@@ -216,12 +216,12 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     }
 
     private void showErrorDialog(String messageKey) {
-        Label message = new Label(I18n.get(messageKey == null ? "studio:editor.error" : messageKey));
+        Label message = new Label(I18n.get(messageKey == null ? "error:unknown" : messageKey));
         message.setTextFill(VoxelColors.ZINC_400);
         message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         message.setWrapText(true);
 
-        Dialog dialog = new Dialog("studio:pack.select", message);
+        Dialog dialog = new Dialog("error:dialog.title", message);
         Button closeBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
         closeBtn.setOnAction(dialog::close);
         dialog.addFooterButton(closeBtn);

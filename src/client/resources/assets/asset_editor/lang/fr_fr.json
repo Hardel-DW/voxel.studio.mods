@@ -189,5 +189,13 @@
     "studio:pack.required.title": "Pack requis",
     "studio:pack.required.message": "Vous devez selectionner ou creer un pack avant de modifier. Le contenu vanilla est en lecture seule.",
     "studio:action.cancel": "Annuler",
-    "studio:action.create": "Creer"
+    "studio:action.create": "Creer",
+    "error:dialog.title": "Erreur",
+    "error:unknown": "Une erreur inattendue est survenue.",
+    "error:pack_required": "Vous devez selectionner ou creer un pack avant de modifier.",
+    "error:pack_readonly": "Le pack selectionne est en lecture seule.",
+    "error:element_not_found": "L'element demande est introuvable.",
+    "error:pack_name_and_namespace_required": "Le nom du pack et le namespace sont obligatoires.",
+    "error:invalid_namespace": "Namespace invalide. Utilisez uniquement [a-z0-9_.-].",
+    "error:pack_create_failed": "Impossible de creer le pack. Verifiez le nom et le dossier des datapacks."
 }

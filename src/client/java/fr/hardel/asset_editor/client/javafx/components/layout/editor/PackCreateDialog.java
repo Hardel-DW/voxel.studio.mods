@@ -67,15 +67,15 @@ public final class PackCreateDialog {
             String name = nameInput.getText().trim();
             String namespace = namespaceInput.getText().trim();
             if (name.isEmpty() || namespace.isEmpty()) {
-                setError(errorLabel, "Name and namespace are required.");
+                setError(errorLabel, "error:pack_name_and_namespace_required");
                 return;
             }
             if (!Identifier.isValidNamespace(namespace)) {
-                setError(errorLabel, "Invalid namespace. Use [a-z0-9_.-].");
+                setError(errorLabel, "error:invalid_namespace");
                 return;
             }
             if (context.packState().createPack(name, namespace) == null) {
-                setError(errorLabel, "Unable to create pack. Check name and world datapack directory.");
+                setError(errorLabel, "error:pack_create_failed");
                 return;
             }
             dialog.close();
@@ -92,8 +92,8 @@ public final class PackCreateDialog {
         return label;
     }
 
-    private static void setError(Label label, String message) {
-        label.setText(message);
+    private static void setError(Label label, String messageKey) {
+        label.setText(I18n.get(messageKey));
         label.setVisible(true);
         label.setManaged(true);
     }

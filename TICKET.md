@@ -3,6 +3,11 @@
 ## Les Bugs
 - [] À traiter en dernier car mineur, quand on arrive sur une page pendant une frame leur taille semble différente ce qui crée un scroll temporaire de quelques millisecondes, sûrement un rendu initial différent.
 - [] Certains cases dans "Items supportés" ne fonctionne pas, peut être que le tags n'existe pas ou autre chose. Inclus épée, bouclier, je crois que c'est les tags voxel.
+- [] Dans Exclusive Set, parfois l'action ne fait rien dans un cas qui semble éxtrémement précis. ça semble être :
+    * Arriver sur la page avec une cible déjà existante e.g "Armor"
+    * Désactiver "Armor" fonctionne visuellement mais ne fait rien au flush, (Si je change de page ça fonctionne)
+    * Les autres tags fonctionnent correctement.
+    * Si j'arrive et que l'enchantment n'a aucunes cibles, ça marche correctement pour tout le monde.
 
 ## Le UI/UX (Interface utilisateur)
 - [] La couleur dans la sidebar doit être la même que la couleur du header.
