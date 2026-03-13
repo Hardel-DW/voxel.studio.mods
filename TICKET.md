@@ -11,11 +11,7 @@
 
 ## Le UI/UX (Interface utilisateur)
 - [] La couleur dans la sidebar doit être la même que la couleur du header.
-- [] Les AnimatedTabs, donc les tabs avec l'inner qui bouge, au rendu initial la taille de cette inner n'est pas bonne, je pense qu'elle est calculée sur la version anglaises, ou je sais pas. (Aprés un clique elle se calibre correctement)
-- [] Traduire tout les messages d'erreur avec i18n "error:*".
 - [] Quand je clique sur un SVG (Pas tous) exemple celui dans le Tree, le Chevron qui permet d'expand, si je double clique ça réduit/augmente la fenétre. ça agis comme la title bar du window.
-- [] Le bouton configurer ne fait rien dans overview. Il doit avoir la même action que quand ont clique sur la row.
-- [] Dans la page "Items supportés", lorsque je réduit la fenétre et la remet en grand, la taille des cartes est abusément élévé en hauteur
 
 ## A refactor:
 - [] Retravailler le I18n faire en sorte de ccentralisés absoluement toutes la logique entiére dans un même fichier et le rendre le plus générique possible, extensible gérer tout les cas au même endroit. Les Pages/Composant doivent juste appeler ces fonction et ne rien calculer. (Hormis une concaténation).

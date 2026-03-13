@@ -4,8 +4,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -14,9 +12,10 @@ import net.minecraft.client.resources.language.I18n;
 
 public class Row extends HBox {
 
+    private final HBox left = new HBox(16);
     private final VBox main = new VBox(2);
     private final ToggleSwitch toggle = new ToggleSwitch();
-    private final Label actionLabel = new Label(I18n.get("generic:configure"));
+    private final javafx.scene.control.Button actionButton = new javafx.scene.control.Button(I18n.get("generic:configure"));
     private Node icon;
 
     public Row() {
@@ -24,14 +23,17 @@ public class Row extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(16);
         setPadding(new Insets(12));
-        setCursor(Cursor.HAND);
 
         main.setMinWidth(0);
+        left.setAlignment(Pos.CENTER_LEFT);
+        left.setCursor(Cursor.HAND);
+        left.getChildren().add(main);
+        left.setMinWidth(0);
+        HBox.setHgrow(left, Priority.ALWAYS);
         HBox.setHgrow(main, Priority.ALWAYS);
 
         toggle.setVisible(false);
         toggle.setManaged(false);
-        toggle.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
 
         Region divider = new Region();
         divider.getStyleClass().add("ui-row-divider");
@@ -40,21 +42,21 @@ public class Row extends HBox {
         divider.setMaxSize(1, 16);
         HBox.setMargin(divider, new Insets(0, 8, 0, 8));
 
-        actionLabel.getStyleClass().add("ui-row-action");
-        actionLabel.addEventFilter(MouseEvent.MOUSE_CLICKED, MouseEvent::consume);
+        actionButton.getStyleClass().add("ui-row-action");
+        actionButton.setCursor(Cursor.HAND);
 
-        HBox right = new HBox(8, toggle, divider, actionLabel);
+        HBox right = new HBox(8, toggle, divider, actionButton);
         right.setAlignment(Pos.CENTER_RIGHT);
 
-        getChildren().addAll(main, right);
+        getChildren().addAll(left, right);
     }
 
     public Row setIcon(Node icon) {
         if (this.icon != null)
-            getChildren().remove(this.icon);
+            left.getChildren().remove(this.icon);
         this.icon = icon;
         if (icon != null)
-            getChildren().addFirst(icon);
+            left.getChildren().addFirst(icon);
         return this;
     }
 
@@ -64,7 +66,7 @@ public class Row extends HBox {
     }
 
     public Row setOnClick(Runnable handler) {
-        setOnMouseClicked(e -> handler.run());
+        left.setOnMouseClicked(e -> handler.run());
         return this;
     }
 
@@ -75,12 +77,12 @@ public class Row extends HBox {
     }
 
     public Row setActionText(String key) {
-        actionLabel.setText(I18n.get(key));
+        actionButton.setText(I18n.get(key));
         return this;
     }
 
     public Row setOnAction(Runnable handler) {
-        actionLabel.setOnMouseClicked(e -> handler.run());
+        actionButton.setOnAction(e -> handler.run());
         return this;
     }
 }

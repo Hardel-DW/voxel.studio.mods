@@ -75,6 +75,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         Row row = new Row();
         row.getStyleClass().add("editor-overview-row");
         row.setOnClick(() -> open(entry.id()));
+        row.setOnAction(() -> open(entry.id()));
         row.setIcon(buildIcon(entry));
 
         Label name = new Label(entry.data().description().getString());
