@@ -18,9 +18,9 @@ public final class PackCreateDialog {
     private PackCreateDialog() {}
 
     public static Dialog create(StudioContext context) {
-        InputText nameInput = new InputText("studio:pack.create.name.placeholder");
-        InputText namespaceInput = new InputText("studio:pack.create.namespace.placeholder");
-        FileInput iconInput = new FileInput("studio:pack.create.icon.placeholder", "*.png", file -> {});
+        InputText nameInput = new InputText(I18n.get("studio:pack.create.name.placeholder"));
+        InputText namespaceInput = new InputText(I18n.get("studio:pack.create.namespace.placeholder"));
+        FileInput iconInput = new FileInput(I18n.get("studio:pack.create.icon.placeholder"), "*.png", file -> {});
 
         boolean[] syncing = {false};
         boolean[] userEditedNamespace = {false};
@@ -55,7 +55,7 @@ public final class PackCreateDialog {
         );
         form.setPadding(new Insets(8, 0, 0, 0));
 
-        Dialog dialog = new Dialog("studio:pack.create.title", form);
+        Dialog dialog = new Dialog(I18n.get("studio:pack.create.title"), form);
 
         Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM,
                 I18n.get("studio:action.cancel"));

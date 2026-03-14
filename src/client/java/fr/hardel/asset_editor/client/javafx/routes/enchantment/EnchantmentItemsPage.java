@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
@@ -37,7 +38,7 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         tabs.put("supportedItems", I18n.get("enchantment:toggle.supported.title"));
         tabs.put("primaryItems", I18n.get("enchantment:toggle.primary.title"));
 
-        sectionSelector = new SectionSelector("enchantment:section.supported.description", tabs, currentSection, this::onSectionChange);
+        sectionSelector = new SectionSelector(I18n.get("enchantment:section.supported.description"), tabs, currentSection, this::onSectionChange);
         content().getChildren().setAll(sectionSelector);
     }
 
@@ -94,14 +95,14 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
-            Card card = new Card(tag.icon(), "enchantment:supported." + tag.key() + ".title", false);
+            Card card = new Card(tag.icon(), StudioText.resolve(StudioText.Domain.ENCHANTMENT_SUPPORTED, tag.key()), false);
             cardMap.put(tag.key(), card);
             grid.addItem(card);
         }
 
         if (includePrimaryNone) {
             Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/tools/cross.png");
-            primaryNoneCard = new Card(noneImg, "enchantment:supported.none.title", false);
+            primaryNoneCard = new Card(noneImg, I18n.get("enchantment.supported:none"), false);
             grid.addItem(primaryNoneCard);
         }
 

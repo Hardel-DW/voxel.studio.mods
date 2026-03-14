@@ -201,7 +201,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         message.setWrapText(true);
 
-        Dialog dialog = new Dialog("studio:pack.required.title", message);
+        Dialog dialog = new Dialog(I18n.get("studio:pack.required.title"), message);
         Button cancelBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
         cancelBtn.setOnAction(dialog::close);
 
@@ -221,7 +221,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         message.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         message.setWrapText(true);
 
-        Dialog dialog = new Dialog("error:dialog.title", message);
+        Dialog dialog = new Dialog(I18n.get("error:dialog.title"), message);
         Button closeBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("studio:action.cancel"));
         closeBtn.setOnAction(dialog::close);
         dialog.addFooterButton(closeBtn);

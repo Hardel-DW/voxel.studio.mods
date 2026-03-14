@@ -9,9 +9,9 @@ import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -187,7 +187,7 @@ public final class EditorHeader extends VBox {
         StudioElementId parsed = StudioElementId.parse(id);
         if (parsed == null)
             return id;
-        return TextUtils.resolveDisplayName(parsed.identifier(), concept.registryKey());
+        return StudioText.resolve(concept.registryKey(), parsed.identifier());
     }
 
     private String resolveColorKey() {
@@ -214,9 +214,10 @@ public final class EditorHeader extends VBox {
         segments.add(parsed.namespace());
         String[] pathParts = parsed.resourcePath().split("/");
         for (int i = 0; i < pathParts.length; i++) {
-            segments.add(i == pathParts.length - 1
-                    ? TextUtils.resolveDisplayName(parsed.identifier(), concept.registryKey())
-                    : TextUtils.humanize(pathParts[i]));
+            Identifier segmentId = i == pathParts.length - 1
+                    ? parsed.identifier()
+                    : Identifier.fromNamespaceAndPath(parsed.namespace(), pathParts[i]);
+            segments.add(StudioText.resolve(concept.registryKey(), segmentId));
         }
         return segments;
     }
@@ -231,17 +232,18 @@ public final class EditorHeader extends VBox {
         TreeNodeModel cursor = tree.tree();
         for (String part : parts) {
             if (cursor == null) {
-                labels.add(TextUtils.humanize(part));
+                labels.add(StudioText.resolve(concept.domain(), part));
                 continue;
             }
             TreeNodeModel child = cursor.children().get(part);
             if (child == null) {
-                labels.add(TextUtils.humanize(part));
+                labels.add(StudioText.resolve(concept.domain(), part));
                 cursor = null;
                 continue;
             }
             String nodeLabel = child.label();
-            labels.add(nodeLabel == null || nodeLabel.isBlank() ? TextUtils.humanize(part) : nodeLabel);
+            labels.add(nodeLabel == null || nodeLabel.isBlank()
+                    ? StudioText.resolve(concept.domain(), part) : nodeLabel);
             cursor = child;
         }
         return labels;

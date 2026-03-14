@@ -12,6 +12,7 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -36,7 +37,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
     @Override
     protected void buildContent() {
-        Section section = new Section("enchantment:section.slots.description");
+        Section section = new Section(I18n.get("enchantment:section.slots.description"));
 
         for (List<String> group : GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
@@ -46,7 +47,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(slotId);
                 if (cfg == null) continue;
                 EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
-                Card card = new Card(cfg.image(), cfg.nameKey(), false);
+                Card card = new Card(cfg.image(), StudioText.resolve(StudioText.Domain.SLOT, cfg.id()), false);
 
                 card.setOnMouseClicked(e -> applyAction(EnchantmentActions.toggleSlot(slotGroup)));
                 bindView(entry -> new SlotManager(entry.data().definition().slots()).isActive(slotGroup), card::setActive);

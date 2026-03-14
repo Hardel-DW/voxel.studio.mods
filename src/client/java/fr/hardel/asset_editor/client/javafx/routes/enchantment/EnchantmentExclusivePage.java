@@ -35,7 +35,7 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
         tabs.put("single", I18n.get("enchantment:toggle.individual.title"));
 
         selector = new SectionSelector(
-            "enchantment:section.exclusive.description",
+            I18n.get("enchantment:section.exclusive.description"),
             tabs,
             currentMode,
             this::onModeChange

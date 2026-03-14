@@ -40,7 +40,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
     @Override
     protected void buildContent() {
-        Section section = new Section("enchantment:section.global.description");
+        Section section = new Section(I18n.get("enchantment:section.global.description"));
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
                 .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
@@ -83,7 +83,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                                java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {
         Counter counter = new Counter(min, max, step, 0);
         bindInt(counter.valueProperty(), selectorFn, mutation);
-        grid.addItem(new TemplateCard(icon, titleKey, descKey, counter));
+        grid.addItem(new TemplateCard(icon, I18n.get(titleKey), I18n.get(descKey), counter));
     }
 
     private Selector buildModeSelector() {
@@ -93,8 +93,8 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
         modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
 
         Selector selector = new Selector(
-                "enchantment:global.mode.title",
-                "enchantment:global.mode.description",
+                I18n.get("enchantment:global.mode.title"),
+                I18n.get("enchantment:global.mode.description"),
                 modeOptions,
                 EnchantmentActions.MODE_NORMAL,
                 null);

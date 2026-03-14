@@ -10,13 +10,14 @@ import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -75,7 +76,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     @Override
     protected void buildContent() {
-        Section behaviour = new Section("enchantment:section.technical.description");
+        Section behaviour = new Section(I18n.get("enchantment:section.technical.description"));
         ResponsiveGrid tagGrid = new ResponsiveGrid(ResponsiveGrid.fixed(1))
                 .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
 
@@ -87,12 +88,12 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
         }
         behaviour.addContent(tagGrid);
 
-        Section costs = new Section("enchantment:section.costs");
+        Section costs = new Section(I18n.get("enchantment:section.costs"));
         ResponsiveGrid costGrid = new ResponsiveGrid(ResponsiveGrid.fixed(1))
                 .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
 
         for (CostDef field : COST_FIELDS) {
-            Range range = new Range("enchantment:global." + field.key() + ".title", 0, 100, 1, 0);
+            Range range = new Range(I18n.get("enchantment:global." + field.key() + ".title"), 0, 100, 1, 0);
             bindInt(range.valueProperty(), field.selector(), field.mutation());
             costGrid.addItem(range);
         }
@@ -102,7 +103,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
     }
 
     private VBox buildEffectsSection() {
-        Section section = new Section("enchantment:technical.effects.title");
+        Section section = new Section(I18n.get("enchantment:technical.effects.title"));
         var effectsSelector = select(entry -> EnchantmentActions.availableEffects(entry.data()));
         List<String> effects = effectsSelector.get() == null ? List.of() : effectsSelector.get();
 
@@ -121,9 +122,14 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
                 .atLeast(StudioBreakpoint.LG, ResponsiveGrid.fixed(1, 1));
 
         for (String effectId : effects) {
-            String effectKey = "effects:" + effectId;
-            String effectLabel = I18n.exists(effectKey) ? I18n.get(effectKey) : TextUtils.humanize(effectId);
-            SwitchCard card = SwitchCard.literal(effectLabel, effectId);
+            Identifier effectKey = Identifier.tryParse(effectId);
+            String effectLabel = effectKey == null
+                    ? StudioText.resolve(StudioText.Domain.EFFECT, effectId)
+                    : StudioText.resolve(BuiltInRegistries.ENCHANTMENT_EFFECT_COMPONENT_TYPE.key(), effectKey);
+            String descKey = effectKey != null
+                    ? "effect:" + effectKey.getNamespace() + "." + effectKey.getPath() + ".desc" : "";
+            String effectDesc = I18n.exists(descKey) ? I18n.get(descKey) : effectId;
+            SwitchCard card = SwitchCard.literal(effectLabel, effectDesc);
             bindToggle(card.valueProperty(),
                     entry -> !EnchantmentActions.isEffectDisabled(entry, effectId),
                     () -> applyCustomAction(EnchantmentActions.toggleDisabledEffect(effectId)));

@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import javafx.scene.layout.VBox;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -33,14 +34,14 @@ public final class ExclusiveSingleSection extends VBox {
 
         if (!vanilla.isEmpty()) {
             getChildren().add(new EnchantmentCategory(
-                    "enchantment:exclusive.vanilla.title",
+                    I18n.get("enchantment.exclusive:vanilla"),
                     vanilla,
                     directExclusiveSelector,
                     applyMutation,
                     context));
         }
         getChildren().add(new EnchantmentCategory(
-                "enchantment:exclusive.custom.title",
+                I18n.get("enchantment.exclusive:custom"),
                 custom,
                 directExclusiveSelector,
                 applyMutation,

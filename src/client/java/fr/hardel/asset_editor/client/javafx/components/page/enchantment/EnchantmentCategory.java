@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -18,11 +19,11 @@ import java.util.function.UnaryOperator;
 
 public final class EnchantmentCategory extends Category {
 
-    public EnchantmentCategory(String titleKey, List<Identifier> identifiers,
+    public EnchantmentCategory(String title, List<Identifier> identifiers,
                                StoreSelector<Set<String>> directExclusiveSelector,
                                Function<UnaryOperator<Enchantment>, Boolean> applyMutation,
                                StudioContext context) {
-        super(titleKey);
+        super(title);
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
@@ -49,7 +50,6 @@ public final class EnchantmentCategory extends Category {
     private static String resolveEnchantmentName(StudioContext context, Identifier id) {
         var entry = context.elementStore().get(Registries.ENCHANTMENT, id);
         if (entry != null) return entry.data().description().getString();
-        String path = id.getPath();
-        return path.contains("/") ? path.substring(path.lastIndexOf('/') + 1) : path;
+        return StudioText.resolve(Registries.ENCHANTMENT, id);
     }
 }

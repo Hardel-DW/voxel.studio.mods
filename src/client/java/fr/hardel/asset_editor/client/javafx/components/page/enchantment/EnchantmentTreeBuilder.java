@@ -6,9 +6,8 @@ import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -60,7 +59,7 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(config.image());
-                category.setLabel(translationOrDefault(config.nameKey(), config.id()));
+                category.setLabel(StudioText.resolve(StudioText.Domain.SLOT, config.id()));
                 root.children().put(config.id(), category);
             }
         }
@@ -74,7 +73,7 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(tag.icon());
-                category.setLabel(translationOrDefault("enchantment:supported." + tag.key() + ".title", tag.key()));
+                category.setLabel(StudioText.resolve(StudioText.Domain.ENCHANTMENT_SUPPORTED, tag.key()));
                 root.children().put(tag.key(), category);
             }
         }
@@ -102,10 +101,10 @@ public final class EnchantmentTreeBuilder {
         }
         for (var e : grouped.entrySet()) {
             TreeNodeModel category = createCategoryNode(e.getValue());
-            String key = e.getKey();
-            String leaf = key.contains("/") ? key.substring(key.lastIndexOf('/') + 1) : key;
-            String cleanLeaf = leaf.contains(":") ? leaf.substring(leaf.lastIndexOf(':') + 1) : leaf;
-            category.setLabel(translationOrDefault("enchantment:exclusive.set." + cleanLeaf + ".title", TextUtils.humanize(cleanLeaf)));
+            Identifier tagId = Identifier.tryParse(e.getKey());
+            String setName = tagId == null ? e.getKey()
+                    : tagId.getPath().substring(tagId.getPath().lastIndexOf('/') + 1);
+            category.setLabel(StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, setName));
             root.children().put(e.getKey(), category);
         }
     }
@@ -126,10 +125,6 @@ public final class EnchantmentTreeBuilder {
     @SuppressWarnings("unchecked")
     private static List<ElementEntry<Enchantment>> castEntries(Collection<ElementEntry<?>> entries) {
         return entries.stream().map(e -> (ElementEntry<Enchantment>) e).toList();
-    }
-
-    private static String translationOrDefault(String key, String fallback) {
-        return I18n.exists(key) ? I18n.get(key) : fallback;
     }
 
     private EnchantmentTreeBuilder() {}

@@ -8,12 +8,12 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
@@ -54,15 +54,11 @@ public final class ExclusiveGroupSection extends VBox {
 
         Function<String, String> labelResolver = value -> {
             if (value == null || value.isBlank()) return "";
-            String clean = value.startsWith("#") ? value.substring(1) : value;
-            Identifier id = Identifier.tryParse(clean);
-            if (id == null) return value;
-            if (BuiltInRegistries.ITEM.containsKey(id)) {
-                return BuiltInRegistries.ITEM.getValue(id).getName().getString();
-            }
+            Identifier id = Identifier.tryParse(value.startsWith("#") ? value.substring(1) : value);
+            if (id == null) return StudioText.resolve(StudioText.Domain.ENCHANTMENT, value);
             return context.resolveHolder(Registries.ENCHANTMENT, id)
                     .map(holder -> holder.value().description().getString())
-                    .orElse(value);
+                    .orElseGet(() -> StudioText.resolve(Registries.ENCHANTMENT, id));
         };
 
         getChildren().addAll(
@@ -72,7 +68,7 @@ public final class ExclusiveGroupSection extends VBox {
 
     private Category buildVanillaCategory(String currentExclusiveTag, Set<Identifier> currentTags,
             Function<String, String> labelResolver) {
-        Category category = new Category("enchantment:exclusive.vanilla.title");
+        Category category = new Category(I18n.get("enchantment.exclusive:vanilla"));
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
                 .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
@@ -81,8 +77,8 @@ public final class ExclusiveGroupSection extends VBox {
             String rawTag = group.value().startsWith("#") ? group.value().substring(1) : group.value();
             Identifier tagId = Identifier.tryParse(rawTag);
             EnchantmentTags card = buildCard(
-                    "enchantment:exclusive.set." + group.id() + ".title",
-                    "enchantment:exclusive.set." + group.id() + ".description",
+                    StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, group.id()),
+                    I18n.get("enchantment.exclusive:" + group.id() + ".desc"),
                     group.image(), tagId, rawTag,
                     currentExclusiveTag, currentTags, labelResolver);
             if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
@@ -95,12 +91,12 @@ public final class ExclusiveGroupSection extends VBox {
 
     private Category buildCustomCategory(String currentExclusiveTag, Set<Identifier> currentTags,
             Function<String, String> labelResolver) {
-        Category category = new Category("enchantment:exclusive.custom.title");
+        Category category = new Category(I18n.get("enchantment.exclusive:custom"));
 
         List<Identifier> customTags = EnchantmentActions
                 .customExclusiveTags(context.allTypedEntries(Registries.ENCHANTMENT));
         if (customTags.isEmpty()) {
-            Label fallback = new Label(I18n.get("enchantment:exclusive.custom.fallback"));
+            Label fallback = new Label(I18n.get("enchantment.exclusive:custom.fallback"));
             fallback.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
             fallback.setTextFill(VoxelColors.ZINC_400);
             fallback.setPadding(new Insets(0, 16, 0, 16));
@@ -113,9 +109,8 @@ public final class ExclusiveGroupSection extends VBox {
 
         for (Identifier tagIdent : customTags) {
             String rawTag = tagIdent.toString();
-            String title = tagIdent.getPath().contains("/")
-                    ? tagIdent.getPath().substring(tagIdent.getPath().lastIndexOf('/') + 1)
-                    : tagIdent.getPath();
+            String setName = tagIdent.getPath().substring(tagIdent.getPath().lastIndexOf('/') + 1);
+            String title = StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, setName);
 
             EnchantmentTags card = buildCard(
                     title, rawTag,
@@ -130,7 +125,7 @@ public final class ExclusiveGroupSection extends VBox {
         return category;
     }
 
-    private EnchantmentTags buildCard(String titleKey, String descriptionKey, Identifier imageId,
+    private EnchantmentTags buildCard(String title, String description, Identifier imageId,
             Identifier tagId, String rawTag, String currentExclusiveTag,
             Set<Identifier> currentTags, Function<String, String> labelResolver) {
 
@@ -140,7 +135,7 @@ public final class ExclusiveGroupSection extends VBox {
 
         EnchantmentTags[] holder = { null };
         EnchantmentTags card = new EnchantmentTags(
-                titleKey, descriptionKey, imageId, members, isTarget, isMember, false,
+                title, description, imageId, members, isTarget, isMember, false,
                 checked -> handleTargetToggle(holder[0], tagId, checked),
                 checked -> handleMembershipToggle(holder[0], tagId, checked),
                 labelResolver);

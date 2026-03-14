@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import javafx.geometry.Insets;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -34,12 +35,12 @@ public final class EnchantmentFindPage extends RegistryPage<Enchantment> {
 
     @Override
     protected void buildContent() {
-        Section section = new Section("enchantment:section.find");
+        Section section = new Section(I18n.get("enchantment:section.find"));
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(368))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (FindTag ft : FIND_TAGS) {
-            Card card = new Card(ft.image(), ft.titleKey(), ft.descKey(), false, false, null);
+            Card card = new Card(ft.image(), I18n.get(ft.titleKey()), I18n.get(ft.descKey()), false, false, null);
             card.setOnMouseClicked(e -> applyTagToggle(ft.tagId()));
             bindView(entry -> entry.tags().contains(ft.tagId()), card::setActive);
             grid.addItem(card);

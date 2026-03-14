@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
-import fr.hardel.asset_editor.client.javafx.lib.utils.TextUtils;
+import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -107,7 +107,9 @@ public final class StudioEditorTabsBar extends HBox {
 
         StudioElementId parsed = StudioElementId.parse(tab.elementId());
         String displayName = parsed != null
-                ? TextUtils.resolveDisplayName(parsed.identifier(), StudioConcept.byRoute(tab.route()).registryKey())
+                ? StudioText.resolve(
+                        StudioConcept.byRoute(tab.route()).registryKey(),
+                        parsed.identifier())
                 : (tab.elementId() != null ? tab.elementId() : "");
         Label label = new Label(displayName);
         label.getStyleClass().add("studio-editor-tab-label");

@@ -46,7 +46,7 @@ public final class EnchantmentTags extends SimpleCard {
     private final Label seeMoreLabel;
     private final VBox overflowContent = new VBox(4);
 
-    public EnchantmentTags(String titleKey, String descKey, Identifier imageId,
+    public EnchantmentTags(String title, String description, Identifier imageId,
             List<String> initialValues, boolean isTarget, boolean isMember, boolean locked,
             Consumer<Boolean> onTargetToggle, Consumer<Boolean> onMembershipToggle,
             Function<String, String> labelResolver) {
@@ -57,7 +57,7 @@ public final class EnchantmentTags extends SimpleCard {
         if (initialValues != null) values.addAll(initialValues);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
-        VBox header = buildHeader(titleKey, descKey, imageId);
+        VBox header = buildHeader(title, description, imageId);
 
         hr.getStyleClass().add("enchantment-tags-hr");
         hr.setMaxWidth(Double.MAX_VALUE);
@@ -129,12 +129,12 @@ public final class EnchantmentTags extends SimpleCard {
         refreshOverflow();
     }
 
-    private VBox buildHeader(String titleKey, String descKey, Identifier imageId) {
-        Label title = new Label(resolveText(titleKey));
+    private VBox buildHeader(String titleText, String descText, Identifier imageId) {
+        Label title = new Label(titleText);
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 16));
         title.setTextFill(Color.WHITE);
 
-        Label desc = new Label(resolveText(descKey));
+        Label desc = new Label(descText);
         desc.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         desc.setTextFill(VoxelColors.ZINC_400);
         desc.setWrapText(true);
@@ -198,32 +198,32 @@ public final class EnchantmentTags extends SimpleCard {
         content.getStyleClass().add("enchantment-tags-actions-popover");
         content.getChildren().addAll(
                 buildActionRow(
-                        "enchantment:exclusive.actions.target.title",
-                        "enchantment:exclusive.actions.target.subtitle",
-                        "enchantment:exclusive.actions.target.description",
+                        I18n.get("enchantment:exclusive.actions.target.title"),
+                        I18n.get("enchantment:exclusive.actions.target.subtitle"),
+                        I18n.get("enchantment:exclusive.actions.target.description"),
                         targetState, onTargetToggle),
                 buildActionRow(
-                        "enchantment:exclusive.actions.membership.title",
-                        "enchantment:exclusive.actions.membership.subtitle",
-                        "enchantment:exclusive.actions.membership.description",
+                        I18n.get("enchantment:exclusive.actions.membership.title"),
+                        I18n.get("enchantment:exclusive.actions.membership.subtitle"),
+                        I18n.get("enchantment:exclusive.actions.membership.description"),
                         membershipState, onMembershipToggle));
         return content;
     }
 
-    private HBox buildActionRow(String titleKey, String subtitleKey, String descriptionKey,
+    private HBox buildActionRow(String titleText, String subtitleText, String descriptionText,
             BooleanProperty state, Consumer<Boolean> handler) {
-        Label title = new Label(resolveText(titleKey));
+        Label title = new Label(titleText);
         title.getStyleClass().add("enchantment-tags-action-title");
 
         HBox titleLine = new HBox(6, title);
-        if (subtitleKey != null && !subtitleKey.isBlank()) {
-            Label subtitle = new Label(resolveText(subtitleKey));
+        if (subtitleText != null && !subtitleText.isBlank()) {
+            Label subtitle = new Label(subtitleText);
             subtitle.getStyleClass().add("enchantment-tags-action-subtitle");
             titleLine.getChildren().add(subtitle);
         }
         titleLine.setAlignment(Pos.CENTER_LEFT);
 
-        Label description = new Label(resolveText(descriptionKey));
+        Label description = new Label(descriptionText);
         description.getStyleClass().add("enchantment-tags-action-description");
         description.setWrapText(true);
 
@@ -257,8 +257,4 @@ public final class EnchantmentTags extends SimpleCard {
         visualCard.getStyleClass().remove("enchantment-tags-targeted");
     }
 
-    private static String resolveText(String keyOrText) {
-        if (keyOrText == null) return "";
-        return I18n.exists(keyOrText) ? I18n.get(keyOrText) : keyOrText;
-    }
 }

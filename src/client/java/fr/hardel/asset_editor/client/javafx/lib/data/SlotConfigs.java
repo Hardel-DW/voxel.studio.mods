@@ -9,17 +9,22 @@ import java.util.stream.Collectors;
 
 public final class SlotConfigs {
 
-    public record SlotConfig(String id, String nameKey, Identifier image, List<String> slots) {}
+    public record SlotConfig(String id, List<String> slots) {
+
+        public Identifier image() {
+            return SlotConfigs.slotImage(id);
+        }
+    }
 
     public static final List<SlotConfig> ALL = List.of(
-        new SlotConfig("mainhand", "enchantment:slots.mainhand.title", slotImage("mainhand"), List.of("mainhand", "any", "hand", "all")),
-        new SlotConfig("offhand",  "enchantment:slots.offhand.title",  slotImage("offhand"),  List.of("offhand", "any", "hand", "all")),
-        new SlotConfig("body",     "enchantment:slots.body.title",     slotImage("body"),     List.of("body", "any", "all")),
-        new SlotConfig("saddle",   "enchantment:slots.saddle.title",   slotImage("saddle"),   List.of("saddle", "any", "all")),
-        new SlotConfig("head",     "enchantment:slots.head.title",     slotImage("head"),     List.of("head", "any", "armor", "all")),
-        new SlotConfig("chest",    "enchantment:slots.chest.title",    slotImage("chest"),    List.of("chest", "any", "armor", "all")),
-        new SlotConfig("legs",     "enchantment:slots.legs.title",     slotImage("legs"),     List.of("legs", "any", "armor", "all")),
-        new SlotConfig("feet",     "enchantment:slots.feet.title",     slotImage("feet"),     List.of("feet", "any", "armor", "all"))
+        new SlotConfig("mainhand", List.of("mainhand", "any", "hand", "all")),
+        new SlotConfig("offhand",  List.of("offhand", "any", "hand", "all")),
+        new SlotConfig("body",     List.of("body", "any", "all")),
+        new SlotConfig("saddle",   List.of("saddle", "any", "all")),
+        new SlotConfig("head",     List.of("head", "any", "armor", "all")),
+        new SlotConfig("chest",    List.of("chest", "any", "armor", "all")),
+        new SlotConfig("legs",     List.of("legs", "any", "armor", "all")),
+        new SlotConfig("feet",     List.of("feet", "any", "armor", "all"))
     );
 
     public static final Map<String, SlotConfig> BY_ID = ALL.stream()
