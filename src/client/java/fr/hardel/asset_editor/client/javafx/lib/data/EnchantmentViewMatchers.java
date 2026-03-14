@@ -41,20 +41,18 @@ public final class EnchantmentViewMatchers {
     }
 
     public static boolean matchesItem(ElementEntry<Enchantment> entry, String category) {
-        String itemTag = "enchantable/" + category;
-
         boolean supported = entry.data().definition().supportedItems().unwrapKey()
-                .map(tag -> tag.location().getPath().equals(itemTag))
+                .map(tag -> tag.location().getPath().equals(category))
                 .orElse(false);
         if (supported) return true;
 
         boolean primary = entry.data().definition().primaryItems()
                 .flatMap(hs -> hs.unwrapKey())
-                .map(tag -> tag.location().getPath().equals(itemTag))
+                .map(tag -> tag.location().getPath().equals(category))
                 .orElse(false);
         if (primary) return true;
 
-        return entry.tags().stream().anyMatch(t -> t.getPath().equals(itemTag));
+        return entry.tags().stream().anyMatch(t -> t.getPath().equals(category));
     }
 
     private static boolean matchesExclusive(ElementEntry<Enchantment> entry, String category) {

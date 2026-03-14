@@ -75,8 +75,7 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(tag.icon());
-                category.setLabel(StudioText.resolve("item_tag",
-                        Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + tag.key())));
+                category.setLabel(StudioText.resolve("item_tag", tag.tagId()));
                 root.children().put(tag.key(), category);
             }
         }

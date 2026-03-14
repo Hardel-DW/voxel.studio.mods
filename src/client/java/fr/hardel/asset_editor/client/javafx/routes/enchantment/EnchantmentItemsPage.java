@@ -25,8 +25,8 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
     private final SectionSelector sectionSelector;
     private String currentSection = "supportedItems";
 
-    private final Map<String, Card> supportedCards = new LinkedHashMap<>();
-    private final Map<String, Card> primaryCards = new LinkedHashMap<>();
+    private final Map<Identifier, Card> supportedCards = new LinkedHashMap<>();
+    private final Map<Identifier, Card> primaryCards = new LinkedHashMap<>();
     private Card primaryNoneCard;
     private ResponsiveGrid supportedGrid;
     private ResponsiveGrid primaryGrid;
@@ -51,24 +51,24 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         primaryGrid = buildGrid(primaryCards, true);
 
         bindView(entry -> entry.data().definition().supportedItems().unwrapKey()
-                .map(k -> k.location().getPath()).orElse(""), tag -> updateCards(supportedCards, tag));
+                .map(k -> k.location()).orElse(null), tag -> updateCards(supportedCards, tag));
 
         bindView(entry -> entry.data().definition().primaryItems()
                 .flatMap(hs -> hs.unwrapKey())
-                .map(k -> k.location().getPath()).orElse(""), tag -> {
+                .map(k -> k.location()).orElse(null), tag -> {
             updateCards(primaryCards, tag);
-            if (primaryNoneCard != null) primaryNoneCard.setActive(tag.isEmpty());
+            if (primaryNoneCard != null) primaryNoneCard.setActive(tag == null);
         });
 
-        wireCardActions(supportedCards, key -> {
-            var tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + key));
+        wireCardActions(supportedCards, tagId -> {
+            var tagKey = TagKey.create(Registries.ITEM, tagId);
             return context().resolveTag(Registries.ITEM, tagKey)
                     .map(holderSet -> EnchantmentActions.supportedItems(holderSet))
                     .orElse(null);
         });
 
-        wireCardActions(primaryCards, key -> {
-            var tagKey = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + key));
+        wireCardActions(primaryCards, tagId -> {
+            var tagKey = TagKey.create(Registries.ITEM, tagId);
             return context().resolveTag(Registries.ITEM, tagKey)
                     .map(holderSet -> EnchantmentActions.primaryItems(Optional.of(holderSet)))
                     .orElse(null);
@@ -90,13 +90,13 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         sectionSelector.setContent();
     }
 
-    private ResponsiveGrid buildGrid(Map<String, Card> cardMap, boolean includePrimaryNone) {
+    private ResponsiveGrid buildGrid(Map<Identifier, Card> cardMap, boolean includePrimaryNone) {
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
-            Card card = new Card(tag.icon(), StudioText.resolve("item_tag", Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + tag.key())), false);
-            cardMap.put(tag.key(), card);
+            Card card = new Card(tag.icon(), StudioText.resolve("item_tag", tag.tagId()), false);
+            cardMap.put(tag.tagId(), card);
             grid.addItem(card);
         }
 
@@ -109,10 +109,10 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         return grid;
     }
 
-    private void wireCardActions(Map<String, Card> cardMap,
-                                  java.util.function.Function<String, java.util.function.UnaryOperator<Enchantment>> mutationFactory) {
+    private void wireCardActions(Map<Identifier, Card> cardMap,
+                                  java.util.function.Function<Identifier, java.util.function.UnaryOperator<Enchantment>> mutationFactory) {
         for (var entry : cardMap.entrySet()) {
-            String key = entry.getKey();
+            Identifier key = entry.getKey();
             entry.getValue().setOnMouseClicked(e -> {
                 var mutation = mutationFactory.apply(key);
                 if (mutation != null) applyAction(mutation);
@@ -120,9 +120,9 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         }
     }
 
-    private void updateCards(Map<String, Card> cardMap, String tag) {
+    private void updateCards(Map<Identifier, Card> cardMap, Identifier tag) {
         for (var e : cardMap.entrySet()) {
-            e.getValue().setActive(tag.equals("enchantable/" + e.getKey()));
+            e.getValue().setActive(e.getKey().equals(tag));
         }
     }
 
