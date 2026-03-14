@@ -15,7 +15,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.minecraft.client.resources.language.I18n;
 
 /**
  * Label row: label left, value right.
@@ -27,16 +26,16 @@ public final class Range extends VBox {
     private final Slider slider;
     private final int step;
 
-    public Range(String labelKey, int min, int max, int step, int initialValue) {
-        this(labelKey, min, max, step, initialValue, false, null);
+    public Range(String label, int min, int max, int step, int initialValue) {
+        this(label, min, max, step, initialValue, false, null);
     }
 
-    public Range(String labelKey, int min, int max, int step, int initialValue, boolean locked, String lockKey) {
+    public Range(String label, int min, int max, int step, int initialValue, boolean locked, String lockText) {
         this.step = step;
         setSpacing(4);
         setMaxWidth(Double.MAX_VALUE);
 
-        String labelText = locked && lockKey != null ? I18n.get(lockKey) : I18n.get(labelKey);
+        String labelText = locked && lockText != null ? lockText : label;
 
         Label labelNode = new Label(labelText);
         labelNode.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 13));

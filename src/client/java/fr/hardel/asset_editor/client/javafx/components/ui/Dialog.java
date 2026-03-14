@@ -22,7 +22,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 public final class Dialog {
@@ -36,12 +35,12 @@ public final class Dialog {
     private final StackPane dialogCard = new StackPane();
     private boolean ownerSet = false;
 
-    public Dialog(String titleKey, Node content) {
+    public Dialog(String title, Node content) {
         stage.initModality(Modality.WINDOW_MODAL);
 
-        Label title = new Label(I18n.get(titleKey));
-        title.setTextFill(VoxelColors.ZINC_100);
-        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
+        Label titleLabel = new Label(title);
+        titleLabel.setTextFill(VoxelColors.ZINC_100);
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
 
         SvgIcon closeIcon = new SvgIcon(CLOSE_ICON, 14, VoxelColors.ZINC_400);
         StackPane closeBtn = new StackPane(closeIcon);
@@ -56,7 +55,7 @@ public final class Dialog {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(title, spacer, closeBtn);
+        HBox header = new HBox(titleLabel, spacer, closeBtn);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(20, 20, 12, 20));
 

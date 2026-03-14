@@ -9,7 +9,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
-import net.minecraft.client.resources.language.I18n;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -19,7 +18,7 @@ public final class FileInput extends VBox {
     private final Consumer<File> onFileSelected;
     private final Label fileLabel;
 
-    public FileInput(String promptKey, String accept, Consumer<File> onFileSelected) {
+    public FileInput(String promptText, String accept, Consumer<File> onFileSelected) {
         this.onFileSelected = onFileSelected;
         getStyleClass().add("ui-file-input");
         setAlignment(Pos.CENTER);
@@ -28,7 +27,7 @@ public final class FileInput extends VBox {
         setCursor(Cursor.HAND);
         setSpacing(4);
 
-        fileLabel = new Label(I18n.get(promptKey));
+        fileLabel = new Label(promptText);
         fileLabel.setTextFill(VoxelColors.ZINC_500);
         fileLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
 

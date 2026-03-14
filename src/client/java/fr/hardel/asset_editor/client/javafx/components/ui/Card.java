@@ -10,7 +10,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -27,20 +26,20 @@ public final class Card extends SimpleCard {
     private final BooleanProperty active = new SimpleBooleanProperty(false);
     private final boolean locked;
 
-    public Card(Identifier imageId, String titleKey, String descKey, boolean initialActive, boolean locked, String lockKey) {
+    public Card(Identifier imageId, String title, String description, boolean initialActive, boolean locked, String lockText) {
         super(new Insets(16));
         setMaxWidth(Double.MAX_VALUE);
         this.locked = locked;
 
-        Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 16));
-        title.setTextFill(VoxelColors.ZINC_100);
+        Label titleLabel = new Label(title);
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 16));
+        titleLabel.setTextFill(VoxelColors.ZINC_100);
 
-        VBox textBlock = new VBox(4, title);
+        VBox textBlock = new VBox(4, titleLabel);
         textBlock.setAlignment(Pos.TOP_LEFT);
         textBlock.setMaxWidth(Double.MAX_VALUE);
-        if (descKey != null) {
-            Label desc = new Label(I18n.get(descKey));
+        if (description != null) {
+            Label desc = new Label(description);
             desc.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
             desc.setTextFill(VoxelColors.ZINC_400);
             desc.setWrapText(true);
@@ -61,7 +60,7 @@ public final class Card extends SimpleCard {
 
         contentBox.getChildren().add(inner);
 
-        buildOverlays(lockKey);
+        buildOverlays(lockText);
         applyActiveState(initialActive);
         active.set(initialActive);
 
@@ -73,15 +72,15 @@ public final class Card extends SimpleCard {
         }
     }
 
-    public Card(Identifier imageId, String titleKey) {
-        this(imageId, titleKey, null, false, false, null);
+    public Card(Identifier imageId, String title) {
+        this(imageId, title, null, false, false, null);
     }
 
-    public Card(Identifier imageId, String titleKey, boolean initialActive) {
-        this(imageId, titleKey, null, initialActive, false, null);
+    public Card(Identifier imageId, String title, boolean initialActive) {
+        this(imageId, title, null, initialActive, false, null);
     }
 
-    private void buildOverlays(String lockKey) {
+    private void buildOverlays(String lockText) {
         if (locked) {
             SvgIcon lockIcon = new SvgIcon(LOCK, 24, Color.WHITE);
             StackPane.setAlignment(lockIcon, Pos.TOP_RIGHT);
@@ -89,14 +88,14 @@ public final class Card extends SimpleCard {
             lockIcon.setMouseTransparent(true);
             visualCard.getChildren().add(lockIcon);
 
-            if (lockKey != null) {
-                Label lockText = new Label(I18n.get(lockKey));
-                lockText.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 11));
-                lockText.setTextFill(VoxelColors.ZINC_400);
-                lockText.setMouseTransparent(true);
-                StackPane.setAlignment(lockText, Pos.BOTTOM_RIGHT);
-                StackPane.setMargin(lockText, new Insets(16));
-                visualCard.getChildren().add(lockText);
+            if (lockText != null) {
+                Label lockLabel = new Label(lockText);
+                lockLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 11));
+                lockLabel.setTextFill(VoxelColors.ZINC_400);
+                lockLabel.setMouseTransparent(true);
+                StackPane.setAlignment(lockLabel, Pos.BOTTOM_RIGHT);
+                StackPane.setMargin(lockLabel, new Insets(16));
+                visualCard.getChildren().add(lockLabel);
             }
         } else {
             SvgIcon checkIcon = new SvgIcon(CHECK, 24, Color.WHITE);

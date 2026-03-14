@@ -12,7 +12,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -31,7 +30,7 @@ public final class InlineCard extends SimpleCard {
         this(title, description, false, false, null);
     }
 
-    public InlineCard(String title, String description, boolean initialActive, boolean locked, String lockKey) {
+    public InlineCard(String title, String description, boolean initialActive, boolean locked, String lockText) {
         super(new Insets(16, 24, 16, 24));
         setMaxWidth(Double.MAX_VALUE);
 
@@ -39,7 +38,7 @@ public final class InlineCard extends SimpleCard {
         titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 16));
         titleLabel.setTextFill(Color.WHITE);
 
-        String descText = locked && lockKey != null ? I18n.get(lockKey) : description;
+        String descText = locked && lockText != null ? lockText : description;
         Label descLabel = new Label(descText);
         descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         descLabel.setTextFill(VoxelColors.ZINC_400);

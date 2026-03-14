@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import net.minecraft.client.resources.language.I18n;
 
 /**
  * bg-black/35 border-zinc-900 rounded-xl p-6 hover:-translate-y-1
@@ -20,27 +19,18 @@ public final class SwitchCard extends SimpleCard {
 
     private final ToggleSwitch toggle = new ToggleSwitch();
 
-    public SwitchCard(String titleKey, String descKey) {
-        this(titleKey, descKey, false, null, true);
+    public SwitchCard(String title, String description) {
+        this(title, description, false, null);
     }
 
-    public SwitchCard(String titleKey, String descKey, boolean locked, String lockKey) {
-        this(titleKey, descKey, locked, lockKey, true);
-    }
-
-    public SwitchCard(String title, String description, boolean locked, String lockKey, boolean translate) {
+    public SwitchCard(String title, String description, boolean locked, String lockText) {
         super(new Insets(24));
 
-        Label titleLabel = new Label(translate ? I18n.get(title) : title);
+        Label titleLabel = new Label(title);
         titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
         titleLabel.setTextFill(VoxelColors.ZINC_100);
 
-        String descriptionText;
-        if (locked && lockKey != null) {
-            descriptionText = I18n.get(lockKey);
-        } else {
-            descriptionText = translate ? I18n.get(description) : description;
-        }
+        String descriptionText = locked && lockText != null ? lockText : description;
         Label descriptionLabel = new Label(descriptionText);
         descriptionLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 12));
         descriptionLabel.setTextFill(VoxelColors.ZINC_400);
@@ -63,6 +53,6 @@ public final class SwitchCard extends SimpleCard {
     public void setValue(boolean v) { toggle.setValue(v); }
 
     public static SwitchCard literal(String title, String description) {
-        return new SwitchCard(title, description, false, null, false);
+        return new SwitchCard(title, description, false, null);
     }
 }

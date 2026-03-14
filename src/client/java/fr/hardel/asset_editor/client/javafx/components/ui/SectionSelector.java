@@ -10,7 +10,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import net.minecraft.client.resources.language.I18n;
 
 import java.util.LinkedHashMap;
 import java.util.function.Consumer;
@@ -24,19 +23,19 @@ public final class SectionSelector extends VBox {
 
     private final VBox childrenBox = new VBox(16);
 
-    public SectionSelector(String titleKey, LinkedHashMap<String, String> tabs, String defaultTab, Consumer<String> onTabChange, Node... initialContent) {
+    public SectionSelector(String title, LinkedHashMap<String, String> tabs, String defaultTab, Consumer<String> onTabChange, Node... initialContent) {
         setSpacing(0);
         setMaxWidth(Double.MAX_VALUE);
 
-        Label title = new Label(I18n.get(titleKey));
-        title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 24));
-        title.setTextFill(VoxelColors.ZINC_100);
+        Label titleLabel = new Label(title);
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 24));
+        titleLabel.setTextFill(VoxelColors.ZINC_100);
 
         Region hr = new Region();
         hr.getStyleClass().add("ui-tool-section-hr");
         hr.setMaxWidth(Double.MAX_VALUE);
 
-        VBox titleBlock = new VBox(8, title, hr);
+        VBox titleBlock = new VBox(8, titleLabel, hr);
         titleBlock.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(titleBlock, Priority.ALWAYS);
 

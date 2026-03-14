@@ -6,13 +6,12 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import net.minecraft.client.resources.language.I18n;
 
 public final class InputText extends HBox {
 
     private final TextField field = new TextField();
 
-    public InputText(String promptKey) {
+    public InputText(String promptText) {
         getStyleClass().add("ui-text-input");
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(0, 12, 0, 12));
@@ -20,7 +19,7 @@ public final class InputText extends HBox {
         setPrefHeight(40);
         setMaxHeight(40);
 
-        field.setPromptText(I18n.get(promptKey));
+        field.setPromptText(promptText);
         field.getStyleClass().add("ui-text-input-field");
         field.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         HBox.setHgrow(field, Priority.ALWAYS);

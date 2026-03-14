@@ -10,12 +10,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 public final class TemplateCard extends SimpleCard {
 
-    public TemplateCard(Identifier iconPath, String titleKey, String descriptionKey, Node child) {
+    public TemplateCard(Identifier iconPath, String title, String description, Node child) {
         SvgIcon icon = new SvgIcon(iconPath, 64, Color.WHITE);
 
         Region spacer = new Region();
@@ -25,15 +24,15 @@ public final class TemplateCard extends SimpleCard {
         topRow.setAlignment(Pos.CENTER);
         topRow.setMaxWidth(Double.MAX_VALUE);
 
-        Label titleLabel = new Label(I18n.get(titleKey));
+        Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("ui-template-card-title");
         titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
 
         VBox infoBox = new VBox(4, titleLabel);
         VBox.setMargin(infoBox, new Insets(12, 0, 0, 0));
 
-        if (descriptionKey != null) {
-            Label descLabel = new Label(I18n.get(descriptionKey));
+        if (description != null) {
+            Label descLabel = new Label(description);
             descLabel.getStyleClass().add("ui-template-card-desc");
             descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 14));
             descLabel.setWrapText(true);
