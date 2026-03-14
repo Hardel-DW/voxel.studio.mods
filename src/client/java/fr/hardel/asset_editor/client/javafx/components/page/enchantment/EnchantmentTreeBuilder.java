@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
@@ -39,7 +40,8 @@ public final class EnchantmentTreeBuilder {
 
     public static Map<String, Identifier> slotFolderIcons() {
         LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
-        for (SlotConfig config : SlotConfigs.ALL) icons.put(config.id(), config.image());
+        for (SlotConfig config : SlotConfigs.ALL)
+            icons.put(config.id(), config.image());
         return icons;
     }
 
@@ -59,7 +61,7 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(config.image());
-                category.setLabel(StudioText.resolve(StudioText.Domain.SLOT, config.id()));
+                category.setLabel(I18n.get("slot:" + config.id()));
                 root.children().put(config.id(), category);
             }
         }
@@ -73,7 +75,8 @@ public final class EnchantmentTreeBuilder {
             if (!matching.isEmpty()) {
                 TreeNodeModel category = createCategoryNode(matching);
                 category.setIcon(tag.icon());
-                category.setLabel(StudioText.resolve(StudioText.Domain.ENCHANTMENT_SUPPORTED, tag.key()));
+                category.setLabel(StudioText.resolve("item_tag",
+                        Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + tag.key())));
                 root.children().put(tag.key(), category);
             }
         }
@@ -102,9 +105,9 @@ public final class EnchantmentTreeBuilder {
         for (var e : grouped.entrySet()) {
             TreeNodeModel category = createCategoryNode(e.getValue());
             Identifier tagId = Identifier.tryParse(e.getKey());
-            String setName = tagId == null ? e.getKey()
-                    : tagId.getPath().substring(tagId.getPath().lastIndexOf('/') + 1);
-            category.setLabel(StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, setName));
+            category.setLabel(tagId != null
+                    ? StudioText.resolve("enchantment_tag", tagId)
+                    : e.getKey());
             root.children().put(e.getKey(), category);
         }
     }
@@ -127,5 +130,6 @@ public final class EnchantmentTreeBuilder {
         return entries.stream().map(e -> (ElementEntry<Enchantment>) e).toList();
     }
 
-    private EnchantmentTreeBuilder() {}
+    private EnchantmentTreeBuilder() {
+    }
 }

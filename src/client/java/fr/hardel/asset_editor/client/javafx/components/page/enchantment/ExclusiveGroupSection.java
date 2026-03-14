@@ -55,7 +55,7 @@ public final class ExclusiveGroupSection extends VBox {
         Function<String, String> labelResolver = value -> {
             if (value == null || value.isBlank()) return "";
             Identifier id = Identifier.tryParse(value.startsWith("#") ? value.substring(1) : value);
-            if (id == null) return StudioText.resolve(StudioText.Domain.ENCHANTMENT, value);
+            if (id == null) return value;
             return context.resolveHolder(Registries.ENCHANTMENT, id)
                     .map(holder -> holder.value().description().getString())
                     .orElseGet(() -> StudioText.resolve(Registries.ENCHANTMENT, id));
@@ -77,8 +77,8 @@ public final class ExclusiveGroupSection extends VBox {
             String rawTag = group.value().startsWith("#") ? group.value().substring(1) : group.value();
             Identifier tagId = Identifier.tryParse(rawTag);
             EnchantmentTags card = buildCard(
-                    StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, group.id()),
-                    I18n.get("enchantment.exclusive:" + group.id() + ".desc"),
+                    tagId != null ? StudioText.resolve("enchantment_tag", tagId) : group.id(),
+                    tagId != null ? I18n.get("enchantment_tag:" + tagId + ".desc") : "",
                     group.image(), tagId, rawTag,
                     currentExclusiveTag, currentTags, labelResolver);
             if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
@@ -109,8 +109,7 @@ public final class ExclusiveGroupSection extends VBox {
 
         for (Identifier tagIdent : customTags) {
             String rawTag = tagIdent.toString();
-            String setName = tagIdent.getPath().substring(tagIdent.getPath().lastIndexOf('/') + 1);
-            String title = StudioText.resolve(StudioText.Domain.ENCHANTMENT_EXCLUSIVE, setName);
+            String title = StudioText.resolve("enchantment_tag", tagIdent);
 
             EnchantmentTags card = buildCard(
                     title, rawTag,

@@ -12,7 +12,6 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -26,10 +25,9 @@ import java.util.List;
 public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
     private static final List<List<String>> GROUPS = List.of(
-        List.of("mainhand", "offhand"),
-        List.of("body", "saddle"),
-        List.of("head", "chest", "legs", "feet")
-    );
+            List.of("mainhand", "offhand"),
+            List.of("body", "saddle"),
+            List.of("head", "chest", "legs", "feet"));
 
     public EnchantmentSlotsPage(StudioContext context) {
         super(context, Registries.ENCHANTMENT, "enchantment-subpage-scroll", 16, new Insets(32));
@@ -41,16 +39,18 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
         for (List<String> group : GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
-                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
+                    .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
             for (String slotId : group) {
                 SlotConfig cfg = SlotConfigs.BY_ID.get(slotId);
-                if (cfg == null) continue;
+                if (cfg == null)
+                    continue;
                 EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
-                Card card = new Card(cfg.image(), StudioText.resolve(StudioText.Domain.SLOT, cfg.id()), false);
+                Card card = new Card(cfg.image(), I18n.get("slot:" + cfg.id()), false);
 
                 card.setOnMouseClicked(e -> applyAction(EnchantmentActions.toggleSlot(slotGroup)));
-                bindView(entry -> new SlotManager(entry.data().definition().slots()).isActive(slotGroup), card::setActive);
+                bindView(entry -> new SlotManager(entry.data().definition().slots()).isActive(slotGroup),
+                        card::setActive);
 
                 row.addItem(card);
             }
@@ -72,7 +72,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
         Label item1 = new Label("- " + I18n.get("enchantment:slots.explanation.list.1"));
         Label item2 = new Label("- " + I18n.get("enchantment:slots.explanation.list.2"));
-        for (Label item : new Label[]{item1, item2}) {
+        for (Label item : new Label[] { item1, item2 }) {
             item.setFont(VoxelFonts.of(VoxelFonts.Variant.LIGHT, 13));
             item.setTextFill(VoxelColors.ZINC_400);
             item.setWrapText(true);

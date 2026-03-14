@@ -95,7 +95,7 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
             .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (EnchantmentTreeData.ItemTagConfig tag : EnchantmentTreeData.ITEM_TAGS) {
-            Card card = new Card(tag.icon(), StudioText.resolve(StudioText.Domain.ENCHANTMENT_SUPPORTED, tag.key()), false);
+            Card card = new Card(tag.icon(), StudioText.resolve("item_tag", Identifier.fromNamespaceAndPath("minecraft", "enchantable/" + tag.key())), false);
             cardMap.put(tag.key(), card);
             grid.addItem(card);
         }
