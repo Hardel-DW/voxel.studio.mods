@@ -27,10 +27,10 @@ public final class SupportCard extends StackPane {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor",
-            "textures/studio/shine.png");
+        "textures/shine.png");
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
     private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/company/patreon.svg");
+        "icons/company/patreon.svg");
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
     public SupportCard() {
@@ -69,7 +69,7 @@ public final class SupportCard extends StackPane {
 
         SvgIcon patreonIcon = new SvgIcon(PATREON_ICON, 16, Color.WHITE);
         Button patreonBtn = new Button(Button.Variant.PATREON, Button.Size.LG, I18n.get("supports:become"),
-                patreonIcon);
+            patreonIcon);
         patreonBtn.setOnAction(() -> BrowserUtils.openBrowser("https://www.patreon.com/hardel"));
         donateBtn.setMaxWidth(Double.MAX_VALUE);
         patreonBtn.setMaxWidth(Double.MAX_VALUE);

@@ -15,20 +15,14 @@ import javafx.util.Duration;
 import net.minecraft.resources.Identifier;
 
 /**
- * bg-black/35 border border-zinc-900 rounded-xl py-6 px-8
- * Shine image (top half, brightness-15 ≈ opacity 0.15) absolutely behind
- * content.
- * hover:-translate-y-1 (4px, 150ms ease-out).
- *
- * The outer StackPane is the fixed hit-area. Only the inner visualCard
- * translates,
- * so the hover zone never shifts (fixes the CSS-translate vs JavaFX-pickBounds
- * mismatch).
+ * bg-black/35 border border-zinc-900 rounded-xl py-6 px-8 Shine image (top half, brightness-15 ≈ opacity 0.15) absolutely behind content.
+ * hover:-translate-y-1 (4px, 150ms ease-out). The outer StackPane is the fixed hit-area. Only the inner visualCard translates, so the hover zone
+ * never shifts (fixes the CSS-translate vs JavaFX-pickBounds mismatch).
  */
 public class SimpleCard extends StackPane {
 
     private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor",
-            "textures/studio/shine.png");
+        "textures/shine.png");
     private static volatile Image shineImage;
 
     protected final StackPane visualCard = new StackPane();

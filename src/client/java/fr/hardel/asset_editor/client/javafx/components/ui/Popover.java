@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 
 public final class Popover extends Popup {
 
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/shine.png");
     private static volatile Image shineImage;
     private static Popover active;
 
@@ -59,7 +59,8 @@ public final class Popover extends Popup {
         getContent().add(container);
 
         setOnHidden(e -> {
-            if (active == this) active = null;
+            if (active == this)
+                active = null;
         });
 
         trigger.setOnMouseClicked(e -> {
@@ -68,20 +69,24 @@ public final class Popover extends Popup {
         });
 
         trigger.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (oldScene != null) oldScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
-            if (newScene != null) newScene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
+            if (oldScene != null)
+                oldScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
+            if (newScene != null)
+                newScene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
         });
     }
 
     private void onSceneClick(MouseEvent e) {
-        if (!isShowing()) return;
+        if (!isShowing())
+            return;
         if (trigger.getScene() == null) {
             hide();
             return;
         }
 
         Bounds triggerBounds = trigger.localToScene(trigger.getBoundsInLocal());
-        if (triggerBounds.contains(e.getSceneX(), e.getSceneY())) return;
+        if (triggerBounds.contains(e.getSceneX(), e.getSceneY()))
+            return;
 
         Window window = trigger.getScene().getWindow();
         if (window == null) {
@@ -92,13 +97,15 @@ public final class Popover extends Popup {
         double sx = e.getSceneX() + window.getX() + trigger.getScene().getX();
         double sy = e.getSceneY() + window.getY() + trigger.getScene().getY();
         if (sx >= getX() && sx <= getX() + container.getWidth()
-                && sy >= getY() && sy <= getY() + container.getHeight()) return;
+            && sy >= getY() && sy <= getY() + container.getHeight())
+            return;
 
         hide();
     }
 
     public static void hideActive() {
-        if (active != null) active.hide();
+        if (active != null)
+            active.hide();
     }
 
     public void toggle() {
@@ -106,13 +113,16 @@ public final class Popover extends Popup {
             hide();
             return;
         }
-        if (trigger.getScene() == null) return;
-        if (active != null && active != this) active.hide();
+        if (trigger.getScene() == null)
+            return;
+        if (active != null && active != this)
+            active.hide();
         active = this;
 
         Window window = trigger.getScene().getWindow();
         Bounds bounds = trigger.localToScreen(trigger.getBoundsInLocal());
-        if (bounds == null) return;
+        if (bounds == null)
+            return;
 
         if (matchTriggerWidth) {
             container.setPrefWidth(bounds.getWidth());
@@ -130,9 +140,11 @@ public final class Popover extends Popup {
 
     private static Image getShineImage() {
         Image current = shineImage;
-        if (current != null) return current;
+        if (current != null)
+            return current;
         synchronized (Popover.class) {
-            if (shineImage != null) return shineImage;
+            if (shineImage != null)
+                return shineImage;
             try (var stream = VoxelResourceLoader.open(SHINE)) {
                 shineImage = new Image(stream);
             } catch (Exception ignored) {

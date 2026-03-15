@@ -27,7 +27,7 @@ import net.minecraft.resources.Identifier;
 public final class Dialog {
 
     private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/shine.png");
+    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/shine.png");
 
     private final Stage stage = new Stage(StageStyle.TRANSPARENT);
     private final HBox footer = new HBox(12);
@@ -80,7 +80,8 @@ public final class Dialog {
             shine.fitWidthProperty().bind(dialogCard.widthProperty());
             shine.fitHeightProperty().bind(dialogCard.heightProperty().multiply(0.4));
             dialogCard.getChildren().addFirst(shine);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         dialogCard.setMaxWidth(460);
         dialogCard.setMinWidth(360);
@@ -97,13 +98,14 @@ public final class Dialog {
         backdrop.getChildren().add(dialogCard);
         backdrop.setAlignment(Pos.CENTER);
         backdrop.setOnMouseClicked(e -> {
-            if (e.getTarget() == backdrop) close();
+            if (e.getTarget() == backdrop)
+                close();
         });
 
         Scene scene = new Scene(backdrop);
         scene.setFill(Color.TRANSPARENT);
         scene.getStylesheets().add(
-                Dialog.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
+            Dialog.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
         stage.setScene(scene);
     }
 

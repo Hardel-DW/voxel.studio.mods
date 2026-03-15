@@ -10,41 +10,38 @@ import java.util.List;
 
 public enum StudioConcept {
     ENCHANTMENT(
-            Registries.ENCHANTMENT,
-            "studio.concept.enchantment",
-            StudioRoute.ENCHANTMENT_OVERVIEW,
-            Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/enchantment.png"),
-            List.of(
-                    new StudioTabDefinition("global", "enchantment:section.global", StudioRoute.ENCHANTMENT_MAIN),
-                    new StudioTabDefinition("find", "enchantment:section.find", StudioRoute.ENCHANTMENT_FIND),
-                    new StudioTabDefinition("slots", "enchantment:section.slots", StudioRoute.ENCHANTMENT_SLOTS),
-                    new StudioTabDefinition("items", "enchantment:section.supported", StudioRoute.ENCHANTMENT_ITEMS),
-                    new StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioRoute.ENCHANTMENT_EXCLUSIVE),
-                    new StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.ENCHANTMENT_TECHNICAL)
-            )),
+        Registries.ENCHANTMENT,
+        "studio.concept.enchantment",
+        StudioRoute.ENCHANTMENT_OVERVIEW,
+        Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/enchantment.png"),
+        List.of(
+            new StudioTabDefinition("global", "enchantment:section.global", StudioRoute.ENCHANTMENT_MAIN),
+            new StudioTabDefinition("find", "enchantment:section.find", StudioRoute.ENCHANTMENT_FIND),
+            new StudioTabDefinition("slots", "enchantment:section.slots", StudioRoute.ENCHANTMENT_SLOTS),
+            new StudioTabDefinition("items", "enchantment:section.supported", StudioRoute.ENCHANTMENT_ITEMS),
+            new StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioRoute.ENCHANTMENT_EXCLUSIVE),
+            new StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.ENCHANTMENT_TECHNICAL))),
     LOOT_TABLE(
-            Registries.LOOT_TABLE,
-            "studio.concept.loot_table",
-            StudioRoute.LOOT_TABLE_OVERVIEW,
-            Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/loot_table.png"),
-            List.of(
-                    new StudioTabDefinition("main", "loot:section.main", StudioRoute.LOOT_TABLE_MAIN),
-                    new StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LOOT_TABLE_POOLS)
-            )),
+        Registries.LOOT_TABLE,
+        "studio.concept.loot_table",
+        StudioRoute.LOOT_TABLE_OVERVIEW,
+        Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/loot_table.png"),
+        List.of(
+            new StudioTabDefinition("main", "loot:section.main", StudioRoute.LOOT_TABLE_MAIN),
+            new StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LOOT_TABLE_POOLS))),
     RECIPE(
-            Registries.RECIPE,
-            "studio.concept.recipe",
-            StudioRoute.RECIPE_OVERVIEW,
-            Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/recipe.png"),
-            List.of(
-                    new StudioTabDefinition("main", "recipe:section.main", StudioRoute.RECIPE_MAIN)
-            )),
+        Registries.RECIPE,
+        "studio.concept.recipe",
+        StudioRoute.RECIPE_OVERVIEW,
+        Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/recipe.png"),
+        List.of(
+            new StudioTabDefinition("main", "recipe:section.main", StudioRoute.RECIPE_MAIN))),
     STRUCTURE(
-            Registries.STRUCTURE,
-            "studio.concept.structure",
-            StudioRoute.ENCHANTMENT_OVERVIEW,
-            Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/concept/structure.png"),
-            List.of());
+        Registries.STRUCTURE,
+        "studio.concept.structure",
+        StudioRoute.ENCHANTMENT_OVERVIEW,
+        Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/structure.png"),
+        List.of());
 
     private final ResourceKey<? extends Registry<?>> registryKey;
     private final String titleKey;
@@ -90,7 +87,8 @@ public enum StudioConcept {
 
     public static StudioConcept byRegistry(String registry) {
         for (StudioConcept concept : values()) {
-            if (concept.registry().equals(registry)) return concept;
+            if (concept.registry().equals(registry))
+                return concept;
         }
         return ENCHANTMENT;
     }
@@ -99,5 +97,3 @@ public enum StudioConcept {
         return byRegistry(route.concept());
     }
 }
-
-

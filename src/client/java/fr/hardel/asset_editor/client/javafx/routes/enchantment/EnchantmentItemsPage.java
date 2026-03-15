@@ -51,32 +51,32 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         primaryGrid = buildGrid(primaryCards, true);
 
         bindView(entry -> entry.data().definition().supportedItems().unwrapKey()
-                .map(k -> k.location()).orElse(null), tag -> updateCards(supportedCards, tag));
+            .map(k -> k.location()).orElse(null), tag -> updateCards(supportedCards, tag));
 
         bindView(entry -> entry.data().definition().primaryItems()
-                .flatMap(hs -> hs.unwrapKey())
-                .map(k -> k.location()).orElse(null), tag -> {
-            updateCards(primaryCards, tag);
-            if (primaryNoneCard != null) primaryNoneCard.setActive(tag == null);
-        });
+            .flatMap(hs -> hs.unwrapKey())
+            .map(k -> k.location()).orElse(null), tag -> {
+                updateCards(primaryCards, tag);
+                if (primaryNoneCard != null)
+                    primaryNoneCard.setActive(tag == null);
+            });
 
         wireCardActions(supportedCards, tagId -> {
             var tagKey = TagKey.create(Registries.ITEM, tagId);
             return context().resolveTag(Registries.ITEM, tagKey)
-                    .map(holderSet -> EnchantmentActions.supportedItems(holderSet))
-                    .orElse(null);
+                .map(holderSet -> EnchantmentActions.supportedItems(holderSet))
+                .orElse(null);
         });
 
         wireCardActions(primaryCards, tagId -> {
             var tagKey = TagKey.create(Registries.ITEM, tagId);
             return context().resolveTag(Registries.ITEM, tagKey)
-                    .map(holderSet -> EnchantmentActions.primaryItems(Optional.of(holderSet)))
-                    .orElse(null);
+                .map(holderSet -> EnchantmentActions.primaryItems(Optional.of(holderSet)))
+                .orElse(null);
         });
 
         if (primaryNoneCard != null) {
-            primaryNoneCard.setOnMouseClicked(e ->
-                    applyAction(EnchantmentActions.primaryItems(Optional.empty())));
+            primaryNoneCard.setOnMouseClicked(e -> applyAction(EnchantmentActions.primaryItems(Optional.empty())));
         }
     }
 
@@ -101,7 +101,7 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         }
 
         if (includePrimaryNone) {
-            Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/tools/cross.png");
+            Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/cross.png");
             primaryNoneCard = new Card(noneImg, I18n.get("enchantment.supported:none"), false);
             grid.addItem(primaryNoneCard);
         }
@@ -110,12 +110,13 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
     }
 
     private void wireCardActions(Map<Identifier, Card> cardMap,
-                                  java.util.function.Function<Identifier, java.util.function.UnaryOperator<Enchantment>> mutationFactory) {
+        java.util.function.Function<Identifier, java.util.function.UnaryOperator<Enchantment>> mutationFactory) {
         for (var entry : cardMap.entrySet()) {
             Identifier key = entry.getKey();
             entry.getValue().setOnMouseClicked(e -> {
                 var mutation = mutationFactory.apply(key);
-                if (mutation != null) applyAction(mutation);
+                if (mutation != null)
+                    applyAction(mutation);
             });
         }
     }
@@ -127,11 +128,14 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
     }
 
     private void onSectionChange(String section) {
-        if (section.equals(currentSection)) return;
+        if (section.equals(currentSection))
+            return;
         currentSection = section;
         var grid = currentSection.equals("primaryItems") ? primaryGrid : supportedGrid;
-        if (grid != null) sectionSelector.setContent(grid);
-        else sectionSelector.setContent();
+        if (grid != null)
+            sectionSelector.setContent(grid);
+        else
+            sectionSelector.setContent();
     }
 
 }
