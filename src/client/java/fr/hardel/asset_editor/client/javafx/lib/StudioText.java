@@ -5,9 +5,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-
 import java.util.Locale;
-import java.util.Set;
 
 public final class StudioText {
 
@@ -28,7 +26,12 @@ public final class StudioText {
     }
 
     public static String resolve(ResourceKey<? extends Registry<?>> registry, Identifier id) {
-        return resolve(registryDomain(registry), id);
+        String path = registry.identifier().getPath();
+        String domain = switch (path) {
+            case "enchantment_effect_component_type", "enchantment_entity_effect_type", "enchantment_level_based_value_type", "enchantment_location_based_effect_type" -> "effect";
+            default -> path;
+        };
+        return resolve(domain, id);
     }
 
     private static String humanize(String raw) {
@@ -49,17 +52,5 @@ public final class StudioText {
         return builder.toString();
     }
 
-    private static final Set<String> EFFECT_REGISTRIES = Set.of(
-            "enchantment_effect_component_type",
-            "enchantment_entity_effect_type",
-            "enchantment_level_based_value_type",
-            "enchantment_location_based_effect_type");
-
-    private static String registryDomain(ResourceKey<? extends Registry<?>> registry) {
-        String path = registry.identifier().getPath();
-        return EFFECT_REGISTRIES.contains(path) ? "effect" : path;
-    }
-
-    private StudioText() {
-    }
+    private StudioText() {}
 }
