@@ -16,17 +16,30 @@ import java.util.List;
 
 public final class EnchantmentFindPage extends RegistryPage<Enchantment> {
 
-    private record FindTag(String titleKey, String descKey, Identifier image, Identifier tagId) {}
+    private record FindTag(Identifier tagId) {
+
+        String titleKey() {
+            return "enchantment_tag:" + tagId;
+        }
+
+        String descKey() {
+            return "enchantment_tag:" + tagId + ".desc";
+        }
+
+        Identifier image() {
+            return tagId.withPath("textures/studio/enchantment/" + tagId.getPath() + ".png");
+        }
+    }
 
     private static final List<FindTag> FIND_TAGS = List.of(
-        new FindTag("enchantment:find.enchanting_table.title",    "enchantment:find.enchanting_table.description",    feature("block/enchanting_table"), minecraftTag("in_enchanting_table")),
-        new FindTag("enchantment:find.mob_equipment.title",       "enchantment:find.mob_equipment.description",       feature("entity/zombie"),          minecraftTag("on_mob_spawn_equipment")),
-        new FindTag("enchantment:find.loot_in_chests.title",      "enchantment:find.loot_in_chests.description",      feature("block/chest"),            minecraftTag("on_random_loot")),
-        new FindTag("enchantment:find.tradeable.title",           "enchantment:find.tradeable.description",           feature("item/enchanted_book"),    minecraftTag("tradeable")),
-        new FindTag("enchantment:find.tradeable_equipment.title", "enchantment:find.tradeable_equipment.description", feature("item/enchanted_item"),    minecraftTag("on_traded_equipment")),
-        new FindTag("enchantment:find.curse.title",               "enchantment:find.curse.description",               feature("effect/curse"),           minecraftTag("curse")),
-        new FindTag("enchantment:find.non_treasure.title",        "enchantment:find.non_treasure.description",        feature("effect/non_treasure"),    minecraftTag("non_treasure")),
-        new FindTag("enchantment:find.treasure.title",            "enchantment:find.treasure.description",            feature("effect/treasure"),        minecraftTag("treasure"))
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "in_enchanting_table")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_mob_spawn_equipment")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_random_loot")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "tradeable")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_traded_equipment")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "curse")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "non_treasure")),
+            new FindTag(Identifier.fromNamespaceAndPath("minecraft", "treasure"))
     );
 
     public EnchantmentFindPage(StudioContext context) {
@@ -48,13 +61,5 @@ public final class EnchantmentFindPage extends RegistryPage<Enchantment> {
 
         section.addContent(grid);
         content().getChildren().setAll(section);
-    }
-
-    private static Identifier feature(String path) {
-        return Identifier.fromNamespaceAndPath("asset_editor", "textures/features/" + path + ".png");
-    }
-
-    private static Identifier minecraftTag(String name) {
-        return Identifier.fromNamespaceAndPath("minecraft", name);
     }
 }

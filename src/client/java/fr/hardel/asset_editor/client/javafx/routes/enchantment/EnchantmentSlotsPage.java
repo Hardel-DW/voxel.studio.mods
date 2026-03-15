@@ -24,11 +24,6 @@ import java.util.List;
 
 public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
 
-    private static final List<List<String>> GROUPS = List.of(
-            List.of("mainhand", "offhand"),
-            List.of("body", "saddle"),
-            List.of("head", "chest", "legs", "feet"));
-
     public EnchantmentSlotsPage(StudioContext context) {
         super(context, Registries.ENCHANTMENT, "enchantment-subpage-scroll", 16, new Insets(32));
     }
@@ -37,7 +32,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
     protected void buildContent() {
         Section section = new Section(I18n.get("enchantment:section.slots.description"));
 
-        for (List<String> group : GROUPS) {
+        for (List<String> group : SlotConfigs.GROUPS) {
             ResponsiveGrid row = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
                     .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
