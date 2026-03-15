@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -38,6 +39,8 @@ public class AssetEditorClient implements ClientModInitializer {
             if (OPEN_STUDIO.consumeClick())
                 VoxelStudioWindow.open();
         });
+
+        ClientNetworkHandler.register();
 
         ResourceLoader.get(PackType.CLIENT_RESOURCES)
                 .registerReloader(

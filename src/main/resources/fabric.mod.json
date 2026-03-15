@@ -17,6 +17,7 @@
             "fr.hardel.asset_editor.AssetEditor"
         ]
     },
+    "accessWidener": "asset_editor.accesswidener",
     "mixins": [
         "asset_editor.mixins.json",
         {

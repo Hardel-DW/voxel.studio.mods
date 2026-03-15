@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
+import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -28,7 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -68,13 +68,17 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     }
 
     protected EditorActionResult applyAction(UnaryOperator<T> transform) {
-        var result = context.gateway().apply(registry, currentId, transform);
+        return applyAction(transform, null);
+    }
+
+    protected EditorActionResult applyAction(UnaryOperator<T> transform, EditorAction action) {
+        var result = context.gateway().apply(registry, currentId, transform, action);
         if (!result.isApplied()) handleActionFailure(result);
         return result;
     }
 
-    protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform) {
-        var result = context.gateway().applyCustom(registry, currentId, transform);
+    protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform, EditorAction action) {
+        var result = context.gateway().applyCustom(registry, currentId, transform, action);
         if (!result.isApplied()) handleActionFailure(result);
         return result;
     }
@@ -87,14 +91,15 @@ public abstract class RegistryPage<T> extends VBox implements Page {
 
     protected void bindInt(IntegerProperty property,
                            Function<ElementEntry<T>, Integer> extractor,
-                           IntFunction<UnaryOperator<T>> mutation) {
+                           java.util.function.IntFunction<UnaryOperator<T>> mutation,
+                           java.util.function.IntFunction<EditorAction> actionFactory) {
         var selector = select(extractor);
         if (selector.get() != null) property.set(selector.get());
         selector.subscribe(val -> { if (val != null) property.set(val); });
         property.addListener((obs, o, v) -> {
             if (o == null || v == null || o.intValue() == v.intValue()) return;
             if (Integer.valueOf(v.intValue()).equals(selector.get())) return;
-            var result = applyAction(mutation.apply(v.intValue()));
+            var result = applyAction(mutation.apply(v.intValue()), actionFactory.apply(v.intValue()));
             if (!result.isApplied() && selector.get() != null) property.set(selector.get());
         });
     }
@@ -189,7 +194,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
             return;
         }
         if (result.status() == EditorActionStatus.REJECTED) {
-            showErrorDialog("error:pack_readonly");
+            showErrorDialog(result.message());
             return;
         }
         showErrorDialog(result.message());

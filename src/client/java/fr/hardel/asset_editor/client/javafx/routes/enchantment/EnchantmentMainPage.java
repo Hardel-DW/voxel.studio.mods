@@ -11,6 +11,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.control.ScrollPane;
@@ -48,19 +49,22 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                 "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
                 1, 127, 1,
                 entry -> entry.data().getMaxLevel(),
-                EnchantmentActions::maxLevel);
+                EnchantmentActions::maxLevel,
+                v -> new EditorAction.SetIntField("max_level", v));
 
         buildCounter(grid, WEIGHT_ICON,
                 "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
                 1, 1024, 1,
                 entry -> entry.data().getWeight(),
-                EnchantmentActions::weight);
+                EnchantmentActions::weight,
+                v -> new EditorAction.SetIntField("weight", v));
 
         buildCounter(grid, ANVIL_COST_ICON,
                 "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
                 0, 255, 1,
                 entry -> entry.data().getAnvilCost(),
-                EnchantmentActions::anvilCost);
+                EnchantmentActions::anvilCost,
+                v -> new EditorAction.SetIntField("anvil_cost", v));
 
         section.addContent(grid, buildModeSelector());
 
@@ -80,9 +84,10 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                                String titleKey, String descKey,
                                int min, int max, int step,
                                Function<ElementEntry<Enchantment>, Integer> selectorFn,
-                               java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation) {
+                               java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation,
+                               java.util.function.IntFunction<EditorAction> actionFactory) {
         Counter counter = new Counter(min, max, step, 0);
-        bindInt(counter.valueProperty(), selectorFn, mutation);
+        bindInt(counter.valueProperty(), selectorFn, mutation, actionFactory);
         grid.addItem(new TemplateCard(icon, I18n.get(titleKey), I18n.get(descKey), counter));
     }
 
@@ -100,7 +105,7 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                 null);
 
         bindString(selector.valueProperty(), EnchantmentActions::mode,
-                v -> applyCustomAction(EnchantmentActions.mode(v)));
+                v -> applyCustomAction(EnchantmentActions.mode(v), new EditorAction.SetMode(v)));
 
         return selector;
     }

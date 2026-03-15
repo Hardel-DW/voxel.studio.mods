@@ -42,6 +42,7 @@ public final class StudioPrimarySidebar extends VBox {
 
         getChildren().addAll(buildLogoArea(), buildConcepts(), spacer, buildBottom());
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshConcepts());
+        context.permissionsProperty().addListener((obs, oldValue, newValue) -> refreshConcepts());
         refreshConcepts();
     }
 
@@ -64,7 +65,7 @@ public final class StudioPrimarySidebar extends VBox {
 
     private StackPane conceptCard(StudioConcept concept) {
         boolean active = context.router().currentRoute().concept().equals(concept.registry());
-        ResourceImageIcon icon = new ResourceImageIcon(concept.icon(), 24); // size-6
+        ResourceImageIcon icon = new ResourceImageIcon(concept.icon(), 24);
         icon.setOpacity(active ? 1.0 : 0.8);
 
         StackPane card = new StackPane(icon);
@@ -92,6 +93,7 @@ public final class StudioPrimarySidebar extends VBox {
         concepts.getChildren().clear();
         for (StudioConcept concept : StudioConcept.values()) {
             if (concept == StudioConcept.STRUCTURE) continue;
+            if (!context.permissions().canAccessRegistry(concept.registryKey())) continue;
             concepts.getChildren().add(conceptCard(concept));
         }
     }

@@ -14,6 +14,7 @@ public enum StudioRoute {
     LOOT_TABLE_POOLS("loot_table", false, true),
     RECIPE_OVERVIEW("recipe", true, false),
     RECIPE_MAIN("recipe", false, true),
+    NO_PERMISSION("none", false, false),
     CHANGES_MAIN("changes", false, false),
     DEBUG_ITEMS("debug", false, false);
 

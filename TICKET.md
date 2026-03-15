@@ -9,9 +9,6 @@
     * Les autres tags fonctionnent correctement.
     * Si j'arrive et que l'enchantment n'a aucunes cibles, ça marche correctement pour tout le monde.
 
-## Le UI/UX (Interface utilisateur)
-- [] La couleur dans la sidebar doit être la même que la couleur du header.
-
 ## Projet du futur pour la V1
 - Travailler une API de debugging modernes et universelles pour le projet entier, qui soit propre, senior et future proof, générique et extensible.
 - [] Travailler le debugging, pouvoir voir les éléménets re-render quel composant et la duréer d'un render par composant.

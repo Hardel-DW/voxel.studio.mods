@@ -1,12 +1,14 @@
 package fr.hardel.asset_editor.client.javafx.lib.data;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 import java.util.List;
+import java.util.Optional;
 
 public enum StudioConcept {
     ENCHANTMENT(
@@ -95,5 +97,13 @@ public enum StudioConcept {
 
     public static StudioConcept byRoute(StudioRoute route) {
         return byRegistry(route.concept());
+    }
+
+    public static Optional<StudioConcept> firstAccessible(StudioPermissions permissions) {
+        for (StudioConcept concept : values()) {
+            if (concept == STRUCTURE) continue;
+            if (permissions.canAccessRegistry(concept.registryKey())) return Optional.of(concept);
+        }
+        return Optional.empty();
     }
 }

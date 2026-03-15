@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.lib;
 
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
@@ -10,6 +11,11 @@ import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.network.PermissionRequestPayload;
+import fr.hardel.asset_editor.permission.StudioPermissions;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
@@ -37,7 +43,9 @@ public final class StudioContext {
     private final StudioTabsState tabsState = new StudioTabsState();
     private final StudioPackState packState = new StudioPackState();
     private final RegistryElementStore elementStore = new RegistryElementStore();
-    private final EditorActionGateway gateway = new EditorActionGateway(packState, elementStore);
+    private final ObjectProperty<StudioPermissions> permissionsProperty =
+            new SimpleObjectProperty<>(StudioPermissions.NONE);
+    private final EditorActionGateway gateway = new EditorActionGateway(packState, elementStore, this::permissions);
     private String worldSessionKey = "";
 
     public StudioContext() {
@@ -70,6 +78,40 @@ public final class StudioContext {
 
     public EditorActionGateway gateway() {
         return gateway;
+    }
+
+    public StudioPermissions permissions() {
+        return permissionsProperty.get();
+    }
+
+    public ObjectProperty<StudioPermissions> permissionsProperty() {
+        return permissionsProperty;
+    }
+
+    public void setPermissions(StudioPermissions permissions) {
+        permissionsProperty.set(permissions);
+        enforcePermissionRoute();
+    }
+
+    private void enforcePermissionRoute() {
+        var perms = permissions();
+        var currentRoute = router.currentRoute();
+
+        if (currentRoute == StudioRoute.DEBUG_ITEMS || currentRoute == StudioRoute.CHANGES_MAIN)
+            return;
+
+        if (currentRoute == StudioRoute.NO_PERMISSION) {
+            StudioConcept.firstAccessible(perms).ifPresent(
+                    concept -> router.navigate(concept.overviewRoute()));
+            return;
+        }
+
+        var currentConcept = StudioConcept.byRoute(currentRoute);
+        if (perms.canAccessRegistry(currentConcept.registryKey())) return;
+
+        StudioConcept.firstAccessible(perms).ifPresentOrElse(
+                concept -> router.navigate(concept.overviewRoute()),
+                () -> router.navigate(StudioRoute.NO_PERMISSION));
     }
 
     public <T> Collection<ElementEntry<?>> allEntries(ResourceKey<Registry<T>> registryKey) {
@@ -134,16 +176,22 @@ public final class StudioContext {
         tabsState.reset();
         packState.refreshFromServer();
         snapshotRegistries();
-        router.navigate(StudioRoute.overviewOf(router.currentRoute().concept()));
+        requestPermissions();
+    }
+
+    private void requestPermissions() {
+        Minecraft.getInstance().execute(() ->
+                ClientPlayNetworking.send(new PermissionRequestPayload()));
     }
 
     public void resetForWorldClose() {
         worldSessionKey = "";
+        permissionsProperty.set(StudioPermissions.NONE);
         elementStore.clearAll();
         tabsState.reset();
         packState.clearSelection();
         packState.availablePacks().clear();
-        router.navigate(StudioRoute.overviewOf(router.currentRoute().concept()));
+        router.navigate(StudioRoute.NO_PERMISSION);
     }
 
     private void snapshotRegistries() {

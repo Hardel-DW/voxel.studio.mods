@@ -60,6 +60,19 @@ public final class VoxelStudioWindow {
             instance.snapTo(instance.windowScreen().getVisualBounds());
     }
 
+    public static void updatePermissions(fr.hardel.asset_editor.permission.StudioPermissions permissions) {
+        if (instance != null && instance.editorRoot != null) {
+            javafx.application.Platform.runLater(() -> instance.editorRoot.context().setPermissions(permissions));
+        }
+    }
+
+    public static void handleActionResponse(java.util.UUID actionId, boolean accepted, String message) {
+        if (instance != null && instance.editorRoot != null) {
+            javafx.application.Platform.runLater(() ->
+                    instance.editorRoot.context().gateway().handleResponse(actionId, accepted, message));
+        }
+    }
+
     public static void onResourceReload() {
         if (instance != null && instance.stage != null)
             Platform.runLater(instance::rebuildScene);

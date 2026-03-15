@@ -86,8 +86,15 @@ public final class StudioEditorRoot extends HBox {
         });
     }
 
+    private NoPermissionPage noPermissionPage;
+
     private void refreshOutlet() {
         StudioRoute route = context.router().currentRoute();
+        if (route == StudioRoute.NO_PERMISSION) {
+            if (noPermissionPage == null) noPermissionPage = new NoPermissionPage();
+            contentOutlet.getChildren().setAll(noPermissionPage);
+            return;
+        }
         if (route == StudioRoute.CHANGES_MAIN) {
             if (changesLayout == null) changesLayout = new ChangesLayout();
             contentOutlet.getChildren().setAll(changesLayout);

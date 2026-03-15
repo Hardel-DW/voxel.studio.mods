@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -95,15 +96,21 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
         row.setContent(name, subInfo);
 
+        boolean canEdit = context.permissions().canEditElement(Registries.ENCHANTMENT, entry.id());
         var sw = row.toggle();
+        sw.setDisable(!canEdit);
         sw.setValue(!EnchantmentActions.isSoftDeleted(entry));
         sw.valueProperty().addListener((obs, o, v) -> {
-            if (o == null || v == null || o.equals(v)) return;
+            if (o == null || v == null || o.equals(v))
+                return;
             var current = context.elementStore().get(Registries.ENCHANTMENT, entry.id());
             boolean enabled = current == null || !EnchantmentActions.isSoftDeleted(current);
-            if (Boolean.valueOf(v).equals(enabled)) return;
-            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(), EnchantmentActions.toggleDisabled());
-            if (!result.isApplied()) sw.setValue(enabled);
+            if (Boolean.valueOf(v).equals(enabled))
+                return;
+            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(),
+                EnchantmentActions.toggleDisabled(), new EditorAction.ToggleDisabled());
+            if (!result.isApplied())
+                sw.setValue(enabled);
         });
 
         return row;
@@ -116,7 +123,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
         var itemId = EnchantmentActions.previewItemId(entry.data(),
-                tag -> context.resolveTag(Registries.ITEM, tag));
+            tag -> context.resolveTag(Registries.ITEM, tag));
         if (itemId != null) {
             iconWrap.getChildren().add(new ItemSprite(itemId, 32));
         } else {
@@ -143,10 +150,10 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         var sidebarView = context.uiState().sidebarView();
 
         return context.allTypedEntries(Registries.ENCHANTMENT).stream()
-                .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
-                .filter(e -> EnchantmentViewMatchers.matches(e, filterPath, sidebarView))
-                .sorted(Comparator.comparing(e -> e.data().description().getString()))
-                .toList();
+            .filter(e -> search.isEmpty() || e.id().getPath().contains(search))
+            .filter(e -> EnchantmentViewMatchers.matches(e, filterPath, sidebarView))
+            .sorted(Comparator.comparing(e -> e.data().description().getString()))
+            .toList();
     }
 
     private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");
