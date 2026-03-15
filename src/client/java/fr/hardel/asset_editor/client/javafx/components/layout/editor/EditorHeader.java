@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
-import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
+import fr.hardel.asset_editor.client.javafx.lib.StudioText;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import javafx.geometry.Insets;

@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.text.StudioText;
+import fr.hardel.asset_editor.client.javafx.lib.StudioText;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
