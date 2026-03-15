@@ -74,11 +74,11 @@ public final class ExclusiveGroupSection extends VBox {
                 .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (ExclusiveSetGroup group : ExclusiveSetGroup.ALL) {
-            String rawTag = group.value().startsWith("#") ? group.value().substring(1) : group.value();
-            Identifier tagId = Identifier.tryParse(rawTag);
+            Identifier tagId = group.tagId();
+            String rawTag = tagId.toString();
             EnchantmentTags card = buildCard(
-                    tagId != null ? StudioText.resolve("enchantment_tag", tagId) : group.id(),
-                    tagId != null ? I18n.get("enchantment_tag:" + tagId + ".desc") : "",
+                    StudioText.resolve("enchantment_tag", tagId),
+                    I18n.get("enchantment_tag:" + tagId + ".desc"),
                     group.image(), tagId, rawTag,
                     currentExclusiveTag, currentTags, labelResolver);
             if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;

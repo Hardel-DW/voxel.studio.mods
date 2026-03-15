@@ -232,21 +232,17 @@ public final class EditorHeader extends VBox {
         TreeNodeModel cursor = tree.tree();
         for (String part : parts) {
             if (cursor == null) {
-                labels.add(StudioText.resolve(concept.registryKey(),
-                        Identifier.fromNamespaceAndPath("minecraft", part)));
+                labels.add(part);
                 continue;
             }
             TreeNodeModel child = cursor.children().get(part);
             if (child == null) {
-                labels.add(StudioText.resolve(concept.registryKey(),
-                        Identifier.fromNamespaceAndPath("minecraft", part)));
+                labels.add(part);
                 cursor = null;
                 continue;
             }
             String nodeLabel = child.label();
-            labels.add(nodeLabel == null || nodeLabel.isBlank()
-                    ? StudioText.resolve(concept.registryKey(),
-                        Identifier.fromNamespaceAndPath("minecraft", part)) : nodeLabel);
+            labels.add(nodeLabel != null && !nodeLabel.isBlank() ? nodeLabel : part);
             cursor = child;
         }
         return labels;

@@ -38,7 +38,7 @@ public final class EnchantmentTreeData {
         }
 
         public Identifier icon() {
-            return tagId.withPath("textures/tags/item/" + tagId.getPath() + ".png");
+            return tagId.withPath("textures/studio/item/" + tagId.getPath() + ".png");
         }
     }
 

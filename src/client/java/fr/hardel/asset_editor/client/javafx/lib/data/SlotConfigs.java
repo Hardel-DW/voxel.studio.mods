@@ -31,7 +31,7 @@ public final class SlotConfigs {
             .collect(Collectors.toUnmodifiableMap(SlotConfig::id, Function.identity()));
 
     private static Identifier slotImage(String name) {
-        return Identifier.fromNamespaceAndPath("asset_editor", "textures/features/slots/" + name + ".png");
+        return Identifier.fromNamespaceAndPath("asset_editor", "textures/studio/slots/" + name + ".png");
     }
 
     private SlotConfigs() {}

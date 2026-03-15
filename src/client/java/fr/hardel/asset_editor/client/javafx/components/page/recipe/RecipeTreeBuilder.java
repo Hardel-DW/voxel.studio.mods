@@ -18,9 +18,10 @@ public final class RecipeTreeBuilder {
         for (RecipeTreeData.RecipeBlockConfig block : RecipeTreeData.RECIPE_BLOCKS) {
             if (block.special()) continue;
 
+            List<String> typeStrings = block.recipeTypes().stream().map(Identifier::toString).toList();
             ArrayList<RecipeEntry> matching = new ArrayList<>();
             for (RecipeEntry element : elements) {
-                if (block.recipeTypes().contains(element.type())) {
+                if (typeStrings.contains(element.type())) {
                     matching.add(element);
                 }
             }
@@ -30,10 +31,11 @@ public final class RecipeTreeBuilder {
             blockNode.setCount(matching.size());
 
             if (hasSubTypes) {
-                for (String recipeType : block.recipeTypes()) {
+                for (Identifier recipeType : block.recipeTypes()) {
+                    String typeStr = recipeType.toString();
                     ArrayList<RecipeEntry> subMatching = new ArrayList<>();
                     for (RecipeEntry element : matching) {
-                        if (recipeType.equals(element.type())) {
+                        if (typeStr.equals(element.type())) {
                             subMatching.add(element);
                         }
                     }
@@ -43,7 +45,7 @@ public final class RecipeTreeBuilder {
                     for (RecipeEntry element : subMatching) {
                         subNode.identifiers().add(element.uniqueId());
                     }
-                    blockNode.children().put(recipeType, subNode);
+                    blockNode.children().put(typeStr, subNode);
                 }
             } else {
                 for (RecipeEntry element : matching) {
@@ -51,7 +53,7 @@ public final class RecipeTreeBuilder {
                 }
             }
 
-            root.children().put(block.id(), blockNode);
+            root.children().put(block.blockId().toString(), blockNode);
         }
 
         return root;
@@ -61,9 +63,9 @@ public final class RecipeTreeBuilder {
         LinkedHashMap<String, Identifier> icons = new LinkedHashMap<>();
         for (RecipeTreeData.RecipeBlockConfig block : RecipeTreeData.RECIPE_BLOCKS) {
             if (block.special()) continue;
-            icons.put(block.id(), block.icon());
-            for (String type : block.recipeTypes()) {
-                icons.put(type, block.icon());
+            icons.put(block.blockId().toString(), block.icon());
+            for (Identifier type : block.recipeTypes()) {
+                icons.put(type.toString(), block.icon());
             }
         }
         return icons;

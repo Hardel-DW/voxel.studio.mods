@@ -7,46 +7,46 @@ import java.util.List;
 public final class RecipeTreeData {
 
     public static final List<RecipeBlockConfig> RECIPE_BLOCKS = List.of(
-            block("minecraft:barrier", List.of(), true),
-            block("minecraft:campfire", List.of("minecraft:campfire_cooking"), false),
-            block("minecraft:furnace", List.of("minecraft:smelting"), false),
-            block("minecraft:blast_furnace", List.of("minecraft:blasting"), false),
-            block("minecraft:smoker", List.of("minecraft:smoking"), false),
-            block("minecraft:stonecutter", List.of("minecraft:stonecutting"), false),
-            block("minecraft:crafting_table", List.of(
-                    "minecraft:crafting_shapeless",
-                    "minecraft:crafting_shaped",
-                    "minecraft:crafting_decorated_pot",
-                    "minecraft:crafting_special_armordye",
-                    "minecraft:crafting_special_bannerduplicate",
-                    "minecraft:crafting_special_bookcloning",
-                    "minecraft:crafting_special_firework_rocket",
-                    "minecraft:crafting_special_firework_star",
-                    "minecraft:crafting_special_firework_star_fade",
-                    "minecraft:crafting_special_mapcloning",
-                    "minecraft:crafting_special_mapextending",
-                    "minecraft:crafting_special_repairitem",
-                    "minecraft:crafting_special_shielddecoration",
-                    "minecraft:crafting_special_tippedarrow",
-                    "minecraft:crafting_transmute"
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "barrier"), List.of(), true),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "campfire"),
+                    List.of(Identifier.fromNamespaceAndPath("minecraft", "campfire_cooking")), false),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "furnace"),
+                    List.of(Identifier.fromNamespaceAndPath("minecraft", "smelting")), false),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
+                    List.of(Identifier.fromNamespaceAndPath("minecraft", "blasting")), false),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "smoker"),
+                    List.of(Identifier.fromNamespaceAndPath("minecraft", "smoking")), false),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
+                    List.of(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")), false),
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "crafting_table"), List.of(
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_shapeless"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_shaped"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_decorated_pot"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_armordye"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_bannerduplicate"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_bookcloning"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_rocket"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_star"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_star_fade"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_mapcloning"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_mapextending"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_repairitem"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_shielddecoration"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_special_tippedarrow"),
+                    Identifier.fromNamespaceAndPath("minecraft", "crafting_transmute")
             ), false),
-            block("minecraft:smithing_table",
-                    List.of("minecraft:smithing_transform", "minecraft:smithing_trim"),
-                    false)
+            new RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "smithing_table"), List.of(
+                    Identifier.fromNamespaceAndPath("minecraft", "smithing_transform"),
+                    Identifier.fromNamespaceAndPath("minecraft", "smithing_trim")
+            ), false)
     );
 
-    public record RecipeBlockConfig(String id, List<String> recipeTypes, boolean special, Identifier icon) {
+    public record RecipeBlockConfig(Identifier blockId, List<Identifier> recipeTypes, boolean special) {
+
+        public Identifier icon() {
+            return blockId.withPath("textures/studio/block/" + blockId.getPath() + ".png");
+        }
     }
 
-    private static RecipeBlockConfig block(String id, List<String> recipeTypes, boolean special) {
-        String resource = id.contains(":") ? id.split(":", 2)[1] : id;
-        return new RecipeBlockConfig(
-                id,
-                recipeTypes,
-                special,
-                Identifier.fromNamespaceAndPath("asset_editor", "textures/features/block/%s.png".formatted(resource)));
-    }
-
-    private RecipeTreeData() {
-    }
+    private RecipeTreeData() {}
 }
