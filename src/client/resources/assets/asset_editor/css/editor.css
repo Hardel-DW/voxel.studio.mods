@@ -329,7 +329,7 @@
     -fx-pref-width: 288;
     -fx-min-width: 288;
     -fx-max-width: 288;
-    -fx-background-color: #151418;
+    -fx-background-color: #0F0F0F;
     -fx-border-color: transparent rgba(39, 39, 42, 0.5) transparent transparent;
     -fx-border-width: 0 1 0 0;
 }
@@ -372,15 +372,15 @@
 }
 
 .editor-sidebar-discord-wrapper {
-    -fx-background-color: #151418;
+    -fx-background-color: #101011;
     -fx-border-color: rgba(39, 39, 42, 0.5) transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
 }
 
 .editor-sidebar-discord-card {
-    -fx-background-color: rgba(9, 9, 11, 0.42);
+    -fx-background-color: #0c0c0d;
     -fx-background-radius: 8;
-    -fx-border-color: #1f1f23;
+    -fx-border-color: #1c1c1d;
     -fx-border-radius: 8;
     -fx-border-width: 1;
     -fx-alignment: center-left;
@@ -684,11 +684,11 @@
 
 .editor-header-tab-button:hover {
     -fx-text-fill: #d4d4d8;
-    -fx-background-color: #1f1f23;
+    -fx-background-color: #19191C;
 }
 
 .editor-header-tab-button-active {
-    -fx-background-color: #1f1f23;
+    -fx-background-color: #19191C;
     -fx-text-fill: white;
     -fx-border-color: transparent transparent #a1a1aa transparent;
 }
