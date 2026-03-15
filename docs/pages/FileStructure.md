@@ -1,7 +1,7 @@
 
 # File Structure
 javafx
-├── ResourceLoader.java          — Load resources (CSS, images, icons, fonts)
+├── VoxelResourceLoader.java     — Load resources (CSS, images, icons, fonts)
 ├── VoxelColors.java             — Tailwind color constants (zinc, red, etc.)
 ├── VoxelFonts.java              — Load and access Rubik fonts (static TTF)
 ├── VoxelStudioWindow.java       — Stage lifecycle, resize, window chrome
@@ -16,8 +16,9 @@ javafx
 │
 ├── lib                          — Centralized application logic. No components here, only reusable code.
 │   ├── StudioContext.java       — Global access to Router, UIState, Tabs
+│   ├── StudioText.java          — i18n resolution for registry entries, tags and domains
+│   ├── action                   — Centralized actions (mutations, tag toggles) used by pages
 │   ├── data                     — Static data: maps, information lists. No logic.
-│   │   └── mock                 — Temporary data for rendering. Will be replaced by datapack/resourcepack.
 │   ├── store                    — Reactivity / observables, reactive data storage
 │   └── utils                    — Highly generic utilities, not linked to a page, concept or Minecraft content
 │
@@ -25,6 +26,7 @@ javafx
     ├── StudioRoute.java         — Enum/definition of available routes
     ├── StudioRouter.java        — Navigation between pages
     ├── changes
+    ├── debug
     ├── enchantment
     ├── loot
     └── recipe

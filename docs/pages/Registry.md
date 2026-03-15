@@ -20,8 +20,9 @@ During the snapshot (registry copy), we invert the Tag registry: for each Tag, w
 
 When we toggle a tag (e.g., enable smelts_loot on sharpness), we simply add/remove from the entry's Set. That's all on the memory side.
 
-At flush time, we compare vanilla tags vs current. We rebuild the inverse map (tag → list of members) for both. If a tag has changed:
-- If there are only additions → { "replace": false, "values": [the added ones] }
-- If there are deletions → { "replace": true, "values": [all current members] }
+At flush time, we compare vanilla tags vs current. We rebuild the inverse map (tag → list of members) for both. If a tag has changed, we write an extended tag file using the VDDE mod format:
+- `replace` is always `false` (we never overwrite the full tag)
+- `values` contains only the **added** members
+- `exclude` contains only the **removed** members
 
 We write to data/<namespace>/tags/<registry>/<tag>.json in the selected pack.
