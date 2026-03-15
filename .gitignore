@@ -123,7 +123,6 @@ PLANNED.md
 TODO.md
 bin/
 .claude/settings.local.json
-.vscode/settings.json
 minecraft_sources/
 githubsource/
 decompiled/

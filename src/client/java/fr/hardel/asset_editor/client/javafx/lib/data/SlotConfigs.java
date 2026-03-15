@@ -18,17 +18,21 @@ public final class SlotConfigs {
 
     public static final List<SlotConfig> ALL = List.of(
         new SlotConfig("mainhand", List.of("mainhand", "any", "hand", "all")),
-        new SlotConfig("offhand",  List.of("offhand", "any", "hand", "all")),
-        new SlotConfig("body",     List.of("body", "any", "all")),
-        new SlotConfig("saddle",   List.of("saddle", "any", "all")),
-        new SlotConfig("head",     List.of("head", "any", "armor", "all")),
-        new SlotConfig("chest",    List.of("chest", "any", "armor", "all")),
-        new SlotConfig("legs",     List.of("legs", "any", "armor", "all")),
-        new SlotConfig("feet",     List.of("feet", "any", "armor", "all"))
-    );
+        new SlotConfig("offhand", List.of("offhand", "any", "hand", "all")),
+        new SlotConfig("body", List.of("body", "any", "all")),
+        new SlotConfig("saddle", List.of("saddle", "any", "all")),
+        new SlotConfig("head", List.of("head", "any", "armor", "all")),
+        new SlotConfig("chest", List.of("chest", "any", "armor", "all")),
+        new SlotConfig("legs", List.of("legs", "any", "armor", "all")),
+        new SlotConfig("feet", List.of("feet", "any", "armor", "all")));
+
+    public static final List<List<String>> GROUPS = List.of(
+        List.of("mainhand", "offhand"),
+        List.of("body", "saddle"),
+        List.of("head", "chest", "legs", "feet"));
 
     public static final Map<String, SlotConfig> BY_ID = ALL.stream()
-            .collect(Collectors.toUnmodifiableMap(SlotConfig::id, Function.identity()));
+        .collect(Collectors.toUnmodifiableMap(SlotConfig::id, Function.identity()));
 
     private static Identifier slotImage(String name) {
         return Identifier.fromNamespaceAndPath("minecraft", "textures/studio/slots/" + name + ".png");
