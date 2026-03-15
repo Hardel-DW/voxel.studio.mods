@@ -11,10 +11,6 @@
 
 ## Le UI/UX (Interface utilisateur)
 - [] La couleur dans la sidebar doit être la même que la couleur du header.
-- [] Quand je clique sur un SVG (Pas tous) exemple celui dans le Tree, le Chevron qui permet d'expand, si je double clique ça réduit/augmente la fenétre. ça agis comme la title bar du window.
-
-## A refactor:
-- [] Retravailler le I18n faire en sorte de ccentralisés absoluement toutes la logique entiére dans un même fichier et le rendre le plus générique possible, extensible gérer tout les cas au même endroit. Les Pages/Composant doivent juste appeler ces fonction et ne rien calculer. (Hormis une concaténation).
 
 ## Projet du futur pour la V1
 - Travailler une API de debugging modernes et universelles pour le projet entier, qui soit propre, senior et future proof, générique et extensible.

@@ -415,10 +415,10 @@ public final class VoxelStudioWindow {
                 return;
             }
             if (isSnapped()) {
-                double prevW = scene.getWidth();
+                double ratio = e.getSceneX() / Math.max(1, scene.getWidth());
                 unsnap();
-                moveOffsetX = stage.getWidth() * Math.clamp(e.getX() / Math.max(1, prevW), 0.1, 0.9);
-                moveOffsetY = Math.min(24, e.getY());
+                moveOffsetX = stage.getWidth() * ratio;
+                moveOffsetY = e.getSceneY();
             }
             stage.setX(e.getScreenX() - moveOffsetX);
             stage.setY(e.getScreenY() - moveOffsetY);
