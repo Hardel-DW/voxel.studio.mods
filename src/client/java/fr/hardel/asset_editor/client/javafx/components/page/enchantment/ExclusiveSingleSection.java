@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;

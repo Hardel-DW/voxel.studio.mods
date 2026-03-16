@@ -1,24 +1,17 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
-import com.mojang.serialization.Codec;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.FlushAdapter;
+import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.network.EditorActionPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.enchantment.Enchantment;
-
-import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,19 +21,11 @@ import java.util.function.UnaryOperator;
 
 public final class EditorActionGateway {
 
-    private record RegistryBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter) {}
-
     private record PendingAction<T>(ResourceKey<Registry<T>> registry, Identifier target, ElementEntry<T> snapshot) {}
 
-    private static final Map<ResourceKey<?>, RegistryBinding<?>> BINDINGS = new HashMap<>();
-
-    static {
-        register(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentActions::prepareForFlush);
-    }
-
-    private static <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec, FlushAdapter<T> adapter) {
-        BINDINGS.put(key, new RegistryBinding<>(key, codec, adapter));
-    }
+    private static final Map<Identifier, ResourceKey<?>> REGISTRY_KEYS = Map.of(
+            Registries.ENCHANTMENT.identifier(), Registries.ENCHANTMENT
+    );
 
     private final StudioPackState packState;
     private final RegistryElementStore store;
@@ -137,12 +122,19 @@ public final class EditorActionGateway {
         }
     }
 
-    public void flushAll(Path packRoot, HolderLookup.Provider registries) {
-        var perms = permissionSupplier.get();
-        for (var binding : BINDINGS.values()) {
-            if (perms.canAccessRegistry(binding.registryKey()))
-                flushRegistry(packRoot, binding, registries);
-        }
+    public void handleRemoteUpdate(Identifier registryId, Identifier targetId, EditorAction action) {
+        var key = REGISTRY_KEYS.get(registryId);
+        if (key != null) applyRemote(key, targetId, action);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> void applyRemote(ResourceKey<?> rawKey, Identifier targetId, EditorAction action) {
+        var registry = (ResourceKey<Registry<T>>) rawKey;
+        ElementEntry<T> entry = store.get(registry, targetId);
+        if (entry == null) return;
+        ElementEntry<T> updated = (ElementEntry<T>) fr.hardel.asset_editor.network.ActionInterpreter.apply(
+                rawKey.identifier(), entry, action);
+        store.put(registry, targetId, updated);
     }
 
     private <T> EditorActionResult validate(ResourceKey<Registry<T>> registry, Identifier target) {
@@ -156,13 +148,9 @@ public final class EditorActionGateway {
     }
 
     private void sendAction(UUID actionId, ResourceKey<?> registry, Identifier target, EditorAction action) {
-        ClientPlayNetworking.send(new EditorActionPayload(actionId, registry.identifier(), target, action));
+        var pack = packState.selectedPack();
+        String packId = pack != null ? pack.packId() : "";
+        ClientPlayNetworking.send(new EditorActionPayload(actionId, packId, registry.identifier(), target, action));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> void flushRegistry(Path packRoot, RegistryBinding<?> binding,
-            HolderLookup.Provider registries) {
-        var typed = (RegistryBinding<T>) binding;
-        store.flush(packRoot, typed.registryKey(), typed.codec(), registries, typed.adapter());
-    }
 }

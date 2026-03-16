@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.store;
 
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 
 import java.util.ArrayList;
 import java.util.List;

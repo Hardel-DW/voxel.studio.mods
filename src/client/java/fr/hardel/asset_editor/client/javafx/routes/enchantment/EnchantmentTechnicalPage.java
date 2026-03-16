@@ -11,7 +11,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

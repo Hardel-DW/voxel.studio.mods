@@ -73,6 +73,15 @@ public final class VoxelStudioWindow {
         }
     }
 
+    public static void handleElementUpdate(net.minecraft.resources.Identifier registryId,
+                                            net.minecraft.resources.Identifier targetId,
+                                            fr.hardel.asset_editor.network.EditorAction action) {
+        if (instance != null && instance.editorRoot != null) {
+            javafx.application.Platform.runLater(() ->
+                    instance.editorRoot.context().gateway().handleRemoteUpdate(registryId, targetId, action));
+        }
+    }
+
     public static void onResourceReload() {
         if (instance != null && instance.stage != null)
             Platform.runLater(instance::rebuildScene);
@@ -136,7 +145,7 @@ public final class VoxelStudioWindow {
                 VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
         attachWindowHandlers(scene);
-        attachFocusLossFlush();
+        attachFocusListener();
         stage.setScene(scene);
         stage.show();
         resyncOnOpenOrFocus();
@@ -177,37 +186,15 @@ public final class VoxelStudioWindow {
         }
     }
 
-    private void attachFocusLossFlush() {
+    private void attachFocusListener() {
         stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (isFocused) {
-                resyncOnOpenOrFocus();
-                return;
-            }
-            flushActivePack();
+            if (isFocused) resyncOnOpenOrFocus();
         });
     }
 
     private void resyncOnOpenOrFocus() {
-        if (editorRoot == null) {
-            return;
-        }
+        if (editorRoot == null) return;
         editorRoot.context().resyncWorldSession(true);
-    }
-
-    private void flushActivePack() {
-        if (editorRoot == null) {
-            return;
-        }
-        var ctx = editorRoot.context();
-        var pack = ctx.packState().selectedPack();
-        if (pack == null || !pack.writable()) {
-            return;
-        }
-        var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) {
-            return;
-        }
-        ctx.gateway().flushAll(pack.rootPath(), conn.registryAccess());
     }
 
     private void handleWorldClosed() {

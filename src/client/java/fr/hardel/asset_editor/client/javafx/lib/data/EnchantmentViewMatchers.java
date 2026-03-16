@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib.data;
 
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.Locale;

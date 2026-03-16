@@ -10,7 +10,7 @@ import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.network.PermissionRequestPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import javafx.beans.property.ObjectProperty;

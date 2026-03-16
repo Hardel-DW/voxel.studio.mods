@@ -1,126 +1,18 @@
 package fr.hardel.asset_editor.client.javafx.lib.store;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JsonOps;
+import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.resources.ResourceManager;
-import fr.hardel.asset_editor.tag.ExtendedTagFile;
-import net.minecraft.tags.TagEntry;
 import net.minecraft.tags.TagLoader;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 
 public final class RegistryElementStore {
-
-    public record CustomFields(Map<String, Object> values) {
-        public static final CustomFields EMPTY = new CustomFields(Map.of());
-
-        public CustomFields {
-            if (!values.isEmpty()) {
-                Map<String, Object> normalized = new LinkedHashMap<>();
-                values.forEach((key, value) -> {
-                    if (key != null && value != null) {
-                        normalized.put(key, normalizeValue(value));
-                    }
-                });
-                values = normalized.isEmpty() ? Map.of() : Map.copyOf(normalized);
-            } else {
-                values = Map.of();
-            }
-        }
-
-        public CustomFields with(String key, Object value) {
-            if (value == null) {
-                return without(key);
-            }
-
-            Map<String, Object> copy = new LinkedHashMap<>(values);
-            copy.put(key, normalizeValue(value));
-            return new CustomFields(copy);
-        }
-
-        public CustomFields without(String key) {
-            if (!values.containsKey(key)) {
-                return this;
-            }
-
-            Map<String, Object> copy = new LinkedHashMap<>(values);
-            copy.remove(key);
-            return copy.isEmpty() ? EMPTY : new CustomFields(copy);
-        }
-
-        public String getString(String key, String fallback) {
-            Object value = values.get(key);
-            return value instanceof String string ? string : fallback;
-        }
-
-        @SuppressWarnings("unchecked")
-        public Set<String> getStringSet(String key) {
-            Object value = values.get(key);
-            if (!(value instanceof Set<?> set)) {
-                return Set.of();
-            }
-            if (set.stream().anyMatch(element -> !(element instanceof String))) {
-                return Set.of();
-            }
-            return (Set<String>) set;
-        }
-
-        private static Object normalizeValue(Object value) {
-            if (value instanceof Set<?> set) {
-                return Set.copyOf(set);
-            }
-            if (value instanceof List<?> list) {
-                return List.copyOf(list);
-            }
-            if (value instanceof Map<?, ?> map) {
-                return Map.copyOf(map);
-            }
-            return value;
-        }
-    }
-
-    public record ElementEntry<T>(Identifier id, T data, Set<Identifier> tags, CustomFields custom) {
-        public ElementEntry<T> withData(T newData) {
-            return new ElementEntry<>(id, newData, tags, custom);
-        }
-
-        public ElementEntry<T> withTags(Set<Identifier> newTags) {
-            return new ElementEntry<>(id, data, Set.copyOf(newTags), custom);
-        }
-
-        public ElementEntry<T> withCustom(CustomFields newCustom) {
-            return new ElementEntry<>(id, data, tags, newCustom);
-        }
-
-        public ElementEntry<T> toggleTag(Identifier tagId) {
-            var copy = new HashSet<>(tags);
-            if (!copy.remove(tagId))
-                copy.add(tagId);
-            return new ElementEntry<>(id, data, Set.copyOf(copy), custom);
-        }
-    }
-
-    public interface FlushAdapter<T> {
-        ElementEntry<T> prepare(ElementEntry<T> entry);
-
-        static <T> FlushAdapter<T> identity() {
-            return entry -> entry;
-        }
-    }
 
     private record SelectorKey(String registry, Identifier elementId) {
     }
@@ -252,22 +144,6 @@ public final class RegistryElementStore {
         selectors.entrySet().removeIf(e -> e.getValue().isEmpty());
     }
 
-    public <T> void flush(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
-            HolderLookup.Provider registries, FlushAdapter<T> adapter) {
-        String name = registryName(registry);
-        var referenceMap = reference.get(name);
-        var currentMap = current.get(name);
-        if (referenceMap == null || currentMap == null)
-            return;
-
-        var ops = registries.createSerializationContext(JsonOps.INSTANCE);
-        var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-
-        var flushAdapter = adapter == null ? FlushAdapter.<T>identity() : adapter;
-        flushElements(packRoot, name, referenceMap, currentMap, codec, ops, gson, flushAdapter);
-        flushTags(packRoot, name, referenceMap, currentMap, gson, flushAdapter);
-    }
-
     public void clearAll() {
         reference.clear();
         current.clear();
@@ -318,103 +194,6 @@ public final class RegistryElementStore {
     private void notifyRegistryListeners(String registry) {
         var list = registryListeners.get(registry);
         if (list != null) list.forEach(Runnable::run);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void flushElements(Path packRoot, String registry,
-            Map<Identifier, ElementEntry<?>> referenceMap,
-            Map<Identifier, ElementEntry<?>> currentMap,
-            Codec<T> codec, DynamicOps<JsonElement> ops,
-            Gson gson, FlushAdapter<T> adapter) {
-        for (var entry : currentMap.entrySet()) {
-            Identifier id = entry.getKey();
-            var currentEntry = adapter.prepare((ElementEntry<T>) entry.getValue());
-            var referenceEntry = referenceMap.containsKey(id)
-                    ? adapter.prepare((ElementEntry<T>) referenceMap.get(id))
-                    : null;
-
-            if (referenceEntry != null && Objects.equals(referenceEntry.data(), currentEntry.data()))
-                continue;
-
-            JsonElement json = codec.encodeStart(ops, currentEntry.data())
-                    .getOrThrow(msg -> new IllegalStateException("Encode failed: " + msg));
-
-            Path filePath = packRoot.resolve("data")
-                    .resolve(id.getNamespace())
-                    .resolve(registry)
-                    .resolve(id.getPath() + ".json");
-
-            try {
-                Files.createDirectories(filePath.getParent());
-                Files.writeString(filePath, gson.toJson(json));
-            } catch (IOException e) {
-                System.err.println("Failed to write element: " + filePath + " - " + e.getMessage());
-            }
-        }
-    }
-
-    private void flushTags(Path packRoot, String registry,
-            Map<Identifier, ElementEntry<?>> referenceMap,
-            Map<Identifier, ElementEntry<?>> currentMap,
-            Gson gson, FlushAdapter<?> adapter) {
-        Map<Identifier, Set<Identifier>> refTags = collectTagMemberships(referenceMap, adapter);
-        Map<Identifier, Set<Identifier>> curTags = collectTagMemberships(currentMap, adapter);
-
-        Set<Identifier> allTagIds = new HashSet<>();
-        allTagIds.addAll(refTags.keySet());
-        allTagIds.addAll(curTags.keySet());
-
-        for (Identifier tagId : allTagIds) {
-            Set<Identifier> referenceMembers = refTags.getOrDefault(tagId, Set.of());
-            Set<Identifier> currentMembers = curTags.getOrDefault(tagId, Set.of());
-
-            Path filePath = packRoot.resolve("data")
-                    .resolve(tagId.getNamespace())
-                    .resolve("tags")
-                    .resolve(registry)
-                    .resolve(tagId.getPath() + ".json");
-
-            if (referenceMembers.equals(currentMembers)) {
-                try {
-                    Files.deleteIfExists(filePath);
-                } catch (IOException e) {
-                    System.err.println("Failed to delete stale tag: " + filePath + " - " + e.getMessage());
-                }
-                continue;
-            }
-
-            Set<Identifier> added = new HashSet<>(currentMembers);
-            added.removeAll(referenceMembers);
-
-            Set<Identifier> removed = new HashSet<>(referenceMembers);
-            removed.removeAll(currentMembers);
-
-            List<TagEntry> values = added.stream().map(TagEntry::element).toList();
-            List<TagEntry> exclude = removed.stream().map(TagEntry::element).toList();
-
-            JsonElement tagJson = ExtendedTagFile.CODEC.encodeStart(JsonOps.INSTANCE, new ExtendedTagFile(values, exclude, false))
-                    .getOrThrow(msg -> new IllegalStateException("Tag encode failed: " + msg));
-
-            try {
-                Files.createDirectories(filePath.getParent());
-                Files.writeString(filePath, gson.toJson(tagJson));
-            } catch (IOException e) {
-                System.err.println("Failed to write tag: " + filePath + " - " + e.getMessage());
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<Identifier, Set<Identifier>> collectTagMemberships(Map<Identifier, ElementEntry<?>> elements,
-                                                                   FlushAdapter<?> adapter) {
-        Map<Identifier, Set<Identifier>> result = new HashMap<>();
-        for (var entry : elements.values()) {
-            var prepared = ((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) entry);
-            for (Identifier tagId : prepared.tags()) {
-                result.computeIfAbsent(tagId, k -> new HashSet<>()).add(prepared.id());
-            }
-        }
-        return result;
     }
 
     static String registryName(ResourceKey<?> key) {

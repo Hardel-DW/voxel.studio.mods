@@ -1,11 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
 import fr.hardel.asset_editor.client.javafx.lib.SlotManager;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.CustomFields;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -24,7 +23,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 public final class EnchantmentActions {
 
@@ -138,32 +136,6 @@ public final class EnchantmentActions {
 
         Identifier supported = firstItemIdentifier(Optional.of(enchantment.definition().supportedItems()), itemTagResolver);
         return supported;
-    }
-
-    public static ElementEntry<Enchantment> prepareForFlush(ElementEntry<Enchantment> entry) {
-        String mode = mode(entry);
-        Set<String> disabledEffects = disabledEffects(entry);
-
-        Set<Identifier> tags = switch (mode) {
-            case MODE_ONLY_CREATIVE -> entry.tags().stream()
-                    .filter(FUNCTIONALITY_TAGS::contains)
-                    .collect(Collectors.toUnmodifiableSet());
-            case MODE_SOFT_DELETE -> Set.of();
-            default -> entry.tags();
-        };
-
-        Enchantment enchantment = entry.data();
-        DataComponentMap effects = enchantment.effects();
-        if (MODE_SOFT_DELETE.equals(mode)) {
-            effects = DataComponentMap.EMPTY;
-        } else if (!disabledEffects.isEmpty() && !effects.isEmpty()) {
-            effects = effects.filter(type -> !disabledEffects.contains(effectId(type)));
-        }
-
-        HolderSet<Enchantment> exclusiveSet = MODE_SOFT_DELETE.equals(mode) ? HolderSet.empty() : enchantment.exclusiveSet();
-        Enchantment prepared = new Enchantment(enchantment.description(), enchantment.definition(), exclusiveSet, effects);
-
-        return entry.withData(prepared).withTags(tags);
     }
 
     public static UnaryOperator<Enchantment> maxLevel(int value) {

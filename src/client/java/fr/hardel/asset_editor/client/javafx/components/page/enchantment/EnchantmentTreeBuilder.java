@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore.ElementEntry;
+import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
