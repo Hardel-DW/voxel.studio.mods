@@ -100,10 +100,12 @@ public final class AssetEditorNetworking {
     @SuppressWarnings("unchecked")
     private static <T> void flushElement(MinecraftServer server, String packId, Identifier registryId) {
         var binding = (RegistryBinding<T>) BINDINGS.get(registryId.getPath());
-        if (binding == null) return;
+        if (binding == null)
+            return;
 
         var store = ServerElementStore.get();
-        if (store == null) return;
+        if (store == null)
+            return;
 
         Path packRoot = resolvePackRoot(server, packId);
         if (packRoot == null) {
@@ -115,23 +117,28 @@ public final class AssetEditorNetworking {
     }
 
     private static Path resolvePackRoot(MinecraftServer server, String packId) {
-        if (packId == null || packId.isBlank()) return null;
+        if (packId == null || packId.isBlank())
+            return null;
         String name = packId.startsWith("file/") ? packId.substring(5) : packId;
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
         Path resolved = datapackDir.resolve(name).normalize();
-        if (!resolved.startsWith(datapackDir.normalize())) return null;
+        if (!resolved.startsWith(datapackDir.normalize()))
+            return null;
         return resolved;
     }
 
     private static void broadcastUpdate(MinecraftServer server, ServerPlayer sender,
-                                         Identifier registryId, Identifier targetId, EditorAction action) {
+        Identifier registryId, Identifier targetId, EditorAction action) {
         var permManager = PermissionManager.get();
-        if (permManager == null) return;
+        if (permManager == null)
+            return;
 
         var payload = new ElementUpdatePayload(registryId, targetId, action);
         for (ServerPlayer other : server.getPlayerList().getPlayers()) {
-            if (other == sender) continue;
-            if (!permManager.getEffectivePermissions(other).canEdit()) continue;
+            if (other == sender)
+                continue;
+            if (!permManager.getEffectivePermissions(other).canEdit())
+                continue;
             ServerPlayNetworking.send(other, payload);
         }
     }
@@ -139,15 +146,23 @@ public final class AssetEditorNetworking {
     private static void handlePackListRequest(PackListRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             var packManager = ServerPackManager.get();
-            if (packManager == null) return;
+            if (packManager == null)
+                return;
             sendPackList(context.player(), packManager.listPacks());
         });
     }
 
     private static void handlePackCreate(PackCreatePayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
+            var permManager = PermissionManager.get();
+            if (permManager == null)
+                return;
+            if (!permManager.getEffectivePermissions(context.player()).canEdit())
+                return;
+
             var packManager = ServerPackManager.get();
-            if (packManager == null) return;
+            if (packManager == null)
+                return;
             packManager.createPack(payload.name(), payload.namespace());
             sendPackList(context.player(), packManager.listPacks());
         });
@@ -157,6 +172,5 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new EditorActionResponsePayload(actionId, accepted, message));
     }
 
-    private AssetEditorNetworking() {
-    }
+    private AssetEditorNetworking() {}
 }

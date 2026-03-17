@@ -11,7 +11,7 @@ Three roles: **Admin**, **Contributor**, **None**.
 
 Permissions are stored per-player (UUID) in `<world>/asset_editor_permissions.json`. Admin role can only be granted via server console, another admin, or by editing the file directly. Minecraft's OP system has no effect on Studio permissions.
 
-In singleplayer, all players are automatically Admin (the integrated server overrides stored permissions).
+In singleplayer, the host player is automatically Admin. LAN guests start as None and must be promoted by the host. This is determined by matching the player UUID against `server.getSingleplayerProfile().id()`.
 
 ### Commands
 
@@ -24,20 +24,19 @@ Commands require Admin role or server console.
 
 ### Networking
 
-All communication uses Fabric Networking API with `CustomPacketPayload` records and `StreamCodec` serialization. See `docs/minecraft/network.md` for the Fabric networking reference.
+All communication uses Fabric Networking API with `CustomPacketPayload` records and `StreamCodec` serialization.
 
 **Packets:**
 
 | Direction | Payload | Purpose |
 |-----------|---------|---------|
-| C→S | `PermissionRequestPayload` | Client requests its permissions |
-| S→C | `PermissionSyncPayload` | Server sends permissions to client |
+| S→C | `PermissionSyncPayload` | Server pushes permissions to client (on JOIN and on change) |
 | C→S | `EditorActionPayload` | Client sends a mutation (actionId, packId, registry, target, action) |
 | S→C | `EditorActionResponsePayload` | Server confirms or rejects |
 | S→C | `ElementUpdatePayload` | Server broadcasts a mutation to other clients |
-| C→S | `PackListRequestPayload` | Client requests available packs |
-| S→C | `PackListSyncPayload` | Server sends pack list |
-| C→S | `PackCreatePayload` | Client requests pack creation |
+| C→S | `PackListRequestPayload` | Client requests available packs (on-demand refresh) |
+| S→C | `PackListSyncPayload` | Server sends pack list (on JOIN and on request) |
+| C→S | `PackCreatePayload` | Client requests pack creation (requires canEdit) |
 
 ### Mutation Flow
 
@@ -62,24 +61,30 @@ Server receives → checks canEdit()
                                  ↓
                                  Broadcast ElementUpdatePayload to other editing clients
                                  ↓
-                                 Other clients apply via handleRemoteUpdate()
+                                 Other clients apply via ClientSessionDispatch → EditorActionGateway.handleRemoteUpdate()
 ```
 
-### Client Permission State
+### Client-Side State (Independent of Studio Window)
 
-`ClientPermissionState` is a singleton that stores the current player's permissions independently of the JavaFX window. Updated by network packets. Read by:
-- F8 keybind handler (blocks window opening for NONE role)
-- `StudioContext` (enforces route permissions)
+Permissions and packs are **pushed by the server on player join** via `ServerPlayConnectionEvents.JOIN`. The client caches them in static singletons that are independent of the JavaFX window:
+
+- **`ClientPermissionState`** — stores current permissions + `received` flag + `onChange` callback.
+- **`ClientPackCache`** — stores available pack list + `received` flag + `onChange` callback.
+- **`ClientSessionDispatch`** — holds a reference to the active `EditorActionGateway` for dispatching action responses and remote updates. Uses `Platform.runLater()` to marshal to the JavaFX thread.
+
+These are read by:
+- F8 keybind handler (blocks window opening for NONE role, or if not yet received)
+- `VoxelStudioWindow` (subscribes onChange listeners to feed cached state into StudioContext)
 - Splash screen (waits for permissions before transitioning)
 
 ### Pack Sync
 
-All pack operations go through the server:
-- **List packs**: Client sends `PackListRequestPayload`, server responds with `PackListSyncPayload`
-- **Create pack**: Client sends `PackCreatePayload`, server creates directory structure and responds with updated list
+Packs are pushed to the client on join. Additional operations:
+- **Refresh**: Client sends `PackListRequestPayload`, server responds with `PackListSyncPayload`
+- **Create pack**: Client sends `PackCreatePayload` (server validates `canEdit()`), server creates directory structure and responds with updated list
 - **Select pack**: Client-side only (pack ID sent with each `EditorActionPayload`)
 
-`ServerPackManager` handles pack enumeration and creation on the server side.
+`ServerPackManager` discovers packs via `repo.reload()` + `getAvailablePacks()`, filtered to `PackSource.WORLD` only.
 
 ### Lifecycle
 
@@ -89,10 +94,15 @@ SERVER_STARTED:
     ServerElementStore.init() → snapshot registries
     ServerPackManager.init(server)
 
-Client opens F8:
-    Splash screen (min 1s, waits for permissions)
-    Sends PermissionRequestPayload + PackListRequestPayload
-    Receives responses → transitions to editor
+PLAYER_JOIN (ServerPlayConnectionEvents.JOIN):
+    Push PermissionSyncPayload to player
+    Push PackListSyncPayload to player
+
+Client presses F8:
+    Check ClientPermissionState: block if NONE or not yet received
+    Open window → splash screen (min 1s, waits for permissions)
+    Inject cached permissions + packs into StudioContext
+    Transition to editor
 
 Player edits element:
     Client sends EditorActionPayload
@@ -102,4 +112,10 @@ SERVER_STOPPING:
     PermissionManager.shutdown()
     ServerElementStore.shutdown()
     ServerPackManager.shutdown()
+
+WORLD_CLOSE (client):
+    ClientPermissionState.reset()
+    ClientPackCache.reset()
+    ClientSessionDispatch.clearGateway()
+    StudioContext.resetForWorldClose()
 ```
