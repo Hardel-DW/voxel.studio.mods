@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.store;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
@@ -44,6 +45,7 @@ public final class ServerElementStore {
         instance = null;
     }
 
+    private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
     private final Map<String, Set<Identifier>> dirtyElements = new HashMap<>();
@@ -84,6 +86,29 @@ public final class ServerElementStore {
         dirtyElements.remove(name);
     }
 
+    public <T> void snapshotVanilla(ResourceKey<Registry<T>> registryKey,
+                                     ResourceManager vanillaResources,
+                                     Registry<T> registry,
+                                     Codec<T> codec,
+                                     HolderLookup.Provider registries,
+                                     Function<ElementEntry<T>, CustomFields> customInitializer) {
+        String name = registryName(registryKey);
+        var ops = registries.createSerializationContext(JsonOps.INSTANCE);
+
+        Map<Identifier, T> vanillaData = loadElementsFromResources(registryKey, vanillaResources, codec, ops);
+        Map<Identifier, Set<Identifier>> vanillaTags = loadTags(registryKey, vanillaResources, registry);
+
+        Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
+        for (var entry : vanillaData.entrySet()) {
+            Identifier id = entry.getKey();
+            Set<Identifier> tags = vanillaTags.getOrDefault(id, Set.of());
+            ElementEntry<T> vanillaEntry = new ElementEntry<>(id, entry.getValue(), Set.copyOf(tags), CustomFields.EMPTY);
+            entries.put(id, vanillaEntry.withCustom(customInitializer.apply(vanillaEntry)));
+        }
+
+        vanilla.put(name, Map.copyOf(entries));
+    }
+
     @SuppressWarnings("unchecked")
     public <T> ElementEntry<T> get(Identifier registryId, Identifier elementId) {
         var registryMap = current.get(registryId.getPath());
@@ -104,20 +129,21 @@ public final class ServerElementStore {
         Set<Identifier> dirty = dirtyElements.get(name);
         if (dirty == null || dirty.isEmpty()) return;
 
-        var referenceMap = reference.get(name);
+        var vanillaMap = vanilla.getOrDefault(name, Map.of());
         var currentMap = current.get(name);
-        if (referenceMap == null || currentMap == null) return;
+        if (currentMap == null) return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var flushAdapter = adapter == null ? FlushAdapter.<T>identity() : adapter;
 
-        flushDirtyElements(packRoot, name, referenceMap, currentMap, dirty, codec, ops, flushAdapter);
-        flushDirtyTags(packRoot, name, referenceMap, currentMap, dirty, flushAdapter);
+        flushDirtyElements(packRoot, name, vanillaMap, currentMap, dirty, codec, ops, flushAdapter);
+        flushDirtyTags(packRoot, name, vanillaMap, currentMap, dirty, flushAdapter);
 
         dirty.clear();
     }
 
     public void clearAll() {
+        vanilla.clear();
         reference.clear();
         current.clear();
         dirtyElements.clear();
@@ -141,9 +167,35 @@ public final class ServerElementStore {
         return tagsByElement;
     }
 
+    private <T> Map<Identifier, T> loadElementsFromResources(ResourceKey<Registry<T>> registryKey,
+                                                               ResourceManager resourceManager,
+                                                               Codec<T> codec,
+                                                               DynamicOps<JsonElement> ops) {
+        String dir = registryKey.identifier().getPath();
+        Map<Identifier, T> result = new LinkedHashMap<>();
+
+        resourceManager.listResources(dir, id -> id.getPath().endsWith(".json"))
+                .forEach((resourceId, resource) -> {
+                    String fullPath = resourceId.getPath();
+                    String elementPath = fullPath.substring(dir.length() + 1, fullPath.length() - 5);
+                    Identifier elementId = Identifier.fromNamespaceAndPath(resourceId.getNamespace(), elementPath);
+
+                    try (var reader = resource.openAsReader()) {
+                        JsonElement json = JsonParser.parseReader(reader);
+                        codec.parse(ops, json)
+                                .ifSuccess(value -> result.put(elementId, value))
+                                .ifError(error -> LOGGER.warn("Failed to decode vanilla {}: {}", elementId, error.message()));
+                    } catch (IOException e) {
+                        LOGGER.warn("Failed to read vanilla resource {}: {}", elementId, e);
+                    }
+                });
+
+        return result;
+    }
+
     @SuppressWarnings("unchecked")
     private <T> void flushDirtyElements(Path packRoot, String registry,
-                                         Map<Identifier, ElementEntry<?>> referenceMap,
+                                         Map<Identifier, ElementEntry<?>> vanillaMap,
                                          Map<Identifier, ElementEntry<?>> currentMap,
                                          Set<Identifier> dirty,
                                          Codec<T> codec, DynamicOps<JsonElement> ops,
@@ -153,15 +205,20 @@ public final class ServerElementStore {
             if (currentRaw == null) continue;
 
             var currentEntry = adapter.prepare((ElementEntry<T>) currentRaw);
-            var referenceEntry = referenceMap.containsKey(id)
-                    ? adapter.prepare((ElementEntry<T>) referenceMap.get(id))
+            var vanillaEntry = vanillaMap.containsKey(id)
+                    ? adapter.prepare((ElementEntry<T>) vanillaMap.get(id))
                     : null;
-
-            if (referenceEntry != null && Objects.equals(referenceEntry.data(), currentEntry.data()))
-                continue;
 
             Path filePath = packRoot.resolve("data").resolve(id.getNamespace())
                     .resolve(registry).resolve(id.getPath() + ".json");
+
+            if (vanillaEntry != null && Objects.equals(vanillaEntry.data(), currentEntry.data())) {
+                try { Files.deleteIfExists(filePath); } catch (IOException e) {
+                    LOGGER.warn("Failed to delete reverted element: {}", filePath, e);
+                }
+                continue;
+            }
+
             codec.encodeStart(ops, currentEntry.data())
                     .ifSuccess(json -> writeFile(filePath, GSON.toJson(json)))
                     .ifError(error -> LOGGER.warn("Failed to encode element {}: {}", id, error.message()));
@@ -169,30 +226,34 @@ public final class ServerElementStore {
     }
 
     private void flushDirtyTags(Path packRoot, String registry,
-                                 Map<Identifier, ElementEntry<?>> referenceMap,
+                                 Map<Identifier, ElementEntry<?>> vanillaMap,
                                  Map<Identifier, ElementEntry<?>> currentMap,
                                  Set<Identifier> dirty,
                                  FlushAdapter<?> adapter) {
-        Set<Identifier> affectedTagIds = collectAffectedTags(referenceMap, currentMap, dirty, adapter);
+        Set<Identifier> affectedTagIds = collectAffectedTags(vanillaMap, currentMap, dirty, adapter);
         if (affectedTagIds.isEmpty()) return;
 
-        Map<Identifier, Set<Identifier>> refTags = collectTagMemberships(referenceMap, adapter);
+        Map<Identifier, Set<Identifier>> vanTags = collectTagMemberships(vanillaMap, adapter);
         Map<Identifier, Set<Identifier>> curTags = collectTagMemberships(currentMap, adapter);
 
         for (Identifier tagId : affectedTagIds) {
-            Set<Identifier> referenceMembers = refTags.getOrDefault(tagId, Set.of());
+            Set<Identifier> vanillaMembers = vanTags.getOrDefault(tagId, Set.of());
             Set<Identifier> currentMembers = curTags.getOrDefault(tagId, Set.of());
-
-            if (referenceMembers.equals(currentMembers))
-                continue;
 
             Path filePath = packRoot.resolve("data")
                     .resolve(tagId.getNamespace()).resolve("tags")
                     .resolve(registry).resolve(tagId.getPath() + ".json");
 
+            if (vanillaMembers.equals(currentMembers)) {
+                try { Files.deleteIfExists(filePath); } catch (IOException e) {
+                    LOGGER.warn("Failed to delete reverted tag: {}", filePath, e);
+                }
+                continue;
+            }
+
             Set<Identifier> added = new HashSet<>(currentMembers);
-            added.removeAll(referenceMembers);
-            Set<Identifier> removed = new HashSet<>(referenceMembers);
+            added.removeAll(vanillaMembers);
+            Set<Identifier> removed = new HashSet<>(vanillaMembers);
             removed.removeAll(currentMembers);
 
             ExtendedTagFile.CODEC.encodeStart(JsonOps.INSTANCE, new ExtendedTagFile(
@@ -204,16 +265,16 @@ public final class ServerElementStore {
     }
 
     @SuppressWarnings("unchecked")
-    private Set<Identifier> collectAffectedTags(Map<Identifier, ElementEntry<?>> referenceMap,
+    private Set<Identifier> collectAffectedTags(Map<Identifier, ElementEntry<?>> vanillaMap,
                                                  Map<Identifier, ElementEntry<?>> currentMap,
                                                  Set<Identifier> dirty,
                                                  FlushAdapter<?> adapter) {
         Set<Identifier> tags = new HashSet<>();
         for (Identifier id : dirty) {
-            var ref = referenceMap.get(id);
+            var van = vanillaMap.get(id);
             var cur = currentMap.get(id);
-            if (ref != null)
-                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) ref).tags());
+            if (van != null)
+                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) van).tags());
             if (cur != null)
                 tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) cur).tags());
         }

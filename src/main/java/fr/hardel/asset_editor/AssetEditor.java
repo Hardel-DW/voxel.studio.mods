@@ -11,11 +11,14 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class AssetEditor implements ModInitializer {
 
@@ -53,16 +56,27 @@ public class AssetEditor implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));
     }
 
-    private static void snapshotServerRegistries(net.minecraft.server.MinecraftServer server) {
+    private static void snapshotServerRegistries(MinecraftServer server) {
         var store = ServerElementStore.get();
-        if (store == null)
-            return;
+        if (store == null) return;
 
-        var packs = new ArrayList<>(server.getPackRepository().getSelectedPacks().stream()
-            .map(p -> p.open()).toList());
-        try (var resources = new MultiPackResourceManager(PackType.SERVER_DATA, packs)) {
-            server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> store.snapshot(Registries.ENCHANTMENT, registry, resources,
-                entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
+        var selectedPacks = server.getPackRepository().getSelectedPacks();
+        Function<fr.hardel.asset_editor.store.ElementEntry<Enchantment>, fr.hardel.asset_editor.store.CustomFields> customInit =
+                entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags());
+
+        var allPacks = new ArrayList<>(selectedPacks.stream().map(p -> p.open()).toList());
+        var vanillaPacks = new ArrayList<>(selectedPacks.stream()
+                .filter(p -> p.getPackSource() != PackSource.WORLD)
+                .map(p -> p.open()).toList());
+
+        try (var allResources = new MultiPackResourceManager(PackType.SERVER_DATA, allPacks);
+             var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
+
+            server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
+                store.snapshot(Registries.ENCHANTMENT, registry, allResources, customInit);
+                store.snapshotVanilla(Registries.ENCHANTMENT, vanillaResources, registry,
+                        Enchantment.DIRECT_CODEC, server.registryAccess(), customInit);
+            });
         }
     }
 }
