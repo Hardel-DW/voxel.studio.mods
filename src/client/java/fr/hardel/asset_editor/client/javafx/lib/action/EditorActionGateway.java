@@ -141,7 +141,7 @@ public final class EditorActionGateway {
         var pack = packState.selectedPack();
         if (pack == null) return EditorActionResult.packRequired();
         if (!pack.writable()) return EditorActionResult.rejected("error:pack_readonly");
-        if (!permissionSupplier.get().canEditElement(registry, target))
+        if (!permissionSupplier.get().canAccessRegistry(registry.identifier().getPath()))
             return EditorActionResult.rejected("error:permission_denied");
         packState.ensureNamespace(pack, target.getNamespace());
         return null;

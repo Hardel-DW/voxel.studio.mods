@@ -6,9 +6,9 @@ import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.FlushAdapter;
 import fr.hardel.asset_editor.store.ServerElementStore;
+import fr.hardel.asset_editor.store.ServerPackManager;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -45,6 +45,13 @@ public final class AssetEditorNetworking {
 
         PayloadTypeRegistry.playC2S().register(EditorActionPayload.TYPE, EditorActionPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(EditorActionPayload.TYPE, AssetEditorNetworking::handleEditorAction);
+
+        PayloadTypeRegistry.playS2C().register(PackListSyncPayload.TYPE, PackListSyncPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(PackListRequestPayload.TYPE, PackListRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PackListRequestPayload.TYPE, AssetEditorNetworking::handlePackListRequest);
+
+        PayloadTypeRegistry.playC2S().register(PackCreatePayload.TYPE, PackCreatePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PackCreatePayload.TYPE, AssetEditorNetworking::handlePackCreate);
     }
 
     public static void sendPermissions(ServerPlayer player, StudioPermissions permissions) {
@@ -70,7 +77,8 @@ public final class AssetEditorNetworking {
             }
 
             var perms = permManager.getEffectivePermissions(player);
-            if (!perms.canEditElement(payload.registryId(), payload.targetId())) {
+            String dataFolder = resolveDataFolder(payload.registryId(), payload.action());
+            if (!perms.canAccessRegistry(dataFolder)) {
                 sendResponse(player, payload.actionId(), false, "error:permission_denied");
                 return;
             }
@@ -131,9 +139,32 @@ public final class AssetEditorNetworking {
         var payload = new ElementUpdatePayload(registryId, targetId, action);
         for (ServerPlayer other : server.getPlayerList().getPlayers()) {
             if (other == sender) continue;
-            if (!permManager.getEffectivePermissions(other).canAccessRegistry(registryId)) continue;
+            if (!permManager.getEffectivePermissions(other).canAccessRegistry(registryId.getPath())) continue;
             ServerPlayNetworking.send(other, payload);
         }
+    }
+
+    private static void handlePackListRequest(PackListRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var packManager = ServerPackManager.get();
+            if (packManager == null) return;
+            ServerPlayNetworking.send(context.player(), new PackListSyncPayload(packManager.listPacks()));
+        });
+    }
+
+    private static void handlePackCreate(PackCreatePayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var packManager = ServerPackManager.get();
+            if (packManager == null) return;
+            packManager.createPack(payload.name(), payload.namespace());
+            ServerPlayNetworking.send(context.player(), new PackListSyncPayload(packManager.listPacks()));
+        });
+    }
+
+    private static String resolveDataFolder(Identifier registryId, EditorAction action) {
+        if (action instanceof EditorAction.ToggleTag || action instanceof EditorAction.ToggleExclusive)
+            return "tags/" + registryId.getPath();
+        return registryId.getPath();
     }
 
     private static void sendResponse(ServerPlayer player, UUID actionId, boolean accepted, String message) {

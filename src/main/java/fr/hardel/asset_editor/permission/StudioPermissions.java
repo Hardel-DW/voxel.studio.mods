@@ -2,79 +2,78 @@ package fr.hardel.asset_editor.permission;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public record StudioPermissions(
         StudioRole role,
-        Set<Identifier> allowedRegistries,
-        Set<Identifier> whitelist,
-        Set<Identifier> blacklist
+        Set<String> grantedConcepts,
+        Set<String> allowedRegistries
 ) {
 
     public static final StudioPermissions ADMIN = new StudioPermissions(
-            StudioRole.ADMIN, Set.of(), Set.of(), Set.of());
+            StudioRole.ADMIN, Set.of(), Set.of());
 
     public static final StudioPermissions NONE = new StudioPermissions(
-            StudioRole.CONTRIBUTOR, Set.of(), Set.of(), Set.of());
+            StudioRole.NONE, Set.of(), Set.of());
+
+    private static final Codec<Set<String>> STRING_SET_CODEC =
+            Codec.STRING.listOf().xmap(Set::copyOf, list -> list.stream().toList());
 
     public static final Codec<StudioPermissions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             StudioRole.CODEC.fieldOf("role").forGetter(StudioPermissions::role),
-            Identifier.CODEC.listOf().xmap(Set::copyOf, list -> list.stream().toList())
-                    .fieldOf("allowed_registries").forGetter(StudioPermissions::allowedRegistries),
-            Identifier.CODEC.listOf().xmap(Set::copyOf, list -> list.stream().toList())
-                    .optionalFieldOf("whitelist", Set.of()).forGetter(StudioPermissions::whitelist),
-            Identifier.CODEC.listOf().xmap(Set::copyOf, list -> list.stream().toList())
-                    .optionalFieldOf("blacklist", Set.of()).forGetter(StudioPermissions::blacklist)
+            STRING_SET_CODEC.optionalFieldOf("granted_concepts", Set.of()).forGetter(StudioPermissions::grantedConcepts),
+            STRING_SET_CODEC.optionalFieldOf("allowed_registries", Set.of()).forGetter(StudioPermissions::allowedRegistries)
     ).apply(instance, StudioPermissions::new));
 
     public boolean isAdmin() {
         return role == StudioRole.ADMIN;
     }
 
-    public boolean canAccessRegistry(ResourceKey<?> registry) {
-        return canAccessRegistry(registry.identifier());
+    public boolean isNone() {
+        return role == StudioRole.NONE;
     }
 
-    public boolean canAccessRegistry(Identifier registryId) {
-        return isAdmin() || allowedRegistries.contains(registryId);
+    public boolean canAccessConcept(String conceptName) {
+        return isAdmin() || grantedConcepts.contains(conceptName);
     }
 
-    public boolean canEditElement(ResourceKey<?> registry, Identifier elementId) {
-        return canEditElement(registry.identifier(), elementId);
-    }
-
-    public boolean canEditElement(Identifier registryId, Identifier elementId) {
-        if (isAdmin()) return true;
-        if (!canAccessRegistry(registryId)) return false;
-        if (blacklist.contains(elementId)) return false;
-        return whitelist.isEmpty() || whitelist.contains(elementId);
+    public boolean canAccessRegistry(String dataFolder) {
+        return isAdmin() || allowedRegistries.contains(dataFolder);
     }
 
     public StudioPermissions withRole(StudioRole newRole) {
-        return new StudioPermissions(newRole, allowedRegistries, whitelist, blacklist);
+        if (newRole == StudioRole.NONE) return NONE;
+        return new StudioPermissions(newRole, grantedConcepts, allowedRegistries);
     }
 
-    public StudioPermissions withRegistry(Identifier registry, boolean allowed) {
-        var mutable = new java.util.HashSet<>(allowedRegistries);
-        if (allowed) mutable.add(registry);
-        else mutable.remove(registry);
-        return new StudioPermissions(role, Set.copyOf(mutable), whitelist, blacklist);
+    public StudioPermissions withConcept(String conceptName, boolean grant) {
+        var concepts = new HashSet<>(grantedConcepts);
+        var registries = new HashSet<>(allowedRegistries);
+        var conceptDef = ConceptRegistry.byName(conceptName);
+
+        if (grant) {
+            concepts.add(conceptName);
+            if (conceptDef != null) registries.addAll(conceptDef.dataFolders());
+        } else {
+            concepts.remove(conceptName);
+            if (conceptDef != null) conceptDef.dataFolders().forEach(registries::remove);
+        }
+
+        StudioRole effectiveRole = role == StudioRole.NONE && grant ? StudioRole.CONTRIBUTOR : role;
+        return new StudioPermissions(effectiveRole, Set.copyOf(concepts), Set.copyOf(registries));
     }
 
-    public StudioPermissions withWhitelist(Identifier elementId, boolean add) {
-        var mutable = new java.util.HashSet<>(whitelist);
-        if (add) mutable.add(elementId);
-        else mutable.remove(elementId);
-        return new StudioPermissions(role, allowedRegistries, Set.copyOf(mutable), blacklist);
+    public StudioPermissions withRegistryBan(String dataFolder) {
+        var registries = new HashSet<>(allowedRegistries);
+        registries.remove(dataFolder);
+        return new StudioPermissions(role, grantedConcepts, Set.copyOf(registries));
     }
 
-    public StudioPermissions withBlacklist(Identifier elementId, boolean add) {
-        var mutable = new java.util.HashSet<>(blacklist);
-        if (add) mutable.add(elementId);
-        else mutable.remove(elementId);
-        return new StudioPermissions(role, allowedRegistries, whitelist, Set.copyOf(mutable));
+    public StudioPermissions withRegistryPardon(String dataFolder) {
+        var registries = new HashSet<>(allowedRegistries);
+        registries.add(dataFolder);
+        return new StudioPermissions(role, grantedConcepts, Set.copyOf(registries));
     }
 }

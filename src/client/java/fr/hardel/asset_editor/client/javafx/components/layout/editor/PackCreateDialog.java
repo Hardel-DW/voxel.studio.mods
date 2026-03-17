@@ -74,10 +74,7 @@ public final class PackCreateDialog {
                 setError(errorLabel, "error:invalid_namespace");
                 return;
             }
-            if (context.packState().createPack(name, namespace) == null) {
-                setError(errorLabel, "error:pack_create_failed");
-                return;
-            }
+            context.packState().createPack(name, namespace);
             dialog.close();
         });
 

@@ -7,7 +7,6 @@ import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
@@ -24,14 +23,9 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.packs.PackResources;
-import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.repository.Pack;
-import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.LevelResource;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -49,11 +43,7 @@ public final class StudioContext {
     private String worldSessionKey = "";
 
     public StudioContext() {
-        packState.selectedPackProperty().addListener((obs, oldPack, newPack) -> {
-            try (var manager = createReferenceResourceManager()) {
-                if (manager != null) elementStore.reloadReference(manager);
-            }
-        });
+        router.setPermissionSupplier(this::permissions);
     }
 
     public StudioRouter router() {
@@ -94,24 +84,12 @@ public final class StudioContext {
     }
 
     private void enforcePermissionRoute() {
-        var perms = permissions();
-        var currentRoute = router.currentRoute();
-
-        if (currentRoute == StudioRoute.DEBUG_ITEMS || currentRoute == StudioRoute.CHANGES_MAIN)
-            return;
-
-        if (currentRoute == StudioRoute.NO_PERMISSION) {
-            StudioConcept.firstAccessible(perms).ifPresent(
+        if (router.currentRoute() == StudioRoute.NO_PERMISSION) {
+            StudioConcept.firstAccessible(permissions()).ifPresent(
                     concept -> router.navigate(concept.overviewRoute()));
             return;
         }
-
-        var currentConcept = StudioConcept.byRoute(currentRoute);
-        if (perms.canAccessRegistry(currentConcept.registryKey())) return;
-
-        StudioConcept.firstAccessible(perms).ifPresentOrElse(
-                concept -> router.navigate(concept.overviewRoute()),
-                () -> router.navigate(StudioRoute.NO_PERMISSION));
+        router.revalidate();
     }
 
     public <T> Collection<ElementEntry<?>> allEntries(ResourceKey<Registry<T>> registryKey) {
@@ -197,29 +175,9 @@ public final class StudioContext {
     private void snapshotRegistries() {
         var conn = Minecraft.getInstance().getConnection();
         if (conn == null) return;
-        var registryAccess = conn.registryAccess();
-
-        try (var refResources = createReferenceResourceManager()) {
-            if (refResources == null) return;
-
-            registryAccess.lookup(Registries.ENCHANTMENT).ifPresent(reg ->
-                    elementStore.snapshot(Registries.ENCHANTMENT, reg, refResources,
-                            entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
-        }
-    }
-
-    private MultiPackResourceManager createReferenceResourceManager() {
-        var server = Minecraft.getInstance().getSingleplayerServer();
-        if (server == null) return null;
-
-        PackInfo selected = packState.selectedPack();
-        List<PackResources> packs = new ArrayList<>();
-        for (Pack pack : server.getPackRepository().getSelectedPacks()) {
-            if (selected == null || !pack.getId().equals(selected.packId())) {
-                packs.add(pack.open());
-            }
-        }
-        return new MultiPackResourceManager(PackType.SERVER_DATA, packs);
+        conn.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(reg ->
+                elementStore.snapshotFromRegistry(Registries.ENCHANTMENT, reg,
+                        entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
     }
 
     private static String computeWorldSessionKey() {

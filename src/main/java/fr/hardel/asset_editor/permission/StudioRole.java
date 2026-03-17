@@ -6,7 +6,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StudioRole implements StringRepresentable {
     ADMIN("admin"),
-    CONTRIBUTOR("contributor");
+    CONTRIBUTOR("contributor"),
+    NONE("none");
 
     public static final Codec<StudioRole> CODEC = StringRepresentable.fromEnum(StudioRole::values);
 

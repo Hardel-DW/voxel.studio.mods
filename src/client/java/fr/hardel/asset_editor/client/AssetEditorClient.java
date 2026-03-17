@@ -5,11 +5,13 @@ import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
+import fr.hardel.asset_editor.permission.StudioRole;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -32,12 +34,17 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {
+                ClientPermissionState.reset();
                 VoxelStudioWindow.onWorldClosed();
             }
 
             this.hadWorld = hasWorld;
-            if (OPEN_STUDIO.consumeClick())
-                VoxelStudioWindow.open();
+            if (!OPEN_STUDIO.consumeClick()) return;
+            if (ClientPermissionState.get().role() == StudioRole.NONE && client.player != null) {
+                client.player.displayClientMessage(Component.translatable("studio:permission.blocked"), false);
+                return;
+            }
+            VoxelStudioWindow.open();
         });
 
         ClientNetworkHandler.register();

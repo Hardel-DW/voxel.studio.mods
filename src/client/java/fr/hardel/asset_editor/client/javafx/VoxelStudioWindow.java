@@ -60,9 +60,12 @@ public final class VoxelStudioWindow {
             instance.snapTo(instance.windowScreen().getVisualBounds());
     }
 
-    public static void updatePermissions(fr.hardel.asset_editor.permission.StudioPermissions permissions) {
-        if (instance != null && instance.editorRoot != null) {
-            javafx.application.Platform.runLater(() -> instance.editorRoot.context().setPermissions(permissions));
+    public static void onPermissionsUpdated(fr.hardel.asset_editor.permission.StudioPermissions permissions) {
+        if (instance == null) return;
+        if (instance.editorRoot != null) {
+            instance.editorRoot.context().setPermissions(permissions);
+        } else if (!instance.splashPlayed) {
+            instance.tryTransitionFromSplash();
         }
     }
 
@@ -70,6 +73,12 @@ public final class VoxelStudioWindow {
         if (instance != null && instance.editorRoot != null) {
             javafx.application.Platform.runLater(() ->
                     instance.editorRoot.context().gateway().handleResponse(actionId, accepted, message));
+        }
+    }
+
+    public static void handlePackListSync(java.util.List<fr.hardel.asset_editor.store.ServerPackManager.PackEntry> packs) {
+        if (instance != null && instance.editorRoot != null) {
+            instance.editorRoot.context().packState().setPacksFromServer(packs);
         }
     }
 
@@ -158,22 +167,36 @@ public final class VoxelStudioWindow {
         scene.setRoot(editorRoot);
     }
 
+    private boolean splashMinTimeElapsed;
+
     private Parent initialRoot() {
         if (splashPlayed) {
             editorRoot = new StudioEditorRoot(stage);
             return editorRoot;
         }
+
+        splashMinTimeElapsed = false;
         Splash splash = new Splash(stage);
-        PauseTransition delay = new PauseTransition(Duration.seconds(3));
-        delay.setOnFinished(e -> {
-            splashPlayed = true;
-            editorRoot = new StudioEditorRoot(stage);
-            if (scene != null)
-                scene.setRoot(editorRoot);
-            resyncOnOpenOrFocus();
+        PauseTransition minDelay = new PauseTransition(Duration.seconds(1));
+        minDelay.setOnFinished(e -> {
+            splashMinTimeElapsed = true;
+            tryTransitionFromSplash();
         });
-        delay.play();
+        minDelay.play();
         return splash;
+    }
+
+    private void tryTransitionFromSplash() {
+        if (!splashMinTimeElapsed || !fr.hardel.asset_editor.client.ClientPermissionState.hasReceived()) return;
+        finishSplash();
+    }
+
+    private void finishSplash() {
+        if (splashPlayed) return;
+        splashPlayed = true;
+        editorRoot = new StudioEditorRoot(stage);
+        if (scene != null) scene.setRoot(editorRoot);
+        resyncOnOpenOrFocus();
     }
 
     private void loadFonts() {

@@ -61,8 +61,12 @@ public final class PermissionManager {
         return !server.isDedicatedServer() && !AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN;
     }
 
+    public StudioPermissions getStoredPermissions(UUID playerId) {
+        return permissions.getOrDefault(playerId, StudioPermissions.NONE);
+    }
+
     public StudioPermissions getStoredPermissions(ServerPlayer player) {
-        return permissions.getOrDefault(player.getUUID(), StudioPermissions.NONE);
+        return getStoredPermissions(player.getUUID());
     }
 
     public StudioPermissions getEffectivePermissions(ServerPlayer player) {
