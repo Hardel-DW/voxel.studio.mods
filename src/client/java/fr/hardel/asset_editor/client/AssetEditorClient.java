@@ -5,7 +5,6 @@ import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
-import fr.hardel.asset_editor.permission.StudioRole;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -35,12 +34,17 @@ public class AssetEditorClient implements ClientModInitializer {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {
                 ClientPermissionState.reset();
+                ClientPackCache.reset();
                 VoxelStudioWindow.onWorldClosed();
             }
 
             this.hadWorld = hasWorld;
             if (!OPEN_STUDIO.consumeClick()) return;
-            if (ClientPermissionState.get().role() == StudioRole.NONE && client.player != null) {
+            if (client.player != null && !ClientPermissionState.hasReceived()) {
+                client.player.displayClientMessage(Component.translatable("studio:permission.waiting"), false);
+                return;
+            }
+            if (client.player != null && ClientPermissionState.get().isNone()) {
                 client.player.displayClientMessage(Component.translatable("studio:permission.blocked"), false);
                 return;
             }

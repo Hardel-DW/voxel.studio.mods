@@ -1,15 +1,17 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.permission.StudioPermissions;
+import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 
-public final class ClientPermissionState {
+import java.util.List;
 
-    private static StudioPermissions permissions = StudioPermissions.NONE;
+public final class ClientPackCache {
+
+    private static List<PackEntry> packs = List.of();
     private static boolean received;
     private static Runnable onChange;
 
-    public static StudioPermissions get() {
-        return permissions;
+    public static List<PackEntry> get() {
+        return packs;
     }
 
     public static boolean hasReceived() {
@@ -20,17 +22,17 @@ public final class ClientPermissionState {
         onChange = listener;
     }
 
-    public static void update(StudioPermissions newPermissions) {
-        permissions = newPermissions;
+    public static void update(List<PackEntry> newPacks) {
+        packs = List.copyOf(newPacks);
         received = true;
         if (onChange != null) onChange.run();
     }
 
     public static void reset() {
-        permissions = StudioPermissions.NONE;
+        packs = List.of();
         received = false;
     }
 
-    private ClientPermissionState() {
+    private ClientPackCache() {
     }
 }

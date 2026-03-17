@@ -88,20 +88,7 @@ public final class ConceptLayout extends HBox {
             return;
         }
 
-        if (!isTabAccessible(route)) {
-            setOutlet(concept.overviewRoute());
-            return;
-        }
-
         setOutlet(route);
-    }
-
-    private boolean isTabAccessible(StudioRoute route) {
-        return concept.tabs().stream()
-                .filter(tab -> tab.route() == route)
-                .findFirst()
-                .map(tab -> tab.isAccessible(context.permissions()))
-                .orElse(true);
     }
 
     private void setOutlet(StudioRoute route) {

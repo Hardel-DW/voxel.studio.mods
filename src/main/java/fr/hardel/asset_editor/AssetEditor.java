@@ -9,6 +9,7 @@ import fr.hardel.asset_editor.store.ServerPackManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
@@ -38,6 +39,15 @@ public class AssetEditor implements ModInitializer {
             PermissionManager.shutdown();
             ServerElementStore.shutdown();
             ServerPackManager.shutdown();
+        });
+
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            server.execute(() -> {
+                var permManager = PermissionManager.get();
+                if (permManager != null) permManager.syncToPlayer(handler.getPlayer());
+                var packManager = ServerPackManager.get();
+                if (packManager != null) AssetEditorNetworking.sendPackList(handler.getPlayer(), packManager.listPacks());
+            });
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));

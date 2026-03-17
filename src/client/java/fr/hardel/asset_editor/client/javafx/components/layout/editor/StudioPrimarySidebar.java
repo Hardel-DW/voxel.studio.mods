@@ -93,7 +93,7 @@ public final class StudioPrimarySidebar extends VBox {
         concepts.getChildren().clear();
         for (StudioConcept concept : StudioConcept.values()) {
             if (concept == StudioConcept.STRUCTURE) continue;
-            if (!context.permissions().canAccessConcept(concept.registry())) continue;
+            if (context.permissions().isNone()) continue;
             concepts.getChildren().add(conceptCard(concept));
         }
     }

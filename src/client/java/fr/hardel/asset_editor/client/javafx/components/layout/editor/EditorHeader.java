@@ -158,17 +158,11 @@ public final class EditorHeader extends VBox {
         tabs.setPadding(new Insets(24, 0, 0, 0));
 
         StudioRoute current = context.router().currentRoute();
-        var perms = context.permissions();
         for (StudioTabDefinition tab : concept.tabs()) {
-            boolean accessible = tab.isAccessible(perms);
-            String tooltip = accessible ? null : I18n.get("studio:permission.tab_locked",
-                    String.join(", ", tab.requiredFolders()));
             Button button = new EditorHeaderTabItem(
                     I18n.get(tab.translationKey()),
                     current == tab.route(),
-                    !accessible,
-                    () -> context.router().navigate(tab.route()),
-                    tooltip);
+                    () -> context.router().navigate(tab.route()));
             tabs.getChildren().add(button);
         }
         return tabs;

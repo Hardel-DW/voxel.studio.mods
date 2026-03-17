@@ -52,9 +52,11 @@ public final class ServerPackManager {
     }
 
     public List<PackEntry> listPacks() {
+        var repo = server.getPackRepository();
+        repo.reload();
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
         List<PackEntry> result = new ArrayList<>();
-        for (Pack pack : server.getPackRepository().getSelectedPacks()) {
+        for (Pack pack : repo.getAvailablePacks()) {
             PackEntry entry = toPackEntry(pack, datapackDir);
             if (entry != null) result.add(entry);
         }

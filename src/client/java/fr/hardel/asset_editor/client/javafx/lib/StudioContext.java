@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
+import fr.hardel.asset_editor.client.ClientSessionDispatch;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
@@ -10,11 +11,9 @@ import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
 import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.network.PermissionRequestPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
@@ -44,6 +43,7 @@ public final class StudioContext {
 
     public StudioContext() {
         router.setPermissionSupplier(this::permissions);
+        ClientSessionDispatch.setGateway(gateway);
     }
 
     public StudioRouter router() {
@@ -154,15 +154,10 @@ public final class StudioContext {
         tabsState.reset();
         packState.refreshFromServer();
         snapshotRegistries();
-        requestPermissions();
-    }
-
-    private void requestPermissions() {
-        Minecraft.getInstance().execute(() ->
-                ClientPlayNetworking.send(new PermissionRequestPayload()));
     }
 
     public void resetForWorldClose() {
+        ClientSessionDispatch.clearGateway();
         worldSessionKey = "";
         permissionsProperty.set(StudioPermissions.NONE);
         elementStore.clearAll();

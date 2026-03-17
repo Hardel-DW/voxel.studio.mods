@@ -57,8 +57,11 @@ public final class PermissionManager {
         return instance;
     }
 
-    public boolean isSingleplayer() {
-        return !server.isDedicatedServer() && !AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN;
+    public boolean isHostAdmin(UUID playerId) {
+        if (AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN) return false;
+        if (server.isDedicatedServer()) return false;
+        var hostProfile = server.getSingleplayerProfile();
+        return hostProfile != null && playerId.equals(hostProfile.id());
     }
 
     public StudioPermissions getStoredPermissions(UUID playerId) {
@@ -80,11 +83,11 @@ public final class PermissionManager {
     }
 
     public boolean isAdmin(UUID playerId) {
-        return isSingleplayer() || getEffectivePermissions(playerId).isAdmin();
+        return getEffectivePermissions(playerId).isAdmin();
     }
 
-    private StudioPermissions getEffectivePermissions(UUID playerId) {
-        if (isSingleplayer()) return StudioPermissions.ADMIN;
+    public StudioPermissions getEffectivePermissions(UUID playerId) {
+        if (isHostAdmin(playerId)) return StudioPermissions.ADMIN;
         return permissions.getOrDefault(playerId, StudioPermissions.NONE);
     }
 

@@ -71,6 +71,8 @@ public final class PackSelector extends StackPane {
             refreshLabel();
             refreshPopoverContent();
         });
+        context.packState().availablePacks().addListener(
+                (javafx.collections.ListChangeListener<PackInfo>) change -> refreshPopoverContent());
         refreshLabel();
 
         setOnMouseEntered(e -> {

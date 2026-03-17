@@ -1,5 +1,8 @@
 package fr.hardel.asset_editor.client.javafx;
 
+import fr.hardel.asset_editor.client.ClientPackCache;
+import fr.hardel.asset_editor.client.ClientPermissionState;
+import fr.hardel.asset_editor.client.ClientSessionDispatch;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.StudioEditorRoot;
 import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
 import javafx.animation.PauseTransition;
@@ -60,37 +63,6 @@ public final class VoxelStudioWindow {
             instance.snapTo(instance.windowScreen().getVisualBounds());
     }
 
-    public static void onPermissionsUpdated(fr.hardel.asset_editor.permission.StudioPermissions permissions) {
-        if (instance == null) return;
-        if (instance.editorRoot != null) {
-            instance.editorRoot.context().setPermissions(permissions);
-        } else if (!instance.splashPlayed) {
-            instance.tryTransitionFromSplash();
-        }
-    }
-
-    public static void handleActionResponse(java.util.UUID actionId, boolean accepted, String message) {
-        if (instance != null && instance.editorRoot != null) {
-            javafx.application.Platform.runLater(() ->
-                    instance.editorRoot.context().gateway().handleResponse(actionId, accepted, message));
-        }
-    }
-
-    public static void handlePackListSync(java.util.List<fr.hardel.asset_editor.store.ServerPackManager.PackEntry> packs) {
-        if (instance != null && instance.editorRoot != null) {
-            instance.editorRoot.context().packState().setPacksFromServer(packs);
-        }
-    }
-
-    public static void handleElementUpdate(net.minecraft.resources.Identifier registryId,
-                                            net.minecraft.resources.Identifier targetId,
-                                            fr.hardel.asset_editor.network.EditorAction action) {
-        if (instance != null && instance.editorRoot != null) {
-            javafx.application.Platform.runLater(() ->
-                    instance.editorRoot.context().gateway().handleRemoteUpdate(registryId, targetId, action));
-        }
-    }
-
     public static void onResourceReload() {
         if (instance != null && instance.stage != null)
             Platform.runLater(instance::rebuildScene);
@@ -132,6 +104,7 @@ public final class VoxelStudioWindow {
     private void createWindow() {
         VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadFonts();
+        registerCacheListeners();
 
         Rectangle2D sb = Screen.getPrimary().getVisualBounds();
         double w = Math.max(MIN_WIDTH, sb.getWidth() * 0.75);
@@ -158,6 +131,27 @@ public final class VoxelStudioWindow {
         stage.setScene(scene);
         stage.show();
         resyncOnOpenOrFocus();
+    }
+
+    private void registerCacheListeners() {
+        ClientPermissionState.setOnChange(() -> {
+            var perms = ClientPermissionState.get();
+            Platform.runLater(() -> {
+                if (editorRoot != null) {
+                    editorRoot.context().setPermissions(perms);
+                } else if (!splashPlayed) {
+                    tryTransitionFromSplash();
+                }
+            });
+        });
+        ClientPackCache.setOnChange(() -> {
+            var packs = ClientPackCache.get();
+            Platform.runLater(() -> {
+                if (editorRoot != null) {
+                    editorRoot.context().packState().setPacksFromServer(packs);
+                }
+            });
+        });
     }
 
     private void rebuildScene() {
@@ -195,6 +189,8 @@ public final class VoxelStudioWindow {
         if (splashPlayed) return;
         splashPlayed = true;
         editorRoot = new StudioEditorRoot(stage);
+        editorRoot.context().setPermissions(ClientPermissionState.get());
+        editorRoot.context().packState().setPacksFromServer(ClientPackCache.get());
         if (scene != null) scene.setRoot(editorRoot);
         resyncOnOpenOrFocus();
     }
@@ -221,6 +217,7 @@ public final class VoxelStudioWindow {
     }
 
     private void handleWorldClosed() {
+        ClientSessionDispatch.clearGateway();
         if (editorRoot != null) {
             editorRoot.context().resetForWorldClose();
         }

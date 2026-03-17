@@ -78,6 +78,8 @@ public final class StudioEditorRoot extends HBox {
 
         getChildren().addAll(sidebar, workspace);
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshOutlet());
+        StudioConcept.firstAccessible(context.permissions())
+                .ifPresent(concept -> context.router().navigate(concept.overviewRoute()));
         refreshOutlet();
 
         contentSurface.sceneProperty().addListener((obs, oldScene, newScene) -> {

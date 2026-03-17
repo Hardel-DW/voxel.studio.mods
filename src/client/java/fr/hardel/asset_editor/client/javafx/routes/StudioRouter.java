@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.javafx.routes;
 
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -27,32 +26,18 @@ public final class StudioRouter {
 
     public void navigate(StudioRoute route) {
         if (route == null || route == currentRoute.get()) return;
-
         if (route == StudioRoute.NO_PERMISSION) {
             currentRoute.set(route);
             return;
         }
-
-        var perms = permissionSupplier.get();
-
-        if (route == StudioRoute.DEBUG_ITEMS) {
-            if (!perms.isAdmin()) { redirectNoPermission(); return; }
-            currentRoute.set(route);
-            return;
-        }
-
-        if (route == StudioRoute.CHANGES_MAIN) {
-            if (perms.isNone()) { redirectNoPermission(); return; }
-            currentRoute.set(route);
-            return;
-        }
-
-        var concept = StudioConcept.byRoute(route);
-        if (!perms.canAccessConcept(concept.registry())) {
+        if (permissionSupplier.get().isNone()) {
             redirectNoPermission();
             return;
         }
-
+        if (route == StudioRoute.DEBUG_ITEMS && !permissionSupplier.get().isAdmin()) {
+            redirectNoPermission();
+            return;
+        }
         currentRoute.set(route);
     }
 

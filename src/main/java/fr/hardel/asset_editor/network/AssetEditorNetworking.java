@@ -40,9 +40,6 @@ public final class AssetEditorNetworking {
         PayloadTypeRegistry.playS2C().register(EditorActionResponsePayload.TYPE, EditorActionResponsePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(ElementUpdatePayload.TYPE, ElementUpdatePayload.CODEC);
 
-        PayloadTypeRegistry.playC2S().register(PermissionRequestPayload.TYPE, PermissionRequestPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(PermissionRequestPayload.TYPE, AssetEditorNetworking::handlePermissionRequest);
-
         PayloadTypeRegistry.playC2S().register(EditorActionPayload.TYPE, EditorActionPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(EditorActionPayload.TYPE, AssetEditorNetworking::handleEditorAction);
 
@@ -58,12 +55,8 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PermissionSyncPayload(permissions));
     }
 
-    private static void handlePermissionRequest(PermissionRequestPayload payload, ServerPlayNetworking.Context context) {
-        context.server().execute(() -> {
-            var manager = PermissionManager.get();
-            if (manager == null) return;
-            manager.syncToPlayer(context.player());
-        });
+    public static void sendPackList(ServerPlayer player, java.util.List<ServerPackManager.PackEntry> packs) {
+        ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
     private static void handleEditorAction(EditorActionPayload payload, ServerPlayNetworking.Context context) {
@@ -77,8 +70,7 @@ public final class AssetEditorNetworking {
             }
 
             var perms = permManager.getEffectivePermissions(player);
-            String dataFolder = resolveDataFolder(payload.registryId(), payload.action());
-            if (!perms.canAccessRegistry(dataFolder)) {
+            if (!perms.canEdit()) {
                 sendResponse(player, payload.actionId(), false, "error:permission_denied");
                 return;
             }
@@ -139,7 +131,7 @@ public final class AssetEditorNetworking {
         var payload = new ElementUpdatePayload(registryId, targetId, action);
         for (ServerPlayer other : server.getPlayerList().getPlayers()) {
             if (other == sender) continue;
-            if (!permManager.getEffectivePermissions(other).canAccessRegistry(registryId.getPath())) continue;
+            if (!permManager.getEffectivePermissions(other).canEdit()) continue;
             ServerPlayNetworking.send(other, payload);
         }
     }
@@ -148,7 +140,7 @@ public final class AssetEditorNetworking {
         context.server().execute(() -> {
             var packManager = ServerPackManager.get();
             if (packManager == null) return;
-            ServerPlayNetworking.send(context.player(), new PackListSyncPayload(packManager.listPacks()));
+            sendPackList(context.player(), packManager.listPacks());
         });
     }
 
@@ -157,14 +149,8 @@ public final class AssetEditorNetworking {
             var packManager = ServerPackManager.get();
             if (packManager == null) return;
             packManager.createPack(payload.name(), payload.namespace());
-            ServerPlayNetworking.send(context.player(), new PackListSyncPayload(packManager.listPacks()));
+            sendPackList(context.player(), packManager.listPacks());
         });
-    }
-
-    private static String resolveDataFolder(Identifier registryId, EditorAction action) {
-        if (action instanceof EditorAction.ToggleTag || action instanceof EditorAction.ToggleExclusive)
-            return "tags/" + registryId.getPath();
-        return registryId.getPath();
     }
 
     private static void sendResponse(ServerPlayer player, UUID actionId, boolean accepted, String message) {

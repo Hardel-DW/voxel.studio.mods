@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.data;
 
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.permission.ConceptRegistry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -10,7 +9,6 @@ import net.minecraft.resources.ResourceKey;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public enum StudioConcept {
     ENCHANTMENT(
@@ -19,27 +17,27 @@ public enum StudioConcept {
         StudioRoute.ENCHANTMENT_OVERVIEW,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/enchantment.png"),
         List.of(
-            new StudioTabDefinition("global", "enchantment:section.global", StudioRoute.ENCHANTMENT_MAIN, Set.of("enchantment")),
-            new StudioTabDefinition("find", "enchantment:section.find", StudioRoute.ENCHANTMENT_FIND, Set.of("tags/enchantment")),
-            new StudioTabDefinition("slots", "enchantment:section.slots", StudioRoute.ENCHANTMENT_SLOTS, Set.of("enchantment")),
-            new StudioTabDefinition("items", "enchantment:section.supported", StudioRoute.ENCHANTMENT_ITEMS, Set.of("enchantment")),
-            new StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioRoute.ENCHANTMENT_EXCLUSIVE, Set.of("enchantment", "tags/enchantment")),
-            new StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.ENCHANTMENT_TECHNICAL, Set.of("enchantment", "tags/enchantment")))),
+            new StudioTabDefinition("global", "enchantment:section.global", StudioRoute.ENCHANTMENT_MAIN),
+            new StudioTabDefinition("find", "enchantment:section.find", StudioRoute.ENCHANTMENT_FIND),
+            new StudioTabDefinition("slots", "enchantment:section.slots", StudioRoute.ENCHANTMENT_SLOTS),
+            new StudioTabDefinition("items", "enchantment:section.supported", StudioRoute.ENCHANTMENT_ITEMS),
+            new StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioRoute.ENCHANTMENT_EXCLUSIVE),
+            new StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.ENCHANTMENT_TECHNICAL))),
     LOOT_TABLE(
         Registries.LOOT_TABLE,
         "studio.concept.loot_table",
         StudioRoute.LOOT_TABLE_OVERVIEW,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/loot_table.png"),
         List.of(
-            new StudioTabDefinition("main", "loot:section.main", StudioRoute.LOOT_TABLE_MAIN, Set.of("loot_table")),
-            new StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LOOT_TABLE_POOLS, Set.of("loot_table")))),
+            new StudioTabDefinition("main", "loot:section.main", StudioRoute.LOOT_TABLE_MAIN),
+            new StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LOOT_TABLE_POOLS))),
     RECIPE(
         Registries.RECIPE,
         "studio.concept.recipe",
         StudioRoute.RECIPE_OVERVIEW,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/recipe.png"),
         List.of(
-            new StudioTabDefinition("main", "recipe:section.main", StudioRoute.RECIPE_MAIN, Set.of("recipe")))),
+            new StudioTabDefinition("main", "recipe:section.main", StudioRoute.RECIPE_MAIN))),
     STRUCTURE(
         Registries.STRUCTURE,
         "studio.concept.structure",
@@ -54,7 +52,7 @@ public enum StudioConcept {
     private final List<StudioTabDefinition> tabs;
 
     StudioConcept(ResourceKey<? extends Registry<?>> registryKey, String titleKey, StudioRoute overviewRoute,
-                  Identifier icon, List<StudioTabDefinition> tabs) {
+        Identifier icon, List<StudioTabDefinition> tabs) {
         this.registryKey = registryKey;
         this.titleKey = titleKey;
         this.overviewRoute = overviewRoute;
@@ -68,11 +66,6 @@ public enum StudioConcept {
 
     public String registry() {
         return registryKey.identifier().getPath();
-    }
-
-    public List<String> dataFolders() {
-        var def = ConceptRegistry.byName(registry());
-        return def != null ? def.dataFolders() : List.of();
     }
 
     public String titleKey() {
@@ -108,9 +101,12 @@ public enum StudioConcept {
     }
 
     public static Optional<StudioConcept> firstAccessible(StudioPermissions permissions) {
+        if (permissions.isNone())
+            return Optional.empty();
         for (StudioConcept concept : values()) {
-            if (concept == STRUCTURE) continue;
-            if (permissions.canAccessConcept(concept.registry())) return Optional.of(concept);
+            if (concept == STRUCTURE)
+                continue;
+            return Optional.of(concept);
         }
         return Optional.empty();
     }

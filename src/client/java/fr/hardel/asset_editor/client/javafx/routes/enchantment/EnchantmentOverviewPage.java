@@ -96,9 +96,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
         row.setContent(name, subInfo);
 
-        boolean canEdit = context.permissions().canAccessRegistry("enchantment");
         var sw = row.toggle();
-        sw.setDisable(!canEdit);
         sw.setValue(!EnchantmentActions.isSoftDeleted(entry));
         sw.valueProperty().addListener((obs, o, v) -> {
             if (o == null || v == null || o.equals(v))

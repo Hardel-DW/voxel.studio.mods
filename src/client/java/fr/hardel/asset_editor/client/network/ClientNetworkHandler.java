@@ -1,7 +1,8 @@
 package fr.hardel.asset_editor.client.network;
 
+import fr.hardel.asset_editor.client.ClientPackCache;
 import fr.hardel.asset_editor.client.ClientPermissionState;
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.ClientSessionDispatch;
 import fr.hardel.asset_editor.network.EditorActionResponsePayload;
 import fr.hardel.asset_editor.network.ElementUpdatePayload;
 import fr.hardel.asset_editor.network.PackListSyncPayload;
@@ -14,16 +15,16 @@ public final class ClientNetworkHandler {
         ClientPlayNetworking.registerGlobalReceiver(PermissionSyncPayload.TYPE, (payload, context) ->
                 context.client().execute(() -> ClientPermissionState.update(payload.permissions())));
 
+        ClientPlayNetworking.registerGlobalReceiver(PackListSyncPayload.TYPE, (payload, context) ->
+                context.client().execute(() -> ClientPackCache.update(payload.packs())));
+
         ClientPlayNetworking.registerGlobalReceiver(EditorActionResponsePayload.TYPE, (payload, context) ->
-                context.client().execute(() -> VoxelStudioWindow.handleActionResponse(
+                context.client().execute(() -> ClientSessionDispatch.handleActionResponse(
                         payload.actionId(), payload.accepted(), payload.message())));
 
         ClientPlayNetworking.registerGlobalReceiver(ElementUpdatePayload.TYPE, (payload, context) ->
-                context.client().execute(() -> VoxelStudioWindow.handleElementUpdate(
+                context.client().execute(() -> ClientSessionDispatch.handleElementUpdate(
                         payload.registryId(), payload.targetId(), payload.action())));
-
-        ClientPlayNetworking.registerGlobalReceiver(PackListSyncPayload.TYPE, (payload, context) ->
-                context.client().execute(() -> VoxelStudioWindow.handlePackListSync(payload.packs())));
     }
 
     private ClientNetworkHandler() {
