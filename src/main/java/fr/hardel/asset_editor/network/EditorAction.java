@@ -89,6 +89,39 @@ public sealed interface EditorAction {
             ToggleExclusive::new);
     }
 
+    record SetSupportedItems(String tagId) implements EditorAction {
+        @Override
+        public String type() {
+            return "set_supported_items";
+        }
+
+        static final StreamCodec<ByteBuf, SetSupportedItems> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SetSupportedItems::tagId,
+            SetSupportedItems::new);
+    }
+
+    record SetPrimaryItems(String tagId) implements EditorAction {
+        @Override
+        public String type() {
+            return "set_primary_items";
+        }
+
+        static final StreamCodec<ByteBuf, SetPrimaryItems> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SetPrimaryItems::tagId,
+            SetPrimaryItems::new);
+    }
+
+    record SetExclusiveSet(String tagId) implements EditorAction {
+        @Override
+        public String type() {
+            return "set_exclusive_set";
+        }
+
+        static final StreamCodec<ByteBuf, SetExclusiveSet> CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SetExclusiveSet::tagId,
+            SetExclusiveSet::new);
+    }
+
     Map<String, StreamCodec<ByteBuf, ? extends EditorAction>> CODECS = Stream.of(
         Map.entry("set_int", SetIntField.CODEC),
         Map.entry("set_mode", SetMode.CODEC),
@@ -96,7 +129,10 @@ public sealed interface EditorAction {
         Map.entry("toggle_disabled_effect", ToggleDisabledEffect.CODEC),
         Map.entry("toggle_slot", ToggleSlot.CODEC),
         Map.entry("toggle_tag", ToggleTag.CODEC),
-        Map.entry("toggle_exclusive", ToggleExclusive.CODEC)).collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map.entry("toggle_exclusive", ToggleExclusive.CODEC),
+        Map.entry("set_supported_items", SetSupportedItems.CODEC),
+        Map.entry("set_primary_items", SetPrimaryItems.CODEC),
+        Map.entry("set_exclusive_set", SetExclusiveSet.CODEC)).collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
     @SuppressWarnings("unchecked")
     StreamCodec<ByteBuf, EditorAction> STREAM_CODEC = StreamCodec.of(

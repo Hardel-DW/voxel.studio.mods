@@ -8,6 +8,8 @@ import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.network.EditorActionPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -132,8 +134,11 @@ public final class EditorActionGateway {
         var registry = (ResourceKey<Registry<T>>) rawKey;
         ElementEntry<T> entry = store.get(registry, targetId);
         if (entry == null) return;
+        var conn = Minecraft.getInstance().getConnection();
+        HolderLookup.Provider registries = conn != null ? conn.registryAccess() : null;
+        if (registries == null) return;
         ElementEntry<T> updated = (ElementEntry<T>) fr.hardel.asset_editor.network.ActionInterpreter.apply(
-                rawKey.identifier(), entry, action);
+                rawKey.identifier(), entry, action, registries);
         store.put(registry, targetId, updated);
     }
 

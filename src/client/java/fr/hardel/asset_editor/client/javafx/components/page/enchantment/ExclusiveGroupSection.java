@@ -9,6 +9,7 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -22,6 +23,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -29,12 +31,12 @@ public final class ExclusiveGroupSection extends VBox {
 
     private final StudioContext context;
     private final Identifier elementId;
-    private final Function<UnaryOperator<Enchantment>, Boolean> applyMutation;
+    private final BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation;
     private final Function<Identifier, Boolean> applyTag;
     private EnchantmentTags currentTargetCard;
 
     public ExclusiveGroupSection(StudioContext context, Identifier elementId,
-            Function<UnaryOperator<Enchantment>, Boolean> applyMutation,
+            BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation,
             Function<Identifier, Boolean> applyTag) {
         this.context = context;
         this.elementId = elementId;
@@ -153,12 +155,16 @@ public final class ExclusiveGroupSection extends VBox {
 
         boolean ok;
         if (!checked) {
-            ok = applyMutation.apply(EnchantmentActions.exclusiveSet(HolderSet.empty()));
+            ok = applyMutation.apply(
+                    EnchantmentActions.exclusiveSet(HolderSet.empty()),
+                    new EditorAction.SetExclusiveSet(""));
         } else {
             HolderSet<Enchantment> resolved = context.resolveTag(
                     Registries.ENCHANTMENT,
                     TagKey.create(Registries.ENCHANTMENT, tagId)).orElse(HolderSet.empty());
-            ok = applyMutation.apply(EnchantmentActions.exclusiveSet(resolved));
+            ok = applyMutation.apply(
+                    EnchantmentActions.exclusiveSet(resolved),
+                    new EditorAction.SetExclusiveSet(tagId.toString()));
         }
 
         if (!ok) {

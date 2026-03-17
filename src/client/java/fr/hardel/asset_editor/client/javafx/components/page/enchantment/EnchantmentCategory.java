@@ -8,20 +8,21 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.network.EditorAction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
 public final class EnchantmentCategory extends Category {
 
     public EnchantmentCategory(String title, List<Identifier> identifiers,
                                StoreSelector<Set<String>> directExclusiveSelector,
-                               Function<UnaryOperator<Enchantment>, Boolean> applyMutation,
+                               BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation,
                                StudioContext context) {
         super(title);
 
@@ -37,7 +38,9 @@ public final class EnchantmentCategory extends Category {
 
             card.setOnMouseClicked(e ->
                 context.resolveHolder(Registries.ENCHANTMENT, id).ifPresent(holder ->
-                    applyMutation.apply(EnchantmentActions.toggleExclusive(holder, id))));
+                    applyMutation.apply(
+                            EnchantmentActions.toggleExclusive(holder, id),
+                            new EditorAction.ToggleExclusive(id))));
             directExclusiveSelector.subscribe(ids ->
                     card.activeProperty().set(ids != null && ids.contains(id.toString())));
 

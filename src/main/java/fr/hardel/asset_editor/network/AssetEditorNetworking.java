@@ -87,7 +87,7 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            ElementEntry<?> updated = ActionInterpreter.apply(payload.registryId(), entry, payload.action());
+            ElementEntry<?> updated = ActionInterpreter.apply(payload.registryId(), entry, payload.action(), server.registryAccess());
             store.put(payload.registryId(), payload.targetId(), updated);
 
             flushElement(server, payload.packId(), payload.registryId());
@@ -113,7 +113,7 @@ public final class AssetEditorNetworking {
             return;
         }
 
-        store.flush(packRoot, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
+        store.flushDirty(packRoot, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
     }
 
     private static Path resolvePackRoot(MinecraftServer server, String packId) {

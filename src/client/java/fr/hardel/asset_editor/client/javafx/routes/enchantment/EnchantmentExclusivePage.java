@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Exclusiv
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
@@ -45,7 +46,7 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
         groupSection = new ExclusiveGroupSection(
                 context(), currentId(),
-                mutation -> applyAction(mutation).isApplied(),
+                (mutation, action) -> applyAction(mutation, action).isApplied(),
                 tagId -> applyTagToggle(tagId).isApplied());
 
         var directExclusiveSelector = select(entry -> {
@@ -63,7 +64,7 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
         singleSection = new ExclusiveSingleSection(
                 context(),
                 directExclusiveSelector,
-                mutation -> applyAction(mutation).isApplied());
+                (mutation, action) -> applyAction(mutation, action).isApplied());
 
         selector.setContent("single".equals(currentMode) ? singleSection : groupSection);
     }

@@ -46,6 +46,7 @@ public final class ServerElementStore {
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
+    private final Map<String, Set<Identifier>> dirtyElements = new HashMap<>();
 
     public <T> void snapshot(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
                              ResourceManager referenceResources,
@@ -80,6 +81,7 @@ public final class ServerElementStore {
 
         reference.put(name, Map.copyOf(refEntries));
         current.put(name, new LinkedHashMap<>(curEntries));
+        dirtyElements.remove(name);
     }
 
     @SuppressWarnings("unchecked")
@@ -90,26 +92,35 @@ public final class ServerElementStore {
     }
 
     public <T> void put(Identifier registryId, Identifier elementId, ElementEntry<T> entry) {
-        var registryMap = current.computeIfAbsent(registryId.getPath(), k -> new LinkedHashMap<>());
+        String name = registryId.getPath();
+        var registryMap = current.computeIfAbsent(name, k -> new LinkedHashMap<>());
         registryMap.put(elementId, entry);
+        dirtyElements.computeIfAbsent(name, k -> new HashSet<>()).add(elementId);
     }
 
-    public <T> void flush(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
-                           HolderLookup.Provider registries, FlushAdapter<T> adapter) {
+    public <T> void flushDirty(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
+                                HolderLookup.Provider registries, FlushAdapter<T> adapter) {
         String name = registryName(registry);
+        Set<Identifier> dirty = dirtyElements.get(name);
+        if (dirty == null || dirty.isEmpty()) return;
+
         var referenceMap = reference.get(name);
         var currentMap = current.get(name);
         if (referenceMap == null || currentMap == null) return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var flushAdapter = adapter == null ? FlushAdapter.<T>identity() : adapter;
-        flushElements(packRoot, name, referenceMap, currentMap, codec, ops, flushAdapter);
-        flushTags(packRoot, name, referenceMap, currentMap, flushAdapter);
+
+        flushDirtyElements(packRoot, name, referenceMap, currentMap, dirty, codec, ops, flushAdapter);
+        flushDirtyTags(packRoot, name, referenceMap, currentMap, dirty, flushAdapter);
+
+        dirty.clear();
     }
 
     public void clearAll() {
         reference.clear();
         current.clear();
+        dirtyElements.clear();
     }
 
     @SuppressWarnings("unchecked")
@@ -131,14 +142,17 @@ public final class ServerElementStore {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> void flushElements(Path packRoot, String registry,
-                                    Map<Identifier, ElementEntry<?>> referenceMap,
-                                    Map<Identifier, ElementEntry<?>> currentMap,
-                                    Codec<T> codec, DynamicOps<JsonElement> ops,
-                                    FlushAdapter<T> adapter) {
-        for (var entry : currentMap.entrySet()) {
-            Identifier id = entry.getKey();
-            var currentEntry = adapter.prepare((ElementEntry<T>) entry.getValue());
+    private <T> void flushDirtyElements(Path packRoot, String registry,
+                                         Map<Identifier, ElementEntry<?>> referenceMap,
+                                         Map<Identifier, ElementEntry<?>> currentMap,
+                                         Set<Identifier> dirty,
+                                         Codec<T> codec, DynamicOps<JsonElement> ops,
+                                         FlushAdapter<T> adapter) {
+        for (Identifier id : dirty) {
+            var currentRaw = currentMap.get(id);
+            if (currentRaw == null) continue;
+
+            var currentEntry = adapter.prepare((ElementEntry<T>) currentRaw);
             var referenceEntry = referenceMap.containsKey(id)
                     ? adapter.prepare((ElementEntry<T>) referenceMap.get(id))
                     : null;
@@ -146,39 +160,35 @@ public final class ServerElementStore {
             if (referenceEntry != null && Objects.equals(referenceEntry.data(), currentEntry.data()))
                 continue;
 
+            Path filePath = packRoot.resolve("data").resolve(id.getNamespace())
+                    .resolve(registry).resolve(id.getPath() + ".json");
             codec.encodeStart(ops, currentEntry.data())
-                    .ifSuccess(json -> writeFile(
-                            packRoot.resolve("data").resolve(id.getNamespace()).resolve(registry).resolve(id.getPath() + ".json"),
-                            GSON.toJson(json)))
+                    .ifSuccess(json -> writeFile(filePath, GSON.toJson(json)))
                     .ifError(error -> LOGGER.warn("Failed to encode element {}: {}", id, error.message()));
         }
     }
 
-    private void flushTags(Path packRoot, String registry,
-                            Map<Identifier, ElementEntry<?>> referenceMap,
-                            Map<Identifier, ElementEntry<?>> currentMap,
-                            FlushAdapter<?> adapter) {
+    private void flushDirtyTags(Path packRoot, String registry,
+                                 Map<Identifier, ElementEntry<?>> referenceMap,
+                                 Map<Identifier, ElementEntry<?>> currentMap,
+                                 Set<Identifier> dirty,
+                                 FlushAdapter<?> adapter) {
+        Set<Identifier> affectedTagIds = collectAffectedTags(referenceMap, currentMap, dirty, adapter);
+        if (affectedTagIds.isEmpty()) return;
+
         Map<Identifier, Set<Identifier>> refTags = collectTagMemberships(referenceMap, adapter);
         Map<Identifier, Set<Identifier>> curTags = collectTagMemberships(currentMap, adapter);
 
-        Set<Identifier> allTagIds = new HashSet<>();
-        allTagIds.addAll(refTags.keySet());
-        allTagIds.addAll(curTags.keySet());
-
-        for (Identifier tagId : allTagIds) {
+        for (Identifier tagId : affectedTagIds) {
             Set<Identifier> referenceMembers = refTags.getOrDefault(tagId, Set.of());
             Set<Identifier> currentMembers = curTags.getOrDefault(tagId, Set.of());
+
+            if (referenceMembers.equals(currentMembers))
+                continue;
 
             Path filePath = packRoot.resolve("data")
                     .resolve(tagId.getNamespace()).resolve("tags")
                     .resolve(registry).resolve(tagId.getPath() + ".json");
-
-            if (referenceMembers.equals(currentMembers)) {
-                try { Files.deleteIfExists(filePath); } catch (IOException e) {
-                    LOGGER.warn("Failed to delete stale tag: {}", filePath, e);
-                }
-                continue;
-            }
 
             Set<Identifier> added = new HashSet<>(currentMembers);
             added.removeAll(referenceMembers);
@@ -191,6 +201,23 @@ public final class ServerElementStore {
                     .ifSuccess(json -> writeFile(filePath, GSON.toJson(json)))
                     .ifError(error -> LOGGER.warn("Failed to encode tag {}: {}", tagId, error.message()));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<Identifier> collectAffectedTags(Map<Identifier, ElementEntry<?>> referenceMap,
+                                                 Map<Identifier, ElementEntry<?>> currentMap,
+                                                 Set<Identifier> dirty,
+                                                 FlushAdapter<?> adapter) {
+        Set<Identifier> tags = new HashSet<>();
+        for (Identifier id : dirty) {
+            var ref = referenceMap.get(id);
+            var cur = currentMap.get(id);
+            if (ref != null)
+                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) ref).tags());
+            if (cur != null)
+                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) cur).tags());
+        }
+        return tags;
     }
 
     @SuppressWarnings("unchecked")
