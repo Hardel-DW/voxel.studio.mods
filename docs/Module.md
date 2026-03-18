@@ -1,7 +1,12 @@
 # Client 
 Le client ne doit qu'afficher et interagir avec les éléments, il ne doit pas avoir de logiques d'écriture, de lecture ou de logiques des datadriven. Il ne doit qu'afficher et réagir.
 
-- Module JavaFX -> Gère tout le rendu.
+### Module JavaFX -> Gère tout le rendu.
+
+### Module Rendering
+Pour obtenir le rendu des items on passe par un module indépendant non lié à rien d'autre mentionné dans ce document.
+On crée un atlas supplémentaire par le thread qu'utilise Minecraft pour générer ces atlas et on crée le rendu 2D des items, on utilise le même système que Minecraft pour générer ces atlas et les positions.
+Qui sera ensuite utilisé pour afficher un item par son id.
 
 ### Module Selector -> Il doit se comporter comme Zustand réagir à des Stores et uniquement re-render les valeurs dans des composants de la manière la plus générique possible sans faire aucun cas par cas. On crée des sélecteurs on s'abonne à des valeurs. Sa conception ne doit pas être liée à i18n, JavaFX (Du moins le moins possible), ou au concept. Il est indépendant.
 

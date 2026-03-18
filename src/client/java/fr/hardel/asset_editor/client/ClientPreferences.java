@@ -1,69 +1,72 @@
 package fr.hardel.asset_editor.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import fr.hardel.asset_editor.client.config.ModConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.server.IntegratedServer;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class ClientPreferences {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClientPreferences.class);
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-    private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("asset_editor.json");
+    public record Data(Map<String, String> lastSelectedPack) {
+        public static final Codec<Data> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.unboundedMap(Codec.STRING, Codec.STRING)
+                .optionalFieldOf("last_selected_pack", Map.of())
+                .forGetter(Data::lastSelectedPack))
+            .apply(i, data -> new Data(new HashMap<>(data))));
 
-    private static JsonObject lastPackByWorld = new JsonObject();
+        public Data() {
+            this(new HashMap<>());
+        }
+    }
+
+    private static final ModConfig<Data> CONFIG = new ModConfig<>(
+        FabricLoader.getInstance().getConfigDir().resolve("asset_editor.json"),
+        Data.CODEC,
+        new Data());
+
+    public static void load() {
+        CONFIG.load();
+    }
 
     public static String lastPackId() {
         String worldId = worldId();
-        if (worldId == null || !lastPackByWorld.has(worldId)) return null;
-        return lastPackByWorld.get(worldId).getAsString();
+        if (worldId == null)
+            return null;
+        return CONFIG.get().lastSelectedPack().get(worldId);
     }
 
     public static void setLastPackId(String packId) {
         String worldId = worldId();
-        if (worldId == null) return;
+        if (worldId == null) {
+            return;
+        }
+
         if (packId != null)
-            lastPackByWorld.addProperty(worldId, packId);
+            CONFIG.get().lastSelectedPack().put(worldId, packId);
         else
-            lastPackByWorld.remove(worldId);
-        save();
-    }
+            CONFIG.get().lastSelectedPack().remove(worldId);
 
-    public static void load() {
-        if (!Files.exists(FILE)) return;
-        try {
-            JsonObject json = JsonParser.parseString(Files.readString(FILE)).getAsJsonObject();
-            if (json.has("lastPackByWorld"))
-                lastPackByWorld = json.getAsJsonObject("lastPackByWorld");
-        } catch (Exception e) {
-            LOGGER.warn("Failed to load client preferences: {}", e.getMessage());
-        }
-    }
-
-    private static void save() {
-        JsonObject json = new JsonObject();
-        json.add("lastPackByWorld", lastPackByWorld);
-        try {
-            Files.writeString(FILE, GSON.toJson(json));
-        } catch (IOException e) {
-            LOGGER.warn("Failed to save client preferences: {}", e.getMessage());
-        }
+        CONFIG.save();
     }
 
     private static String worldId() {
-        var client = Minecraft.getInstance();
-        var serverInfo = client.getCurrentServer();
-        if (serverInfo != null) return serverInfo.ip;
-        var sp = client.getSingleplayerServer();
-        if (sp != null) return sp.getWorldData().getLevelName();
+        Minecraft client = Minecraft.getInstance();
+        ServerData serverInfo = client.getCurrentServer();
+        if (serverInfo != null) {
+            return serverInfo.ip;
+        }
+
+        IntegratedServer sp = client.getSingleplayerServer();
+        if (sp != null) {
+            return sp.getWorldData().getLevelName();
+        }
+
         return null;
     }
 
