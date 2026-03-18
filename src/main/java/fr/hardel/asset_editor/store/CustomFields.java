@@ -22,14 +22,16 @@ public record CustomFields(Map<String, Object> values) {
     }
 
     public CustomFields with(String key, Object value) {
-        if (value == null) return without(key);
+        if (value == null)
+            return without(key);
         Map<String, Object> copy = new LinkedHashMap<>(values);
         copy.put(key, normalizeValue(value));
         return new CustomFields(copy);
     }
 
     public CustomFields without(String key) {
-        if (!values.containsKey(key)) return this;
+        if (!values.containsKey(key))
+            return this;
         Map<String, Object> copy = new LinkedHashMap<>(values);
         copy.remove(key);
         return copy.isEmpty() ? EMPTY : new CustomFields(copy);
@@ -43,15 +45,20 @@ public record CustomFields(Map<String, Object> values) {
     @SuppressWarnings("unchecked")
     public Set<String> getStringSet(String key) {
         Object value = values.get(key);
-        if (!(value instanceof Set<?> set)) return Set.of();
-        if (set.stream().anyMatch(element -> !(element instanceof String))) return Set.of();
+        if (!(value instanceof Set<?> set))
+            return Set.of();
+        if (set.stream().anyMatch(element -> !(element instanceof String)))
+            return Set.of();
         return (Set<String>) set;
     }
 
     private static Object normalizeValue(Object value) {
-        if (value instanceof Set<?> set) return Set.copyOf(set);
-        if (value instanceof List<?> list) return List.copyOf(list);
-        if (value instanceof Map<?, ?> map) return Map.copyOf(map);
+        if (value instanceof Set<?> set)
+            return Set.copyOf(set);
+        if (value instanceof List<?> list)
+            return List.copyOf(list);
+        if (value instanceof Map<?, ?> map)
+            return Map.copyOf(map);
         return value;
     }
 }

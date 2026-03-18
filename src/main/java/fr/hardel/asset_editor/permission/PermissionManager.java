@@ -27,8 +27,7 @@ public final class PermissionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(PermissionManager.class);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final LevelResource STORAGE_PATH = new LevelResource("asset_editor_permissions.json");
-    private static final Codec<Map<UUID, StudioPermissions>> STORAGE_CODEC =
-            Codec.unboundedMap(UUIDUtil.STRING_CODEC, StudioPermissions.CODEC);
+    private static final Codec<Map<UUID, StudioPermissions>> STORAGE_CODEC = Codec.unboundedMap(UUIDUtil.STRING_CODEC, StudioPermissions.CODEC);
 
     private static PermissionManager instance;
 
@@ -58,8 +57,10 @@ public final class PermissionManager {
     }
 
     public boolean isHostAdmin(UUID playerId) {
-        if (AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN) return false;
-        if (server.isDedicatedServer()) return false;
+        if (AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN)
+            return false;
+        if (server.isDedicatedServer())
+            return false;
         var hostProfile = server.getSingleplayerProfile();
         return hostProfile != null && playerId.equals(hostProfile.id());
     }
@@ -79,13 +80,15 @@ public final class PermissionManager {
     }
 
     public StudioPermissions getEffectivePermissions(UUID playerId) {
-        if (isHostAdmin(playerId)) return StudioPermissions.ADMIN;
+        if (isHostAdmin(playerId))
+            return StudioPermissions.ADMIN;
         return permissions.getOrDefault(playerId, StudioPermissions.NONE);
     }
 
     public void syncToPlayer(UUID playerId) {
         ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-        if (player == null) return;
+        if (player == null)
+            return;
         syncToPlayer(player);
     }
 
@@ -94,12 +97,13 @@ public final class PermissionManager {
     }
 
     private void load() {
-        if (!Files.exists(filePath)) return;
+        if (!Files.exists(filePath))
+            return;
         try {
             JsonElement element = JsonParser.parseString(Files.readString(filePath));
             STORAGE_CODEC.parse(JsonOps.INSTANCE, element)
-                    .ifSuccess(permissions::putAll)
-                    .ifError(error -> LOGGER.warn("Failed to load permissions: {}", error.message()));
+                .ifSuccess(permissions::putAll)
+                .ifError(error -> LOGGER.warn("Failed to load permissions: {}", error.message()));
         } catch (IOException e) {
             LOGGER.warn("Failed to read permissions file", e);
         }
@@ -107,8 +111,8 @@ public final class PermissionManager {
 
     private void save() {
         STORAGE_CODEC.encodeStart(JsonOps.INSTANCE, Map.copyOf(permissions))
-                .ifSuccess(json -> writeFile(GSON.toJson(json)))
-                .ifError(error -> LOGGER.warn("Failed to encode permissions: {}", error.message()));
+            .ifSuccess(json -> writeFile(GSON.toJson(json)))
+            .ifError(error -> LOGGER.warn("Failed to encode permissions: {}", error.message()));
     }
 
     private void writeFile(String content) {

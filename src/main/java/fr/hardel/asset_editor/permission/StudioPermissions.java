@@ -10,8 +10,7 @@ public record StudioPermissions(StudioRole role) {
     public static final StudioPermissions NONE = new StudioPermissions(StudioRole.NONE);
 
     public static final Codec<StudioPermissions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            StudioRole.CODEC.fieldOf("role").forGetter(StudioPermissions::role)
-    ).apply(instance, StudioPermissions::new));
+        StudioRole.CODEC.fieldOf("role").forGetter(StudioPermissions::role)).apply(instance, StudioPermissions::new));
 
     public boolean isAdmin() {
         return role == StudioRole.ADMIN;

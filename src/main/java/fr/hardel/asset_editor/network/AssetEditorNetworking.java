@@ -113,10 +113,12 @@ public final class AssetEditorNetworking {
     @SuppressWarnings("unchecked")
     private static <T> void flushElement(MinecraftServer server, Path packRoot, String packId, Identifier registryId) {
         var binding = (RegistryBinding<T>) BINDINGS.get(registryId.getPath());
-        if (binding == null) return;
+        if (binding == null)
+            return;
 
         var store = ServerElementStore.get();
-        if (store == null) return;
+        if (store == null)
+            return;
 
         store.flushDirty(packRoot, packId, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
     }

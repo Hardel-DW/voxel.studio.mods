@@ -11,19 +11,22 @@ import java.util.Set;
 public final class SlotManager {
 
     private static final List<EquipmentSlotGroup> COMPOSITES = List.of(
-            EquipmentSlotGroup.ANY, EquipmentSlotGroup.ARMOR, EquipmentSlotGroup.HAND);
+        EquipmentSlotGroup.ANY, EquipmentSlotGroup.ARMOR, EquipmentSlotGroup.HAND);
 
     private final Set<EquipmentSlot> active;
 
     public SlotManager(List<EquipmentSlotGroup> groups) {
         active = new LinkedHashSet<>();
-        for (var group : groups) active.addAll(group.slots());
+        for (var group : groups)
+            active.addAll(group.slots());
     }
 
     public SlotManager toggle(EquipmentSlotGroup group) {
         var slots = group.slots();
-        if (active.containsAll(slots)) slots.forEach(active::remove);
-        else active.addAll(slots);
+        if (active.containsAll(slots))
+            slots.forEach(active::remove);
+        else
+            active.addAll(slots);
         return this;
     }
 
@@ -42,7 +45,8 @@ public final class SlotManager {
             }
         }
 
-        for (var slot : remaining) result.add(EquipmentSlotGroup.bySlot(slot));
+        for (var slot : remaining)
+            result.add(EquipmentSlotGroup.bySlot(slot));
         return List.copyOf(result);
     }
 }

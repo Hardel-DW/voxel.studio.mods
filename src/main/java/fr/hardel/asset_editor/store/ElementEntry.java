@@ -21,7 +21,8 @@ public record ElementEntry<T>(Identifier id, T data, Set<Identifier> tags, Custo
 
     public ElementEntry<T> toggleTag(Identifier tagId) {
         var copy = new HashSet<>(tags);
-        if (!copy.remove(tagId)) copy.add(tagId);
+        if (!copy.remove(tagId))
+            copy.add(tagId);
         return new ElementEntry<>(id, data, Set.copyOf(copy), custom);
     }
 }

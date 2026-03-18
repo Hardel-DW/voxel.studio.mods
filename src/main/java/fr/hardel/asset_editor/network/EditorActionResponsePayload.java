@@ -12,24 +12,26 @@ import java.util.UUID;
 public record EditorActionResponsePayload(
         UUID actionId,
         boolean accepted,
-        String message
-) implements CustomPacketPayload {
+        String message) implements CustomPacketPayload {
 
-    public static final Type<EditorActionResponsePayload> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath("asset_editor", "editor_action_response"));
+        public static final Type<EditorActionResponsePayload> TYPE = new Type<>(
+                Identifier.fromNamespaceAndPath("asset_editor", "editor_action_response"));
 
-    private static final StreamCodec<ByteBuf, UUID> UUID_CODEC = StreamCodec.of(
-            (buf, uuid) -> { buf.writeLong(uuid.getMostSignificantBits()); buf.writeLong(uuid.getLeastSignificantBits()); },
-            buf -> new UUID(buf.readLong(), buf.readLong()));
+        private static final StreamCodec<ByteBuf, UUID> UUID_CODEC = StreamCodec.of(
+                (buf, uuid) -> {
+                        buf.writeLong(uuid.getMostSignificantBits());
+                        buf.writeLong(uuid.getLeastSignificantBits());
+                },
+                buf -> new UUID(buf.readLong(), buf.readLong()));
 
-    public static final StreamCodec<ByteBuf, EditorActionResponsePayload> CODEC = StreamCodec.composite(
-            UUID_CODEC, EditorActionResponsePayload::actionId,
-            ByteBufCodecs.BOOL, EditorActionResponsePayload::accepted,
-            ByteBufCodecs.STRING_UTF8, EditorActionResponsePayload::message,
-            EditorActionResponsePayload::new);
+        public static final StreamCodec<ByteBuf, EditorActionResponsePayload> CODEC = StreamCodec.composite(
+                UUID_CODEC, EditorActionResponsePayload::actionId,
+                ByteBufCodecs.BOOL, EditorActionResponsePayload::accepted,
+                ByteBufCodecs.STRING_UTF8, EditorActionResponsePayload::message,
+                EditorActionResponsePayload::new);
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+                return TYPE;
+        }
 }

@@ -21,13 +21,13 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
     public static final String MODE_ONLY_CREATIVE = "only_creative";
 
     private static final Set<Identifier> FUNCTIONALITY_TAGS = Set.of(
-            Identifier.fromNamespaceAndPath("minecraft", "curse"),
-            Identifier.fromNamespaceAndPath("minecraft", "double_trade_price"),
-            Identifier.fromNamespaceAndPath("minecraft", "prevents_bee_spawns_when_mining"),
-            Identifier.fromNamespaceAndPath("minecraft", "prevents_decorated_pot_shattering"),
-            Identifier.fromNamespaceAndPath("minecraft", "prevents_ice_melting"),
-            Identifier.fromNamespaceAndPath("minecraft", "prevents_infested_spawns"),
-            Identifier.fromNamespaceAndPath("minecraft", "smelts_loot"));
+        Identifier.fromNamespaceAndPath("minecraft", "curse"),
+        Identifier.fromNamespaceAndPath("minecraft", "double_trade_price"),
+        Identifier.fromNamespaceAndPath("minecraft", "prevents_bee_spawns_when_mining"),
+        Identifier.fromNamespaceAndPath("minecraft", "prevents_decorated_pot_shattering"),
+        Identifier.fromNamespaceAndPath("minecraft", "prevents_ice_melting"),
+        Identifier.fromNamespaceAndPath("minecraft", "prevents_infested_spawns"),
+        Identifier.fromNamespaceAndPath("minecraft", "smelts_loot"));
 
     @Override
     public ElementEntry<Enchantment> prepare(ElementEntry<Enchantment> entry) {
@@ -36,8 +36,8 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
 
         Set<Identifier> tags = switch (mode) {
             case MODE_ONLY_CREATIVE -> entry.tags().stream()
-                    .filter(FUNCTIONALITY_TAGS::contains)
-                    .collect(Collectors.toUnmodifiableSet());
+                .filter(FUNCTIONALITY_TAGS::contains)
+                .collect(Collectors.toUnmodifiableSet());
             case MODE_SOFT_DELETE -> Set.of();
             default -> entry.tags();
         };
@@ -58,14 +58,14 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
 
     public static CustomFields initializeCustom(Enchantment enchantment, Set<Identifier> tags) {
         return CustomFields.EMPTY
-                .with(MODE_KEY, deriveMode(enchantment, tags))
-                .with(DISABLED_EFFECTS_KEY, Set.<String>of());
+            .with(MODE_KEY, deriveMode(enchantment, tags))
+            .with(DISABLED_EFFECTS_KEY, Set.<String> of());
     }
 
     private static String deriveMode(Enchantment enchantment, Set<Identifier> tags) {
         boolean hasEffects = !enchantment.effects().isEmpty();
         boolean hasExclusiveSet = enchantment.exclusiveSet().unwrapKey().isPresent()
-                || enchantment.exclusiveSet().stream().findAny().isPresent();
+            || enchantment.exclusiveSet().stream().findAny().isPresent();
 
         if (!tags.isEmpty() && tags.stream().allMatch(FUNCTIONALITY_TAGS::contains))
             return MODE_ONLY_CREATIVE;

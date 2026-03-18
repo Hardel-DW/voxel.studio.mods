@@ -11,11 +11,10 @@ import org.jetbrains.annotations.NotNull;
 public record PermissionSyncPayload(StudioPermissions permissions) implements CustomPacketPayload {
 
     public static final Type<PermissionSyncPayload> TYPE = new Type<>(
-            Identifier.fromNamespaceAndPath("asset_editor", "permission_sync"));
+        Identifier.fromNamespaceAndPath("asset_editor", "permission_sync"));
 
-    public static final StreamCodec<ByteBuf, PermissionSyncPayload> CODEC =
-            ByteBufCodecs.fromCodec(StudioPermissions.CODEC)
-                    .map(PermissionSyncPayload::new, PermissionSyncPayload::permissions);
+    public static final StreamCodec<ByteBuf, PermissionSyncPayload> CODEC = ByteBufCodecs.fromCodec(StudioPermissions.CODEC)
+        .map(PermissionSyncPayload::new, PermissionSyncPayload::permissions);
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {

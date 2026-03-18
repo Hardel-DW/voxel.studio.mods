@@ -59,7 +59,8 @@ public final class ServerPackManager {
         List<PackEntry> result = new ArrayList<>();
         for (Pack pack : repo.getAvailablePacks()) {
             PackEntry entry = toPackEntry(pack, datapackDir);
-            if (entry != null) result.add(entry);
+            if (entry != null)
+                result.add(entry);
         }
         return result;
     }
@@ -99,27 +100,33 @@ public final class ServerPackManager {
     }
 
     public Optional<Path> resolveWritablePack(String packId) {
-        if (packId == null || packId.isBlank()) return Optional.empty();
+        if (packId == null || packId.isBlank())
+            return Optional.empty();
 
         var repo = server.getPackRepository();
         Pack pack = repo.getPack(packId);
-        if (pack == null || pack.getPackSource() != PackSource.WORLD) return Optional.empty();
+        if (pack == null || pack.getPackSource() != PackSource.WORLD)
+            return Optional.empty();
 
         String name = stripPrefix(packId);
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR).toAbsolutePath().normalize();
         Path resolved = datapackDir.resolve(name).normalize();
-        if (!resolved.startsWith(datapackDir)) return Optional.empty();
-        if (!Files.isDirectory(resolved)) return Optional.empty();
+        if (!resolved.startsWith(datapackDir))
+            return Optional.empty();
+        if (!Files.isDirectory(resolved))
+            return Optional.empty();
 
         return Optional.of(resolved);
     }
 
     public void ensureNamespace(String packId, String namespace) {
-        if (!Identifier.isValidNamespace(namespace)) return;
+        if (!Identifier.isValidNamespace(namespace))
+            return;
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
         String name = stripPrefix(packId);
         Path nsDir = datapackDir.resolve(name).resolve("data").resolve(namespace);
-        if (Files.exists(nsDir)) return;
+        if (Files.exists(nsDir))
+            return;
         try {
             Files.createDirectories(nsDir);
         } catch (IOException e) {
@@ -128,7 +135,8 @@ public final class ServerPackManager {
     }
 
     private PackEntry toPackEntry(Pack pack, Path datapackDir) {
-        if (pack.getPackSource() != PackSource.WORLD) return null;
+        if (pack.getPackSource() != PackSource.WORLD)
+            return null;
         String id = pack.getId();
 
         try (PackResources resources = pack.open()) {
@@ -146,7 +154,8 @@ public final class ServerPackManager {
 
     private static List<String> scanNamespaces(Path packRoot) {
         Path dataDir = packRoot.resolve("data");
-        if (!Files.isDirectory(dataDir)) return List.of();
+        if (!Files.isDirectory(dataDir))
+            return List.of();
         try (Stream<Path> dirs = Files.list(dataDir)) {
             return dirs.filter(Files::isDirectory).map(p -> p.getFileName().toString()).toList();
         } catch (IOException e) {
@@ -158,11 +167,11 @@ public final class ServerPackManager {
         var format = SharedConstants.getCurrentVersion().packVersion(PackType.SERVER_DATA).minorRange();
         var section = new PackMetadataSection(Component.literal(name), format);
         var json = PackMetadataSection.SERVER_TYPE.codec()
-                .encodeStart(JsonOps.INSTANCE, section)
-                .getOrThrow(msg -> new IOException("Failed to encode pack.mcmeta: " + msg));
+            .encodeStart(JsonOps.INSTANCE, section)
+            .getOrThrow(msg -> new IOException("Failed to encode pack.mcmeta: " + msg));
         var meta = new JsonObject();
         meta.add("pack", json);
         Files.writeString(packRoot.resolve("pack.mcmeta"),
-                new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(meta));
+            new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(meta));
     }
 }

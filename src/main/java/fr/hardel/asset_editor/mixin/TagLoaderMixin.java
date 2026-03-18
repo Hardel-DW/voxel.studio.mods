@@ -42,7 +42,7 @@ public abstract class TagLoaderMixin<T> {
 
     @Unique
     private static final Map<TagLoader.EntryWithSource, Boolean> ASSET_EDITOR_REMOVAL_MARKERS = Collections
-            .synchronizedMap(new WeakHashMap<>());
+        .synchronizedMap(new WeakHashMap<>());
 
     @Unique
     private static void assetEditor$markAsRemoved(TagLoader.EntryWithSource entry) {
@@ -71,9 +71,9 @@ public abstract class TagLoaderMixin<T> {
                 try (Reader reader = resource.openAsReader()) {
                     JsonElement element = StrictJsonParser.parse(reader);
                     List<TagLoader.EntryWithSource> tagContents = builders.computeIfAbsent(id,
-                            key -> new ArrayList<>());
+                        key -> new ArrayList<>());
                     ExtendedTagFile parsedContents = ExtendedTagFile.CODEC
-                            .parse(new Dynamic<>(JsonOps.INSTANCE, element)).getOrThrow();
+                        .parse(new Dynamic<>(JsonOps.INSTANCE, element)).getOrThrow();
                     if (parsedContents.replace()) {
                         tagContents.clear();
                     }
@@ -86,10 +86,10 @@ public abstract class TagLoaderMixin<T> {
                     }
 
                     parsedContents.entries().forEach(
-                            addedEntry -> tagContents.add(new TagLoader.EntryWithSource(addedEntry, sourceId)));
+                        addedEntry -> tagContents.add(new TagLoader.EntryWithSource(addedEntry, sourceId)));
                 } catch (Exception exception) {
                     LOGGER.error("Couldn't read tag list {} from {} in data pack {}", id, location,
-                            resource.sourcePackId(), exception);
+                        resource.sourcePackId(), exception);
                 }
             }
         }
@@ -99,13 +99,12 @@ public abstract class TagLoaderMixin<T> {
 
     /**
      * @author Hardel
-     * @reason Apply entries from "exclude" by removing resolved values from the
-     *         accumulator.
+     * @reason Apply entries from "exclude" by removing resolved values from the accumulator.
      */
     @Overwrite
     private Either<List<TagLoader.EntryWithSource>, List<T>> tryBuildTag(
-            TagEntry.Lookup<T> lookup,
-            List<TagLoader.EntryWithSource> entries) {
+        TagEntry.Lookup<T> lookup,
+        List<TagLoader.EntryWithSource> entries) {
         SequencedSet<T> values = new LinkedHashSet<>();
         List<TagLoader.EntryWithSource> missingElements = new ArrayList<>();
 
