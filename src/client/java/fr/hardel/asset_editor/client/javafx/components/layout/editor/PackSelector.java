@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Popover;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState.PackInfo;
+import fr.hardel.asset_editor.client.state.ClientPackInfo;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -72,7 +72,7 @@ public final class PackSelector extends StackPane {
             refreshPopoverContent();
         });
         context.packState().availablePacks().addListener(
-                (javafx.collections.ListChangeListener<PackInfo>) change -> refreshPopoverContent());
+                (javafx.collections.ListChangeListener<ClientPackInfo>) change -> refreshPopoverContent());
         refreshLabel();
 
         setOnMouseEntered(e -> {
@@ -83,7 +83,7 @@ public final class PackSelector extends StackPane {
     }
 
     private void refreshLabel() {
-        PackInfo pack = context.packState().selectedPack();
+        ClientPackInfo pack = context.packState().selectedPack();
         if (pack == null) {
             nameLabel.setText(I18n.get("studio:pack.none"));
             nameLabel.setTextFill(VoxelColors.ZINC_500);
@@ -108,9 +108,9 @@ public final class PackSelector extends StackPane {
         header.setPadding(new Insets(0, 0, 4, 0));
         popoverContent.getChildren().add(header);
 
-        PackInfo selected = context.packState().selectedPack();
+        ClientPackInfo selected = context.packState().selectedPack();
 
-        for (PackInfo pack : context.packState().availablePacks()) {
+        for (ClientPackInfo pack : context.packState().availablePacks()) {
             boolean isSelected = pack.equals(selected);
             popoverContent.getChildren().add(buildPackRow(pack, isSelected));
         }
@@ -124,7 +124,7 @@ public final class PackSelector extends StackPane {
         popoverContent.getChildren().addAll(separator, buildCreateButton());
     }
 
-    private HBox buildPackRow(PackInfo pack, boolean isSelected) {
+    private HBox buildPackRow(ClientPackInfo pack, boolean isSelected) {
         SvgIcon icon = new SvgIcon(FOLDER_ICON, 14, isSelected ? VoxelColors.ZINC_200 : VoxelColors.ZINC_400);
 
         Label name = new Label(pack.name());

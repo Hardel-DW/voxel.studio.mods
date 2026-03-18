@@ -1,8 +1,6 @@
 package fr.hardel.asset_editor.client.javafx;
 
-import fr.hardel.asset_editor.client.ClientPackCache;
-import fr.hardel.asset_editor.client.ClientPermissionState;
-import fr.hardel.asset_editor.client.ClientSessionDispatch;
+import fr.hardel.asset_editor.client.AssetEditorClient;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.StudioEditorRoot;
 import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
 import javafx.animation.PauseTransition;
@@ -40,6 +38,10 @@ public final class VoxelStudioWindow {
         if (instance == null)
             instance = new VoxelStudioWindow();
         instance.show();
+    }
+
+    public static boolean isUiThreadAvailable() {
+        return instance != null && instance.window != null && instance.scene != null;
     }
 
     public static void toggleMaximize() {
@@ -88,18 +90,21 @@ public final class VoxelStudioWindow {
     private void createWindow() {
         VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadFonts();
-        registerCacheListeners();
+        AssetEditorClient.sessionState().permissionsProperty().addListener((obs, oldValue, newValue) -> {
+            if (!splashPlayed)
+                Platform.runLater(this::tryTransitionFromSplash);
+        });
 
-        Rectangle2D sb = Screen.getPrimary().getVisualBounds();
-        double w = Math.max(MIN_WIDTH, sb.getWidth() * 0.75);
-        double h = Math.max(MIN_HEIGHT, sb.getHeight() * 0.75);
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        double width = Math.max(MIN_WIDTH, bounds.getWidth() * 0.75);
+        double height = Math.max(MIN_HEIGHT, bounds.getHeight() * 0.75);
 
         Stage stage = new Stage(StageStyle.UNDECORATED);
         stage.setTitle(I18n.get("app:title"));
-        stage.setWidth(w);
-        stage.setHeight(h);
-        stage.setX(sb.getMinX() + (sb.getWidth() - w) / 2);
-        stage.setY(sb.getMinY() + (sb.getHeight() - h) / 2);
+        stage.setWidth(width);
+        stage.setHeight(height);
+        stage.setX(bounds.getMinX() + (bounds.getWidth() - width) / 2);
+        stage.setY(bounds.getMinY() + (bounds.getHeight() - height) / 2);
         stage.setMinWidth(MIN_WIDTH);
         stage.setMinHeight(MIN_HEIGHT);
 
@@ -111,8 +116,8 @@ public final class VoxelStudioWindow {
         scene.getStylesheets().add(
             VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
-        scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ESCAPE)
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE)
                 stage.hide();
         });
 
@@ -126,47 +131,27 @@ public final class VoxelStudioWindow {
         resyncOnOpenOrFocus();
     }
 
-    private void registerCacheListeners() {
-        ClientPermissionState.setOnChange(() -> {
-            var perms = ClientPermissionState.get();
-            Platform.runLater(() -> {
-                if (editorRoot != null)
-                    editorRoot.context().setPermissions(perms);
-                else if (!splashPlayed)
-                    tryTransitionFromSplash();
-            });
-        });
-
-        ClientPackCache.setOnChange(() -> {
-            var packs = ClientPackCache.get();
-            Platform.runLater(() -> {
-                if (editorRoot != null)
-                    editorRoot.context().packState().setPacksFromServer(packs);
-            });
-        });
-    }
-
     private void rebuildScene() {
         if (window == null || scene == null || !splashPlayed)
             return;
         VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
-        editorRoot = new StudioEditorRoot(window.stage());
-        editorRoot.context().setPermissions(ClientPermissionState.get());
-        editorRoot.context().packState().setPacksFromServer(ClientPackCache.get());
+        if (editorRoot != null)
+            editorRoot.dispose();
+        editorRoot = new StudioEditorRoot(window.stage(), AssetEditorClient.sessionState(), AssetEditorClient.sessionDispatch());
         scene.setRoot(editorRoot);
         resyncOnOpenOrFocus();
     }
 
     private Parent initialRoot() {
         if (splashPlayed) {
-            editorRoot = new StudioEditorRoot(window.stage());
+            editorRoot = new StudioEditorRoot(window.stage(), AssetEditorClient.sessionState(), AssetEditorClient.sessionDispatch());
             return editorRoot;
         }
 
         splashMinTimeElapsed = false;
         Splash splash = new Splash(window.stage());
         PauseTransition minDelay = new PauseTransition(Duration.seconds(1));
-        minDelay.setOnFinished(e -> {
+        minDelay.setOnFinished(event -> {
             splashMinTimeElapsed = true;
             tryTransitionFromSplash();
         });
@@ -175,7 +160,7 @@ public final class VoxelStudioWindow {
     }
 
     private void tryTransitionFromSplash() {
-        if (!splashMinTimeElapsed || !ClientPermissionState.hasReceived())
+        if (!splashMinTimeElapsed || !AssetEditorClient.sessionState().hasReceivedPermissions())
             return;
         finishSplash();
     }
@@ -184,9 +169,7 @@ public final class VoxelStudioWindow {
         if (splashPlayed)
             return;
         splashPlayed = true;
-        editorRoot = new StudioEditorRoot(window.stage());
-        editorRoot.context().setPermissions(ClientPermissionState.get());
-        editorRoot.context().packState().setPacksFromServer(ClientPackCache.get());
+        editorRoot = new StudioEditorRoot(window.stage(), AssetEditorClient.sessionState(), AssetEditorClient.sessionDispatch());
         if (scene != null)
             scene.setRoot(editorRoot);
         resyncOnOpenOrFocus();
@@ -197,8 +180,8 @@ public final class VoxelStudioWindow {
             Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + variant.fileName + ".ttf");
             try (var is = VoxelResourceLoader.open(id)) {
                 VoxelFonts.register(variant, Font.loadFont(is, 12));
-            } catch (Exception e) {
-                LOGGER.warn("Failed to load font {}: {}", variant.fileName, e.getMessage());
+            } catch (Exception exception) {
+                LOGGER.warn("Failed to load font {}: {}", variant.fileName, exception.getMessage());
             }
         }
     }
@@ -210,9 +193,14 @@ public final class VoxelStudioWindow {
     }
 
     private void handleWorldClosed() {
-        ClientSessionDispatch.clearGateway();
-        if (editorRoot != null)
+        if (editorRoot != null) {
             editorRoot.context().resetForWorldClose();
+            editorRoot.dispose();
+            editorRoot = null;
+        }
+        splashPlayed = false;
+        if (scene != null && window != null)
+            scene.setRoot(initialRoot());
         if (window != null)
             window.stage().hide();
     }

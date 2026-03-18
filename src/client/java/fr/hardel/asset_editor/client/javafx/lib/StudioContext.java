@@ -7,15 +7,16 @@ import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioTabsState;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioUiState;
+import fr.hardel.asset_editor.client.state.ClientSessionState;
+import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
+import fr.hardel.asset_editor.client.state.WorkspacePackSelectionState;
+import fr.hardel.asset_editor.client.state.WorkspaceTabsState;
+import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ChangeListener;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -23,7 +24,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.storage.LevelResource;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,39 +31,51 @@ import java.util.Optional;
 
 public final class StudioContext {
 
+    private final ClientSessionState sessionState;
+    private final ClientWorkspaceState workspaceState;
+    private final ClientSessionDispatch dispatch;
     private final StudioRouter router = new StudioRouter();
-    private final StudioUiState uiState = new StudioUiState();
-    private final StudioTabsState tabsState = new StudioTabsState();
-    private final StudioPackState packState = new StudioPackState();
-    private final RegistryElementStore elementStore = new RegistryElementStore();
-    private final ObjectProperty<StudioPermissions> permissionsProperty =
-            new SimpleObjectProperty<>(StudioPermissions.NONE);
-    private final EditorActionGateway gateway = new EditorActionGateway(packState, elementStore, this::permissions);
-    private String worldSessionKey = "";
+    private final EditorActionGateway gateway;
+    private final ChangeListener<StudioPermissions> permissionListener;
 
-    public StudioContext() {
-        router.setPermissionSupplier(this::permissions);
-        ClientSessionDispatch.setGateway(gateway);
+    public StudioContext(ClientSessionState sessionState, ClientSessionDispatch dispatch) {
+        this.sessionState = sessionState;
+        this.workspaceState = new ClientWorkspaceState(sessionState);
+        this.dispatch = dispatch;
+        this.gateway = new EditorActionGateway(sessionState, workspaceState);
+        this.permissionListener = (obs, oldValue, newValue) -> enforcePermissionRoute();
+
+        router.setPermissionSupplier(sessionState::permissions);
+        sessionState.permissionsProperty().addListener(permissionListener);
+        dispatch.setGateway(gateway);
+    }
+
+    public ClientSessionState sessionState() {
+        return sessionState;
+    }
+
+    public ClientWorkspaceState workspaceState() {
+        return workspaceState;
     }
 
     public StudioRouter router() {
         return router;
     }
 
-    public StudioUiState uiState() {
-        return uiState;
+    public WorkspaceUiState uiState() {
+        return workspaceState.uiState();
     }
 
-    public StudioTabsState tabsState() {
-        return tabsState;
+    public WorkspaceTabsState tabsState() {
+        return workspaceState.tabsState();
     }
 
-    public StudioPackState packState() {
-        return packState;
+    public WorkspacePackSelectionState packState() {
+        return workspaceState.packSelectionState();
     }
 
     public RegistryElementStore elementStore() {
-        return elementStore;
+        return workspaceState.elementStore();
     }
 
     public EditorActionGateway gateway() {
@@ -71,127 +83,110 @@ public final class StudioContext {
     }
 
     public StudioPermissions permissions() {
-        return permissionsProperty.get();
+        return sessionState.permissions();
     }
 
-    public ObjectProperty<StudioPermissions> permissionsProperty() {
-        return permissionsProperty;
-    }
-
-    public void setPermissions(StudioPermissions permissions) {
-        permissionsProperty.set(permissions);
-        enforcePermissionRoute();
+    public ReadOnlyObjectProperty<StudioPermissions> permissionsProperty() {
+        return sessionState.permissionsProperty();
     }
 
     private void enforcePermissionRoute() {
         if (router.currentRoute() == StudioRoute.NO_PERMISSION) {
-            StudioConcept.firstAccessible(permissions()).ifPresent(
-                    concept -> router.navigate(concept.overviewRoute()));
+            StudioConcept.firstAccessible(permissions()).ifPresent(concept -> router.navigate(concept.overviewRoute()));
             return;
         }
         router.revalidate();
     }
 
     public <T> Collection<ElementEntry<?>> allEntries(ResourceKey<Registry<T>> registryKey) {
-        return elementStore.allElements(registryKey);
+        return workspaceState.elementStore().allElements(registryKey);
     }
 
     public <T> List<ElementEntry<T>> allTypedEntries(ResourceKey<Registry<T>> registryKey) {
-        return elementStore.allTypedElements(registryKey);
+        return workspaceState.elementStore().allTypedElements(registryKey);
     }
 
     public <T> ElementEntry<T> currentEntry(ResourceKey<Registry<T>> registryKey) {
-        String id = tabsState.currentElementId();
-        if (id == null || id.isBlank()) return null;
+        String id = workspaceState.tabsState().currentElementId();
+        if (id == null || id.isBlank())
+            return null;
         Identifier identifier = Identifier.tryParse(id);
-        if (identifier == null) return null;
-        return elementStore.get(registryKey, identifier);
+        if (identifier == null)
+            return null;
+        return workspaceState.elementStore().get(registryKey, identifier);
     }
 
     public <T> List<Holder.Reference<T>> registryElements(ResourceKey<Registry<T>> registryKey) {
         var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return List.of();
+        if (conn == null)
+            return List.of();
         return conn.registryAccess()
-                .lookup(registryKey)
-                .map(reg -> reg.listElements().toList())
-                .orElse(List.of());
+            .lookup(registryKey)
+            .map(registry -> registry.listElements().toList())
+            .orElse(List.of());
     }
 
     public <T> Optional<HolderSet<T>> resolveTag(ResourceKey<Registry<T>> registryKey, TagKey<T> tagKey) {
         var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return Optional.empty();
+        if (conn == null)
+            return Optional.empty();
         return conn.registryAccess().lookup(registryKey)
-                .flatMap(reg -> reg.get(tagKey))
-                .<HolderSet<T>>map(named -> named);
+            .flatMap(registry -> registry.get(tagKey))
+            .map(named -> (HolderSet<T>) named);
     }
 
     public <T> Optional<Holder.Reference<T>> resolveHolder(ResourceKey<Registry<T>> registryKey, Identifier id) {
         var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return Optional.empty();
-        return conn.registryAccess().lookup(registryKey).flatMap(reg -> reg.get(ResourceKey.create(registryKey, id)));
+        if (conn == null)
+            return Optional.empty();
+        return conn.registryAccess().lookup(registryKey).flatMap(registry -> registry.get(ResourceKey.create(registryKey, id)));
     }
 
     public <T> Holder.Reference<T> findElement(ResourceKey<Registry<T>> registryKey) {
-        String id = tabsState.currentElementId();
-        if (id == null || id.isBlank()) return null;
-        for (var h : registryElements(registryKey)) {
-            if (h.key().identifier().toString().equals(id)) return h;
+        String id = workspaceState.tabsState().currentElementId();
+        if (id == null || id.isBlank())
+            return null;
+        for (Holder.Reference<T> holder : registryElements(registryKey)) {
+            if (holder.key().identifier().toString().equals(id))
+                return holder;
         }
         return null;
     }
 
     public void resyncWorldSession(boolean force) {
-        String nextKey = computeWorldSessionKey();
-        if (worldSessionKey.equals(nextKey)) {
-            if (force) {
-                packState.refreshFromServer();
-            }
+        String nextKey = sessionState.worldSessionKey();
+        if (workspaceState.worldSessionKey().equals(nextKey)) {
+            if (force)
+                sessionState.refreshPackList();
             return;
         }
 
-        worldSessionKey = nextKey;
-        elementStore.clearAll();
-        tabsState.reset();
-        packState.refreshFromServer();
+        workspaceState.setWorldSessionKey(nextKey);
+        workspaceState.resetForWorldSync();
+        sessionState.refreshPackList();
         snapshotRegistries();
     }
 
     public void resetForWorldClose() {
-        ClientSessionDispatch.clearGateway();
-        worldSessionKey = "";
-        permissionsProperty.set(StudioPermissions.NONE);
-        elementStore.clearAll();
-        tabsState.reset();
-        packState.clearSelection();
-        packState.availablePacks().clear();
+        workspaceState.resetForWorldClose();
+        dispatch.clearGateway(gateway);
         router.navigate(StudioRoute.NO_PERMISSION);
     }
 
     private void snapshotRegistries() {
         var conn = Minecraft.getInstance().getConnection();
-        if (conn == null) return;
-        conn.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(reg ->
-                elementStore.snapshotFromRegistry(Registries.ENCHANTMENT, reg,
-                        entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
+        if (conn == null)
+            return;
+        conn.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry ->
+            workspaceState.elementStore().snapshotFromRegistry(
+                Registries.ENCHANTMENT,
+                registry,
+                entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
     }
 
-    private static String computeWorldSessionKey() {
-        var mc = Minecraft.getInstance();
-        var server = mc.getSingleplayerServer();
-        if (server != null) {
-            return "sp:" + server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
-        }
-
-        var conn = mc.getConnection();
-        if (conn == null) {
-            return "";
-        }
-
-        ServerData data = mc.getCurrentServer();
-        if (data != null && !data.ip.isBlank()) {
-            return "mp:" + data.ip;
-        }
-
-        return "mp:" + conn.getConnection().getRemoteAddress();
+    public void dispose() {
+        sessionState.permissionsProperty().removeListener(permissionListener);
+        dispatch.clearGateway(gateway);
+        workspaceState.dispose();
     }
 }

@@ -1,12 +1,22 @@
 package fr.hardel.asset_editor.client.javafx.lib.store;
 
+import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 public final class RegistryElementStore {
@@ -16,11 +26,11 @@ public final class RegistryElementStore {
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
-    private final Map<SelectorKey, List<StoreSelector<?>>> selectors = new HashMap<>();
+    private final Map<SelectorKey, MutableSelectorStore<ElementEntry<?>>> elementStores = new HashMap<>();
     private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
 
     public <T> void snapshotFromRegistry(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-                                          Function<ElementEntry<T>, CustomFields> customInitializer) {
+                                         Function<ElementEntry<T>, CustomFields> customInitializer) {
         String name = registryName(registryKey);
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
@@ -28,7 +38,7 @@ public final class RegistryElementStore {
             Identifier tagId = named.key().location();
             for (Holder<T> holder : named.stream().toList()) {
                 holder.unwrapKey().ifPresent(
-                        key -> tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
+                    key -> tagsByElement.computeIfAbsent(key.identifier(), ignored -> new HashSet<>()).add(tagId));
             }
         });
 
@@ -37,7 +47,9 @@ public final class RegistryElementStore {
             Identifier id = holder.key().identifier();
             Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
             ElementEntry<T> entry = new ElementEntry<>(id, holder.value(), Set.copyOf(tags), CustomFields.EMPTY);
-            entries.put(id, entry.withCustom(customInitializer.apply(entry)));
+            ElementEntry<T> enrichedEntry = entry.withCustom(customInitializer.apply(entry));
+            entries.put(id, enrichedEntry);
+            elementStore(name, id, enrichedEntry).setState(enrichedEntry);
         });
 
         reference.put(name, Map.copyOf(entries));
@@ -47,7 +59,7 @@ public final class RegistryElementStore {
 
     @SuppressWarnings("unchecked")
     public <T> ElementEntry<T> get(ResourceKey<Registry<T>> registry, Identifier id) {
-        var registryMap = current.get(registryName(registry));
+        Map<Identifier, ElementEntry<?>> registryMap = current.get(registryName(registry));
         if (registryMap == null)
             return null;
         return (ElementEntry<T>) registryMap.get(id);
@@ -55,85 +67,79 @@ public final class RegistryElementStore {
 
     public <T> void put(ResourceKey<Registry<T>> registry, Identifier id, ElementEntry<T> entry) {
         String name = registryName(registry);
-        var registryMap = current.computeIfAbsent(name, k -> new LinkedHashMap<>());
-        var previous = registryMap.put(id, entry);
+        Map<Identifier, ElementEntry<?>> registryMap = current.computeIfAbsent(name, ignored -> new LinkedHashMap<>());
+        ElementEntry<?> previous = registryMap.put(id, entry);
         if (Objects.equals(previous, entry))
             return;
-        notifySelectors(name, id, entry);
+        elementStore(name, id, entry).setState(entry);
         notifyRegistryListeners(name);
     }
 
     public <T> void subscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
-        var list = registryListeners.computeIfAbsent(registryName(registry), k -> new ArrayList<>());
-        if (!list.contains(listener)) list.add(listener);
+        List<Runnable> listeners = registryListeners.computeIfAbsent(registryName(registry), ignored -> new ArrayList<>());
+        if (!listeners.contains(listener))
+            listeners.add(listener);
     }
 
     public <T> void unsubscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
-        var list = registryListeners.get(registryName(registry));
-        if (list != null) {
-            list.remove(listener);
-            if (list.isEmpty()) registryListeners.remove(registryName(registry));
-        }
+        List<Runnable> listeners = registryListeners.get(registryName(registry));
+        if (listeners == null)
+            return;
+        listeners.remove(listener);
+        if (listeners.isEmpty())
+            registryListeners.remove(registryName(registry));
     }
 
     @SuppressWarnings("unchecked")
     public <T> ElementEntry<T> getReference(ResourceKey<Registry<T>> registry, Identifier id) {
-        var registryMap = reference.get(registryName(registry));
+        Map<Identifier, ElementEntry<?>> registryMap = reference.get(registryName(registry));
         if (registryMap == null)
             return null;
         return (ElementEntry<T>) registryMap.get(id);
     }
 
     public <T> Collection<ElementEntry<?>> allElements(ResourceKey<Registry<T>> registry) {
-        var registryMap = current.get(registryName(registry));
+        Map<Identifier, ElementEntry<?>> registryMap = current.get(registryName(registry));
         return registryMap == null ? List.of() : registryMap.values();
     }
 
     @SuppressWarnings("unchecked")
     public <T> List<ElementEntry<T>> allTypedElements(ResourceKey<Registry<T>> registry) {
-        var registryMap = current.get(registryName(registry));
-        if (registryMap == null) return List.of();
-        return registryMap.values().stream().map(e -> (ElementEntry<T>) e).toList();
+        Map<Identifier, ElementEntry<?>> registryMap = current.get(registryName(registry));
+        if (registryMap == null)
+            return List.of();
+        return registryMap.values().stream().map(entry -> (ElementEntry<T>) entry).toList();
     }
 
     public <T, R> StoreSelector<R> select(ResourceKey<Registry<T>> registry, Identifier id,
-            Function<ElementEntry<T>, R> extractor) {
+                                          Function<ElementEntry<T>, R> extractor) {
         String name = registryName(registry);
         ElementEntry<T> entry = get(registry, id);
-        var selector = new StoreSelector<>(extractor, entry);
-        selectors.computeIfAbsent(new SelectorKey(name, id), k -> new ArrayList<>()).add(selector);
-        return selector;
+        return new StoreSelector<>(elementStore(name, id, entry), extractor);
     }
 
     public void disposeSelectors(List<StoreSelector<?>> toDispose) {
-        for (var selector : toDispose) {
-            selector.dispose();
-        }
-        for (var list : selectors.values()) {
-            list.removeAll(toDispose);
-        }
-        selectors.entrySet().removeIf(e -> e.getValue().isEmpty());
+        toDispose.forEach(StoreSelector::dispose);
     }
 
     public void clearAll() {
         reference.clear();
         current.clear();
-        selectors.values().forEach(list -> list.forEach(StoreSelector::dispose));
-        selectors.clear();
+        elementStores.values().forEach(store -> store.setState(null));
     }
 
-    private void notifySelectors(String registry, Identifier id, ElementEntry<?> entry) {
-        var list = selectors.get(new SelectorKey(registry, id));
-        if (list == null) return;
-        for (var selector : list) selector.recompute(entry);
+    private MutableSelectorStore<ElementEntry<?>> elementStore(String registry, Identifier id, ElementEntry<?> initial) {
+        return elementStores.computeIfAbsent(new SelectorKey(registry, id),
+            ignored -> new MutableSelectorStore<>(initial));
     }
 
     private void notifyRegistryListeners(String registry) {
-        var list = registryListeners.get(registry);
-        if (list != null) list.forEach(Runnable::run);
+        List<Runnable> listeners = registryListeners.get(registry);
+        if (listeners != null)
+            listeners.forEach(Runnable::run);
     }
 
     static String registryName(ResourceKey<?> key) {
-        return key.identifier().getPath();
+        return key.identifier().toString();
     }
 }

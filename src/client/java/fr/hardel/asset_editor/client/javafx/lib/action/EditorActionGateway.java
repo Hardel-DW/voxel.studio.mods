@@ -1,12 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioPackState;
+import fr.hardel.asset_editor.client.state.ClientSessionState;
+import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
+import fr.hardel.asset_editor.client.state.PendingClientAction;
 import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.network.EditorActionPayload;
-import fr.hardel.asset_editor.permission.StudioPermissions;
+import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.store.ElementEntry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -15,61 +15,50 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import java.util.LinkedHashMap;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public final class EditorActionGateway {
 
-    private record PendingAction<T>(ResourceKey<Registry<T>> registry, Identifier target, ElementEntry<T> snapshot) {}
-
     private static final Map<Identifier, ResourceKey<?>> REGISTRY_KEYS = Map.of(
         Registries.ENCHANTMENT.identifier(), Registries.ENCHANTMENT);
 
-    private final StudioPackState packState;
-    private final RegistryElementStore store;
-    private final Supplier<StudioPermissions> permissionSupplier;
-    private final Map<UUID, PendingAction<?>> pendingActions = new LinkedHashMap<>();
+    private final ClientSessionState sessionState;
+    private final ClientWorkspaceState workspaceState;
 
-    public EditorActionGateway(StudioPackState packState, RegistryElementStore store,
-        Supplier<StudioPermissions> permissionSupplier) {
-        this.packState = packState;
-        this.store = store;
-        this.permissionSupplier = permissionSupplier;
+    public EditorActionGateway(ClientSessionState sessionState, ClientWorkspaceState workspaceState) {
+        this.sessionState = sessionState;
+        this.workspaceState = workspaceState;
     }
 
-    public <T> EditorActionResult apply(ResourceKey<Registry<T>> registry, Identifier target,
-        UnaryOperator<T> transform) {
+    public <T> EditorActionResult apply(ResourceKey<Registry<T>> registry, Identifier target, UnaryOperator<T> transform) {
         return apply(registry, target, transform, null);
     }
 
     public <T> EditorActionResult apply(ResourceKey<Registry<T>> registry, Identifier target,
         UnaryOperator<T> transform, EditorAction action) {
-        var check = validate(registry, target);
-        if (check != null) {
+        EditorActionResult check = validate(registry, target);
+        if (check != null)
             return check;
-        }
 
-        ElementEntry<T> entry = store.get(registry, target);
-        if (entry == null) {
+        ElementEntry<T> entry = workspaceState.elementStore().get(registry, target);
+        if (entry == null)
             return EditorActionResult.error("error:element_not_found");
-        }
 
         T updated = transform.apply(entry.data());
-        if (Objects.equals(updated, entry.data())) {
+        if (Objects.equals(updated, entry.data()))
             return EditorActionResult.applied();
-        }
 
         if (action != null) {
             UUID actionId = UUID.randomUUID();
-            pendingActions.put(actionId, new PendingAction<>(registry, target, entry));
-            store.put(registry, target, entry.withData(updated));
+            workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, target, entry));
+            workspaceState.elementStore().put(registry, target, entry.withData(updated));
             sendAction(actionId, registry, target, action);
         } else {
-            store.put(registry, target, entry.withData(updated));
+            workspaceState.elementStore().put(registry, target, entry.withData(updated));
         }
 
         return EditorActionResult.applied();
@@ -82,11 +71,11 @@ public final class EditorActionGateway {
 
     public <T> EditorActionResult applyCustom(ResourceKey<Registry<T>> registry, Identifier target,
         UnaryOperator<CustomFields> transform, EditorAction action) {
-        var check = validate(registry, target);
+        EditorActionResult check = validate(registry, target);
         if (check != null)
             return check;
 
-        ElementEntry<T> entry = store.get(registry, target);
+        ElementEntry<T> entry = workspaceState.elementStore().get(registry, target);
         if (entry == null)
             return EditorActionResult.error("error:element_not_found");
 
@@ -96,96 +85,84 @@ public final class EditorActionGateway {
 
         if (action != null) {
             UUID actionId = UUID.randomUUID();
-            pendingActions.put(actionId, new PendingAction<>(registry, target, entry));
-            store.put(registry, target, entry.withCustom(updated));
+            workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, target, entry));
+            workspaceState.elementStore().put(registry, target, entry.withCustom(updated));
             sendAction(actionId, registry, target, action);
         } else {
-            store.put(registry, target, entry.withCustom(updated));
+            workspaceState.elementStore().put(registry, target, entry.withCustom(updated));
         }
 
         return EditorActionResult.applied();
     }
 
-    public <T> EditorActionResult toggleTag(ResourceKey<Registry<T>> registry, Identifier elementId,
-        Identifier tagId) {
-        var check = validate(registry, elementId);
-        if (check != null) {
+    public <T> EditorActionResult toggleTag(ResourceKey<Registry<T>> registry, Identifier elementId, Identifier tagId) {
+        EditorActionResult check = validate(registry, elementId);
+        if (check != null)
             return check;
-        }
 
-        ElementEntry<T> entry = store.get(registry, elementId);
-        if (entry == null) {
+        ElementEntry<T> entry = workspaceState.elementStore().get(registry, elementId);
+        if (entry == null)
             return EditorActionResult.error("error:element_not_found");
-        }
 
         UUID actionId = UUID.randomUUID();
-        pendingActions.put(actionId, new PendingAction<>(registry, elementId, entry));
-        store.put(registry, elementId, entry.toggleTag(tagId));
+        workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, elementId, entry));
+        workspaceState.elementStore().put(registry, elementId, entry.toggleTag(tagId));
         sendAction(actionId, registry, elementId, new EditorAction.ToggleTag(tagId));
-
         return EditorActionResult.applied();
     }
 
     @SuppressWarnings("unchecked")
     public void handleResponse(UUID actionId, boolean accepted, String message) {
-        var pending = pendingActions.remove(actionId);
-        if (pending == null) {
+        PendingClientAction<?> pending = workspaceState.removePendingAction(actionId);
+        if (pending == null)
             return;
-        }
 
         if (!accepted) {
-            var typed = (PendingAction<Object>) pending;
-            store.put((ResourceKey<Registry<Object>>) (ResourceKey<?>) typed.registry(), typed.target(), typed.snapshot());
+            PendingClientAction<Object> typed = (PendingClientAction<Object>) pending;
+            workspaceState.elementStore().put(
+                (ResourceKey<Registry<Object>>) (ResourceKey<?>) typed.registry(),
+                typed.target(),
+                typed.snapshot());
         }
     }
 
     public void handleRemoteUpdate(Identifier registryId, Identifier targetId, EditorAction action) {
         ResourceKey<?> key = REGISTRY_KEYS.get(registryId);
-        if (key != null) {
+        if (key != null)
             applyRemote(key, targetId, action);
-        }
     }
 
     @SuppressWarnings("unchecked")
     private <T> void applyRemote(ResourceKey<?> rawKey, Identifier targetId, EditorAction action) {
-        var registry = (ResourceKey<Registry<T>>) rawKey;
-        ElementEntry<T> entry = store.get(registry, targetId);
-        if (entry == null) {
+        ResourceKey<Registry<T>> registry = (ResourceKey<Registry<T>>) rawKey;
+        ElementEntry<T> entry = workspaceState.elementStore().get(registry, targetId);
+        if (entry == null)
             return;
-        }
 
-        ClientPacketListener conn = Minecraft.getInstance().getConnection();
-        HolderLookup.Provider registries = conn != null ? conn.registryAccess() : null;
-        if (registries == null) {
+        ClientPacketListener connection = Minecraft.getInstance().getConnection();
+        HolderLookup.Provider registries = connection != null ? connection.registryAccess() : null;
+        if (registries == null)
             return;
-        }
 
         ElementEntry<T> updated = (ElementEntry<T>) fr.hardel.asset_editor.network.ActionInterpreter.apply(
             rawKey.identifier(), entry, action, registries);
-        store.put(registry, targetId, updated);
+        workspaceState.elementStore().put(registry, targetId, updated);
     }
 
     private <T> EditorActionResult validate(ResourceKey<Registry<T>> registry, Identifier target) {
-        var pack = packState.selectedPack();
-        if (pack == null) {
+        var pack = workspaceState.packSelectionState().selectedPack();
+        if (pack == null)
             return EditorActionResult.packRequired();
-        }
-
-        if (!pack.writable()) {
+        if (!pack.writable())
             return EditorActionResult.rejected("error:pack_readonly");
-        }
-
-        if (!permissionSupplier.get().canEdit()) {
+        if (!sessionState.permissions().canEdit())
             return EditorActionResult.rejected("error:permission_denied");
-        }
-
         return null;
     }
 
     private void sendAction(UUID actionId, ResourceKey<?> registry, Identifier target, EditorAction action) {
-        var pack = packState.selectedPack();
+        var pack = workspaceState.packSelectionState().selectedPack();
         String packId = pack != null ? pack.packId() : "";
         ClientPlayNetworking.send(new EditorActionPayload(actionId, packId, registry.identifier(), target, action));
     }
-
 }

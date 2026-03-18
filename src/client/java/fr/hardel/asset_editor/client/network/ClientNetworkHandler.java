@@ -1,8 +1,6 @@
 package fr.hardel.asset_editor.client.network;
 
-import fr.hardel.asset_editor.client.ClientPackCache;
-import fr.hardel.asset_editor.client.ClientPermissionState;
-import fr.hardel.asset_editor.client.ClientSessionDispatch;
+import fr.hardel.asset_editor.client.AssetEditorClient;
 import fr.hardel.asset_editor.network.EditorActionResponsePayload;
 import fr.hardel.asset_editor.network.ElementUpdatePayload;
 import fr.hardel.asset_editor.network.PackListSyncPayload;
@@ -13,18 +11,18 @@ public final class ClientNetworkHandler {
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(PermissionSyncPayload.TYPE, (payload, context) ->
-                context.client().execute(() -> ClientPermissionState.update(payload.permissions())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePermissionSync(payload.permissions())));
 
         ClientPlayNetworking.registerGlobalReceiver(PackListSyncPayload.TYPE, (payload, context) ->
-                context.client().execute(() -> ClientPackCache.update(payload.packs())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackListSync(payload.packs())));
 
         ClientPlayNetworking.registerGlobalReceiver(EditorActionResponsePayload.TYPE, (payload, context) ->
-                context.client().execute(() -> ClientSessionDispatch.handleActionResponse(
-                        payload.actionId(), payload.accepted(), payload.message())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handleActionResponse(
+                payload.actionId(), payload.accepted(), payload.message())));
 
         ClientPlayNetworking.registerGlobalReceiver(ElementUpdatePayload.TYPE, (payload, context) ->
-                context.client().execute(() -> ClientSessionDispatch.handleElementUpdate(
-                        payload.registryId(), payload.targetId(), payload.action())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handleElementUpdate(
+                payload.registryId(), payload.targetId(), payload.action())));
     }
 
     private ClientNetworkHandler() {
