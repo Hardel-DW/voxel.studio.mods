@@ -1,30 +1,31 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
+import fr.hardel.asset_editor.client.state.ClientPackInfo;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
 import fr.hardel.asset_editor.client.state.PendingClientAction;
-import fr.hardel.asset_editor.network.EditorAction;
-import fr.hardel.asset_editor.network.EditorActionPayload;
-import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.network.AssetEditorNetworking;
+import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
+import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
+import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
+import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 
 public final class EditorActionGateway {
-
-    private static final Map<Identifier, ResourceKey<?>> REGISTRY_KEYS = Map.of(
-        Registries.ENCHANTMENT.identifier(), Registries.ENCHANTMENT);
 
     private final ClientSessionState sessionState;
     private final ClientWorkspaceState workspaceState;
@@ -34,122 +35,135 @@ public final class EditorActionGateway {
         this.workspaceState = workspaceState;
     }
 
-    public <T> EditorActionResult apply(ResourceKey<Registry<T>> registry, Identifier target, UnaryOperator<T> transform) {
-        return apply(registry, target, transform, null);
+    public <T> EditorActionResult dispatch(ResourceKey<Registry<T>> registry, Identifier target, EditorAction action) {
+        return dispatch(registry, target, action, null);
     }
 
-    public <T> EditorActionResult apply(ResourceKey<Registry<T>> registry, Identifier target,
-        UnaryOperator<T> transform, EditorAction action) {
-        EditorActionResult check = validate(registry, target);
+    public <T> EditorActionResult dispatch(ResourceKey<Registry<T>> registry, Identifier target,
+        EditorAction action, UnaryOperator<ElementEntry<T>> optimisticProjector) {
+        EditorActionResult check = validate(target);
         if (check != null)
             return check;
+
+        ClientPackInfo pack = workspaceState.packSelectionState().selectedPack();
+        if (pack == null)
+            return EditorActionResult.packRequired();
 
         ElementEntry<T> entry = workspaceState.elementStore().get(registry, target);
-        if (entry == null)
-            return EditorActionResult.error("error:element_not_found");
-
-        T updated = transform.apply(entry.data());
-        if (Objects.equals(updated, entry.data()))
-            return EditorActionResult.applied();
-
-        if (action != null) {
-            UUID actionId = UUID.randomUUID();
-            workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, target, entry));
-            workspaceState.elementStore().put(registry, target, entry.withData(updated));
-            sendAction(actionId, registry, target, action);
-        } else {
-            workspaceState.elementStore().put(registry, target, entry.withData(updated));
-        }
-
-        return EditorActionResult.applied();
-    }
-
-    public <T> EditorActionResult applyCustom(ResourceKey<Registry<T>> registry, Identifier target,
-        UnaryOperator<CustomFields> transform) {
-        return applyCustom(registry, target, transform, null);
-    }
-
-    public <T> EditorActionResult applyCustom(ResourceKey<Registry<T>> registry, Identifier target,
-        UnaryOperator<CustomFields> transform, EditorAction action) {
-        EditorActionResult check = validate(registry, target);
-        if (check != null)
-            return check;
-
-        ElementEntry<T> entry = workspaceState.elementStore().get(registry, target);
-        if (entry == null)
-            return EditorActionResult.error("error:element_not_found");
-
-        CustomFields updated = transform.apply(entry.custom());
-        if (Objects.equals(updated, entry.custom()))
-            return EditorActionResult.applied();
-
-        if (action != null) {
-            UUID actionId = UUID.randomUUID();
-            workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, target, entry));
-            workspaceState.elementStore().put(registry, target, entry.withCustom(updated));
-            sendAction(actionId, registry, target, action);
-        } else {
-            workspaceState.elementStore().put(registry, target, entry.withCustom(updated));
-        }
-
-        return EditorActionResult.applied();
-    }
-
-    public <T> EditorActionResult toggleTag(ResourceKey<Registry<T>> registry, Identifier elementId, Identifier tagId) {
-        EditorActionResult check = validate(registry, elementId);
-        if (check != null)
-            return check;
-
-        ElementEntry<T> entry = workspaceState.elementStore().get(registry, elementId);
         if (entry == null)
             return EditorActionResult.error("error:element_not_found");
 
         UUID actionId = UUID.randomUUID();
-        workspaceState.trackPendingAction(actionId, new PendingClientAction<>(registry, elementId, entry));
-        workspaceState.elementStore().put(registry, elementId, entry.toggleTag(tagId));
-        sendAction(actionId, registry, elementId, new EditorAction.ToggleTag(tagId));
+        workspaceState.trackPendingAction(actionId, new PendingClientAction<>(actionId, pack.packId(), registry, target, entry));
+
+        if (optimisticProjector != null) {
+            ElementEntry<T> projected = optimisticProjector.apply(entry);
+            if (projected != null && !Objects.equals(projected, entry))
+                workspaceState.elementStore().put(registry, target, projected);
+        }
+
+        ClientPlayNetworking.send(new WorkspaceMutationRequestPayload(
+            actionId,
+            pack.packId(),
+            registry.identifier(),
+            target,
+            action));
         return EditorActionResult.applied();
     }
 
-    @SuppressWarnings("unchecked")
-    public void handleResponse(UUID actionId, boolean accepted, String message) {
-        PendingClientAction<?> pending = workspaceState.removePendingAction(actionId);
+    public void requestPackWorkspace(ResourceKey<?> registry) {
+        ClientPackInfo pack = workspaceState.packSelectionState().selectedPack();
+        if (pack == null || pack.packId().isBlank())
+            return;
+        ClientPlayNetworking.send(new PackWorkspaceRequestPayload(pack.packId(), registry.identifier()));
+    }
+
+    public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
+        if (!payload.mutationResponse()) {
+            if (payload.snapshot() != null)
+                applySnapshotIfCurrentPack(payload.packId(), payload.snapshot());
+            return;
+        }
+
+        PendingClientAction<?> pending = workspaceState.removePendingAction(payload.actionId());
         if (pending == null)
             return;
-
-        if (!accepted) {
-            PendingClientAction<Object> typed = (PendingClientAction<Object>) pending;
-            workspaceState.elementStore().put(
-                (ResourceKey<Registry<Object>>) (ResourceKey<?>) typed.registry(),
-                typed.target(),
-                typed.snapshot());
+        if (payload.accepted()) {
+            if (payload.snapshot() != null)
+                applySnapshotIfCurrentPack(payload.packId(), payload.snapshot());
+            return;
         }
+        restorePending(pending);
+        workspaceState.issueState().pushError(payload.errorCode());
     }
 
-    public void handleRemoteUpdate(Identifier registryId, Identifier targetId, EditorAction action) {
-        ResourceKey<?> key = REGISTRY_KEYS.get(registryId);
-        if (key != null)
-            applyRemote(key, targetId, action);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void applyRemote(ResourceKey<?> rawKey, Identifier targetId, EditorAction action) {
-        ResourceKey<Registry<T>> registry = (ResourceKey<Registry<T>>) rawKey;
-        ElementEntry<T> entry = workspaceState.elementStore().get(registry, targetId);
-        if (entry == null)
+    public void handlePackWorkspaceSync(String packId, Identifier registryId, List<WorkspaceElementSnapshot> snapshots) {
+        ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
+        if (selectedPack == null || !selectedPack.packId().equals(packId))
             return;
 
-        ClientPacketListener connection = Minecraft.getInstance().getConnection();
-        HolderLookup.Provider registries = connection != null ? connection.registryAccess() : null;
+        var binding = AssetEditorNetworking.binding(registryId);
+        if (binding == null)
+            return;
+
+        HolderLookup.Provider registries = clientRegistries();
         if (registries == null)
             return;
 
-        ElementEntry<T> updated = (ElementEntry<T>) fr.hardel.asset_editor.network.ActionInterpreter.apply(
-            rawKey.identifier(), entry, action, registries);
-        workspaceState.elementStore().put(registry, targetId, updated);
+        replaceAll(binding, snapshots, registries);
     }
 
-    private <T> EditorActionResult validate(ResourceKey<Registry<T>> registry, Identifier target) {
+    @SuppressWarnings("unchecked")
+    private void restorePending(PendingClientAction<?> pending) {
+        ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
+        if (selectedPack == null || !selectedPack.packId().equals(pending.packId()))
+            return;
+
+        PendingClientAction<Object> typed = (PendingClientAction<Object>) pending;
+        workspaceState.elementStore().put(
+            (ResourceKey<Registry<Object>>) (ResourceKey<?>) typed.registry(),
+            typed.target(),
+            typed.previousSnapshot());
+    }
+
+    private void applySnapshotIfCurrentPack(String packId, WorkspaceElementSnapshot snapshot) {
+        ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
+        if (selectedPack == null || !selectedPack.packId().equals(packId))
+            return;
+
+        var binding = AssetEditorNetworking.binding(snapshot.registryId());
+        if (binding == null)
+            return;
+
+        HolderLookup.Provider registries = clientRegistries();
+        if (registries == null)
+            return;
+
+        applySnapshot(binding, snapshot, registries);
+    }
+
+    private <T> void replaceAll(RegistryWorkspaceBinding<T> binding, List<WorkspaceElementSnapshot> snapshots,
+        HolderLookup.Provider registries) {
+        List<ElementEntry<T>> entries = snapshots.stream()
+            .map(snapshot -> binding.fromSnapshot(snapshot, registries))
+            .toList();
+        workspaceState.elementStore().replaceAll(binding.registryKey(), entries);
+    }
+
+    private <T> void applySnapshot(RegistryWorkspaceBinding<T> binding, WorkspaceElementSnapshot snapshot,
+        HolderLookup.Provider registries) {
+        ElementEntry<T> entry = binding.fromSnapshot(snapshot, registries);
+        workspaceState.elementStore().put(binding.registryKey(), snapshot.targetId(), entry);
+    }
+
+    private HolderLookup.Provider clientRegistries() {
+        ClientPacketListener connection = Minecraft.getInstance().getConnection();
+        return connection != null ? connection.registryAccess() : null;
+    }
+
+    private EditorActionResult validate(Identifier target) {
+        if (target == null)
+            return EditorActionResult.error("error:element_not_found");
         var pack = workspaceState.packSelectionState().selectedPack();
         if (pack == null)
             return EditorActionResult.packRequired();
@@ -158,11 +172,5 @@ public final class EditorActionGateway {
         if (!sessionState.permissions().canEdit())
             return EditorActionResult.rejected("error:permission_denied");
         return null;
-    }
-
-    private void sendAction(UUID actionId, ResourceKey<?> registry, Identifier target, EditorAction action) {
-        var pack = workspaceState.packSelectionState().selectedPack();
-        String packId = pack != null ? pack.packId() : "";
-        ClientPlayNetworking.send(new EditorActionPayload(actionId, packId, registry.identifier(), target, action));
     }
 }

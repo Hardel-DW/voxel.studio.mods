@@ -3,25 +3,22 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.store.ElementEntry;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.UnaryOperator;
+import java.util.function.Function;
 
 public final class ExclusiveSingleSection extends VBox {
 
     public ExclusiveSingleSection(StudioContext context,
         StoreSelection<ElementEntry<?>, Set<String>> directExclusiveSelection,
         FxSelectionBindings bindings,
-        BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation) {
+        Function<Identifier, Boolean> toggleExclusive) {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 
@@ -41,7 +38,7 @@ public final class ExclusiveSingleSection extends VBox {
                 vanilla,
                 directExclusiveSelection,
                 bindings,
-                applyMutation,
+                toggleExclusive,
                 context));
         }
         getChildren().add(new EnchantmentCategory(
@@ -49,7 +46,7 @@ public final class ExclusiveSingleSection extends VBox {
             custom,
             directExclusiveSelection,
             bindings,
-            applyMutation,
+            toggleExclusive,
             context));
     }
 }

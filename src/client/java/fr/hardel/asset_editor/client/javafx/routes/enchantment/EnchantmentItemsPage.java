@@ -5,23 +5,19 @@ import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.network.EditorAction;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
 
@@ -49,7 +45,6 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
     protected void buildContent() {
         supportedCards.clear();
         primaryCards.clear();
-
         supportedGrid = buildGrid(supportedCards, false);
         primaryGrid = buildGrid(primaryCards, true);
 
@@ -64,23 +59,11 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
                     primaryNoneCard.setActive(tag == null);
             });
 
-        wireCardActions(supportedCards, tagId -> {
-            var tagKey = TagKey.create(Registries.ITEM, tagId);
-            return context().resolveTag(Registries.ITEM, tagKey)
-                .map(holderSet -> EnchantmentActions.supportedItems(holderSet))
-                .orElse(null);
-        }, tagId -> new EditorAction.SetSupportedItems(tagId.toString()));
-
-        wireCardActions(primaryCards, tagId -> {
-            var tagKey = TagKey.create(Registries.ITEM, tagId);
-            return context().resolveTag(Registries.ITEM, tagKey)
-                .map(holderSet -> EnchantmentActions.primaryItems(Optional.of(holderSet)))
-                .orElse(null);
-        }, tagId -> new EditorAction.SetPrimaryItems(tagId.toString()));
+        wireCardActions(supportedCards, tagId -> new EditorAction.SetSupportedItems(tagId.toString()));
+        wireCardActions(primaryCards, tagId -> new EditorAction.SetPrimaryItems(tagId.toString()));
 
         if (primaryNoneCard != null) {
-            primaryNoneCard.setOnMouseClicked(e ->
-                applyAction(EnchantmentActions.primaryItems(Optional.empty()), new EditorAction.SetPrimaryItems("")));
+            primaryNoneCard.setOnMouseClicked(e -> context().gateway().dispatch(Registries.ENCHANTMENT, currentId(), new EditorAction.SetPrimaryItems("")));
         }
     }
 
@@ -114,15 +97,10 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
     }
 
     private void wireCardActions(Map<Identifier, Card> cardMap,
-        Function<Identifier, UnaryOperator<Enchantment>> mutationFactory,
         Function<Identifier, EditorAction> actionFactory) {
         for (var entry : cardMap.entrySet()) {
             Identifier key = entry.getKey();
-            entry.getValue().setOnMouseClicked(e -> {
-                var mutation = mutationFactory.apply(key);
-                if (mutation != null)
-                    applyAction(mutation, actionFactory.apply(key));
-            });
+            entry.getValue().setOnMouseClicked(e -> context().gateway().dispatch(Registries.ENCHANTMENT, currentId(), actionFactory.apply(key)));
         }
     }
 

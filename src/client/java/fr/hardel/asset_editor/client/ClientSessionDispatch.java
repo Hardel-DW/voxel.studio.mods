@@ -3,14 +3,13 @@ package fr.hardel.asset_editor.client;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
-import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.permission.StudioPermissions;
+import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 import javafx.application.Platform;
-import net.minecraft.resources.Identifier;
 
 import java.util.List;
-import java.util.UUID;
 
 public final class ClientSessionDispatch {
 
@@ -42,16 +41,16 @@ public final class ClientSessionDispatch {
         runSessionUpdate(() -> sessionState.updatePacks(packs));
     }
 
-    public void handleActionResponse(UUID actionId, boolean accepted, String message) {
+    public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handleResponse(actionId, accepted, message));
+            Platform.runLater(() -> gateway.handleWorkspaceSync(payload));
     }
 
-    public void handleElementUpdate(Identifier registryId, Identifier targetId, EditorAction action) {
+    public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handleRemoteUpdate(registryId, targetId, action));
+            Platform.runLater(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
     }
 
     private void runSessionUpdate(Runnable update) {

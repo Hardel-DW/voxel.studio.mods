@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
 import fr.hardel.asset_editor.store.ElementEntry;
 import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
@@ -44,9 +46,12 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
 
         content().getChildren().setAll(selector);
 
+        Function<EditorAction, Boolean> dispatchExclusiveAction = action ->
+            context().gateway().dispatch(Registries.ENCHANTMENT, currentId(), action).isApplied();
+
         groupSection = new ExclusiveGroupSection(
             context(), currentId(),
-            (mutation, action) -> applyAction(mutation, action).isApplied(),
+            dispatchExclusiveAction,
             tagId -> applyTagToggle(tagId).isApplied());
 
         StoreSelection<ElementEntry<?>, Set<String>> directExclusiveSelection = selectValue(entry -> {
@@ -65,7 +70,7 @@ public final class EnchantmentExclusivePage extends RegistryPage<Enchantment> {
             context(),
             directExclusiveSelection,
             selectionBindings(),
-            (mutation, action) -> applyAction(mutation, action).isApplied());
+            enchantmentId -> dispatchExclusiveAction.apply(new EditorAction.ToggleExclusive(enchantmentId)));
 
         selector.setContent("single".equals(currentMode) ? singleSection : groupSection);
     }

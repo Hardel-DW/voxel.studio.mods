@@ -1,5 +1,7 @@
-package fr.hardel.asset_editor.network;
+package fr.hardel.asset_editor.network.workspace.impl;
 
+import fr.hardel.asset_editor.network.workspace.EditorAction;
+import fr.hardel.asset_editor.network.workspace.RegistryInterpreter;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;

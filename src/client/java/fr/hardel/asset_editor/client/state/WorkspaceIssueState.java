@@ -63,6 +63,17 @@ public final class WorkspaceIssueState {
         store.update(state -> new Snapshot(state.warnings(), nextErrors));
     }
 
+    public void pushError(String error) {
+        if (error == null || error.isBlank())
+            return;
+        store.update(state -> {
+            java.util.ArrayList<String> next = new java.util.ArrayList<>(state.errors());
+            next.remove(error);
+            next.add(0, error);
+            return new Snapshot(state.warnings(), next);
+        });
+    }
+
     public void clear() {
         store.setState(Snapshot.empty());
     }

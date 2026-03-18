@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor;
 
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
+import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.network.workspace.impl.EnchantmentInterpreter;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissionCommand;
 import fr.hardel.asset_editor.store.CustomFields;
@@ -29,7 +31,12 @@ public class AssetEditor implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AssetEditorNetworking.registerBinding(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentFlushAdapter.INSTANCE);
+        AssetEditorNetworking.registerBinding(new RegistryWorkspaceBinding<>(
+            Registries.ENCHANTMENT,
+            Enchantment.DIRECT_CODEC,
+            EnchantmentFlushAdapter.INSTANCE,
+            new EnchantmentInterpreter(),
+            entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
         AssetEditorNetworking.registerServer();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -74,7 +81,6 @@ public class AssetEditor implements ModInitializer {
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
             server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
-                store.snapshot(Registries.ENCHANTMENT, registry, customInit);
                 store.snapshotVanilla(Registries.ENCHANTMENT, vanillaResources, registry, Enchantment.DIRECT_CODEC, server.registryAccess(), customInit);
             });
         }

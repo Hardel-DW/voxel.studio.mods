@@ -1,17 +1,24 @@
 package fr.hardel.asset_editor.network;
 
-import com.mojang.serialization.Codec;
+import fr.hardel.asset_editor.network.pack.PackCreatePayload;
+import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
+import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
+import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
+import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
+import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
+import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
+import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.FlushAdapter;
 import fr.hardel.asset_editor.store.ServerElementStore;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -20,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,25 +35,30 @@ public final class AssetEditorNetworking {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AssetEditorNetworking.class);
 
-    public record RegistryBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter) {}
+    private static final Map<String, RegistryWorkspaceBinding<?>> BINDINGS = new HashMap<>();
 
-    private static final Map<String, RegistryBinding<?>> BINDINGS = new HashMap<>();
+    public static <T> void registerBinding(RegistryWorkspaceBinding<T> binding) {
+        BINDINGS.put(binding.registryId().toString(), binding);
+    }
 
-    public static <T> void registerBinding(ResourceKey<Registry<T>> key, Codec<T> codec, FlushAdapter<T> adapter) {
-        BINDINGS.put(key.identifier().getPath(), new RegistryBinding<>(key, codec, adapter));
+    @SuppressWarnings("unchecked")
+    public static <T> RegistryWorkspaceBinding<T> binding(Identifier registryId) {
+        return (RegistryWorkspaceBinding<T>) BINDINGS.get(registryId.toString());
     }
 
     public static void registerServer() {
         PayloadTypeRegistry.playS2C().register(PermissionSyncPayload.TYPE, PermissionSyncPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(EditorActionResponsePayload.TYPE, EditorActionResponsePayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(ElementUpdatePayload.TYPE, ElementUpdatePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(WorkspaceSyncPayload.TYPE, WorkspaceSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PackWorkspaceSyncPayload.TYPE, PackWorkspaceSyncPayload.CODEC);
 
-        PayloadTypeRegistry.playC2S().register(EditorActionPayload.TYPE, EditorActionPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(EditorActionPayload.TYPE, AssetEditorNetworking::handleEditorAction);
+        PayloadTypeRegistry.playC2S().register(WorkspaceMutationRequestPayload.TYPE, WorkspaceMutationRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(WorkspaceMutationRequestPayload.TYPE, AssetEditorNetworking::handleWorkspaceMutation);
 
         PayloadTypeRegistry.playS2C().register(PackListSyncPayload.TYPE, PackListSyncPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PackListRequestPayload.TYPE, PackListRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PackListRequestPayload.TYPE, AssetEditorNetworking::handlePackListRequest);
+        PayloadTypeRegistry.playC2S().register(PackWorkspaceRequestPayload.TYPE, PackWorkspaceRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(PackWorkspaceRequestPayload.TYPE, AssetEditorNetworking::handlePackWorkspaceRequest);
 
         PayloadTypeRegistry.playC2S().register(PackCreatePayload.TYPE, PackCreatePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PackCreatePayload.TYPE, AssetEditorNetworking::handlePackCreate);
@@ -59,84 +72,93 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
-    private static void handleEditorAction(EditorActionPayload payload, ServerPlayNetworking.Context context) {
+    private static void handleWorkspaceMutation(WorkspaceMutationRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             ServerPlayer player = context.player();
             MinecraftServer server = context.server();
             var permManager = PermissionManager.get();
             if (permManager == null) {
-                sendResponse(player, payload.actionId(), false, "error:server_unavailable");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:server_unavailable", null);
                 return;
             }
 
             if (!permManager.getEffectivePermissions(player).canEdit()) {
-                sendResponse(player, payload.actionId(), false, "error:permission_denied");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:permission_denied", null);
                 return;
             }
 
             var store = ServerElementStore.get();
             var packManager = ServerPackManager.get();
             if (store == null || packManager == null) {
-                sendResponse(player, payload.actionId(), false, "error:server_unavailable");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:server_unavailable", null);
+                return;
+            }
+
+            var binding = binding(payload.registryId());
+            if (binding == null) {
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:invalid_registry", null);
                 return;
             }
 
             var packRoot = packManager.resolveWritablePack(payload.packId());
             if (packRoot.isEmpty()) {
-                sendResponse(player, payload.actionId(), false, "error:invalid_pack");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:invalid_pack", null);
                 return;
             }
 
-            ElementEntry<?> entry = store.get(payload.registryId(), payload.targetId());
+            ElementEntry<?> entry = store.get(payload.packId(), binding, packRoot.get(), server.registryAccess(), payload.targetId());
             if (entry == null) {
-                sendResponse(player, payload.actionId(), false, "error:element_not_found");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:element_not_found", null);
                 return;
             }
 
             ElementEntry<?> updated;
             try {
-                updated = ActionInterpreter.apply(payload.registryId(), entry, payload.action(), server.registryAccess());
+                updated = applyMutation(binding, entry, payload.action(), server.registryAccess());
             } catch (Exception e) {
                 LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
-                sendResponse(player, payload.actionId(), false, "error:invalid_action");
+                sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                    "error:invalid_action", null);
                 return;
             }
 
-            store.put(payload.registryId(), payload.targetId(), updated, payload.packId());
-            flushElement(server, packRoot.get(), payload.packId(), payload.registryId());
+            putUpdatedEntry(store, payload.packId(), binding, packRoot.get(), server, payload.targetId(), updated);
+            store.flushDirty(packRoot.get(), payload.packId(), binding, server.registryAccess());
+            WorkspaceElementSnapshot snapshot = toSnapshot(binding, updated, server.registryAccess());
 
-            sendResponse(player, payload.actionId(), true, "");
-            broadcastUpdate(server, player, payload.registryId(), payload.targetId(), payload.action());
+            sendMutationResult(player, payload.actionId(), payload.packId(), true, "", snapshot);
+            broadcastUpdate(server, player, payload.packId(), snapshot);
         });
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> void flushElement(MinecraftServer server, Path packRoot, String packId, Identifier registryId) {
-        var binding = (RegistryBinding<T>) BINDINGS.get(registryId.getPath());
-        if (binding == null)
-            return;
+    private static void handlePackWorkspaceRequest(PackWorkspaceRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var permManager = PermissionManager.get();
+            var store = ServerElementStore.get();
+            var packManager = ServerPackManager.get();
+            if (permManager == null || store == null || packManager == null)
+                return;
+            if (!permManager.getEffectivePermissions(context.player()).canEdit())
+                return;
 
-        var store = ServerElementStore.get();
-        if (store == null)
-            return;
+            var binding = binding(payload.registryId());
+            if (binding == null)
+                return;
 
-        store.flushDirty(packRoot, packId, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
-    }
+            var packRoot = packManager.resolveWritablePack(payload.packId());
+            if (packRoot.isEmpty())
+                return;
 
-    private static void broadcastUpdate(MinecraftServer server, ServerPlayer sender,
-        Identifier registryId, Identifier targetId, EditorAction action) {
-        var permManager = PermissionManager.get();
-        if (permManager == null)
-            return;
-
-        var payload = new ElementUpdatePayload(registryId, targetId, action);
-        for (ServerPlayer other : server.getPlayerList().getPlayers()) {
-            if (other == sender)
-                continue;
-            if (!permManager.getEffectivePermissions(other).canEdit())
-                continue;
-            ServerPlayNetworking.send(other, payload);
-        }
+            sendPackWorkspace(context.player(), payload.packId(), binding,
+                store.snapshotWorkspace(payload.packId(), binding, packRoot.get(), context.server().registryAccess()),
+                context.server().registryAccess());
+        });
     }
 
     private static void handlePackListRequest(PackListRequestPayload payload, ServerPlayNetworking.Context context) {
@@ -164,8 +186,51 @@ public final class AssetEditorNetworking {
         });
     }
 
-    private static void sendResponse(ServerPlayer player, UUID actionId, boolean accepted, String message) {
-        ServerPlayNetworking.send(player, new EditorActionResponsePayload(actionId, accepted, message));
+    private static void broadcastUpdate(MinecraftServer server, ServerPlayer sender,
+        String packId, WorkspaceElementSnapshot snapshot) {
+        var permManager = PermissionManager.get();
+        if (permManager == null)
+            return;
+
+        var payload = WorkspaceSyncPayload.remoteSync(packId, snapshot);
+        for (ServerPlayer other : server.getPlayerList().getPlayers()) {
+            if (other == sender)
+                continue;
+            if (!permManager.getEffectivePermissions(other).canEdit())
+                continue;
+            ServerPlayNetworking.send(other, payload);
+        }
+    }
+
+    private static <T> void sendPackWorkspace(ServerPlayer player, String packId, RegistryWorkspaceBinding<T> binding,
+        List<ElementEntry<T>> entries, net.minecraft.core.HolderLookup.Provider registries) {
+        List<WorkspaceElementSnapshot> snapshots = entries.stream()
+            .map(entry -> binding.toSnapshot(entry, registries))
+            .toList();
+        ServerPlayNetworking.send(player, new PackWorkspaceSyncPayload(packId, binding.registryId(), snapshots));
+    }
+
+    private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId,
+        boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) {
+        ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, snapshot));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> ElementEntry<T> applyMutation(RegistryWorkspaceBinding<T> binding, ElementEntry<?> entry,
+        EditorAction action, net.minecraft.core.HolderLookup.Provider registries) {
+        return binding.interpreter().apply((ElementEntry<T>) entry, action, registries);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> void putUpdatedEntry(ServerElementStore store, String packId, RegistryWorkspaceBinding<T> binding,
+        Path packRoot, MinecraftServer server, Identifier targetId, ElementEntry<?> updated) {
+        store.put(packId, binding, packRoot, server.registryAccess(), targetId, (ElementEntry<T>) updated);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> WorkspaceElementSnapshot toSnapshot(RegistryWorkspaceBinding<T> binding, ElementEntry<?> entry,
+        net.minecraft.core.HolderLookup.Provider registries) {
+        return binding.toSnapshot((ElementEntry<T>) entry, registries);
     }
 
     private AssetEditorNetworking() {}

@@ -5,27 +5,23 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.components.ui.InlineCard;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.network.EditorAction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.UnaryOperator;
+import java.util.function.Function;
 
 public final class EnchantmentCategory extends Category {
 
     public EnchantmentCategory(String title, List<Identifier> identifiers,
         StoreSelection<ElementEntry<?>, Set<String>> directExclusiveSelection,
         FxSelectionBindings bindings,
-        BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation,
+        Function<Identifier, Boolean> toggleExclusive,
         StudioContext context) {
         super(title);
 
@@ -39,9 +35,7 @@ public final class EnchantmentCategory extends Category {
                 && directExclusiveSelection.get().contains(id.toString());
             InlineCard card = new InlineCard(name, id.getNamespace(), active, false, null);
 
-            card.setOnMouseClicked(e -> context.resolveHolder(Registries.ENCHANTMENT, id).ifPresent(holder -> applyMutation.apply(
-                EnchantmentActions.toggleExclusive(holder, id),
-                new EditorAction.ToggleExclusive(id))));
+            card.setOnMouseClicked(e -> toggleExclusive.apply(id));
             bindings.observe(directExclusiveSelection,
                 ids -> card.activeProperty().set(ids != null && ids.contains(id.toString())));
 

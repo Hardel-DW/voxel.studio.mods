@@ -5,4 +5,16 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
-public record PendingClientAction<T>(ResourceKey<Registry<T>> registry, Identifier target, ElementEntry<T> snapshot) {}
+import java.util.UUID;
+
+public record PendingClientAction<T>(
+    UUID actionId,
+    String packId,
+    ResourceKey<Registry<T>> registry,
+    Identifier target,
+    ElementEntry<T> previousSnapshot) {
+
+    public PendingClientAction {
+        packId = packId == null ? "" : packId;
+    }
+}

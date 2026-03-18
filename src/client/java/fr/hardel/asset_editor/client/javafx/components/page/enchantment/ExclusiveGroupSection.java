@@ -9,38 +9,33 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.network.EditorAction;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public final class ExclusiveGroupSection extends VBox {
 
     private final StudioContext context;
     private final Identifier elementId;
-    private final BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation;
+    private final Function<EditorAction, Boolean> dispatchAction;
     private final Function<Identifier, Boolean> applyTag;
     private EnchantmentTags currentTargetCard;
 
     public ExclusiveGroupSection(StudioContext context, Identifier elementId,
-            BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation,
+            Function<EditorAction, Boolean> dispatchAction,
             Function<Identifier, Boolean> applyTag) {
         this.context = context;
         this.elementId = elementId;
-        this.applyMutation = applyMutation;
+        this.dispatchAction = dispatchAction;
         this.applyTag = applyTag;
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
@@ -155,16 +150,9 @@ public final class ExclusiveGroupSection extends VBox {
 
         boolean ok;
         if (!checked) {
-            ok = applyMutation.apply(
-                    EnchantmentActions.exclusiveSet(HolderSet.empty()),
-                    new EditorAction.SetExclusiveSet(""));
+            ok = dispatchAction.apply(new EditorAction.SetExclusiveSet(""));
         } else {
-            HolderSet<Enchantment> resolved = context.resolveTag(
-                    Registries.ENCHANTMENT,
-                    TagKey.create(Registries.ENCHANTMENT, tagId)).orElse(HolderSet.empty());
-            ok = applyMutation.apply(
-                    EnchantmentActions.exclusiveSet(resolved),
-                    new EditorAction.SetExclusiveSet(tagId.toString()));
+            ok = dispatchAction.apply(new EditorAction.SetExclusiveSet(tagId.toString()));
         }
 
         if (!ok) {

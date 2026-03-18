@@ -4,7 +4,6 @@ import fr.hardel.asset_editor.store.SlotManager;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,7 +15,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantment.Cost;
 import net.minecraft.world.item.enchantment.Enchantment.EnchantmentDefinition;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,13 +55,6 @@ public final class EnchantmentActions {
             PREVENTS_INFESTED_SPAWNS_TAG,
             SMELTS_LOOT_TAG);
 
-    public static final List<Identifier> OVERVIEW_TAGS = List.of(
-            IN_ENCHANTING_TABLE_TAG,
-            ON_RANDOM_LOOT_TAG,
-            ON_TRADED_EQUIPMENT_TAG,
-            TRADEABLE_TAG,
-            DOUBLE_TRADE_PRICE_TAG);
-
     public static Enchantment withDefinition(Enchantment e, UnaryOperator<EnchantmentDefinition> transform) {
         return new Enchantment(e.description(), transform.apply(e.definition()), e.exclusiveSet(), e.effects());
     }
@@ -93,12 +84,12 @@ public final class EnchantmentActions {
         };
     }
 
-    public static String mode(ElementEntry<Enchantment> entry) {
-        return mode(entry.custom());
-    }
-
     public static String mode(CustomFields custom) {
         return normalizeMode(custom.getString(MODE_KEY, MODE_NORMAL));
+    }
+
+    public static String mode(ElementEntry<Enchantment> entry) {
+        return mode(entry.custom());
     }
 
     public static boolean isSoftDeleted(ElementEntry<Enchantment> entry) {
@@ -109,12 +100,12 @@ public final class EnchantmentActions {
         return MODE_SOFT_DELETE.equals(mode(custom));
     }
 
-    public static Set<String> disabledEffects(ElementEntry<Enchantment> entry) {
-        return disabledEffects(entry.custom());
-    }
-
     public static Set<String> disabledEffects(CustomFields custom) {
         return custom.getStringSet(DISABLED_EFFECTS_KEY);
+    }
+
+    public static Set<String> disabledEffects(ElementEntry<Enchantment> entry) {
+        return disabledEffects(entry.custom());
     }
 
     public static boolean isEffectDisabled(ElementEntry<Enchantment> entry, String effectId) {
@@ -186,39 +177,6 @@ public final class EnchantmentActions {
             return withDefinition(e, d -> new EnchantmentDefinition(
                     d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
                     d.minCost(), d.maxCost(), d.anvilCost(), slots));
-        };
-    }
-
-    public static UnaryOperator<Enchantment> supportedItems(HolderSet<Item> items) {
-        return e -> withDefinition(e, d -> new EnchantmentDefinition(
-                items, d.primaryItems(), d.weight(), d.maxLevel(),
-                d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
-    }
-
-    public static UnaryOperator<Enchantment> primaryItems(Optional<HolderSet<Item>> items) {
-        return e -> withDefinition(e, d -> new EnchantmentDefinition(
-                d.supportedItems(), items, d.weight(), d.maxLevel(),
-                d.minCost(), d.maxCost(), d.anvilCost(), d.slots()));
-    }
-
-    public static UnaryOperator<Enchantment> exclusiveSet(HolderSet<Enchantment> set) {
-        return e -> new Enchantment(e.description(), e.definition(), set, e.effects());
-    }
-
-    public static UnaryOperator<Enchantment> toggleExclusive(Holder<Enchantment> holder, Identifier enchantmentId) {
-        return e -> {
-            if (e.exclusiveSet().unwrapKey().isPresent()) {
-                return new Enchantment(e.description(), e.definition(), HolderSet.direct(List.of(holder)), e.effects());
-            }
-
-            List<Holder<Enchantment>> current = new ArrayList<>(e.exclusiveSet().stream().toList());
-            boolean removed = current.removeIf(h -> h.unwrapKey()
-                    .map(k -> k.identifier().equals(enchantmentId))
-                    .orElse(false));
-            if (!removed) current.add(holder);
-
-            HolderSet<Enchantment> newSet = current.isEmpty() ? HolderSet.empty() : HolderSet.direct(current);
-            return new Enchantment(e.description(), e.definition(), newSet, e.effects());
         };
     }
 

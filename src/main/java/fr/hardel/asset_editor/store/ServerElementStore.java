@@ -3,15 +3,15 @@ package fr.hardel.asset_editor.store;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
+import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -21,10 +21,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public final class ServerElementStore {
 
@@ -45,34 +47,8 @@ public final class ServerElementStore {
         instance = null;
     }
 
-    private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
-    private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
-    private final Map<String, Map<String, Set<Identifier>>> dirtyElements = new HashMap<>();
-
-    public <T> void snapshot(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-        Function<ElementEntry<T>, CustomFields> customInitializer) {
-        String name = registryName(registryKey);
-
-        Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
-        registry.listTags().forEach(named -> {
-            Identifier tagId = named.key().location();
-            for (Holder<T> holder : named.stream().toList()) {
-                holder.unwrapKey().ifPresent(
-                    key -> tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
-            }
-        });
-
-        Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
-        registry.listElements().forEach(holder -> {
-            Identifier id = holder.key().identifier();
-            Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
-            ElementEntry<T> entry = new ElementEntry<>(id, holder.value(), Set.copyOf(tags), CustomFields.EMPTY);
-            entries.put(id, entry.withCustom(customInitializer.apply(entry)));
-        });
-
-        current.put(name, new LinkedHashMap<>(entries));
-        dirtyElements.remove(name);
-    }
+    private final Map<String, Map<Identifier, ElementEntry<?>>> baselines = new HashMap<>();
+    private final Map<String, Map<String, PackWorkspaceStore<?>>> workspaces = new HashMap<>();
 
     public <T> void snapshotVanilla(ResourceKey<Registry<T>> registryKey,
         ResourceManager vanillaResources,
@@ -94,55 +70,50 @@ public final class ServerElementStore {
             entries.put(id, vanillaEntry.withCustom(customInitializer.apply(vanillaEntry)));
         }
 
-        vanilla.put(name, Map.copyOf(entries));
+        baselines.put(name, Map.copyOf(entries));
+        workspaces.values().forEach(perRegistry -> perRegistry.remove(name));
+    }
+
+    public <T> ElementEntry<T> get(String packId, RegistryWorkspaceBinding<T> binding,
+        Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
+        return workspace(packId, binding, packRoot, registries).get(elementId);
+    }
+
+    public <T> void put(String packId, RegistryWorkspaceBinding<T> binding,
+        Path packRoot, HolderLookup.Provider registries,
+        Identifier elementId, ElementEntry<T> entry) {
+        workspace(packId, binding, packRoot, registries).put(elementId, entry);
+    }
+
+    public <T> List<ElementEntry<T>> snapshotWorkspace(String packId, RegistryWorkspaceBinding<T> binding,
+        Path packRoot, HolderLookup.Provider registries) {
+        return List.copyOf(workspace(packId, binding, packRoot, registries).entries());
     }
 
     @SuppressWarnings("unchecked")
-    public <T> ElementEntry<T> get(Identifier registryId, Identifier elementId) {
-        var registryMap = current.get(registryId.getPath());
-        if (registryMap == null)
-            return null;
-        return (ElementEntry<T>) registryMap.get(elementId);
-    }
-
-    public <T> void put(Identifier registryId, Identifier elementId, ElementEntry<T> entry, String packId) {
-        String name = registryId.getPath();
-        var registryMap = current.computeIfAbsent(name, k -> new LinkedHashMap<>());
-        registryMap.put(elementId, entry);
-        dirtyElements.computeIfAbsent(name, k -> new HashMap<>())
-            .computeIfAbsent(packId, k -> new HashSet<>())
-            .add(elementId);
-    }
-
-    public <T> void flushDirty(Path packRoot, String packId, ResourceKey<Registry<T>> registry, Codec<T> codec,
-        HolderLookup.Provider registries, FlushAdapter<T> adapter) {
-        String name = registryName(registry);
-        var packMap = dirtyElements.get(name);
-        if (packMap == null)
-            return;
-
-        Set<Identifier> dirty = packMap.get(packId);
-        if (dirty == null || dirty.isEmpty())
-            return;
-
-        var vanillaMap = vanilla.getOrDefault(name, Map.of());
-        var currentMap = current.get(name);
-        if (currentMap == null)
+    public <T> void flushDirty(Path packRoot, String packId, RegistryWorkspaceBinding<T> binding,
+        HolderLookup.Provider registries) {
+        PackWorkspaceStore<T> workspace = workspace(packId, binding, packRoot, registries);
+        Set<Identifier> dirty = workspace.dirty();
+        if (dirty.isEmpty())
             return;
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
-        var flushAdapter = adapter == null ? FlushAdapter.<T> identity() : adapter;
+        var flushAdapter = binding.adapter() == null ? FlushAdapter.<T> identity() : binding.adapter();
+        String name = binding.registryName();
+        var baselineMap = (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) baselines.getOrDefault(name, Map.of());
+        var currentMap = (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) workspace.entryMap();
 
-        flushDirtyElements(packRoot, name, vanillaMap, currentMap, dirty, codec, ops, flushAdapter);
-        flushDirtyTags(packRoot, name, vanillaMap, currentMap, dirty, flushAdapter);
+        flushDirtyElements(packRoot, binding.registryKey().identifier().getPath(), baselineMap, currentMap, dirty,
+            binding.codec(), ops, flushAdapter);
+        flushDirtyTags(packRoot, binding.registryKey().identifier().getPath(), baselineMap, currentMap, dirty, flushAdapter);
 
-        dirty.clear();
+        workspace.clearDirty();
     }
 
     public void clearAll() {
-        vanilla.clear();
-        current.clear();
-        dirtyElements.clear();
+        baselines.clear();
+        workspaces.clear();
     }
 
     @SuppressWarnings("unchecked")
@@ -150,8 +121,8 @@ public final class ServerElementStore {
         ResourceManager resourceManager,
         Registry<T> registry) {
         var loader = new TagLoader<>(
-            (TagLoader.ElementLookup<Holder<T>>) TagLoader.ElementLookup.fromFrozenRegistry(registry),
-            Registries.tagsDirPath(registryKey));
+            (TagLoader.ElementLookup<net.minecraft.core.Holder<T>>) TagLoader.ElementLookup.fromFrozenRegistry(registry),
+            net.minecraft.core.registries.Registries.tagsDirPath(registryKey));
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         loader.build(loader.load(resourceManager)).forEach((tagId, holders) -> {
@@ -186,6 +157,177 @@ public final class ServerElementStore {
             });
 
         return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> PackWorkspaceStore<T> workspace(String packId, RegistryWorkspaceBinding<T> binding,
+        Path packRoot, HolderLookup.Provider registries) {
+        Map<String, PackWorkspaceStore<?>> registryWorkspaces = workspaces.computeIfAbsent(packId, ignored -> new HashMap<>());
+        return (PackWorkspaceStore<T>) registryWorkspaces.computeIfAbsent(binding.registryName(),
+            ignored -> loadWorkspace(packRoot, binding, registries));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> PackWorkspaceStore<T> loadWorkspace(Path packRoot, RegistryWorkspaceBinding<T> binding,
+        HolderLookup.Provider registries) {
+        Map<Identifier, ElementEntry<T>> entries = new LinkedHashMap<>();
+        Map<Identifier, Set<Identifier>> tagsByElement = new LinkedHashMap<>();
+
+        Map<Identifier, ElementEntry<?>> baselineEntries = baselines.getOrDefault(binding.registryName(), Map.of());
+        for (var entry : baselineEntries.entrySet()) {
+            ElementEntry<T> typed = (ElementEntry<T>) entry.getValue();
+            entries.put(entry.getKey(), typed);
+            tagsByElement.put(entry.getKey(), new LinkedHashSet<>(typed.tags()));
+        }
+
+        loadPackElementOverrides(packRoot, binding, registries, entries, tagsByElement);
+        loadPackTagOverrides(packRoot, binding.registryKey().identifier().getPath(), tagsByElement, entries.keySet());
+
+        Map<Identifier, ElementEntry<T>> initialized = new LinkedHashMap<>();
+        for (var entry : entries.entrySet()) {
+            Set<Identifier> tags = Set.copyOf(tagsByElement.getOrDefault(entry.getKey(), Set.of()));
+            ElementEntry<T> raw = new ElementEntry<>(entry.getKey(), entry.getValue().data(), tags, CustomFields.EMPTY);
+            initialized.put(entry.getKey(), binding.initializeEntry(raw));
+        }
+
+        return new PackWorkspaceStore<>(initialized);
+    }
+
+    private <T> void loadPackElementOverrides(Path packRoot, RegistryWorkspaceBinding<T> binding,
+        HolderLookup.Provider registries,
+        Map<Identifier, ElementEntry<T>> entries,
+        Map<Identifier, Set<Identifier>> tagsByElement) {
+        Path dataDir = packRoot.resolve("data");
+        if (!Files.isDirectory(dataDir))
+            return;
+
+        String registryDir = binding.registryKey().identifier().getPath();
+        var ops = registries.createSerializationContext(JsonOps.INSTANCE);
+
+        try (Stream<Path> namespaces = Files.list(dataDir)) {
+            namespaces.filter(Files::isDirectory).forEach(namespaceDir -> {
+                String namespace = namespaceDir.getFileName().toString();
+                Path registryRoot = namespaceDir.resolve(registryDir);
+                if (!Files.isDirectory(registryRoot))
+                    return;
+
+                try (Stream<Path> files = Files.walk(registryRoot)) {
+                    files.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().endsWith(".json"))
+                        .forEach(file -> {
+                            Identifier elementId = elementId(namespace, registryRoot, file);
+                            if (elementId == null)
+                                return;
+
+                            try (Reader reader = Files.newBufferedReader(file)) {
+                                JsonElement json = JsonParser.parseReader(reader);
+                                binding.codec().parse(ops, json).ifSuccess(value -> {
+                                    Set<Identifier> tags = tagsByElement.getOrDefault(elementId, new LinkedHashSet<>());
+                                    entries.put(elementId, new ElementEntry<>(elementId, value, Set.copyOf(tags), CustomFields.EMPTY));
+                                    tagsByElement.computeIfAbsent(elementId, ignored -> new LinkedHashSet<>(tags));
+                                }).ifError(error -> LOGGER.warn("Failed to decode pack entry {}: {}", elementId, error.message()));
+                            } catch (IOException exception) {
+                                LOGGER.warn("Failed to read pack entry {}: {}", file, exception.getMessage());
+                            }
+                        });
+                } catch (IOException exception) {
+                    LOGGER.warn("Failed to scan pack registry directory {}: {}", registryRoot, exception.getMessage());
+                }
+            });
+        } catch (IOException exception) {
+            LOGGER.warn("Failed to list pack namespaces in {}: {}", dataDir, exception.getMessage());
+        }
+    }
+
+    private void loadPackTagOverrides(Path packRoot, String registryDir,
+        Map<Identifier, Set<Identifier>> tagsByElement,
+        Set<Identifier> knownElements) {
+        Path dataDir = packRoot.resolve("data");
+        if (!Files.isDirectory(dataDir))
+            return;
+
+        try (Stream<Path> namespaces = Files.list(dataDir)) {
+            namespaces.filter(Files::isDirectory).forEach(namespaceDir -> {
+                String namespace = namespaceDir.getFileName().toString();
+                Path tagsRoot = namespaceDir.resolve("tags").resolve(registryDir);
+                if (!Files.isDirectory(tagsRoot))
+                    return;
+
+                try (Stream<Path> files = Files.walk(tagsRoot)) {
+                    files.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().endsWith(".json"))
+                        .forEach(file -> applyTagFile(namespace, tagsRoot, file, tagsByElement, knownElements));
+                } catch (IOException exception) {
+                    LOGGER.warn("Failed to scan tag directory {}: {}", tagsRoot, exception.getMessage());
+                }
+            });
+        } catch (IOException exception) {
+            LOGGER.warn("Failed to list pack namespaces in {}: {}", dataDir, exception.getMessage());
+        }
+    }
+
+    private void applyTagFile(String namespace, Path tagsRoot, Path file,
+        Map<Identifier, Set<Identifier>> tagsByElement,
+        Set<Identifier> knownElements) {
+        Identifier tagId = elementId(namespace, tagsRoot, file);
+        if (tagId == null)
+            return;
+
+        try (Reader reader = Files.newBufferedReader(file)) {
+            JsonElement parsed = JsonParser.parseReader(reader);
+            if (!parsed.isJsonObject())
+                return;
+
+            JsonObject root = parsed.getAsJsonObject();
+            if (root.has("replace") && root.get("replace").getAsBoolean()) {
+                for (Set<Identifier> elementTags : tagsByElement.values())
+                    elementTags.remove(tagId);
+            }
+
+            applyTagArray(root.get("values"), tagId, tagsByElement, knownElements, true);
+            applyTagArray(root.get("exclude"), tagId, tagsByElement, knownElements, false);
+        } catch (Exception exception) {
+            LOGGER.warn("Failed to read pack tag {}: {}", file, exception.getMessage());
+        }
+    }
+
+    private void applyTagArray(JsonElement arrayElement, Identifier tagId,
+        Map<Identifier, Set<Identifier>> tagsByElement,
+        Set<Identifier> knownElements,
+        boolean add) {
+        if (arrayElement == null || !arrayElement.isJsonArray())
+            return;
+
+        arrayElement.getAsJsonArray().forEach(element -> {
+            String raw = null;
+            if (element.isJsonPrimitive() && element.getAsJsonPrimitive().isString()) {
+                raw = element.getAsString();
+            } else if (element.isJsonObject() && element.getAsJsonObject().has("id")) {
+                raw = element.getAsJsonObject().get("id").getAsString();
+            }
+
+            if (raw == null || raw.startsWith("#"))
+                return;
+
+            Identifier target = Identifier.tryParse(raw);
+            if (target == null || !knownElements.contains(target))
+                return;
+
+            Set<Identifier> tags = tagsByElement.computeIfAbsent(target, ignored -> new LinkedHashSet<>());
+            if (add)
+                tags.add(tagId);
+            else
+                tags.remove(tagId);
+        });
+    }
+
+    private static Identifier elementId(String namespace, Path root, Path file) {
+        Path relative = root.relativize(file);
+        String path = relative.toString().replace('\\', '/');
+        if (!path.endsWith(".json"))
+            return null;
+        path = path.substring(0, path.length() - 5);
+        return Identifier.fromNamespaceAndPath(namespace, path);
     }
 
     @SuppressWarnings("unchecked")
@@ -304,6 +446,6 @@ public final class ServerElementStore {
     }
 
     private static String registryName(ResourceKey<?> key) {
-        return key.identifier().getPath();
+        return key.identifier().toString();
     }
 }

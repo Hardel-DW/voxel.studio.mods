@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.network;
+package fr.hardel.asset_editor.network.workspace;
 
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.HolderLookup;

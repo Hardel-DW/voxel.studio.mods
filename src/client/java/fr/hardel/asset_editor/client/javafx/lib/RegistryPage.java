@@ -10,7 +10,7 @@ import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.network.EditorAction;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -27,6 +27,7 @@ import javafx.beans.property.StringProperty;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -78,26 +79,32 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         return bindings;
     }
 
-    protected EditorActionResult applyAction(UnaryOperator<T> transform) {
-        return applyAction(transform, null);
-    }
-
     protected EditorActionResult applyAction(UnaryOperator<T> transform, EditorAction action) {
-        var result = context.gateway().apply(registry, currentId, transform, action);
+        if (action == null)
+            return EditorActionResult.error("error:invalid_action");
+        var result = context.gateway().dispatch(registry, currentId, action, entry -> {
+            T updated = transform.apply(entry.data());
+            return Objects.equals(updated, entry.data()) ? entry : entry.withData(updated);
+        });
         if (!result.isApplied())
             handleActionFailure(result);
         return result;
     }
 
     protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform, EditorAction action) {
-        var result = context.gateway().applyCustom(registry, currentId, transform, action);
+        if (action == null)
+            return EditorActionResult.error("error:invalid_action");
+        var result = context.gateway().dispatch(registry, currentId, action, entry -> {
+            CustomFields updated = transform.apply(entry.custom());
+            return Objects.equals(updated, entry.custom()) ? entry : entry.withCustom(updated);
+        });
         if (!result.isApplied())
             handleActionFailure(result);
         return result;
     }
 
     protected EditorActionResult applyTagToggle(Identifier tagId) {
-        var result = context.gateway().toggleTag(registry, currentId, tagId);
+        var result = context.gateway().dispatch(registry, currentId, new EditorAction.ToggleTag(tagId), entry -> entry.toggleTag(tagId));
         if (!result.isApplied())
             handleActionFailure(result);
         return result;

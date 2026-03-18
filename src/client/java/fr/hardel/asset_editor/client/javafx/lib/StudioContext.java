@@ -41,6 +41,7 @@ public final class StudioContext {
     private final StudioRouter router = new StudioRouter();
     private final EditorActionGateway gateway;
     private final Subscription permissionSubscription;
+    private final Subscription packSelectionSubscription;
 
     public StudioContext(ClientSessionState sessionState, ClientSessionDispatch dispatch) {
         this.sessionState = sessionState;
@@ -49,6 +50,9 @@ public final class StudioContext {
         this.gateway = new EditorActionGateway(sessionState, workspaceState);
         this.permissionSubscription = sessionState.select(ClientSessionState.Snapshot::permissions)
             .subscribe(permission -> enforcePermissionRoute(), true);
+        this.packSelectionSubscription = workspaceState.packSelectionState()
+            .select(WorkspacePackSelectionState.Snapshot::selectedPack)
+            .subscribe(pack -> refreshSelectedPackWorkspace(), true);
 
         router.setPermissionSupplier(sessionState::permissions);
         dispatch.setGateway(gateway);
@@ -174,22 +178,13 @@ public final class StudioContext {
         return conn.registryAccess().lookup(registryKey).flatMap(registry -> registry.get(ResourceKey.create(registryKey, id)));
     }
 
-    public <T> Holder.Reference<T> findElement(ResourceKey<Registry<T>> registryKey) {
-        String id = workspaceState.tabsState().currentElementId();
-        if (id == null || id.isBlank())
-            return null;
-        for (Holder.Reference<T> holder : registryElements(registryKey)) {
-            if (holder.key().identifier().toString().equals(id))
-                return holder;
-        }
-        return null;
-    }
-
     public void resyncWorldSession(boolean force) {
         String nextKey = sessionState.worldSessionKey();
         if (workspaceState.worldSessionKey().equals(nextKey)) {
             if (force)
                 sessionState.refreshPackList();
+            if (force)
+                refreshSelectedPackWorkspace();
             return;
         }
 
@@ -218,7 +213,17 @@ public final class StudioContext {
 
     public void dispose() {
         permissionSubscription.unsubscribe();
+        packSelectionSubscription.unsubscribe();
         dispatch.clearGateway(gateway);
         workspaceState.dispose();
+    }
+
+    private void refreshSelectedPackWorkspace() {
+        workspaceState.clearPendingActions();
+        workspaceState.issueState().clear();
+        if (workspaceState.packSelectionState().selectedPack() == null)
+            return;
+        workspaceState.elementStore().replaceAll(Registries.ENCHANTMENT, List.of());
+        gateway.requestPackWorkspace(Registries.ENCHANTMENT);
     }
 }

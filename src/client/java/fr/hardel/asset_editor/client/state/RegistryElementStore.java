@@ -25,7 +25,6 @@ public final class RegistryElementStore {
     private record SelectorKey(String registry, Identifier elementId) {
     }
 
-    private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
     private final Map<SelectorKey, MutableSelectorStore<ElementEntry<?>>> elementStores = new HashMap<>();
     private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
@@ -53,7 +52,6 @@ public final class RegistryElementStore {
             elementStore(name, id, enrichedEntry).setState(enrichedEntry);
         });
 
-        reference.put(name, Map.copyOf(entries));
         current.put(name, new LinkedHashMap<>(entries));
         notifyRegistryListeners(name);
     }
@@ -76,6 +74,22 @@ public final class RegistryElementStore {
         notifyRegistryListeners(name);
     }
 
+    public <T> void replaceAll(ResourceKey<Registry<T>> registry, Collection<ElementEntry<T>> entries) {
+        String name = registryName(registry);
+        Map<Identifier, ElementEntry<?>> previous = current.getOrDefault(name, Map.of());
+        Map<Identifier, ElementEntry<?>> next = new LinkedHashMap<>();
+        for (ElementEntry<T> entry : entries) {
+            next.put(entry.id(), entry);
+            elementStore(name, entry.id(), entry).setState(entry);
+        }
+        for (Identifier removedId : previous.keySet()) {
+            if (!next.containsKey(removedId))
+                elementStore(name, removedId, null).setState(null);
+        }
+        current.put(name, next);
+        notifyRegistryListeners(name);
+    }
+
     public <T> void subscribeRegistry(ResourceKey<Registry<T>> registry, Runnable listener) {
         List<Runnable> listeners = registryListeners.computeIfAbsent(registryName(registry), ignored -> new ArrayList<>());
         if (!listeners.contains(listener))
@@ -89,14 +103,6 @@ public final class RegistryElementStore {
         listeners.remove(listener);
         if (listeners.isEmpty())
             registryListeners.remove(registryName(registry));
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> ElementEntry<T> getReference(ResourceKey<Registry<T>> registry, Identifier id) {
-        Map<Identifier, ElementEntry<?>> registryMap = reference.get(registryName(registry));
-        if (registryMap == null)
-            return null;
-        return (ElementEntry<T>) registryMap.get(id);
     }
 
     public <T> Collection<ElementEntry<?>> allElements(ResourceKey<Registry<T>> registry) {
@@ -122,7 +128,6 @@ public final class RegistryElementStore {
     }
 
     public void clearAll() {
-        reference.clear();
         current.clear();
         elementStores.values().forEach(store -> store.setState(null));
     }

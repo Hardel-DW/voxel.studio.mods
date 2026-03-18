@@ -12,7 +12,7 @@ import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
-import fr.hardel.asset_editor.network.EditorAction;
+import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -111,8 +111,10 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             boolean enabled = current == null || !EnchantmentActions.isSoftDeleted(current);
             if (Boolean.valueOf(v).equals(enabled))
                 return;
-            var result = context.gateway().applyCustom(Registries.ENCHANTMENT, entry.id(),
-                EnchantmentActions.toggleDisabled(), new EditorAction.ToggleDisabled());
+            var result = context.gateway().dispatch(Registries.ENCHANTMENT, entry.id(),
+                new EditorAction.ToggleDisabled(),
+                optimisticEntry -> optimisticEntry.withCustom(
+                    EnchantmentActions.toggleDisabled().apply(optimisticEntry.custom())));
             if (!result.isApplied())
                 sw.setValue(enabled);
         });
