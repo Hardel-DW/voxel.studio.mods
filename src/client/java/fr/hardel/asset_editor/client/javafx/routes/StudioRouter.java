@@ -25,19 +25,25 @@ public final class StudioRouter {
     }
 
     public void navigate(StudioRoute route) {
-        if (route == null || route == currentRoute.get()) return;
+        if (route == null || route == currentRoute.get()) {
+            return;
+        }
+
         if (route == StudioRoute.NO_PERMISSION) {
             currentRoute.set(route);
             return;
         }
+
         if (permissionSupplier.get().isNone()) {
             redirectNoPermission();
             return;
         }
+
         if (route == StudioRoute.DEBUG_ITEMS && !permissionSupplier.get().isAdmin()) {
             redirectNoPermission();
             return;
         }
+
         currentRoute.set(route);
     }
 

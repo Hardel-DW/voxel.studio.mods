@@ -42,7 +42,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     private boolean built;
 
     protected RegistryPage(StudioContext context, ResourceKey<Registry<T>> registry,
-                           String scrollClass, double spacing, Insets padding) {
+        String scrollClass, double spacing, Insets padding) {
         this.context = context;
         this.registry = registry;
         this.content = new VBox(spacing);
@@ -56,10 +56,21 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         getChildren().add(scroll);
     }
 
-    protected StudioContext context() { return context; }
-    protected VBox content() { return content; }
-    protected Identifier currentId() { return currentId; }
-    protected ResourceKey<Registry<T>> registry() { return registry; }
+    protected StudioContext context() {
+        return context;
+    }
+
+    protected VBox content() {
+        return content;
+    }
+
+    protected Identifier currentId() {
+        return currentId;
+    }
+
+    protected ResourceKey<Registry<T>> registry() {
+        return registry;
+    }
 
     protected <R> StoreSelector<R> select(Function<ElementEntry<T>, R> extractor) {
         var selector = context.elementStore().select(registry, currentId, extractor);
@@ -73,69 +84,97 @@ public abstract class RegistryPage<T> extends VBox implements Page {
 
     protected EditorActionResult applyAction(UnaryOperator<T> transform, EditorAction action) {
         var result = context.gateway().apply(registry, currentId, transform, action);
-        if (!result.isApplied()) handleActionFailure(result);
+        if (!result.isApplied())
+            handleActionFailure(result);
         return result;
     }
 
     protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform, EditorAction action) {
         var result = context.gateway().applyCustom(registry, currentId, transform, action);
-        if (!result.isApplied()) handleActionFailure(result);
+        if (!result.isApplied())
+            handleActionFailure(result);
         return result;
     }
 
     protected EditorActionResult applyTagToggle(Identifier tagId) {
         var result = context.gateway().toggleTag(registry, currentId, tagId);
-        if (!result.isApplied()) handleActionFailure(result);
+        if (!result.isApplied())
+            handleActionFailure(result);
         return result;
     }
 
     protected void bindInt(IntegerProperty property,
-                           Function<ElementEntry<T>, Integer> extractor,
-                           java.util.function.IntFunction<UnaryOperator<T>> mutation,
-                           java.util.function.IntFunction<EditorAction> actionFactory) {
+        Function<ElementEntry<T>, Integer> extractor,
+        java.util.function.IntFunction<UnaryOperator<T>> mutation,
+        java.util.function.IntFunction<EditorAction> actionFactory) {
         var selector = select(extractor);
-        if (selector.get() != null) property.set(selector.get());
-        selector.subscribe(val -> { if (val != null) property.set(val); });
+        if (selector.get() != null)
+            property.set(selector.get());
+        selector.subscribe(val -> {
+            if (val != null)
+                property.set(val);
+        });
         property.addListener((obs, o, v) -> {
-            if (o == null || v == null || o.intValue() == v.intValue()) return;
-            if (Integer.valueOf(v.intValue()).equals(selector.get())) return;
+            if (o == null || v == null || o.intValue() == v.intValue())
+                return;
+            if (Integer.valueOf(v.intValue()).equals(selector.get()))
+                return;
             var result = applyAction(mutation.apply(v.intValue()), actionFactory.apply(v.intValue()));
-            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+            if (!result.isApplied() && selector.get() != null)
+                property.set(selector.get());
         });
     }
 
     protected void bindToggle(BooleanProperty property,
-                              Function<ElementEntry<T>, Boolean> extractor,
-                              Supplier<EditorActionResult> action) {
+        Function<ElementEntry<T>, Boolean> extractor,
+        Supplier<EditorActionResult> action) {
         var selector = select(extractor);
-        if (selector.get() != null) property.set(selector.get());
-        selector.subscribe(val -> { if (val != null) property.set(val); });
+        if (selector.get() != null)
+            property.set(selector.get());
+        selector.subscribe(val -> {
+            if (val != null)
+                property.set(val);
+        });
         property.addListener((obs, o, v) -> {
-            if (o == null || v == null || o.equals(v)) return;
-            if (v.equals(selector.get())) return;
+            if (o == null || v == null || o.equals(v))
+                return;
+            if (v.equals(selector.get()))
+                return;
             var result = action.get();
-            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+            if (!result.isApplied() && selector.get() != null)
+                property.set(selector.get());
         });
     }
 
     protected void bindString(StringProperty property,
-                              Function<ElementEntry<T>, String> extractor,
-                              Function<String, EditorActionResult> action) {
+        Function<ElementEntry<T>, String> extractor,
+        Function<String, EditorActionResult> action) {
         var selector = select(extractor);
-        if (selector.get() != null) property.set(selector.get());
-        selector.subscribe(val -> { if (val != null) property.set(val); });
+        if (selector.get() != null)
+            property.set(selector.get());
+        selector.subscribe(val -> {
+            if (val != null)
+                property.set(val);
+        });
         property.addListener((obs, o, v) -> {
-            if (o == null || v == null || o.equals(v)) return;
-            if (v.equals(selector.get())) return;
+            if (o == null || v == null || o.equals(v))
+                return;
+            if (v.equals(selector.get()))
+                return;
             var result = action.apply(v);
-            if (!result.isApplied() && selector.get() != null) property.set(selector.get());
+            if (!result.isApplied() && selector.get() != null)
+                property.set(selector.get());
         });
     }
 
     protected <R> StoreSelector<R> bindView(Function<ElementEntry<T>, R> extractor, Consumer<R> setter) {
         var selector = select(extractor);
-        if (selector.get() != null) setter.accept(selector.get());
-        selector.subscribe(val -> { if (val != null) setter.accept(val); });
+        if (selector.get() != null)
+            setter.accept(selector.get());
+        selector.subscribe(val -> {
+            if (val != null)
+                setter.accept(val);
+        });
         return selector;
     }
 
@@ -145,8 +184,10 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     }
 
     protected void showPackGuard() {
-        if (!context.packState().hasSelectedPack()) showPackRequiredDialog();
-        else showErrorDialog("error:pack_readonly");
+        if (!context.packState().hasSelectedPack())
+            showPackRequiredDialog();
+        else
+            showErrorDialog("error:pack_readonly");
     }
 
     protected abstract void buildContent();
@@ -157,7 +198,10 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     public final void onActivate() {
         var entry = context.currentEntry(registry);
         Identifier newId = entry != null ? entry.id() : null;
-        if (newId == null) { onNoElement(); return; }
+        if (newId == null) {
+            onNoElement();
+            return;
+        }
         if (!newId.equals(currentId)) {
             disposeSelectors();
             currentId = newId;

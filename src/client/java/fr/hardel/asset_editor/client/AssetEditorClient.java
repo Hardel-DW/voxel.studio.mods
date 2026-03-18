@@ -23,9 +23,9 @@ public class AssetEditorClient implements ClientModInitializer {
     public static final String BUILD_VERSION = "26.0.1-RC";
 
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
-            Identifier.fromNamespaceAndPath("asset_editor", "main"));
+        Identifier.fromNamespaceAndPath("asset_editor", "main"));
     private static final KeyMapping OPEN_STUDIO = KeyBindingHelper.registerKeyBinding(
-            new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
+        new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
     private boolean hadWorld;
 
     @Override
@@ -40,28 +40,30 @@ public class AssetEditorClient implements ClientModInitializer {
             }
 
             this.hadWorld = hasWorld;
-            if (!OPEN_STUDIO.consumeClick()) return;
+            if (!OPEN_STUDIO.consumeClick())
+                return;
+
             if (client.player != null && !ClientPermissionState.hasReceived()) {
                 client.player.displayClientMessage(Component.translatable("studio:permission.waiting"), false);
                 return;
             }
+
             if (client.player != null && ClientPermissionState.get().isNone()) {
                 client.player.displayClientMessage(Component.translatable("studio:permission.blocked"), false);
                 return;
             }
+
             VoxelStudioWindow.open();
         });
 
         ClientNetworkHandler.register();
-
         ResourceLoader.get(PackType.CLIENT_RESOURCES)
-                .registerReloader(
-                        Identifier.fromNamespaceAndPath("asset_editor", "studio_reload"),
-                        new StudioReloadListener());
+            .registerReloader(
+                Identifier.fromNamespaceAndPath("asset_editor", "studio_reload"),
+                new StudioReloadListener());
     }
 
     private static final class StudioReloadListener implements ResourceManagerReloadListener {
-
         @Override
         public void onResourceManagerReload(@NonNull ResourceManager manager) {
             VoxelResourceLoader.update(manager);

@@ -122,9 +122,9 @@ public final class VoxelStudioWindow {
         scene = new Scene(initialRoot());
         scene.setFill(Color.BLACK);
         scene.getStylesheets().add(
-                VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm());
+            VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm());
         scene.getStylesheets().add(
-                VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
+            VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
         attachWindowHandlers(scene);
         attachFocusListener();
@@ -144,6 +144,7 @@ public final class VoxelStudioWindow {
                 }
             });
         });
+
         ClientPackCache.setOnChange(() -> {
             var packs = ClientPackCache.get();
             Platform.runLater(() -> {
@@ -180,22 +181,26 @@ public final class VoxelStudioWindow {
             splashMinTimeElapsed = true;
             tryTransitionFromSplash();
         });
+
         minDelay.play();
         return splash;
     }
 
     private void tryTransitionFromSplash() {
-        if (!splashMinTimeElapsed || !fr.hardel.asset_editor.client.ClientPermissionState.hasReceived()) return;
+        if (!splashMinTimeElapsed || !fr.hardel.asset_editor.client.ClientPermissionState.hasReceived())
+            return;
         finishSplash();
     }
 
     private void finishSplash() {
-        if (splashPlayed) return;
+        if (splashPlayed)
+            return;
         splashPlayed = true;
         editorRoot = new StudioEditorRoot(stage);
         editorRoot.context().setPermissions(ClientPermissionState.get());
         editorRoot.context().packState().setPacksFromServer(ClientPackCache.get());
-        if (scene != null) scene.setRoot(editorRoot);
+        if (scene != null)
+            scene.setRoot(editorRoot);
         resyncOnOpenOrFocus();
     }
 
@@ -211,12 +216,14 @@ public final class VoxelStudioWindow {
 
     private void attachFocusListener() {
         stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
-            if (isFocused) resyncOnOpenOrFocus();
+            if (isFocused)
+                resyncOnOpenOrFocus();
         });
     }
 
     private void resyncOnOpenOrFocus() {
-        if (editorRoot == null) return;
+        if (editorRoot == null)
+            return;
         editorRoot.context().resyncWorldSession(true);
     }
 
@@ -237,6 +244,7 @@ public final class VoxelStudioWindow {
     private void snapTo(Rectangle2D region) {
         if (boundsBeforeSnap == null)
             boundsBeforeSnap = new Rectangle2D(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+
         stage.setX(region.getMinX());
         stage.setY(region.getMinY());
         stage.setWidth(region.getWidth());
@@ -246,6 +254,7 @@ public final class VoxelStudioWindow {
     private void unsnap() {
         if (boundsBeforeSnap == null)
             return;
+
         stage.setX(boundsBeforeSnap.getMinX());
         stage.setY(boundsBeforeSnap.getMinY());
         stage.setWidth(boundsBeforeSnap.getWidth());
@@ -293,6 +302,7 @@ public final class VoxelStudioWindow {
             if (x >= b.getMinX() && x < b.getMaxX() && y >= b.getMinY() && y < b.getMaxY())
                 return s;
         }
+
         return Screen.getPrimary();
     }
 
@@ -301,15 +311,18 @@ public final class VoxelStudioWindow {
         double wr = wx + stage.getWidth(), wb = wy + stage.getHeight();
         Screen best = Screen.getPrimary();
         double bestArea = 0;
+
         for (Screen s : Screen.getScreens()) {
             Rectangle2D b = s.getVisualBounds();
             double area = Math.max(0, Math.min(wr, b.getMaxX()) - Math.max(wx, b.getMinX()))
-                    * Math.max(0, Math.min(wb, b.getMaxY()) - Math.max(wy, b.getMinY()));
+                * Math.max(0, Math.min(wb, b.getMaxY()) - Math.max(wy, b.getMinY()));
+
             if (area > bestArea) {
                 bestArea = area;
                 best = s;
             }
         }
+
         return best;
     }
 
@@ -317,10 +330,13 @@ public final class VoxelStudioWindow {
         clearCursorOverride();
         if (!(target instanceof Node node))
             return;
+
         while (node != null && node.getCursor() == null)
             node = node.getParent();
+
         if (node == null || node.getCursor() == cursor)
             return;
+
         cursorOverrideNode = node;
         cursorOverrideOriginal = node.getCursor();
         node.setCursor(cursor);
@@ -380,9 +396,9 @@ public final class VoxelStudioWindow {
         scene.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
             if (resizing && activeZone != ResizeZone.NONE) {
                 activeZone.apply(stage,
-                        e.getScreenX() - dragX, e.getScreenY() - dragY,
-                        dragW, dragH, dragStageX, dragStageY,
-                        stage.getMinWidth(), stage.getMinHeight());
+                    e.getScreenX() - dragX, e.getScreenY() - dragY,
+                    dragW, dragH, dragStageX, dragStageY,
+                    stage.getMinWidth(), stage.getMinHeight());
                 e.consume();
                 return;
             }
@@ -404,6 +420,7 @@ public final class VoxelStudioWindow {
     private ResizeZone detectZone(double x, double y, double w, double h) {
         boolean n = y <= RESIZE_MARGIN, s = y >= h - RESIZE_MARGIN;
         boolean west = x <= RESIZE_MARGIN, east = x >= w - RESIZE_MARGIN;
+
         if (n && west)
             return ResizeZone.NW;
         if (n && east)
@@ -420,6 +437,7 @@ public final class VoxelStudioWindow {
             return ResizeZone.W;
         if (east)
             return ResizeZone.E;
+
         return ResizeZone.NONE;
     }
 
@@ -428,6 +446,7 @@ public final class VoxelStudioWindow {
             if (e.getButton() != MouseButton.PRIMARY) {
                 return;
             }
+
             dragging = true;
             moveOffsetX = e.getScreenX() - stage.getX();
             moveOffsetY = e.getScreenY() - stage.getY();
@@ -438,12 +457,14 @@ public final class VoxelStudioWindow {
             if (!dragging) {
                 return;
             }
+
             if (isSnapped()) {
                 double ratio = e.getSceneX() / Math.max(1, scene.getWidth());
                 unsnap();
                 moveOffsetX = stage.getWidth() * ratio;
                 moveOffsetY = e.getSceneY();
             }
+
             stage.setX(e.getScreenX() - moveOffsetX);
             stage.setY(e.getScreenY() - moveOffsetY);
             e.consume();
@@ -453,6 +474,7 @@ public final class VoxelStudioWindow {
             if (!dragging) {
                 return;
             }
+
             applySnap(e.getScreenX(), e.getScreenY());
             dragging = false;
             e.consume();
@@ -464,9 +486,11 @@ public final class VoxelStudioWindow {
                 e.consume();
                 return;
             }
+
             if (e.getButton() != MouseButton.PRIMARY || e.getClickCount() != 2) {
                 return;
             }
+
             toggleMaximize();
             e.consume();
         });
@@ -476,13 +500,12 @@ public final class VoxelStudioWindow {
         NONE(Cursor.DEFAULT) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
-            }
+                double mh) {}
         },
         N(Cursor.N_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 double h = Math.max(mh, oh - dy);
                 s.setY(oy + oh - h);
                 s.setHeight(h);
@@ -491,14 +514,14 @@ public final class VoxelStudioWindow {
         S(Cursor.S_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 s.setHeight(Math.max(mh, oh + dy));
             }
         },
         W(Cursor.W_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 double w = Math.max(mw, ow - dx);
                 s.setX(ox + ow - w);
                 s.setWidth(w);
@@ -507,14 +530,14 @@ public final class VoxelStudioWindow {
         E(Cursor.E_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 s.setWidth(Math.max(mw, ow + dx));
             }
         },
         NW(Cursor.NW_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 N.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
@@ -522,7 +545,7 @@ public final class VoxelStudioWindow {
         NE(Cursor.NE_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 N.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
@@ -530,7 +553,7 @@ public final class VoxelStudioWindow {
         SW(Cursor.SW_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 S.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 W.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
@@ -538,7 +561,7 @@ public final class VoxelStudioWindow {
         SE(Cursor.SE_RESIZE) {
             @Override
             void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                    double mh) {
+                double mh) {
                 S.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
                 E.resize(s, dx, dy, ow, oh, ox, oy, mw, mh);
             }
@@ -555,7 +578,7 @@ public final class VoxelStudioWindow {
         }
 
         abstract void resize(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw,
-                double mh);
+            double mh);
 
         void apply(Stage s, double dx, double dy, double ow, double oh, double ox, double oy, double mw, double mh) {
             resize(s, dx, dy, ow, oh, ox, oy, mw, mh);

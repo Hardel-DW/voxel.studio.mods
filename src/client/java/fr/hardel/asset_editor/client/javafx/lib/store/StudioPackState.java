@@ -71,8 +71,4 @@ public final class StudioPackState {
     public void createPack(String name, String namespace) {
         Minecraft.getInstance().execute(() -> ClientPlayNetworking.send(new PackCreatePayload(name, namespace)));
     }
-
-    public void ensureNamespace(PackInfo pack, String namespace) {
-        // Server handles namespace creation via EditorActionPayload.packId
-    }
 }

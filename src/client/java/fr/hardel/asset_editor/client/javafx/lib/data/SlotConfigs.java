@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 public final class SlotConfigs {
 
     public record SlotConfig(String id, List<String> slots) {
-
         public Identifier image() {
             return SlotConfigs.slotImage(id);
         }

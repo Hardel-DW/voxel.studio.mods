@@ -50,7 +50,8 @@ public final class InfiniteScrollPane<T> extends ScrollPane {
     }
 
     private void loadMore() {
-        if (!hasMore()) return;
+        if (!hasMore())
+            return;
         int oldEnd = Math.min(visibleCount, items.size());
         visibleCount += batchSize;
         int newEnd = Math.min(visibleCount, items.size());
@@ -64,16 +65,20 @@ public final class InfiniteScrollPane<T> extends ScrollPane {
     }
 
     private void onScroll() {
-        if (!hasMore()) return;
+        if (!hasMore())
+            return;
         double contentHeight = content.getBoundsInLocal().getHeight();
         double viewportHeight = getViewportBounds().getHeight();
-        if (viewportHeight <= 0 || contentHeight <= viewportHeight) return;
+        if (viewportHeight <= 0 || contentHeight <= viewportHeight)
+            return;
         double scrollBottom = getVvalue() * (contentHeight - viewportHeight) + viewportHeight;
-        if (scrollBottom >= contentHeight - 100) loadMore();
+        if (scrollBottom >= contentHeight - 100)
+            loadMore();
     }
 
     private void checkAutoLoad() {
-        if (!hasMore()) return;
+        if (!hasMore())
+            return;
         double viewportHeight = getViewportBounds().getHeight();
         double contentHeight = content.getBoundsInLocal().getHeight();
         if (viewportHeight > 0 && contentHeight <= viewportHeight) {

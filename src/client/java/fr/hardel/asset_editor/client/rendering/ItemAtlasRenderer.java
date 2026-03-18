@@ -88,7 +88,8 @@ public final class ItemAtlasRenderer {
     }
 
     public static void tryGenerate() {
-        if (!needsGeneration.compareAndSet(true, false)) return;
+        if (!needsGeneration.compareAndSet(true, false))
+            return;
         RenderSystem.assertOnRenderThread();
         generate();
     }
@@ -113,14 +114,13 @@ public final class ItemAtlasRenderer {
         fixedBuffers.put(RenderTypes.entityGlint(), new ByteBufferBuilder(RenderTypes.entityGlint().bufferSize()));
         MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new ByteBufferBuilder(786432));
         FeatureRenderDispatcher featureDispatcher = new FeatureRenderDispatcher(
-                submitStorage,
-                mc.getBlockRenderer(),
-                bufferSource,
-                mc.getAtlasManager(),
-                new OutlineBufferSource(),
-                MultiBufferSource.immediate(new ByteBufferBuilder(1536)),
-                mc.font
-        );
+            submitStorage,
+            mc.getBlockRenderer(),
+            bufferSource,
+            mc.getAtlasManager(),
+            new OutlineBufferSource(),
+            MultiBufferSource.immediate(new ByteBufferBuilder(1536)),
+            mc.font);
 
         GpuDevice device = RenderSystem.getDevice();
         GpuTexture colorTexture = device.createTexture("ItemAtlas/Color", 12 | GpuTexture.USAGE_COPY_SRC, TextureFormat.RGBA8, width, height, 1, 1);
@@ -154,7 +154,8 @@ public final class ItemAtlasRenderer {
 
             renderState.clear();
             modelResolver.updateForTopItem(renderState, stack, ItemDisplayContext.GUI, mc.level, null, 0);
-            if (renderState.isEmpty()) continue;
+            if (renderState.isEmpty())
+                continue;
 
             int col = i % gridCols;
             int row = i / gridCols;
@@ -177,14 +178,13 @@ public final class ItemAtlasRenderer {
     }
 
     private static void renderItem(
-            TrackingItemStackRenderState renderState,
-            PoseStack poseStack,
-            int renderX, int renderY,
-            int atlasHeight,
-            FeatureRenderDispatcher featureDispatcher,
-            MultiBufferSource.BufferSource bufferSource,
-            SubmitNodeStorage submitStorage
-    ) {
+        TrackingItemStackRenderState renderState,
+        PoseStack poseStack,
+        int renderX, int renderY,
+        int atlasHeight,
+        FeatureRenderDispatcher featureDispatcher,
+        MultiBufferSource.BufferSource bufferSource,
+        SubmitNodeStorage submitStorage) {
         Minecraft mc = Minecraft.getInstance();
         poseStack.pushPose();
         poseStack.translate(renderX + ITEM_SIZE / 2.0F, renderY + ITEM_SIZE / 2.0F, 0.0F);
@@ -262,16 +262,16 @@ public final class ItemAtlasRenderer {
             String baseName = selfId.toDebugFileName();
             try (var writer = Files.newBufferedWriter(dir.resolve(baseName + ".png.txt"))) {
                 entries.entrySet().stream()
-                        .sorted(Map.Entry.comparingByKey())
-                        .forEach(e -> {
-                            AtlasEntry entry = e.getValue();
-                            try {
-                                writer.write("%s\tx=%d\ty=%d\tw=%d\th=%d%n".formatted(
-                                        e.getKey(), entry.x(), entry.y(), entry.size(), entry.size()));
-                            } catch (IOException ex) {
-                                throw new java.io.UncheckedIOException(ex);
-                            }
-                        });
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(e -> {
+                        AtlasEntry entry = e.getValue();
+                        try {
+                            writer.write("%s\tx=%d\ty=%d\tw=%d\th=%d%n".formatted(
+                                e.getKey(), entry.x(), entry.y(), entry.size(), entry.size()));
+                        } catch (IOException ex) {
+                            throw new java.io.UncheckedIOException(ex);
+                        }
+                    });
             }
         }
     }
