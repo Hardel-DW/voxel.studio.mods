@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.storage.LevelResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,15 +69,21 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            var perms = permManager.getEffectivePermissions(player);
-            if (!perms.canEdit()) {
+            if (!permManager.getEffectivePermissions(player).canEdit()) {
                 sendResponse(player, payload.actionId(), false, "error:permission_denied");
                 return;
             }
 
             var store = ServerElementStore.get();
-            if (store == null) {
+            var packManager = ServerPackManager.get();
+            if (store == null || packManager == null) {
                 sendResponse(player, payload.actionId(), false, "error:server_unavailable");
+                return;
+            }
+
+            var packRoot = packManager.resolveWritablePack(payload.packId());
+            if (packRoot.isEmpty()) {
+                sendResponse(player, payload.actionId(), false, "error:invalid_pack");
                 return;
             }
 
@@ -87,10 +93,17 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            ElementEntry<?> updated = ActionInterpreter.apply(payload.registryId(), entry, payload.action(), server.registryAccess());
-            store.put(payload.registryId(), payload.targetId(), updated);
+            ElementEntry<?> updated;
+            try {
+                updated = ActionInterpreter.apply(payload.registryId(), entry, payload.action(), server.registryAccess());
+            } catch (Exception e) {
+                LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
+                sendResponse(player, payload.actionId(), false, "error:invalid_action");
+                return;
+            }
 
-            flushElement(server, payload.packId(), payload.registryId());
+            store.put(payload.registryId(), payload.targetId(), updated, payload.packId());
+            flushElement(server, packRoot.get(), payload.packId(), payload.registryId());
 
             sendResponse(player, payload.actionId(), true, "");
             broadcastUpdate(server, player, payload.registryId(), payload.targetId(), payload.action());
@@ -98,33 +111,14 @@ public final class AssetEditorNetworking {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> void flushElement(MinecraftServer server, String packId, Identifier registryId) {
+    private static <T> void flushElement(MinecraftServer server, Path packRoot, String packId, Identifier registryId) {
         var binding = (RegistryBinding<T>) BINDINGS.get(registryId.getPath());
-        if (binding == null)
-            return;
+        if (binding == null) return;
 
         var store = ServerElementStore.get();
-        if (store == null)
-            return;
+        if (store == null) return;
 
-        Path packRoot = resolvePackRoot(server, packId);
-        if (packRoot == null) {
-            LOGGER.warn("Cannot resolve pack root for packId: {}", packId);
-            return;
-        }
-
-        store.flushDirty(packRoot, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
-    }
-
-    private static Path resolvePackRoot(MinecraftServer server, String packId) {
-        if (packId == null || packId.isBlank())
-            return null;
-        String name = packId.startsWith("file/") ? packId.substring(5) : packId;
-        Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
-        Path resolved = datapackDir.resolve(name).normalize();
-        if (!resolved.startsWith(datapackDir.normalize()))
-            return null;
-        return resolved;
+        store.flushDirty(packRoot, packId, binding.registryKey(), binding.codec(), server.registryAccess(), binding.adapter());
     }
 
     private static void broadcastUpdate(MinecraftServer server, ServerPlayer sender,

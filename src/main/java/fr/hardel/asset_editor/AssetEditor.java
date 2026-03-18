@@ -3,7 +3,9 @@ package fr.hardel.asset_editor;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissionCommand;
+import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.ServerElementStore;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import net.fabricmc.api.ModInitializer;
@@ -27,8 +29,7 @@ public class AssetEditor implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AssetEditorNetworking.registerBinding(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC,
-            EnchantmentFlushAdapter.INSTANCE);
+        AssetEditorNetworking.registerBinding(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC, EnchantmentFlushAdapter.INSTANCE);
         AssetEditorNetworking.registerServer();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -47,9 +48,12 @@ public class AssetEditor implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             server.execute(() -> {
                 var permManager = PermissionManager.get();
-                if (permManager != null) permManager.syncToPlayer(handler.getPlayer());
+                if (permManager != null)
+                    permManager.syncToPlayer(handler.getPlayer());
+
                 var packManager = ServerPackManager.get();
-                if (packManager != null) AssetEditorNetworking.sendPackList(handler.getPlayer(), packManager.listPacks());
+                if (packManager != null)
+                    AssetEditorNetworking.sendPackList(handler.getPlayer(), packManager.listPacks());
             });
         });
 
@@ -58,24 +62,20 @@ public class AssetEditor implements ModInitializer {
 
     private static void snapshotServerRegistries(MinecraftServer server) {
         var store = ServerElementStore.get();
-        if (store == null) return;
+        if (store == null)
+            return;
 
         var selectedPacks = server.getPackRepository().getSelectedPacks();
-        Function<fr.hardel.asset_editor.store.ElementEntry<Enchantment>, fr.hardel.asset_editor.store.CustomFields> customInit =
-                entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags());
+        Function<ElementEntry<Enchantment>, CustomFields> customInit = entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags());
 
-        var allPacks = new ArrayList<>(selectedPacks.stream().map(p -> p.open()).toList());
         var vanillaPacks = new ArrayList<>(selectedPacks.stream()
-                .filter(p -> p.getPackSource() != PackSource.WORLD)
-                .map(p -> p.open()).toList());
+            .filter(p -> p.getPackSource() != PackSource.WORLD)
+            .map(p -> p.open()).toList());
 
-        try (var allResources = new MultiPackResourceManager(PackType.SERVER_DATA, allPacks);
-             var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
-
+        try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
             server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
-                store.snapshot(Registries.ENCHANTMENT, registry, allResources, customInit);
-                store.snapshotVanilla(Registries.ENCHANTMENT, vanillaResources, registry,
-                        Enchantment.DIRECT_CODEC, server.registryAccess(), customInit);
+                store.snapshot(Registries.ENCHANTMENT, registry, customInit);
+                store.snapshotVanilla(Registries.ENCHANTMENT, vanillaResources, registry, Enchantment.DIRECT_CODEC, server.registryAccess(), customInit);
             });
         }
     }

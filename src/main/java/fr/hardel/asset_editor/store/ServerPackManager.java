@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class ServerPackManager {
@@ -95,6 +96,22 @@ public final class ServerPackManager {
         }
 
         return new PackEntry("file/" + safeName, safeName, true, List.of(safeNamespace));
+    }
+
+    public Optional<Path> resolveWritablePack(String packId) {
+        if (packId == null || packId.isBlank()) return Optional.empty();
+
+        var repo = server.getPackRepository();
+        Pack pack = repo.getPack(packId);
+        if (pack == null || pack.getPackSource() != PackSource.WORLD) return Optional.empty();
+
+        String name = packId.startsWith("file/") ? packId.substring(5) : packId;
+        Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR).toAbsolutePath().normalize();
+        Path resolved = datapackDir.resolve(name).normalize();
+        if (!resolved.startsWith(datapackDir)) return Optional.empty();
+        if (!Files.isDirectory(resolved)) return Optional.empty();
+
+        return Optional.of(resolved);
     }
 
     public void ensureNamespace(String packId, String namespace) {

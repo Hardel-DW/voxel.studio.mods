@@ -46,43 +46,31 @@ public final class ServerElementStore {
     }
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> vanilla = new HashMap<>();
-    private final Map<String, Map<Identifier, ElementEntry<?>>> reference = new HashMap<>();
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
-    private final Map<String, Set<Identifier>> dirtyElements = new HashMap<>();
+    private final Map<String, Map<String, Set<Identifier>>> dirtyElements = new HashMap<>();
 
     public <T> void snapshot(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-                             ResourceManager referenceResources,
                              Function<ElementEntry<T>, CustomFields> customInitializer) {
         String name = registryName(registryKey);
 
-        Map<Identifier, Set<Identifier>> refTagsByElement = loadTags(registryKey, referenceResources, registry);
-
-        Map<Identifier, Set<Identifier>> curTagsByElement = new HashMap<>();
+        Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         registry.listTags().forEach(named -> {
             Identifier tagId = named.key().location();
             for (Holder<T> holder : named.stream().toList()) {
                 holder.unwrapKey().ifPresent(
-                        key -> curTagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
+                        key -> tagsByElement.computeIfAbsent(key.identifier(), k -> new HashSet<>()).add(tagId));
             }
         });
 
-        Map<Identifier, ElementEntry<?>> refEntries = new LinkedHashMap<>();
-        Map<Identifier, ElementEntry<?>> curEntries = new LinkedHashMap<>();
-
+        Map<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
         registry.listElements().forEach(holder -> {
             Identifier id = holder.key().identifier();
-            Set<Identifier> refTags = refTagsByElement.getOrDefault(id, Set.of());
-            Set<Identifier> curTags = curTagsByElement.getOrDefault(id, Set.of());
-
-            ElementEntry<T> refEntry = new ElementEntry<>(id, holder.value(), Set.copyOf(refTags), CustomFields.EMPTY);
-            refEntries.put(id, refEntry.withCustom(customInitializer.apply(refEntry)));
-
-            ElementEntry<T> curEntry = new ElementEntry<>(id, holder.value(), Set.copyOf(curTags), CustomFields.EMPTY);
-            curEntries.put(id, curEntry.withCustom(customInitializer.apply(curEntry)));
+            Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
+            ElementEntry<T> entry = new ElementEntry<>(id, holder.value(), Set.copyOf(tags), CustomFields.EMPTY);
+            entries.put(id, entry.withCustom(customInitializer.apply(entry)));
         });
 
-        reference.put(name, Map.copyOf(refEntries));
-        current.put(name, new LinkedHashMap<>(curEntries));
+        current.put(name, new LinkedHashMap<>(entries));
         dirtyElements.remove(name);
     }
 
@@ -116,17 +104,22 @@ public final class ServerElementStore {
         return (ElementEntry<T>) registryMap.get(elementId);
     }
 
-    public <T> void put(Identifier registryId, Identifier elementId, ElementEntry<T> entry) {
+    public <T> void put(Identifier registryId, Identifier elementId, ElementEntry<T> entry, String packId) {
         String name = registryId.getPath();
         var registryMap = current.computeIfAbsent(name, k -> new LinkedHashMap<>());
         registryMap.put(elementId, entry);
-        dirtyElements.computeIfAbsent(name, k -> new HashSet<>()).add(elementId);
+        dirtyElements.computeIfAbsent(name, k -> new HashMap<>())
+                .computeIfAbsent(packId, k -> new HashSet<>())
+                .add(elementId);
     }
 
-    public <T> void flushDirty(Path packRoot, ResourceKey<Registry<T>> registry, Codec<T> codec,
+    public <T> void flushDirty(Path packRoot, String packId, ResourceKey<Registry<T>> registry, Codec<T> codec,
                                 HolderLookup.Provider registries, FlushAdapter<T> adapter) {
         String name = registryName(registry);
-        Set<Identifier> dirty = dirtyElements.get(name);
+        var packMap = dirtyElements.get(name);
+        if (packMap == null) return;
+
+        Set<Identifier> dirty = packMap.get(packId);
         if (dirty == null || dirty.isEmpty()) return;
 
         var vanillaMap = vanilla.getOrDefault(name, Map.of());
@@ -144,7 +137,6 @@ public final class ServerElementStore {
 
     public void clearAll() {
         vanilla.clear();
-        reference.clear();
         current.clear();
         dirtyElements.clear();
     }
