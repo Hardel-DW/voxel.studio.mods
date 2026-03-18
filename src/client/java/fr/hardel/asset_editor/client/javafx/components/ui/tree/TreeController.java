@@ -1,8 +1,9 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
+import fr.hardel.asset_editor.client.state.StudioOpenTab;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -17,8 +18,8 @@ import java.util.Map;
 public final class TreeController {
 
     private static final Identifier DEFAULT_ELEMENT_ICON = Identifier.fromNamespaceAndPath(
-            "asset_editor",
-            "textures/features/item/bundle_open.png");
+        "asset_editor",
+        "textures/features/item/bundle_open.png");
 
     private final StudioContext context;
     private final Config config;
@@ -27,6 +28,7 @@ public final class TreeController {
     private final ObjectProperty<Identifier> elementIcon;
     private final BooleanProperty disableAutoExpand;
     private final ReadOnlyBooleanWrapper allActive = new ReadOnlyBooleanWrapper(true);
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
 
     public TreeController(StudioContext context, Config config) {
         this.context = context;
@@ -36,8 +38,8 @@ public final class TreeController {
         this.elementIcon = new SimpleObjectProperty<>(config.elementIcon() == null ? DEFAULT_ELEMENT_ICON : config.elementIcon());
         this.disableAutoExpand = new SimpleBooleanProperty(config.disableAutoExpand());
 
-        context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refreshState());
-        context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refreshState());
+        bindings.observe(context.selectFilterPath(), value -> refreshState());
+        bindings.observe(context.selectCurrentElementId(), value -> refreshState());
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> {
             syncSelectionFromActiveTab();
             refreshState();
@@ -159,15 +161,18 @@ public final class TreeController {
 
     private boolean isOnTabRoute() {
         List<StudioRoute> routes = config.tabRoutes();
-        if (routes == null || routes.isEmpty()) return false;
+        if (routes == null || routes.isEmpty())
+            return false;
         StudioRoute route = context.router().currentRoute();
         return routes.contains(route);
     }
 
     private void syncSelectionFromActiveTab() {
-        if (!isOnTabRoute()) return;
+        if (!isOnTabRoute())
+            return;
         String current = context.tabsState().currentElementId();
-        if (current != null && !current.isBlank()) return;
+        if (current != null && !current.isBlank())
+            return;
         StudioOpenTab activeTab = context.tabsState().activeTab();
         if (activeTab != null) {
             context.tabsState().setCurrentElementId(activeTab.elementId());
@@ -181,19 +186,17 @@ public final class TreeController {
     }
 
     public record Config(
-            StudioRoute overviewRoute,
-            StudioRoute detailRoute,
-            StudioRoute changesRoute,
-            String concept,
-            List<StudioRoute> tabRoutes,
-            TreeNodeModel tree,
-            Identifier elementIcon,
-            Map<String, Identifier> folderIcons,
-            boolean disableAutoExpand,
-            java.util.function.Supplier<String> selectedElementId,
-            java.util.function.Consumer<String> onSelectElement,
-            java.util.function.Consumer<String> onSelectFolder,
-            java.util.function.IntSupplier modifiedCount
-    ) {
-    }
+        StudioRoute overviewRoute,
+        StudioRoute detailRoute,
+        StudioRoute changesRoute,
+        String concept,
+        List<StudioRoute> tabRoutes,
+        TreeNodeModel tree,
+        Identifier elementIcon,
+        Map<String, Identifier> folderIcons,
+        boolean disableAutoExpand,
+        java.util.function.Supplier<String> selectedElementId,
+        java.util.function.Consumer<String> onSelectElement,
+        java.util.function.Consumer<String> onSelectFolder,
+        java.util.function.IntSupplier modifiedCount) {}
 }

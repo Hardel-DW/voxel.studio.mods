@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
@@ -31,6 +32,7 @@ public final class StudioPrimarySidebar extends VBox {
     private static final Identifier DEBUG    = Identifier.fromNamespaceAndPath("asset_editor", "icons/debug.svg");
 
     private final StudioContext context;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final VBox concepts = new VBox(12);
 
     public StudioPrimarySidebar(StudioContext context) {
@@ -42,7 +44,7 @@ public final class StudioPrimarySidebar extends VBox {
 
         getChildren().addAll(buildLogoArea(), buildConcepts(), spacer, buildBottom());
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refreshConcepts());
-        context.permissionsProperty().addListener((obs, oldValue, newValue) -> refreshConcepts());
+        bindings.observe(context.selectPermissions(), permissions -> refreshConcepts());
         refreshConcepts();
     }
 
@@ -125,6 +127,4 @@ public final class StudioPrimarySidebar extends VBox {
         return btn;
     }
 }
-
-
 

@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,6 +25,7 @@ public final class TreeSidebarView extends VBox {
     private final StudioContext context;
     private final TreeController tree;
     private final FileTreeView fileTree;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
 
     public TreeSidebarView(StudioContext context, TreeController tree) {
         this.context = context;
@@ -33,25 +35,25 @@ public final class TreeSidebarView extends VBox {
         setSpacing(4);
         setPadding(new Insets(16, 0, 0, 0));
 
-        context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refresh());
+        bindings.observe(context.selectFilterPath(), value -> refresh());
+        bindings.observe(context.selectCurrentElementId(), value -> refresh());
         tree.treeProperty().addListener((obs, oldValue, newValue) -> refresh());
         refresh();
     }
 
     private void refresh() {
         getChildren().setAll(
-                createRow(PENCIL_ICON, I18n.get("generic:updated"), "updated", tree.modifiedCount(), false, () -> {
-                    tree.clearSelection();
-                    context.router().navigate(tree.changesRoute());
-                }),
-                createRow(SEARCH_ICON, I18n.get("generic:all"), "all", tree.tree().count(), tree.isAllActive(),
-                        tree::selectAll),
-                fileTree);
+            createRow(PENCIL_ICON, I18n.get("generic:updated"), "updated", tree.modifiedCount(), false, () -> {
+                tree.clearSelection();
+                context.router().navigate(tree.changesRoute());
+            }),
+            createRow(SEARCH_ICON, I18n.get("generic:all"), "all", tree.tree().count(), tree.isAllActive(),
+                tree::selectAll),
+            fileTree);
     }
 
     private HBox createRow(Identifier iconPath, String text, String colorKey, int count, boolean active,
-            Runnable onClick) {
+        Runnable onClick) {
         HBox row = new HBox(8);
         row.getStyleClass().add("ui-tree-sidebar-row");
         row.getStyleClass().add(active ? "ui-tree-sidebar-row-active" : "ui-tree-sidebar-row-inactive");

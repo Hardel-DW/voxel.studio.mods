@@ -1,9 +1,10 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.network.EditorAction;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;
@@ -18,8 +19,9 @@ import java.util.function.UnaryOperator;
 public final class ExclusiveSingleSection extends VBox {
 
     public ExclusiveSingleSection(StudioContext context,
-                                  StoreSelector<Set<String>> directExclusiveSelector,
-                                  BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation) {
+        StoreSelection<ElementEntry<?>, Set<String>> directExclusiveSelection,
+        FxSelectionBindings bindings,
+        BiFunction<UnaryOperator<Enchantment>, EditorAction, Boolean> applyMutation) {
         setSpacing(32);
         setMaxWidth(Double.MAX_VALUE);
 
@@ -35,17 +37,19 @@ public final class ExclusiveSingleSection extends VBox {
 
         if (!vanilla.isEmpty()) {
             getChildren().add(new EnchantmentCategory(
-                    I18n.get("enchantment.exclusive:vanilla"),
-                    vanilla,
-                    directExclusiveSelector,
-                    applyMutation,
-                    context));
-        }
-        getChildren().add(new EnchantmentCategory(
-                I18n.get("enchantment.exclusive:custom"),
-                custom,
-                directExclusiveSelector,
+                I18n.get("enchantment.exclusive:vanilla"),
+                vanilla,
+                directExclusiveSelection,
+                bindings,
                 applyMutation,
                 context));
+        }
+        getChildren().add(new EnchantmentCategory(
+            I18n.get("enchantment.exclusive:custom"),
+            custom,
+            directExclusiveSelection,
+            bindings,
+            applyMutation,
+            context));
     }
 }

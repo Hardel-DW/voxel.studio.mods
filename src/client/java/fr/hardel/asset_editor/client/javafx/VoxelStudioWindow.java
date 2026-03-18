@@ -1,8 +1,10 @@
 package fr.hardel.asset_editor.client.javafx;
 
 import fr.hardel.asset_editor.client.AssetEditorClient;
+import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.StudioEditorRoot;
 import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
+import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -32,6 +34,7 @@ public final class VoxelStudioWindow {
     private UndecoratedStageWindow window;
     private Scene scene;
     private StudioEditorRoot editorRoot;
+    private Subscription permissionSubscription;
     private boolean platformStarted, splashPlayed, splashMinTimeElapsed;
 
     public static void open() {
@@ -90,10 +93,15 @@ public final class VoxelStudioWindow {
     private void createWindow() {
         VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadFonts();
-        AssetEditorClient.sessionState().permissionsProperty().addListener((obs, oldValue, newValue) -> {
-            if (!splashPlayed)
+        if (permissionSubscription != null) {
+            permissionSubscription.unsubscribe();
+        }
+
+        permissionSubscription = AssetEditorClient.sessionState().select(ClientSessionState.Snapshot::permissions).subscribe(permission -> {
+            if (!splashPlayed) {
                 Platform.runLater(this::tryTransitionFromSplash);
-        });
+            }
+        }, true);
 
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         double width = Math.max(MIN_WIDTH, bounds.getWidth() * 0.75);

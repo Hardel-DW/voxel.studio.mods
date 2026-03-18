@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.page.loot_table;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.TreeUtils;
 import net.minecraft.resources.Identifier;
 
@@ -15,7 +15,8 @@ public final class LootTableTreeBuilder {
 
         for (String elementId : elementIds) {
             StudioElementId parsed = StudioElementId.parse(elementId);
-            if (parsed == null) continue;
+            if (parsed == null)
+                continue;
             Identifier identifier = parsed.identifier();
 
             String[] parts = identifier.getPath().split("/");
@@ -39,13 +40,13 @@ public final class LootTableTreeBuilder {
 
     private static TreeNodeModel ensureFolder(TreeNodeModel parent, String name) {
         TreeNodeModel existing = parent.children().get(name);
-        if (existing != null) return existing;
+        if (existing != null)
+            return existing;
         TreeNodeModel folder = new TreeNodeModel();
         folder.setFolder(true);
         parent.children().put(name, folder);
         return folder;
     }
 
-    private LootTableTreeBuilder() {
-    }
+    private LootTableTreeBuilder() {}
 }

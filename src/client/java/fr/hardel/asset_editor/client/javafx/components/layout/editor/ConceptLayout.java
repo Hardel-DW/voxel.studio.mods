@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
@@ -34,6 +35,7 @@ public final class ConceptLayout extends HBox {
     private final TreeController tree;
     private final Function<StudioRoute, Node> pageFactory;
     private final EnumMap<StudioRoute, Node> pageCache = new EnumMap<>(StudioRoute.class);
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final StackPane outlet = new StackPane();
     private Page activePage;
 
@@ -68,7 +70,7 @@ public final class ConceptLayout extends HBox {
             switchPage(route);
         });
 
-        context.tabsState().currentElementIdProperty().addListener((obs, old, id) -> {
+        bindings.observe(context.selectCurrentElementId(), id -> {
             if (getScene() == null) return;
             if (activePage != null) activePage.onActivate();
         });

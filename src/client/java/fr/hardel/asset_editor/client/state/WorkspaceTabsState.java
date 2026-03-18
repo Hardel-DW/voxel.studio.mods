@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.client.state;
 
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.beans.property.IntegerProperty;
@@ -52,12 +52,21 @@ public final class WorkspaceTabsState {
         return store.select(selector);
     }
 
+    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
+        return store.select(selector, equality);
+    }
+
     public ObservableList<StudioOpenTab> openTabs() {
         return openTabs;
     }
 
     public ReadOnlyIntegerProperty activeTabIndexProperty() {
         return activeTabIndex;
+    }
+
+    public int activeTabIndex() {
+        return snapshot().activeTabIndex();
     }
 
     public ReadOnlyStringProperty currentElementIdProperty() {
@@ -124,6 +133,10 @@ public final class WorkspaceTabsState {
         if (index < 0 || index >= state.openTabs().size())
             return null;
         return state.openTabs().get(index);
+    }
+
+    public List<StudioOpenTab> openTabsView() {
+        return snapshot().openTabs();
     }
 
     public void reset() {

@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.state;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.beans.property.ObjectProperty;
@@ -16,9 +17,9 @@ import java.util.function.Function;
 public final class WorkspaceUiState {
 
     public record Snapshot(String search,
-                           String filterPath,
-                           StudioViewMode viewMode,
-                           StudioSidebarView sidebarView) {
+        String filterPath,
+        StudioViewMode viewMode,
+        StudioSidebarView sidebarView) {
 
         public Snapshot {
             search = search == null ? "" : search;
@@ -58,6 +59,11 @@ public final class WorkspaceUiState {
 
     public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector) {
         return store.select(selector);
+    }
+
+    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
+        return store.select(selector, equality);
     }
 
     public StringProperty searchProperty() {

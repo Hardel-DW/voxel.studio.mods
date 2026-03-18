@@ -7,9 +7,9 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
+import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.client.javafx.lib.store.StoreSelector;
 import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -25,8 +25,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.StringProperty;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -37,7 +35,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     private final StudioContext context;
     private final ResourceKey<Registry<T>> registry;
     private final VBox content;
-    private final List<StoreSelector<?>> selectors = new ArrayList<>();
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private Identifier currentId;
     private boolean built;
 
@@ -72,10 +70,12 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         return registry;
     }
 
-    protected <R> StoreSelector<R> select(Function<ElementEntry<T>, R> extractor) {
-        var selector = context.elementStore().select(registry, currentId, extractor);
-        selectors.add(selector);
-        return selector;
+    protected <R> StoreSelection<ElementEntry<?>, R> selectValue(Function<ElementEntry<T>, R> extractor) {
+        return context.elementStore().selectValue(registry, currentId, extractor);
+    }
+
+    protected FxSelectionBindings selectionBindings() {
+        return bindings;
     }
 
     protected EditorActionResult applyAction(UnaryOperator<T> transform) {
@@ -107,75 +107,67 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         Function<ElementEntry<T>, Integer> extractor,
         java.util.function.IntFunction<UnaryOperator<T>> mutation,
         java.util.function.IntFunction<EditorAction> actionFactory) {
-        var selector = select(extractor);
-        if (selector.get() != null)
-            property.set(selector.get());
-        selector.subscribe(val -> {
-            if (val != null)
-                property.set(val);
+        var selection = selectValue(extractor);
+        bindings.observe(selection, value -> {
+            if (value != null && !Integer.valueOf(value).equals(property.getValue()))
+                property.set(value);
         });
         property.addListener((obs, o, v) -> {
             if (o == null || v == null || o.intValue() == v.intValue())
                 return;
-            if (Integer.valueOf(v.intValue()).equals(selector.get()))
+            if (Integer.valueOf(v.intValue()).equals(selection.get()))
                 return;
             var result = applyAction(mutation.apply(v.intValue()), actionFactory.apply(v.intValue()));
-            if (!result.isApplied() && selector.get() != null)
-                property.set(selector.get());
+            if (!result.isApplied() && selection.get() != null)
+                property.set(selection.get());
         });
     }
 
     protected void bindToggle(BooleanProperty property,
         Function<ElementEntry<T>, Boolean> extractor,
         Supplier<EditorActionResult> action) {
-        var selector = select(extractor);
-        if (selector.get() != null)
-            property.set(selector.get());
-        selector.subscribe(val -> {
-            if (val != null)
-                property.set(val);
+        var selection = selectValue(extractor);
+        bindings.observe(selection, value -> {
+            if (value != null && !value.equals(property.getValue()))
+                property.set(value);
         });
         property.addListener((obs, o, v) -> {
             if (o == null || v == null || o.equals(v))
                 return;
-            if (v.equals(selector.get()))
+            if (v.equals(selection.get()))
                 return;
             var result = action.get();
-            if (!result.isApplied() && selector.get() != null)
-                property.set(selector.get());
+            if (!result.isApplied() && selection.get() != null)
+                property.set(selection.get());
         });
     }
 
     protected void bindString(StringProperty property,
         Function<ElementEntry<T>, String> extractor,
         Function<String, EditorActionResult> action) {
-        var selector = select(extractor);
-        if (selector.get() != null)
-            property.set(selector.get());
-        selector.subscribe(val -> {
-            if (val != null)
-                property.set(val);
+        var selection = selectValue(extractor);
+        bindings.observe(selection, value -> {
+            if (value != null && !value.equals(property.getValue()))
+                property.set(value);
         });
         property.addListener((obs, o, v) -> {
             if (o == null || v == null || o.equals(v))
                 return;
-            if (v.equals(selector.get()))
+            if (v.equals(selection.get()))
                 return;
             var result = action.apply(v);
-            if (!result.isApplied() && selector.get() != null)
-                property.set(selector.get());
+            if (!result.isApplied() && selection.get() != null)
+                property.set(selection.get());
         });
     }
 
-    protected <R> StoreSelector<R> bindView(Function<ElementEntry<T>, R> extractor, Consumer<R> setter) {
-        var selector = select(extractor);
-        if (selector.get() != null)
-            setter.accept(selector.get());
-        selector.subscribe(val -> {
-            if (val != null)
-                setter.accept(val);
+    protected <R> StoreSelection<ElementEntry<?>, R> bindView(Function<ElementEntry<T>, R> extractor, Consumer<R> setter) {
+        var selection = selectValue(extractor);
+        bindings.observe(selection, value -> {
+            if (value != null)
+                setter.accept(value);
         });
-        return selector;
+        return selection;
     }
 
     protected boolean hasWritablePack() {
@@ -225,10 +217,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     }
 
     private void disposeSelectors() {
-        if (!selectors.isEmpty()) {
-            context.elementStore().disposeSelectors(selectors);
-            selectors.clear();
-        }
+        bindings.dispose();
         built = false;
     }
 

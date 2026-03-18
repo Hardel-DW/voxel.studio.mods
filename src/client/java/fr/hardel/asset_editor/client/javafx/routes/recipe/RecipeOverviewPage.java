@@ -1,7 +1,9 @@
 package fr.hardel.asset_editor.client.javafx.routes.recipe;
 
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
+import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -12,13 +14,16 @@ import net.minecraft.client.resources.language.I18n;
 
 public final class RecipeOverviewPage extends VBox implements Page {
 
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
+
     public RecipeOverviewPage(StudioContext context) {
         getStyleClass().add("concept-overview-page");
 
         TextField search = new TextField();
         search.getStyleClass().add("concept-overview-search");
         search.setPromptText(I18n.get("recipe:overview.search"));
-        search.textProperty().bindBidirectional(context.uiState().searchProperty());
+        bindings.bind(search.textProperty(), context.uiState().select(WorkspaceUiState.Snapshot::search));
+        search.textProperty().addListener((obs, oldValue, newValue) -> context.uiState().setSearch(newValue));
 
         VBox toolbar = new VBox(search);
         toolbar.getStyleClass().add("concept-overview-toolbar");

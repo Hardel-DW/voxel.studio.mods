@@ -2,11 +2,13 @@ package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ItemSprite;
 import fr.hardel.asset_editor.client.javafx.components.ui.Row;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.InfiniteScrollPane;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
+import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -34,6 +36,8 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
     private final StudioContext context;
     private final StackPane content = new StackPane();
     private final InfiniteScrollPane<ElementEntry<Enchantment>> scrollPane;
+    private final FxSelectionBindings fieldBindings = new FxSelectionBindings();
+    private final FxSelectionBindings pageBindings = new FxSelectionBindings();
     private final Runnable storeListener = this::refresh;
 
     public EnchantmentOverviewPage(StudioContext context) {
@@ -43,7 +47,8 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         TextField search = new TextField();
         search.getStyleClass().add("editor-overview-search");
         search.setPromptText(I18n.get("enchantment:overview.search"));
-        search.textProperty().bindBidirectional(context.uiState().searchProperty());
+        fieldBindings.bind(search.textProperty(), context.uiState().select(WorkspaceUiState.Snapshot::search));
+        search.textProperty().addListener((obs, oldValue, newValue) -> context.uiState().setSearch(newValue));
 
         VBox toolbar = new VBox(search);
         toolbar.getStyleClass().add("editor-overview-toolbar");
@@ -56,19 +61,20 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
 
         getChildren().addAll(toolbar, content);
 
-        context.uiState().searchProperty().addListener((obs, o, v) -> refresh());
-        context.uiState().filterPathProperty().addListener((obs, o, v) -> refresh());
-        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> refresh());
     }
 
     @Override
     public void onActivate() {
+        pageBindings.observe(context.uiState().select(WorkspaceUiState.Snapshot::search), value -> refresh());
+        pageBindings.observe(context.selectFilterPath(), value -> refresh());
+        pageBindings.observe(context.uiState().select(WorkspaceUiState.Snapshot::sidebarView), value -> refresh());
         context.elementStore().subscribeRegistry(Registries.ENCHANTMENT, storeListener);
         refresh();
     }
 
     @Override
     public void onDeactivate() {
+        pageBindings.dispose();
         context.elementStore().unsubscribeRegistry(Registries.ENCHANTMENT, storeListener);
     }
 

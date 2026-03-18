@@ -1,18 +1,13 @@
 package fr.hardel.asset_editor.client.state;
 
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import fr.hardel.asset_editor.network.PackCreatePayload;
 import fr.hardel.asset_editor.network.PackListRequestPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -24,10 +19,10 @@ import java.util.function.Function;
 public final class ClientSessionState {
 
     public record Snapshot(StudioPermissions permissions,
-                           List<ClientPackInfo> availablePacks,
-                           String worldSessionKey,
-                           boolean permissionsReceived,
-                           boolean packListReceived) {
+        List<ClientPackInfo> availablePacks,
+        String worldSessionKey,
+        boolean permissionsReceived,
+        boolean packListReceived) {
 
         public Snapshot {
             permissions = permissions == null ? StudioPermissions.NONE : permissions;
@@ -41,11 +36,8 @@ public final class ClientSessionState {
     }
 
     private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.empty());
-    private final ObjectProperty<StudioPermissions> permissions = new SimpleObjectProperty<>(StudioPermissions.NONE);
     private final ObservableList<ClientPackInfo> availablePacks = FXCollections.observableArrayList();
-    private final StringProperty worldSessionKey = new SimpleStringProperty("");
     private final Subscription syncSubscription = store.subscribe(this::syncFromStore);
-    private boolean syncing;
 
     public ClientSessionState() {
         syncFromStore();
@@ -59,12 +51,13 @@ public final class ClientSessionState {
         return store.select(selector);
     }
 
-    public StudioPermissions permissions() {
-        return snapshot().permissions();
+    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
+        return store.select(selector, equality);
     }
 
-    public ReadOnlyObjectProperty<StudioPermissions> permissionsProperty() {
-        return permissions;
+    public StudioPermissions permissions() {
+        return snapshot().permissions();
     }
 
     public ObservableList<ClientPackInfo> availablePacks() {
@@ -73,10 +66,6 @@ public final class ClientSessionState {
 
     public String worldSessionKey() {
         return snapshot().worldSessionKey();
-    }
-
-    public ReadOnlyStringProperty worldSessionKeyProperty() {
-        return worldSessionKey;
     }
 
     public boolean hasReceivedPermissions() {
@@ -132,20 +121,8 @@ public final class ClientSessionState {
     }
 
     private void syncFromStore() {
-        if (syncing)
-            return;
-
-        syncing = true;
-        try {
-            Snapshot state = snapshot();
-            if (permissions.get() != state.permissions())
-                permissions.set(state.permissions());
-            if (!availablePacks.equals(state.availablePacks()))
-                availablePacks.setAll(state.availablePacks());
-            if (!worldSessionKey.get().equals(state.worldSessionKey()))
-                worldSessionKey.set(state.worldSessionKey());
-        } finally {
-            syncing = false;
-        }
+        Snapshot state = snapshot();
+        if (!availablePacks.equals(state.availablePacks()))
+            availablePacks.setAll(state.availablePacks());
     }
 }

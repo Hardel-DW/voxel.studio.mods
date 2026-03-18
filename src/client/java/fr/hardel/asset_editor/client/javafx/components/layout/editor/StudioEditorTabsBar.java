@@ -2,16 +2,16 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioOpenTab;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
-import javafx.collections.ListChangeListener;
+import fr.hardel.asset_editor.client.state.StudioOpenTab;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -35,6 +35,7 @@ public final class StudioEditorTabsBar extends HBox {
     private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
 
     private final StudioContext context;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final HBox tabsContainer = new HBox(4);
 
     public StudioEditorTabsBar(StudioContext context, Stage stage) {
@@ -65,8 +66,8 @@ public final class StudioEditorTabsBar extends HBox {
         dragSpacer.setPickOnBounds(true);
         VoxelStudioWindow.bindDragArea(dragSpacer);
 
-        context.tabsState().openTabs().addListener((ListChangeListener<StudioOpenTab>) c -> refreshTabs());
-        context.tabsState().activeTabIndexProperty().addListener((obs, o, n) -> refreshTabs());
+        bindings.observe(context.selectOpenTabs(), tabs -> refreshTabs());
+        bindings.observe(context.selectActiveTabIndex(), index -> refreshTabs());
 
         getChildren().addAll(packSelector, separator, tabsContainer, dragSpacer, buildWindowControls(stage));
         refreshTabs();
@@ -78,9 +79,9 @@ public final class StudioEditorTabsBar extends HBox {
 
     private void refreshTabs() {
         tabsContainer.getChildren().clear();
-        int activeIndex = context.tabsState().activeTabIndexProperty().get();
+        int activeIndex = context.tabsState().activeTabIndex();
         int index = 0;
-        for (StudioOpenTab tab : context.tabsState().openTabs()) {
+        for (StudioOpenTab tab : context.tabsState().openTabsView()) {
             tabsContainer.getChildren().add(createTab(tab, index == activeIndex, index));
             index++;
         }

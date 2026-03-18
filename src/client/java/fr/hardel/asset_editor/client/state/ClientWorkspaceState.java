@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.state;
 
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 
 import java.util.LinkedHashMap;
@@ -40,6 +40,11 @@ public final class ClientWorkspaceState {
 
     public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector) {
         return store.select(selector);
+    }
+
+    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
+        return store.select(selector, equality);
     }
 
     public WorkspaceUiState uiState() {

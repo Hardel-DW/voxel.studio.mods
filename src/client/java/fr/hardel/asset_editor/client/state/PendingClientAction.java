@@ -5,5 +5,4 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
-public record PendingClientAction<T>(ResourceKey<Registry<T>> registry, Identifier target, ElementEntry<T> snapshot) {
-}
+public record PendingClientAction<T>(ResourceKey<Registry<T>> registry, Identifier target, ElementEntry<T> snapshot) {}

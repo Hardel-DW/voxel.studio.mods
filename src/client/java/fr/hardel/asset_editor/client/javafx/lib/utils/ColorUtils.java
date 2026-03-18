@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.utils;
 
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import javafx.scene.paint.Color;
 
 public final class ColorUtils {

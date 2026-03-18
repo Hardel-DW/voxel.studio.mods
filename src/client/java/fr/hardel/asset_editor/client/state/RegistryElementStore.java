@@ -1,6 +1,7 @@
-package fr.hardel.asset_editor.client.javafx.lib.store;
+package fr.hardel.asset_editor.client.state;
 
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Holder;
@@ -111,15 +112,13 @@ public final class RegistryElementStore {
         return registryMap.values().stream().map(entry -> (ElementEntry<T>) entry).toList();
     }
 
-    public <T, R> StoreSelector<R> select(ResourceKey<Registry<T>> registry, Identifier id,
-                                          Function<ElementEntry<T>, R> extractor) {
+    @SuppressWarnings("unchecked")
+    public <T, R> StoreSelection<ElementEntry<?>, R> selectValue(ResourceKey<Registry<T>> registry, Identifier id,
+                                                                 Function<ElementEntry<T>, R> extractor) {
         String name = registryName(registry);
         ElementEntry<T> entry = get(registry, id);
-        return new StoreSelector<>(elementStore(name, id, entry), extractor);
-    }
-
-    public void disposeSelectors(List<StoreSelector<?>> toDispose) {
-        toDispose.forEach(StoreSelector::dispose);
+        return elementStore(name, id, entry)
+            .select(currentEntry -> currentEntry == null ? null : extractor.apply((ElementEntry<T>) currentEntry));
     }
 
     public void clearAll() {

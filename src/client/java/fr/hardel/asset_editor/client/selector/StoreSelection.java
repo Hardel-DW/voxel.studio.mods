@@ -12,8 +12,8 @@ public final class StoreSelection<S, R> {
     private final SelectorEquality<? super R> equality;
 
     StoreSelection(SelectorStore<S> store,
-                   Function<? super S, ? extends R> selector,
-                   SelectorEquality<? super R> equality) {
+        Function<? super S, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
         this.store = store;
         this.selector = selector;
         this.equality = equality;
@@ -21,11 +21,6 @@ public final class StoreSelection<S, R> {
 
     public R get() {
         return selector.apply(store.getState());
-    }
-
-    public <N> StoreSelection<S, N> map(Function<? super R, ? extends N> mapper) {
-        Objects.requireNonNull(mapper, "mapper");
-        return store.select(state -> mapper.apply(selector.apply(state)));
     }
 
     public Subscription subscribe(Consumer<? super R> listener) {

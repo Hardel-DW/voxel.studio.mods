@@ -3,12 +3,14 @@ package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.ConceptLayout;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.javafx.routes.EmptyPage;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.enchantment.*;
+import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
@@ -54,7 +56,8 @@ public final class EnchantmentLayout {
             layout.tree().setDisableAutoExpand(v == StudioSidebarView.SLOTS);
         };
 
-        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> rebuildTree.run());
+        FxSelectionBindings bindings = new FxSelectionBindings();
+        bindings.observe(context.uiState().select(WorkspaceUiState.Snapshot::sidebarView), value -> rebuildTree.run());
         context.elementStore().subscribeRegistry(Registries.ENCHANTMENT, rebuildTree);
 
         return layout;
@@ -86,7 +89,8 @@ public final class EnchantmentLayout {
         toggle.addOption("slots", I18n.get("enchantment:overview.sidebar.slots"));
         toggle.addOption("items", I18n.get("enchantment:overview.sidebar.items"));
         toggle.addOption("exclusive", I18n.get("enchantment:overview.sidebar.exclusive"));
-        context.uiState().sidebarViewProperty().addListener((obs, o, v) -> toggle.refresh());
+        FxSelectionBindings bindings = new FxSelectionBindings();
+        bindings.observe(context.uiState().select(WorkspaceUiState.Snapshot::sidebarView), value -> toggle.refresh());
         return toggle;
     }
 

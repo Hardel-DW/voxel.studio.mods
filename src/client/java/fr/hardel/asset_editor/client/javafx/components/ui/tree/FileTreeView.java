@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import fr.hardel.asset_editor.client.javafx.lib.utils.IconUtils;
@@ -31,14 +32,15 @@ public final class FileTreeView extends VBox {
     private static final Identifier DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/folder.svg");
 
     private final TreeController tree;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final HashMap<String, Boolean> openState = new HashMap<>();
 
     public FileTreeView(StudioContext context, TreeController tree) {
         this.tree = tree;
         getStyleClass().add("ui-tree-file");
 
-        context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refresh());
+        bindings.observe(context.selectFilterPath(), value -> refresh());
+        bindings.observe(context.selectCurrentElementId(), value -> refresh());
         tree.treeProperty().addListener((obs, oldValue, newValue) -> refresh());
         tree.folderIconsProperty().addListener((obs, oldValue, newValue) -> refresh());
         tree.elementIconProperty().addListener((obs, oldValue, newValue) -> refresh());
@@ -66,8 +68,8 @@ public final class FileTreeView extends VBox {
 
         String filterPath = tree.filterPath();
         boolean isHighlighted = isElement
-                ? node.elementId().equals(activeElementId)
-                : (activeElementId == null || activeElementId.isBlank()) && path.equals(filterPath);
+            ? node.elementId().equals(activeElementId)
+            : (activeElementId == null || activeElementId.isBlank()) && path.equals(filterPath);
         boolean isEmpty = !isElement && node.count() == 0;
 
         Identifier icon = node.icon();
@@ -140,8 +142,8 @@ public final class FileTreeView extends VBox {
         HBox content = new HBox(10);
         content.setAlignment(Pos.CENTER_LEFT);
         Node iconNode = IconUtils.isSvgIcon(icon)
-                ? new SvgIcon(icon, 20, Color.WHITE)
-                : new ResourceImageIcon(icon, 20);
+            ? new SvgIcon(icon, 20, Color.WHITE)
+            : new ResourceImageIcon(icon, 20);
         iconNode.getStyleClass().add("ui-tree-row-icon");
         if (isDefaultFolderIcon)
             iconNode.setOpacity(isHighlighted ? 1.0 : 0.6);
@@ -186,11 +188,11 @@ public final class FileTreeView extends VBox {
             for (Map.Entry<String, TreeNodeModel> child : sortedEntries(node.children())) {
                 boolean childForceOpen = node.children().size() == 1;
                 childrenBox.getChildren().add(createNode(
-                        child.getKey(),
-                        path + "/" + child.getKey(),
-                        child.getValue(),
-                        depth + 1,
-                        childForceOpen));
+                    child.getKey(),
+                    path + "/" + child.getKey(),
+                    child.getValue(),
+                    depth + 1,
+                    childForceOpen));
             }
             wrapper.getChildren().add(childrenBox);
         }

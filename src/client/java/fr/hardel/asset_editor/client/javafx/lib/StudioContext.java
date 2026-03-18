@@ -4,18 +4,22 @@ import fr.hardel.asset_editor.client.ClientSessionDispatch;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.lib.store.RegistryElementStore;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
+import fr.hardel.asset_editor.client.selector.StoreSelection;
+import fr.hardel.asset_editor.client.selector.Subscription;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
+import fr.hardel.asset_editor.client.state.ClientPackInfo;
+import fr.hardel.asset_editor.client.state.RegistryElementStore;
+import fr.hardel.asset_editor.client.state.StudioOpenTab;
 import fr.hardel.asset_editor.client.state.WorkspacePackSelectionState;
 import fr.hardel.asset_editor.client.state.WorkspaceTabsState;
 import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.value.ChangeListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -36,17 +40,17 @@ public final class StudioContext {
     private final ClientSessionDispatch dispatch;
     private final StudioRouter router = new StudioRouter();
     private final EditorActionGateway gateway;
-    private final ChangeListener<StudioPermissions> permissionListener;
+    private final Subscription permissionSubscription;
 
     public StudioContext(ClientSessionState sessionState, ClientSessionDispatch dispatch) {
         this.sessionState = sessionState;
         this.workspaceState = new ClientWorkspaceState(sessionState);
         this.dispatch = dispatch;
         this.gateway = new EditorActionGateway(sessionState, workspaceState);
-        this.permissionListener = (obs, oldValue, newValue) -> enforcePermissionRoute();
+        this.permissionSubscription = sessionState.select(ClientSessionState.Snapshot::permissions)
+            .subscribe(permission -> enforcePermissionRoute(), true);
 
         router.setPermissionSupplier(sessionState::permissions);
-        sessionState.permissionsProperty().addListener(permissionListener);
         dispatch.setGateway(gateway);
     }
 
@@ -86,8 +90,36 @@ public final class StudioContext {
         return sessionState.permissions();
     }
 
-    public ReadOnlyObjectProperty<StudioPermissions> permissionsProperty() {
-        return sessionState.permissionsProperty();
+    public StoreSelection<ClientSessionState.Snapshot, StudioPermissions> selectPermissions() {
+        return sessionState.select(ClientSessionState.Snapshot::permissions);
+    }
+
+    public StoreSelection<ClientSessionState.Snapshot, List<ClientPackInfo>> selectAvailablePacks() {
+        return sessionState.select(ClientSessionState.Snapshot::availablePacks, SelectorEquality.listEquality());
+    }
+
+    public StoreSelection<WorkspacePackSelectionState.Snapshot, ClientPackInfo> selectSelectedPack() {
+        return workspaceState.packSelectionState().select(WorkspacePackSelectionState.Snapshot::selectedPack);
+    }
+
+    public StoreSelection<WorkspaceTabsState.Snapshot, List<StudioOpenTab>> selectOpenTabs() {
+        return workspaceState.tabsState().select(WorkspaceTabsState.Snapshot::openTabs, SelectorEquality.listEquality());
+    }
+
+    public StoreSelection<WorkspaceTabsState.Snapshot, Integer> selectActiveTabIndex() {
+        return workspaceState.tabsState().select(WorkspaceTabsState.Snapshot::activeTabIndex);
+    }
+
+    public StoreSelection<WorkspaceTabsState.Snapshot, String> selectCurrentElementId() {
+        return workspaceState.tabsState().select(WorkspaceTabsState.Snapshot::currentElementId);
+    }
+
+    public StoreSelection<WorkspaceUiState.Snapshot, String> selectFilterPath() {
+        return workspaceState.uiState().select(WorkspaceUiState.Snapshot::filterPath);
+    }
+
+    public StoreSelection<WorkspaceUiState.Snapshot, StudioViewMode> selectViewMode() {
+        return workspaceState.uiState().select(WorkspaceUiState.Snapshot::viewMode);
     }
 
     private void enforcePermissionRoute() {
@@ -185,7 +217,7 @@ public final class StudioContext {
     }
 
     public void dispose() {
-        sessionState.permissionsProperty().removeListener(permissionListener);
+        permissionSubscription.unsubscribe();
         dispatch.clearGateway(gateway);
         workspaceState.dispose();
     }

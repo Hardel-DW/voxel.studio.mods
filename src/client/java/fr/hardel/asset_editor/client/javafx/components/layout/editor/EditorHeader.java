@@ -2,15 +2,16 @@ package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
+import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioTabDefinition;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ToggleGroup;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeController;
 import fr.hardel.asset_editor.client.javafx.components.ui.tree.TreeNodeModel;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.client.javafx.lib.store.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,6 +38,7 @@ public final class EditorHeader extends VBox {
             "icons/tools/overview/list.svg");
 
     private final StudioContext context;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final TreeController tree;
     private final StudioConcept concept;
     private final boolean showViewToggle;
@@ -77,9 +79,9 @@ public final class EditorHeader extends VBox {
         getChildren().add(surface);
 
         context.router().routeProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.uiState().filterPathProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.tabsState().currentElementIdProperty().addListener((obs, oldValue, newValue) -> refresh());
-        context.uiState().viewModeProperty().addListener((obs, oldValue, newValue) -> refresh());
+        bindings.observe(context.selectFilterPath(), value -> refresh());
+        bindings.observe(context.selectCurrentElementId(), value -> refresh());
+        bindings.observe(context.selectViewMode(), value -> refresh());
         refresh();
     }
 

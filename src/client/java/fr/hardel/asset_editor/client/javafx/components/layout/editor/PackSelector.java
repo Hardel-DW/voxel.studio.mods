@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Popover;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
+import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.state.ClientPackInfo;
 import javafx.geometry.Insets;
@@ -26,6 +27,7 @@ public final class PackSelector extends StackPane {
     private static final Identifier PENCIL_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/pencil.svg");
 
     private final StudioContext context;
+    private final FxSelectionBindings bindings = new FxSelectionBindings();
     private final Label nameLabel = new Label();
     private final VBox popoverContent = new VBox(4);
 
@@ -67,13 +69,11 @@ public final class PackSelector extends StackPane {
 
         new Popover(this, buildPopoverContent(), true);
 
-        context.packState().selectedPackProperty().addListener((obs, o, v) -> {
+        bindings.observe(context.selectSelectedPack(), selectedPack -> {
             refreshLabel();
             refreshPopoverContent();
         });
-        context.packState().availablePacks().addListener(
-                (javafx.collections.ListChangeListener<ClientPackInfo>) change -> refreshPopoverContent());
-        refreshLabel();
+        bindings.observe(context.selectAvailablePacks(), packs -> refreshPopoverContent());
 
         setOnMouseEntered(e -> {
             if (!getStyleClass().contains("pack-selector-hover"))

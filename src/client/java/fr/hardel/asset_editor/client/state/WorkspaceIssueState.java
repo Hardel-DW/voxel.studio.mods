@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.state;
 
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
+import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.collections.FXCollections;
@@ -39,6 +40,11 @@ public final class WorkspaceIssueState {
 
     public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector) {
         return store.select(selector);
+    }
+
+    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
+        SelectorEquality<? super R> equality) {
+        return store.select(selector, equality);
     }
 
     public ObservableList<String> warnings() {

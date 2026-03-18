@@ -100,8 +100,8 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     private VBox buildEffectsSection() {
         Section section = new Section(I18n.get("enchantment:technical.effects.title"));
-        var effectsSelector = select(entry -> EnchantmentActions.availableEffects(entry.data()));
-        List<String> effects = effectsSelector.get() == null ? List.of() : effectsSelector.get();
+        var effectsSelection = selectValue(entry -> EnchantmentActions.availableEffects(entry.data()));
+        List<String> effects = effectsSelection.get() == null ? List.of() : effectsSelection.get();
 
         if (effects.isEmpty()) {
             Label empty = new Label(I18n.get("enchantment:technical.empty_effects"));
