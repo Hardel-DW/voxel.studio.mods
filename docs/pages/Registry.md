@@ -1,4 +1,5 @@
-# Registry Element Editing Logic                                                                                                                                              - Contenu builtin builin like minecraft, fabric..., fichiers .zip/.jar = read-only, we never modify the original                                                                  
+# Registry Element Editing Logic 
+- Contenu builtin builin like minecraft, fabric..., fichiers .zip/.jar = read-only, we never modify the original                                                                  
 
 ### Mutable Data
 When launching a world, the mod captures the Registries and keeps them in memory. These are the mutable data that we read and modify. During a flush, we compare the mutable data with the immutable native Minecraft data and apply the modifications.

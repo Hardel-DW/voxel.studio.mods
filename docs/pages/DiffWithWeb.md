@@ -1,3 +1,5 @@
+Aucune logique Java ne doit dépendre implicitement du code web, le web n'est qu'une inspiration une aide il a une logique et finalité différente donc un comportement différent.  
+
 Important elements to note that differ from Breeze and TSX version. In this Java version, we work with a Fabric mod specific to one version.
 - We only handle version 1.21.11 (the current version of the mods), no management of other versions. Manage it indirectly by making several versions of the mods.
 - We use DataGen for enchantments and tags, pack.mcmeta and everthing, which ensures there are no bugs; if that's not the case, it must be done. Use Mojang's APIs as much as possible for JSON generation. So we don't have to manage the JSON syntax of keys.
