@@ -93,9 +93,9 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
     private Selector buildModeSelector() {
         LinkedHashMap<String, String> modeOptions = new LinkedHashMap<>();
-        modeOptions.put("normal", I18n.get("enchantment:global.mode.enum.normal"));
-        modeOptions.put("soft_delete", I18n.get("enchantment:global.mode.enum.soft_delete"));
-        modeOptions.put("only_creative", I18n.get("enchantment:global.mode.enum.only_creative"));
+        modeOptions.put(EnchantmentActions.MODE_NORMAL, I18n.get("enchantment:global.mode.enum.normal"));
+        modeOptions.put(EnchantmentActions.MODE_SOFT_DELETE, I18n.get("enchantment:global.mode.enum.soft_delete"));
+        modeOptions.put(EnchantmentActions.MODE_ONLY_CREATIVE, I18n.get("enchantment:global.mode.enum.only_creative"));
 
         Selector selector = new Selector(
                 I18n.get("enchantment:global.mode.title"),

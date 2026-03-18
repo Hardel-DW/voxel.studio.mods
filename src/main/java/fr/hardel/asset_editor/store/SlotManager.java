@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.lib;
+package fr.hardel.asset_editor.store;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;

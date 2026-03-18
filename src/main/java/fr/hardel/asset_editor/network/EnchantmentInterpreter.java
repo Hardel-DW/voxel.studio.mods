@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.network;
 
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
+import fr.hardel.asset_editor.store.SlotManager;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
@@ -23,10 +25,10 @@ import java.util.Set;
 
 public final class EnchantmentInterpreter implements RegistryInterpreter<Enchantment> {
 
-    private static final String MODE_KEY = "mode";
-    private static final String DISABLED_EFFECTS_KEY = "disabledEffects";
-    private static final String MODE_NORMAL = "normal";
-    private static final String MODE_SOFT_DELETE = "soft_delete";
+    private static final String MODE_KEY = EnchantmentFlushAdapter.MODE_KEY;
+    private static final String DISABLED_EFFECTS_KEY = EnchantmentFlushAdapter.DISABLED_EFFECTS_KEY;
+    private static final String MODE_NORMAL = EnchantmentFlushAdapter.MODE_NORMAL;
+    private static final String MODE_SOFT_DELETE = EnchantmentFlushAdapter.MODE_SOFT_DELETE;
 
     @Override
     public ElementEntry<Enchantment> apply(ElementEntry<Enchantment> entry, EditorAction action,
@@ -45,11 +47,10 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
             });
             case EditorAction.ToggleSlot a -> {
                 EquipmentSlotGroup slot = EquipmentSlotGroup.valueOf(a.slot().toUpperCase());
-                List<EquipmentSlotGroup> slots = new ArrayList<>(entry.data().definition().slots());
-                if (!slots.remove(slot)) slots.add(slot);
+                List<EquipmentSlotGroup> slots = new SlotManager(entry.data().definition().slots()).toggle(slot).toGroups();
                 yield entry.withData(withDefinition(entry.data(), d -> new EnchantmentDefinition(
                         d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                        d.minCost(), d.maxCost(), d.anvilCost(), List.copyOf(slots))));
+                        d.minCost(), d.maxCost(), d.anvilCost(), slots)));
             }
             case EditorAction.ToggleTag a -> entry.toggleTag(a.tagId());
             case EditorAction.ToggleExclusive a -> applyToggleExclusive(entry, a.enchantmentId(), registries);

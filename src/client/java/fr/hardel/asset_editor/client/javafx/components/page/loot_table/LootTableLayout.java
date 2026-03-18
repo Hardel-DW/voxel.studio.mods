@@ -16,25 +16,25 @@ import java.util.Map;
 
 public final class LootTableLayout {
 
-    private static final Identifier ICON = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/bundle_close.png");
+    private static final Identifier ICON = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/loot_table.png");
 
     public static ConceptLayout create(StudioContext context) {
         var treeConfig = new TreeController.Config(
-                StudioRoute.LOOT_TABLE_OVERVIEW,
-                StudioRoute.LOOT_TABLE_MAIN,
-                StudioRoute.CHANGES_MAIN,
-                StudioConcept.LOOT_TABLE.registry(),
-                StudioConcept.LOOT_TABLE.tabRoutes(),
-                LootTableTreeBuilder.build(List.of()),
-                ICON, Map.of(), false,
-                null, null, null, () -> 0);
+            StudioRoute.LOOT_TABLE_OVERVIEW,
+            StudioRoute.LOOT_TABLE_MAIN,
+            StudioRoute.CHANGES_MAIN,
+            StudioConcept.LOOT_TABLE.registry(),
+            StudioConcept.LOOT_TABLE.tabRoutes(),
+            LootTableTreeBuilder.build(List.of()),
+            ICON, Map.of(), false,
+            null, null, null, () -> 0);
 
         return new ConceptLayout(context, new ConceptLayout.Config(
-                StudioConcept.LOOT_TABLE, ICON,
-                "loot:overview.title",
-                treeConfig, null, false,
-                route -> createPage(context, route),
-                List.of()));
+            StudioConcept.LOOT_TABLE, ICON,
+            "loot:overview.title",
+            treeConfig, null, false,
+            route -> createPage(context, route),
+            List.of()));
     }
 
     private static Node createPage(StudioContext context, StudioRoute route) {

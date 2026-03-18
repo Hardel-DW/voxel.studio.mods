@@ -21,31 +21,31 @@ import java.util.Map;
 
 public final class EnchantmentLayout {
 
-    private static final Identifier ICON = Identifier.fromNamespaceAndPath("asset_editor", "textures/features/item/enchanted_book.png");
+    private static final Identifier ICON = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/enchantment.png");
 
     public static ConceptLayout create(StudioContext context) {
         StudioSidebarView initialView = context.uiState().sidebarView();
 
         var treeConfig = new TreeController.Config(
-                StudioRoute.ENCHANTMENT_OVERVIEW,
-                StudioRoute.ENCHANTMENT_MAIN,
-                StudioRoute.CHANGES_MAIN,
-                StudioConcept.ENCHANTMENT.registry(),
-                StudioConcept.ENCHANTMENT.tabRoutes(),
-                EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), initialView),
-                ICON,
-                folderIcons(initialView),
-                initialView == StudioSidebarView.SLOTS,
-                null, null, null, () -> 0);
+            StudioRoute.ENCHANTMENT_OVERVIEW,
+            StudioRoute.ENCHANTMENT_MAIN,
+            StudioRoute.CHANGES_MAIN,
+            StudioConcept.ENCHANTMENT.registry(),
+            StudioConcept.ENCHANTMENT.tabRoutes(),
+            EnchantmentTreeBuilder.build(context.allEntries(Registries.ENCHANTMENT), initialView),
+            ICON,
+            folderIcons(initialView),
+            initialView == StudioSidebarView.SLOTS,
+            null, null, null, () -> 0);
 
         ConceptLayout layout = new ConceptLayout(context, new ConceptLayout.Config(
-                StudioConcept.ENCHANTMENT, ICON,
-                "enchantment:overview.title",
-                treeConfig,
-                StudioRoute.ENCHANTMENT_SIMULATION,
-                true,
-                route -> createPage(context, route),
-                List.of(buildToggle(context))));
+            StudioConcept.ENCHANTMENT, ICON,
+            "enchantment:overview.title",
+            treeConfig,
+            StudioRoute.ENCHANTMENT_SIMULATION,
+            true,
+            route -> createPage(context, route),
+            List.of(buildToggle(context))));
 
         Runnable rebuildTree = () -> {
             StudioSidebarView v = context.uiState().sidebarView();
@@ -75,12 +75,12 @@ public final class EnchantmentLayout {
 
     private static ToggleGroup buildToggle(StudioContext context) {
         ToggleGroup toggle = new ToggleGroup(
-                () -> context.uiState().sidebarView().name().toLowerCase(),
-                value -> context.uiState().setSidebarView(switch (value) {
-                    case "items" -> StudioSidebarView.ITEMS;
-                    case "exclusive" -> StudioSidebarView.EXCLUSIVE;
-                    default -> StudioSidebarView.SLOTS;
-                }));
+            () -> context.uiState().sidebarView().name().toLowerCase(),
+            value -> context.uiState().setSidebarView(switch (value) {
+                case "items" -> StudioSidebarView.ITEMS;
+                case "exclusive" -> StudioSidebarView.EXCLUSIVE;
+                default -> StudioSidebarView.SLOTS;
+            }));
         toggle.setMaxWidth(Double.MAX_VALUE);
         VBox.setMargin(toggle, new Insets(16, 0, 0, 0));
         toggle.addOption("slots", I18n.get("enchantment:overview.sidebar.slots"));
@@ -91,8 +91,10 @@ public final class EnchantmentLayout {
     }
 
     private static Map<String, Identifier> folderIcons(StudioSidebarView view) {
-        if (view == StudioSidebarView.SLOTS) return EnchantmentTreeBuilder.slotFolderIcons();
-        if (view == StudioSidebarView.ITEMS) return EnchantmentTreeBuilder.itemFolderIcons();
+        if (view == StudioSidebarView.SLOTS)
+            return EnchantmentTreeBuilder.slotFolderIcons();
+        if (view == StudioSidebarView.ITEMS)
+            return EnchantmentTreeBuilder.itemFolderIcons();
         return Map.of();
     }
 

@@ -20,13 +20,15 @@ public final class ClientSessionDispatch {
     }
 
     public static void handleActionResponse(UUID actionId, boolean accepted, String message) {
-        if (activeGateway != null)
-            Platform.runLater(() -> activeGateway.handleResponse(actionId, accepted, message));
+        var gateway = activeGateway;
+        if (gateway != null)
+            Platform.runLater(() -> gateway.handleResponse(actionId, accepted, message));
     }
 
     public static void handleElementUpdate(Identifier registryId, Identifier targetId, EditorAction action) {
-        if (activeGateway != null)
-            Platform.runLater(() -> activeGateway.handleRemoteUpdate(registryId, targetId, action));
+        var gateway = activeGateway;
+        if (gateway != null)
+            Platform.runLater(() -> gateway.handleRemoteUpdate(registryId, targetId, action));
     }
 
     private ClientSessionDispatch() {

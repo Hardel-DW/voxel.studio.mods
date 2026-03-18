@@ -14,11 +14,11 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
 
     public static final EnchantmentFlushAdapter INSTANCE = new EnchantmentFlushAdapter();
 
-    private static final String MODE_KEY = "mode";
-    private static final String DISABLED_EFFECTS_KEY = "disabledEffects";
-    private static final String MODE_NORMAL = "normal";
-    private static final String MODE_SOFT_DELETE = "soft_delete";
-    private static final String MODE_ONLY_CREATIVE = "only_creative";
+    public static final String MODE_KEY = "mode";
+    public static final String DISABLED_EFFECTS_KEY = "disabledEffects";
+    public static final String MODE_NORMAL = "normal";
+    public static final String MODE_SOFT_DELETE = "soft_delete";
+    public static final String MODE_ONLY_CREATIVE = "only_creative";
 
     private static final Set<Identifier> FUNCTIONALITY_TAGS = Set.of(
             Identifier.fromNamespaceAndPath("minecraft", "curse"),

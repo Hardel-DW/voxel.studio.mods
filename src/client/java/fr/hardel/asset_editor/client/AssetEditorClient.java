@@ -30,6 +30,7 @@ public class AssetEditorClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ClientPreferences.load();
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {

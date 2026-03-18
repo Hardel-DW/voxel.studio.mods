@@ -41,13 +41,12 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
     }
 
     private static final List<BehaviourTag> BEHAVIOUR_TAGS = List.of(
-            new BehaviourTag(EnchantmentActions.CURSE_TAG),
-            new BehaviourTag(EnchantmentActions.DOUBLE_TRADE_PRICE_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_DECORATED_POT_SHATTERING_TAG),
+            new BehaviourTag(EnchantmentActions.SMELTS_LOOT_TAG),
             new BehaviourTag(EnchantmentActions.PREVENTS_ICE_MELTING_TAG),
             new BehaviourTag(EnchantmentActions.PREVENTS_INFESTED_SPAWNS_TAG),
-            new BehaviourTag(EnchantmentActions.SMELTS_LOOT_TAG));
+            new BehaviourTag(EnchantmentActions.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG),
+            new BehaviourTag(EnchantmentActions.PREVENTS_DECORATED_POT_SHATTERING_TAG),
+            new BehaviourTag(EnchantmentActions.DOUBLE_TRADE_PRICE_TAG));
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",

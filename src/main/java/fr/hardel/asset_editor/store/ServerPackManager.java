@@ -105,7 +105,7 @@ public final class ServerPackManager {
         Pack pack = repo.getPack(packId);
         if (pack == null || pack.getPackSource() != PackSource.WORLD) return Optional.empty();
 
-        String name = packId.startsWith("file/") ? packId.substring(5) : packId;
+        String name = stripPrefix(packId);
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR).toAbsolutePath().normalize();
         Path resolved = datapackDir.resolve(name).normalize();
         if (!resolved.startsWith(datapackDir)) return Optional.empty();
@@ -117,7 +117,7 @@ public final class ServerPackManager {
     public void ensureNamespace(String packId, String namespace) {
         if (!Identifier.isValidNamespace(namespace)) return;
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
-        String name = packId.startsWith("file/") ? packId.substring(5) : packId;
+        String name = stripPrefix(packId);
         Path nsDir = datapackDir.resolve(name).resolve("data").resolve(namespace);
         if (Files.exists(nsDir)) return;
         try {
@@ -133,11 +133,15 @@ public final class ServerPackManager {
 
         try (PackResources resources = pack.open()) {
             if (resources instanceof PathPackResources) {
-                Path rootPath = datapackDir.resolve(id.replaceFirst("^file/", "")).normalize();
+                Path rootPath = datapackDir.resolve(stripPrefix(id)).normalize();
                 return new PackEntry(id, pack.getTitle().getString(), true, scanNamespaces(rootPath));
             }
             return new PackEntry(id, pack.getTitle().getString(), false, List.of());
         }
+    }
+
+    private static String stripPrefix(String packId) {
+        return packId.startsWith("file/") ? packId.substring(5) : packId;
     }
 
     private static List<String> scanNamespaces(Path packRoot) {

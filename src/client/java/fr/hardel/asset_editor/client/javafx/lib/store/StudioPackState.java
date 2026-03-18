@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib.store;
 
+import fr.hardel.asset_editor.client.ClientPreferences;
 import fr.hardel.asset_editor.network.PackCreatePayload;
 import fr.hardel.asset_editor.network.PackListRequestPayload;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
@@ -37,6 +38,7 @@ public final class StudioPackState {
 
     public void selectPack(PackInfo pack) {
         selectedPack.set(pack);
+        ClientPreferences.setLastPackId(pack != null ? pack.packId() : null);
     }
 
     public void clearSelection() {
@@ -48,7 +50,7 @@ public final class StudioPackState {
     }
 
     public void setPacksFromServer(List<PackEntry> entries) {
-        String previousId = selectedPack.get() != null ? selectedPack.get().packId() : null;
+        String restoreId = selectedPack.get() != null ? selectedPack.get().packId() : ClientPreferences.lastPackId();
         availablePacks.clear();
         clearSelection();
 
@@ -56,10 +58,10 @@ public final class StudioPackState {
             availablePacks.add(new PackInfo(entry.packId(), entry.name(), entry.writable(), entry.namespaces()));
         }
 
-        if (previousId != null) {
+        if (restoreId != null) {
             for (PackInfo info : availablePacks) {
-                if (info.packId().equals(previousId)) {
-                    selectedPack.set(info);
+                if (info.packId().equals(restoreId)) {
+                    selectPack(info);
                     break;
                 }
             }

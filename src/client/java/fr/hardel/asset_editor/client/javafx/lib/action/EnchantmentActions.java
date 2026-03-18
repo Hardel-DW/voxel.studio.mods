@@ -1,8 +1,9 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
-import fr.hardel.asset_editor.client.javafx.lib.SlotManager;
+import fr.hardel.asset_editor.store.SlotManager;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentType;
@@ -26,12 +27,11 @@ import java.util.function.UnaryOperator;
 
 public final class EnchantmentActions {
 
-    public static final String MODE_KEY = "mode";
-    public static final String DISABLED_EFFECTS_KEY = "disabledEffects";
-
-    public static final String MODE_NORMAL = "normal";
-    public static final String MODE_SOFT_DELETE = "soft_delete";
-    public static final String MODE_ONLY_CREATIVE = "only_creative";
+    public static final String MODE_KEY = EnchantmentFlushAdapter.MODE_KEY;
+    public static final String DISABLED_EFFECTS_KEY = EnchantmentFlushAdapter.DISABLED_EFFECTS_KEY;
+    public static final String MODE_NORMAL = EnchantmentFlushAdapter.MODE_NORMAL;
+    public static final String MODE_SOFT_DELETE = EnchantmentFlushAdapter.MODE_SOFT_DELETE;
+    public static final String MODE_ONLY_CREATIVE = EnchantmentFlushAdapter.MODE_ONLY_CREATIVE;
 
     public static final Identifier CURSE_TAG = enchantmentTag("curse");
     public static final Identifier DOUBLE_TRADE_PRICE_TAG = enchantmentTag("double_trade_price");

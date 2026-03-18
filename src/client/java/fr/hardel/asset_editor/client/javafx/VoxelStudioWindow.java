@@ -157,8 +157,12 @@ public final class VoxelStudioWindow {
     private void rebuildScene() {
         if (stage == null || scene == null || !splashPlayed)
             return;
+        VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         editorRoot = new StudioEditorRoot(stage);
+        editorRoot.context().setPermissions(ClientPermissionState.get());
+        editorRoot.context().packState().setPacksFromServer(ClientPackCache.get());
         scene.setRoot(editorRoot);
+        resyncOnOpenOrFocus();
     }
 
     private boolean splashMinTimeElapsed;

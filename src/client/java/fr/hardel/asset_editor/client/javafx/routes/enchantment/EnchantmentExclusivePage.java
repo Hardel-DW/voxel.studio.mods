@@ -5,7 +5,6 @@ import fr.hardel.asset_editor.client.javafx.components.page.enchantment.Exclusiv
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.network.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;
 import net.minecraft.client.resources.language.I18n;

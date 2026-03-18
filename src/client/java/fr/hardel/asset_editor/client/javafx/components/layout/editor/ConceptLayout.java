@@ -92,6 +92,8 @@ public final class ConceptLayout extends HBox {
     }
 
     private void setOutlet(StudioRoute route) {
+        if (route == concept.overviewRoute())
+            context.uiState().setSearch("");
         Node page = pageCache.computeIfAbsent(route, pageFactory);
         outlet.getChildren().setAll(page);
         activePage = page instanceof Page ep ? ep : null;

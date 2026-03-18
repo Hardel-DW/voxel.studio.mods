@@ -73,6 +73,10 @@ public final class Popover extends Popup {
                 oldScene.removeEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
             if (newScene != null)
                 newScene.addEventFilter(MouseEvent.MOUSE_PRESSED, this::onSceneClick);
+            if (newScene != null && newScene.getWindow() != null)
+                newScene.getWindow().focusedProperty().addListener((o, was, focused) -> {
+                    if (!focused) hide();
+                });
         });
     }
 

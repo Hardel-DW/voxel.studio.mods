@@ -119,7 +119,7 @@ public final class EnchantmentTreeBuilder {
             leaf.setCount(0);
             leaf.setElementId(entry.id().toString());
             leaf.setLabel(entry.data().description().getString());
-            node.children().put(entry.id().getPath(), leaf);
+            node.children().put(entry.id().toString(), leaf);
         }
         return node;
     }

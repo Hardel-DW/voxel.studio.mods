@@ -64,14 +64,6 @@ public final class PermissionManager {
         return hostProfile != null && playerId.equals(hostProfile.id());
     }
 
-    public StudioPermissions getStoredPermissions(UUID playerId) {
-        return permissions.getOrDefault(playerId, StudioPermissions.NONE);
-    }
-
-    public StudioPermissions getStoredPermissions(ServerPlayer player) {
-        return getStoredPermissions(player.getUUID());
-    }
-
     public StudioPermissions getEffectivePermissions(ServerPlayer player) {
         return getEffectivePermissions(player.getUUID());
     }

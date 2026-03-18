@@ -60,7 +60,7 @@ public final class StudioPermissionCommand {
 
     private static int showInfo(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer target = EntityArgument.getPlayer(ctx, "player");
-        var perms = PermissionManager.get().getStoredPermissions(target);
+        var perms = PermissionManager.get().getEffectivePermissions(target);
         ctx.getSource().sendSuccess(() ->
                 Component.translatable("studio:permission.info.header", target.getDisplayName()), false);
         ctx.getSource().sendSuccess(() ->
