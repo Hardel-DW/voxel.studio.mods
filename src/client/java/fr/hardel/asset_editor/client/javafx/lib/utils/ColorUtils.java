@@ -1,20 +1,12 @@
 package fr.hardel.asset_editor.client.javafx.lib.utils;
 
-import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import javafx.scene.paint.Color;
 
 public final class ColorUtils {
 
     public static Color accentColor(String key) {
-        String normalized = normalizeColorKey(key);
-        return hueToColor(stringToHue(normalized));
-    }
-
-    public static String normalizeColorKey(String key) {
-        if (key == null) return "";
-        String clean = key.trim();
-        StudioElementId parsed = StudioElementId.parse(clean);
-        return parsed == null ? clean : parsed.identifier().toString();
+        if (key == null || key.isBlank()) return hueToColor(0);
+        return hueToColor(stringToHue(key.trim()));
     }
 
     public static int stringToHue(String text) {

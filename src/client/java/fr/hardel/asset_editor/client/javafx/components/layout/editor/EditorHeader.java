@@ -197,7 +197,7 @@ public final class EditorHeader extends VBox {
             String filterPath = tree.filterPath();
             return filterPath == null || filterPath.isBlank() ? "all" : filterPath;
         }
-        String id = ColorUtils.normalizeColorKey(tree.currentElementId());
+        String id = tree.currentElementId();
         return (id == null || id.isBlank()) ? concept.registry() : id;
     }
 
