@@ -89,13 +89,15 @@ public final class WorkspaceTabsState {
             List<StudioOpenTab> nextTabs = new ArrayList<>(state.openTabs());
 
             for (int i = 0; i < nextTabs.size(); i++) {
-                if (nextTabs.get(i).elementId().equals(elementId))
+                if (nextTabs.get(i).elementId().equals(elementId)) {
                     return new Snapshot(nextTabs, i, elementId);
+                }
             }
 
             nextTabs.add(new StudioOpenTab(elementId, route));
             if (nextTabs.size() > MAX_TABS)
                 nextTabs.removeFirst();
+
             return new Snapshot(nextTabs, nextTabs.size() - 1, elementId);
         });
     }
@@ -104,6 +106,7 @@ public final class WorkspaceTabsState {
         store.update(state -> {
             if (index < 0 || index >= state.openTabs().size())
                 return state;
+
             return new Snapshot(state.openTabs(), index, state.openTabs().get(index).elementId());
         });
     }
@@ -121,8 +124,10 @@ public final class WorkspaceTabsState {
             int nextIndex = state.activeTabIndex();
             if (index < nextIndex)
                 nextIndex--;
+
             if (nextIndex >= nextTabs.size())
                 nextIndex = nextTabs.size() - 1;
+
             return new Snapshot(nextTabs, nextIndex, nextTabs.get(nextIndex).elementId());
         });
     }
@@ -156,8 +161,10 @@ public final class WorkspaceTabsState {
             Snapshot state = snapshot();
             if (!openTabs.equals(state.openTabs()))
                 openTabs.setAll(state.openTabs());
+
             if (activeTabIndex.get() != state.activeTabIndex())
                 activeTabIndex.set(state.activeTabIndex());
+
             if (!currentElementId.get().equals(state.currentElementId()))
                 currentElementId.set(state.currentElementId());
         } finally {

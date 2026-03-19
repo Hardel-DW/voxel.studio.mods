@@ -16,10 +16,7 @@ import java.util.function.Function;
 
 public final class WorkspaceUiState {
 
-    public record Snapshot(String search,
-        String filterPath,
-        StudioViewMode viewMode,
-        StudioSidebarView sidebarView) {
+    public record Snapshot(String search, String filterPath, StudioViewMode viewMode, StudioSidebarView sidebarView) {
 
         public Snapshot {
             search = search == null ? "" : search;
@@ -135,10 +132,13 @@ public final class WorkspaceUiState {
             Snapshot state = snapshot();
             if (!search.get().equals(state.search()))
                 search.set(state.search());
+
             if (!filterPath.get().equals(state.filterPath()))
                 filterPath.set(state.filterPath());
+
             if (viewMode.get() != state.viewMode())
                 viewMode.set(state.viewMode());
+
             if (sidebarView.get() != state.sidebarView())
                 sidebarView.set(state.sidebarView());
         } finally {

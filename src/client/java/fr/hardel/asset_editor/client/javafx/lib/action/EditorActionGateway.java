@@ -4,7 +4,6 @@ import fr.hardel.asset_editor.client.state.ClientPackInfo;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
 import fr.hardel.asset_editor.client.state.PendingClientAction;
-import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
@@ -12,6 +11,7 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public final class EditorActionGateway {
 
     private <T> void projectOptimistic(ResourceKey<Registry<T>> registry, Identifier target,
         ElementEntry<T> entry, EditorAction action) {
-        RegistryWorkspaceBinding<T> binding = AssetEditorNetworking.binding(registry.identifier());
+        RegistryWorkspaceBinding<T> binding = RegistryWorkspaceBindings.get(registry.identifier());
         if (binding == null || binding.interpreter() == null)
             return;
 
@@ -115,7 +115,7 @@ public final class EditorActionGateway {
         if (selectedPack == null || !selectedPack.packId().equals(packId))
             return;
 
-        var binding = AssetEditorNetworking.binding(registryId);
+        var binding = RegistryWorkspaceBindings.get(registryId);
         if (binding == null)
             return;
 
@@ -145,7 +145,7 @@ public final class EditorActionGateway {
         if (selectedPack == null || !selectedPack.packId().equals(packId))
             return;
 
-        var binding = AssetEditorNetworking.binding(snapshot.registryId());
+        var binding = RegistryWorkspaceBindings.get(snapshot.registryId());
         if (binding == null)
             return;
 

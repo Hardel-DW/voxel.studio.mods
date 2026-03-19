@@ -5,8 +5,10 @@ import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissionCommand;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.store.ServerPackManager;
+import fr.hardel.asset_editor.store.ServerPackService;
 import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
 import fr.hardel.asset_editor.workspace.registry.impl.EnchantmentInterpreter;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -25,6 +27,7 @@ public class AssetEditor implements ModInitializer {
 
     public static final String MOD_ID = "asset_editor";
     public static final boolean DEV_DISABLE_SINGLEPLAYER_ADMIN = false;
+    private static final ServerPackService PACK_SERVICE = new ServerPackService();
 
     @Override
     public void onInitialize() {
@@ -34,7 +37,7 @@ public class AssetEditor implements ModInitializer {
             EnchantmentFlushAdapter.INSTANCE,
             new EnchantmentInterpreter(),
             entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()));
-        AssetEditorNetworking.registerBinding(enchantmentBinding);
+        RegistryWorkspaceBindings.register(enchantmentBinding);
         AssetEditorNetworking.registerServer();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
@@ -56,9 +59,8 @@ public class AssetEditor implements ModInitializer {
                 if (permManager != null)
                     permManager.syncToPlayer(handler.getPlayer());
 
-                var packManager = ServerPackManager.get();
-                if (packManager != null)
-                    AssetEditorNetworking.sendPackList(handler.getPlayer(), packManager.listPacks());
+                PACK_SERVICE.listPacks()
+                    .ifPresent(packs -> AssetEditorNetworking.sendPackList(handler.getPlayer(), packs));
             });
         });
 

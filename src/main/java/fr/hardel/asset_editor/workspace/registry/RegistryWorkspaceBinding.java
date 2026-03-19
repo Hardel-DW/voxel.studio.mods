@@ -15,12 +15,7 @@ import net.minecraft.resources.ResourceKey;
 
 import java.util.function.Function;
 
-public record RegistryWorkspaceBinding<T>(
-    ResourceKey<Registry<T>> registryKey,
-    Codec<T> codec,
-    FlushAdapter<T> adapter,
-    RegistryInterpreter<T> interpreter,
-    Function<ElementEntry<T>, CustomFields> customInitializer) {
+public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter, RegistryInterpreter<T> interpreter, Function<ElementEntry<T>, CustomFields> customInitializer) {
 
     public WorkspaceElementSnapshot toSnapshot(ElementEntry<T> entry, HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
@@ -28,19 +23,14 @@ public record RegistryWorkspaceBinding<T>(
             .result()
             .map(JsonElement::toString)
             .orElse("{}");
-        return new WorkspaceElementSnapshot(
-            registryKey.identifier(),
-            entry.id(),
-            dataJson,
-            entry.tags(),
-            entry.custom());
+
+        return new WorkspaceElementSnapshot(registryKey.identifier(), entry.id(), dataJson, entry.tags(), entry.custom());
     }
 
     public ElementEntry<T> fromSnapshot(WorkspaceElementSnapshot snapshot, HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         JsonElement json = JsonParser.parseString(snapshot.dataJson());
-        T data = codec.parse(ops, json).getOrThrow(message -> new IllegalArgumentException(
-            "Failed to decode workspace snapshot for " + snapshot.targetId() + ": " + message));
+        T data = codec.parse(ops, json).getOrThrow(message -> new IllegalArgumentException("Failed to decode workspace snapshot for " + snapshot.targetId() + ": " + message));
         return new ElementEntry<>(snapshot.targetId(), data, snapshot.tags(), snapshot.custom());
     }
 
