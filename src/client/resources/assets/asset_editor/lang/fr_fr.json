@@ -225,6 +225,7 @@
     "error:pack_required": "Vous devez selectionner ou creer un pack avant de modifier.",
     "error:pack_readonly": "Le pack selectionne est en lecture seule.",
     "error:element_not_found": "L'element demande est introuvable.",
+    "error:workspace_sync_pending": "Cet element n'est plus disponible dans le pack courant. Attendez la fin de la synchronisation du pack, puis rouvrez-le.",
     "error:pack_name_and_namespace_required": "Le nom du pack et le namespace sont obligatoires.",
     "error:invalid_namespace": "Namespace invalide. Utilisez uniquement [a-z0-9_.-].",
     "error:pack_create_failed": "Impossible de creer le pack. Verifiez le nom et le dossier des datapacks.",

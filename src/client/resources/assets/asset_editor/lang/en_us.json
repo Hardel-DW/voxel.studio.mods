@@ -225,6 +225,7 @@
     "error:pack_required": "You need to select or create a pack before editing.",
     "error:pack_readonly": "The selected pack is read-only.",
     "error:element_not_found": "The requested element could not be found.",
+    "error:workspace_sync_pending": "This element is no longer available in the current pack. Wait for the pack to finish syncing, then reopen it.",
     "error:pack_name_and_namespace_required": "Pack name and namespace are required.",
     "error:invalid_namespace": "Invalid namespace. Use only [a-z0-9_.-].",
     "error:pack_create_failed": "Unable to create the pack. Check the name and datapack directory.",
