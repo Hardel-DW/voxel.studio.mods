@@ -31,8 +31,8 @@ public final class ExclusiveGroupSection extends VBox {
     private EnchantmentTags currentTargetCard;
 
     public ExclusiveGroupSection(StudioContext context, Identifier elementId,
-            Function<EditorAction, Boolean> dispatchAction,
-            Function<Identifier, Boolean> applyTag) {
+        Function<EditorAction, Boolean> dispatchAction,
+        Function<Identifier, Boolean> applyTag) {
         this.context = context;
         this.elementId = elementId;
         this.dispatchAction = dispatchAction;
@@ -45,40 +45,43 @@ public final class ExclusiveGroupSection extends VBox {
         Set<Identifier> currentTags = Set.of();
         if (entry != null) {
             currentExclusiveTag = entry.data().exclusiveSet().unwrapKey()
-                    .map(k -> k.location().toString()).orElse("");
+                .map(k -> k.location().toString()).orElse("");
             currentTags = entry.tags();
         }
 
         Function<String, String> labelResolver = value -> {
-            if (value == null || value.isBlank()) return "";
+            if (value == null || value.isBlank())
+                return "";
             Identifier id = Identifier.tryParse(value.startsWith("#") ? value.substring(1) : value);
-            if (id == null) return value;
+            if (id == null)
+                return value;
             return context.resolveHolder(Registries.ENCHANTMENT, id)
-                    .map(holder -> holder.value().description().getString())
-                    .orElseGet(() -> StudioText.resolve(Registries.ENCHANTMENT, id));
+                .map(holder -> holder.value().description().getString())
+                .orElseGet(() -> StudioText.resolve(Registries.ENCHANTMENT, id));
         };
 
         getChildren().addAll(
-                buildVanillaCategory(currentExclusiveTag, currentTags, labelResolver),
-                buildCustomCategory(currentExclusiveTag, currentTags, labelResolver));
+            buildVanillaCategory(currentExclusiveTag, currentTags, labelResolver),
+            buildCustomCategory(currentExclusiveTag, currentTags, labelResolver));
     }
 
     private Category buildVanillaCategory(String currentExclusiveTag, Set<Identifier> currentTags,
-            Function<String, String> labelResolver) {
+        Function<String, String> labelResolver) {
         Category category = new Category(I18n.get("enchantment.exclusive:vanilla"));
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
-                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
+            .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (ExclusiveSetGroup group : ExclusiveSetGroup.ALL) {
             Identifier tagId = group.tagId();
             String rawTag = tagId.toString();
             EnchantmentTags card = buildCard(
-                    StudioText.resolve("enchantment_tag", tagId),
-                    I18n.get("enchantment_tag:" + tagId + ".desc"),
-                    group.image(), tagId, rawTag,
-                    currentExclusiveTag, currentTags, labelResolver);
-            if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
+                StudioText.resolve("enchantment_tag", tagId),
+                I18n.get("enchantment_tag:" + tagId + ".desc"),
+                group.image(), tagId, rawTag,
+                currentExclusiveTag, currentTags, labelResolver);
+            if (rawTag.equals(currentExclusiveTag))
+                currentTargetCard = card;
             grid.addItem(card);
         }
 
@@ -87,11 +90,11 @@ public final class ExclusiveGroupSection extends VBox {
     }
 
     private Category buildCustomCategory(String currentExclusiveTag, Set<Identifier> currentTags,
-            Function<String, String> labelResolver) {
+        Function<String, String> labelResolver) {
         Category category = new Category(I18n.get("enchantment.exclusive:custom"));
 
         List<Identifier> customTags = EnchantmentFlushAdapter
-                .customExclusiveTags(context.allTypedEntries(Registries.ENCHANTMENT));
+            .customExclusiveTags(context.allTypedEntries(Registries.ENCHANTMENT));
         if (customTags.isEmpty()) {
             Label fallback = new Label(I18n.get("enchantment.exclusive:custom.fallback"));
             fallback.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
@@ -102,18 +105,19 @@ public final class ExclusiveGroupSection extends VBox {
         }
 
         ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
-                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
+            .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
         for (Identifier tagIdent : customTags) {
             String rawTag = tagIdent.toString();
             String title = StudioText.resolve("enchantment_tag", tagIdent);
 
             EnchantmentTags card = buildCard(
-                    title, rawTag,
-                    Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg"),
-                    tagIdent, rawTag,
-                    currentExclusiveTag, currentTags, labelResolver);
-            if (rawTag.equals(currentExclusiveTag)) currentTargetCard = card;
+                title, rawTag,
+                Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg"),
+                tagIdent, rawTag,
+                currentExclusiveTag, currentTags, labelResolver);
+            if (rawTag.equals(currentExclusiveTag))
+                currentTargetCard = card;
             grid.addItem(card);
         }
 
@@ -122,8 +126,8 @@ public final class ExclusiveGroupSection extends VBox {
     }
 
     private EnchantmentTags buildCard(String title, String description, Identifier imageId,
-            Identifier tagId, String rawTag, String currentExclusiveTag,
-            Set<Identifier> currentTags, Function<String, String> labelResolver) {
+        Identifier tagId, String rawTag, String currentExclusiveTag,
+        Set<Identifier> currentTags, Function<String, String> labelResolver) {
 
         List<String> members = resolveTagMembers(tagId);
         boolean isTarget = rawTag.equals(currentExclusiveTag);
@@ -131,10 +135,10 @@ public final class ExclusiveGroupSection extends VBox {
 
         EnchantmentTags[] holder = { null };
         EnchantmentTags card = new EnchantmentTags(
-                title, description, imageId, members, isTarget, isMember, false,
-                checked -> handleTargetToggle(holder[0], tagId, checked),
-                checked -> handleMembershipToggle(holder[0], tagId, checked),
-                labelResolver);
+            title, description, imageId, members, isTarget, isMember, false,
+            checked -> handleTargetToggle(holder[0], tagId, checked),
+            checked -> handleMembershipToggle(holder[0], tagId, checked),
+            labelResolver);
         holder[0] = card;
         return card;
     }
@@ -148,18 +152,13 @@ public final class ExclusiveGroupSection extends VBox {
         card.updateTarget(checked);
         currentTargetCard = checked ? card : null;
 
-        boolean ok;
-        if (!checked) {
-            ok = dispatchAction.apply(new EditorAction.SetExclusiveSet(""));
-        } else {
-            ok = dispatchAction.apply(new EditorAction.SetExclusiveSet(tagId.toString()));
-        }
-
+        boolean ok = dispatchAction.apply(new EditorAction.SetExclusiveSet(checked ? tagId.toString() : ""));
         if (!ok) {
             card.updateTarget(!checked);
             if (previousTarget != null && previousTarget != card) {
                 previousTarget.updateTarget(true);
             }
+
             currentTargetCard = previousTarget;
         }
     }
@@ -170,8 +169,10 @@ public final class ExclusiveGroupSection extends VBox {
         card.updateMembership(checked);
         List<String> after = new ArrayList<>(before);
         String enchId = elementId.toString();
-        if (checked && !after.contains(enchId)) after.add(enchId);
-        if (!checked) after.remove(enchId);
+        if (checked && !after.contains(enchId))
+            after.add(enchId);
+        if (!checked)
+            after.remove(enchId);
         card.updateValues(after);
 
         boolean ok = applyTag.apply(tagId);
@@ -183,7 +184,8 @@ public final class ExclusiveGroupSection extends VBox {
     }
 
     private List<String> resolveTagMembers(Identifier tagId) {
-        if (tagId == null) return List.of();
+        if (tagId == null)
+            return List.of();
         List<String> members = new ArrayList<>();
         for (var entry : context.allTypedEntries(Registries.ENCHANTMENT)) {
             if (entry.tags().contains(tagId)) {

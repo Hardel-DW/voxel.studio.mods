@@ -33,20 +33,9 @@ public final class ExclusiveSingleSection extends VBox {
             .toList();
 
         if (!vanilla.isEmpty()) {
-            getChildren().add(new EnchantmentCategory(
-                I18n.get("enchantment.exclusive:vanilla"),
-                vanilla,
-                directExclusiveSelection,
-                bindings,
-                toggleExclusive,
-                context));
+            getChildren().add(new EnchantmentCategory(I18n.get("enchantment.exclusive:vanilla"), vanilla, directExclusiveSelection, bindings, toggleExclusive, context));
         }
-        getChildren().add(new EnchantmentCategory(
-            I18n.get("enchantment.exclusive:custom"),
-            custom,
-            directExclusiveSelection,
-            bindings,
-            toggleExclusive,
-            context));
+
+        getChildren().add(new EnchantmentCategory(I18n.get("enchantment.exclusive:custom"), custom, directExclusiveSelection, bindings, toggleExclusive, context));
     }
 }
