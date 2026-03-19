@@ -8,12 +8,12 @@ import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateD
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;

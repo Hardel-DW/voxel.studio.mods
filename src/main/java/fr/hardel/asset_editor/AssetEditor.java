@@ -1,13 +1,13 @@
 package fr.hardel.asset_editor;
 
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
-import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
-import fr.hardel.asset_editor.network.workspace.impl.EnchantmentInterpreter;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissionCommand;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.registry.impl.EnchantmentInterpreter;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;

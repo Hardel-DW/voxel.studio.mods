@@ -1,6 +1,7 @@
-package fr.hardel.asset_editor.network.workspace;
+package fr.hardel.asset_editor.workspace.registry;
 
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
 import net.minecraft.core.HolderLookup;
 
 public interface RegistryInterpreter<T> {

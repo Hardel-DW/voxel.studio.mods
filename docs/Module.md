@@ -36,6 +36,9 @@ Le client dit **"applique cette action sur packA"** et le serveur fait "je prend
 # Server
 Le serveur reste autoritaire.
 
+# Module Network (Dossier Network)
+Ne doit que envoyer et recevoir les données entre le client et le serveur. Ensuite le client/server dispatch et utilise les bonnes classes et modules. Mais globalement il doit juste envoiyer et recevoir les données.
+
 ### Module Workspace
 le workspace vit côté serveur. état métier par pack
 

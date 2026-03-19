@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.network.workspace.EditorAction;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.store.ElementEntry;
 import javafx.geometry.Insets;
 import javafx.scene.layout.VBox;

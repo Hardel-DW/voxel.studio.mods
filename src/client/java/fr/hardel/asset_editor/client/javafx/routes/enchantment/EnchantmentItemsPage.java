@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentTreeData;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
-import fr.hardel.asset_editor.network.workspace.EditorAction;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
 import javafx.geometry.Insets;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.Registries;

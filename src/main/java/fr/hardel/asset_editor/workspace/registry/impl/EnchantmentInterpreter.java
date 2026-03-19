@@ -1,11 +1,11 @@
-package fr.hardel.asset_editor.network.workspace.impl;
+package fr.hardel.asset_editor.workspace.registry.impl;
 
-import fr.hardel.asset_editor.network.workspace.EditorAction;
-import fr.hardel.asset_editor.network.workspace.RegistryInterpreter;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.store.SlotManager;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
+import fr.hardel.asset_editor.workspace.registry.RegistryInterpreter;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;

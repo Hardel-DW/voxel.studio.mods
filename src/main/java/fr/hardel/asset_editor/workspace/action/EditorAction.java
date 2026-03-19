@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.network.workspace;
+package fr.hardel.asset_editor.workspace.action;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

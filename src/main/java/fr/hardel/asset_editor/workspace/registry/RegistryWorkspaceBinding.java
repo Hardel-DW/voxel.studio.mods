@@ -1,9 +1,10 @@
-package fr.hardel.asset_editor.network.workspace;
+package fr.hardel.asset_editor.workspace.registry;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.FlushAdapter;
