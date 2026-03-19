@@ -29,6 +29,7 @@ public abstract class MinecraftStageWindow extends UndecoratedStageWindow {
             startupRequested = true;
             Thread.ofVirtual().name("javafx-init").start(() -> {
                 Platform.startup(() -> {
+                    initializeWindow();
                     platformReady = true;
                     onCreated();
                     if (pendingWorldClose) {

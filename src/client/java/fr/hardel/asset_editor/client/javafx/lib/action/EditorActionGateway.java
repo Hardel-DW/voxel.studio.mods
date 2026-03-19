@@ -49,7 +49,7 @@ public final class EditorActionGateway {
 
         ElementEntry<T> entry = workspaceState.elementStore().get(registry, target);
         if (entry == null)
-            return EditorActionResult.error("error:element_not_found");
+            return EditorActionResult.error("error:workspace_sync_pending");
 
         UUID actionId = UUID.randomUUID();
         workspaceState.trackPendingAction(actionId, new PendingClientAction<>(actionId, pack.packId(), registry, target, entry));
@@ -174,7 +174,7 @@ public final class EditorActionGateway {
 
     private EditorActionResult validate(Identifier target) {
         if (target == null)
-            return EditorActionResult.error("error:element_not_found");
+            return EditorActionResult.error("error:workspace_sync_pending");
 
         ClientPackInfo pack = workspaceState.packSelectionState().selectedPack();
         if (pack == null)

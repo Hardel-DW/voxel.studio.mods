@@ -7,12 +7,19 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import net.minecraft.resources.Identifier;
 
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public final class ItemAtlasGenerator {
+    private static final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
     private static volatile WritableImage atlasImage;
-    private static long lastGeneration = -1;
+
+    static {
+        ItemAtlasRenderer.subscribeGeneration(ItemAtlasGenerator::rebuild);
+    }
 
     public static WritableImage getAtlasImage() {
-        refreshIfNeeded();
+        if (atlasImage == null && ItemAtlasRenderer.isReady())
+            rebuild();
         return atlasImage;
     }
 
@@ -24,25 +31,24 @@ public final class ItemAtlasGenerator {
         return ItemAtlasRenderer.isReady();
     }
 
-    private static void refreshIfNeeded() {
-        long current = ItemAtlasRenderer.getGeneration();
-        if (current == lastGeneration) return;
+    public static Runnable subscribe(Runnable listener) {
+        listeners.add(listener);
+        return () -> listeners.remove(listener);
+    }
 
+    public static void rebuild() {
         int[] pixels = ItemAtlasRenderer.getArgbPixels();
-        if (pixels == null) return;
+        if (pixels == null)
+            return;
 
         int w = ItemAtlasRenderer.getWidth();
         int h = ItemAtlasRenderer.getHeight();
-
-        if (Platform.isFxApplicationThread()) {
+        Runnable update = () -> {
             atlasImage = createImage(pixels, w, h);
-            lastGeneration = current;
-        } else {
-            Platform.runLater(() -> {
-                atlasImage = createImage(pixels, w, h);
-                lastGeneration = current;
-            });
-        }
+            listeners.forEach(Runnable::run);
+        };
+        if (Platform.isFxApplicationThread()) update.run();
+        else Platform.runLater(update);
     }
 
     private static WritableImage createImage(int[] argbPixels, int width, int height) {

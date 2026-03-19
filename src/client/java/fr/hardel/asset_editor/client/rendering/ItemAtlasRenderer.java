@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class ItemAtlasRenderer {
@@ -51,6 +52,7 @@ public final class ItemAtlasRenderer {
     private static final int ITEM_SIZE = 32;
 
     private static final AtomicBoolean needsGeneration = new AtomicBoolean(false);
+    private static final CopyOnWriteArrayList<Runnable> generationListeners = new CopyOnWriteArrayList<>();
     private static volatile int[] argbPixels;
     private static volatile int atlasWidth;
     private static volatile int atlasHeight;
@@ -81,6 +83,11 @@ public final class ItemAtlasRenderer {
 
     public static long getGeneration() {
         return generation;
+    }
+
+    public static Runnable subscribeGeneration(Runnable listener) {
+        generationListeners.add(listener);
+        return () -> generationListeners.remove(listener);
     }
 
     public static void requestGeneration() {
@@ -228,6 +235,7 @@ public final class ItemAtlasRenderer {
                 entries = newEntries;
                 argbPixels = result;
                 generation++;
+                generationListeners.forEach(Runnable::run);
                 registerDebugTexture(result, width, height);
                 LOGGER.info("Item atlas rendered: {}x{} with {} items", width, height, newEntries.size());
             } finally {

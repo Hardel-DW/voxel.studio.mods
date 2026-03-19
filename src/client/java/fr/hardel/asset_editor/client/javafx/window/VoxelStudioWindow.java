@@ -41,7 +41,6 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
 
     private VoxelStudioWindow() {
         super(MIN_WIDTH, MIN_HEIGHT, STYLESHEETS);
-        stage.setTitle(I18n.get("app:title"));
     }
 
     public static void requestOpen() {
@@ -76,6 +75,7 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
 
     @Override
     protected void onCreated() {
+        stage.setTitle(I18n.get("app:title"));
         VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
         loadFonts();
 

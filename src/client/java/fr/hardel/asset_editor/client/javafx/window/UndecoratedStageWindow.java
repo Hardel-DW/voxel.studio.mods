@@ -20,7 +20,11 @@ public class UndecoratedStageWindow {
     private static final int RESIZE_MARGIN = 10;
     private static final int SNAP_MARGIN = 5;
 
-    protected final Stage stage;
+    private final double minWidth;
+    private final double minHeight;
+    private final List<String> stylesheets;
+
+    protected Stage stage;
     protected Scene scene;
 
     private ResizeZone activeZone = ResizeZone.NONE;
@@ -34,6 +38,12 @@ public class UndecoratedStageWindow {
     private Cursor cursorOverrideOriginal;
 
     protected UndecoratedStageWindow(double minWidth, double minHeight, List<String> stylesheets) {
+        this.minWidth = minWidth;
+        this.minHeight = minHeight;
+        this.stylesheets = List.copyOf(stylesheets);
+    }
+
+    protected final void initializeWindow() {
         Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
         double width = Math.max(minWidth, bounds.getWidth() * 0.75);
         double height = Math.max(minHeight, bounds.getHeight() * 0.75);

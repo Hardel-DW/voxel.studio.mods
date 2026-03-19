@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.javafx.routes.debug;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ItemSprite;
-import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
+import fr.hardel.asset_editor.client.javafx.lib.ItemAtlasGenerator;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,17 +18,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
 public final class DebugItemsPage extends StackPane implements Page {
+    private final Label loading = new Label("Item atlas is generating...");
+    private Runnable subscription;
 
     public DebugItemsPage() {
         getStyleClass().add("concept-main-page");
-
-        if (!ItemAtlasRenderer.isReady()) {
-            Label loading = new Label("Item atlas is generating...");
-            loading.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
-            loading.setTextFill(VoxelColors.ZINC_400);
-            getChildren().add(loading);
-            return;
-        }
 
         Label title = new Label("Debug - Item Textures (%d items)".formatted(BuiltInRegistries.ITEM.size()));
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
@@ -38,9 +32,8 @@ public final class DebugItemsPage extends StackPane implements Page {
         grid.setPadding(new Insets(16));
         grid.setMaxWidth(Double.MAX_VALUE);
 
-        for (Identifier itemId : BuiltInRegistries.ITEM.keySet()) {
+        for (Identifier itemId : BuiltInRegistries.ITEM.keySet())
             grid.getChildren().add(buildItemCell(itemId));
-        }
 
         VBox column = new VBox(16, title, grid);
         column.setPadding(new Insets(32));
@@ -51,7 +44,26 @@ public final class DebugItemsPage extends StackPane implements Page {
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.getStyleClass().add("debug-subpage-scroll");
 
-        getChildren().add(scroll);
+        loading.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
+        loading.setTextFill(VoxelColors.ZINC_400);
+        loading.setMouseTransparent(true);
+
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                if (subscription != null) {
+                    subscription.run();
+                    subscription = null;
+                }
+                return;
+            }
+
+            if (subscription == null)
+                subscription = ItemAtlasGenerator.subscribe(this::refreshLoadingState);
+            refreshLoadingState();
+        });
+
+        getChildren().addAll(scroll, loading);
+        refreshLoadingState();
     }
 
     private static StackPane buildItemCell(Identifier itemId) {
@@ -69,5 +81,11 @@ public final class DebugItemsPage extends StackPane implements Page {
         Tooltip.install(cell, tooltip);
 
         return cell;
+    }
+
+    private void refreshLoadingState() {
+        boolean showLoading = ItemAtlasGenerator.getAtlasImage() == null;
+        loading.setVisible(showLoading);
+        loading.setManaged(showLoading);
     }
 }
