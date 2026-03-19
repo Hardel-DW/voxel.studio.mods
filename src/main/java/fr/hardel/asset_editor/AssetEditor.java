@@ -5,11 +5,9 @@ import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.network.workspace.impl.EnchantmentInterpreter;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissionCommand;
-import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.ServerElementStore;
 import fr.hardel.asset_editor.store.ServerPackManager;
+import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -22,7 +20,6 @@ import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
-import java.util.function.Function;
 
 public class AssetEditor implements ModInitializer {
 
@@ -31,24 +28,25 @@ public class AssetEditor implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        AssetEditorNetworking.registerBinding(new RegistryWorkspaceBinding<>(
+        RegistryWorkspaceBinding<Enchantment> enchantmentBinding = new RegistryWorkspaceBinding<>(
             Registries.ENCHANTMENT,
             Enchantment.DIRECT_CODEC,
             EnchantmentFlushAdapter.INSTANCE,
             new EnchantmentInterpreter(),
-            entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
+            entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()));
+        AssetEditorNetworking.registerBinding(enchantmentBinding);
         AssetEditorNetworking.registerServer();
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             PermissionManager.init(server);
-            ServerElementStore.init();
+            WorkspaceRepository.init(server);
             ServerPackManager.init(server);
-            snapshotServerRegistries(server);
+            snapshotServerRegistries(server, enchantmentBinding);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             PermissionManager.shutdown();
-            ServerElementStore.shutdown();
+            WorkspaceRepository.shutdown();
             ServerPackManager.shutdown();
         });
 
@@ -67,21 +65,19 @@ public class AssetEditor implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));
     }
 
-    private static void snapshotServerRegistries(MinecraftServer server) {
-        var store = ServerElementStore.get();
-        if (store == null)
+    private static void snapshotServerRegistries(MinecraftServer server, RegistryWorkspaceBinding<Enchantment> enchantmentBinding) {
+        var repository = WorkspaceRepository.get();
+        if (repository == null)
             return;
 
         var selectedPacks = server.getPackRepository().getSelectedPacks();
-        Function<ElementEntry<Enchantment>, CustomFields> customInit = entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags());
-
         var vanillaPacks = new ArrayList<>(selectedPacks.stream()
             .filter(p -> p.getPackSource() != PackSource.WORLD)
             .map(p -> p.open()).toList());
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
             server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
-                store.snapshotVanilla(Registries.ENCHANTMENT, vanillaResources, registry, Enchantment.DIRECT_CODEC, server.registryAccess(), customInit);
+                repository.snapshotBaseline(enchantmentBinding, vanillaResources, registry, server.registryAccess());
             });
         }
     }

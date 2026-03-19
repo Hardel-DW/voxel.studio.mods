@@ -13,8 +13,8 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.ServerElementStore;
 import fr.hardel.asset_editor.store.ServerPackManager;
+import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
@@ -88,9 +88,9 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            var store = ServerElementStore.get();
+            var repository = WorkspaceRepository.get();
             var packManager = ServerPackManager.get();
-            if (store == null || packManager == null) {
+            if (repository == null || packManager == null) {
                 sendMutationResult(player, payload.actionId(), payload.packId(), false,
                     "error:server_unavailable", null);
                 return;
@@ -110,16 +110,16 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            handleWorkspaceMutationTyped(payload, player, server, store, binding, packRoot.get());
+            handleWorkspaceMutationTyped(payload, player, server, repository, binding, packRoot.get());
         });
     }
 
     private static void handlePackWorkspaceRequest(PackWorkspaceRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
             var permManager = PermissionManager.get();
-            var store = ServerElementStore.get();
+            var repository = WorkspaceRepository.get();
             var packManager = ServerPackManager.get();
-            if (permManager == null || store == null || packManager == null)
+            if (permManager == null || repository == null || packManager == null)
                 return;
             if (!permManager.getEffectivePermissions(context.player()).canEdit())
                 return;
@@ -133,7 +133,7 @@ public final class AssetEditorNetworking {
                 return;
 
             sendPackWorkspace(context.player(), payload.packId(), binding,
-                store.snapshotWorkspace(payload.packId(), binding, packRoot.get(), context.server().registryAccess()),
+                repository.snapshotWorkspace(payload.packId(), binding, packRoot.get(), context.server().registryAccess()),
                 context.server().registryAccess());
         });
     }
@@ -193,9 +193,9 @@ public final class AssetEditorNetworking {
     }
 
     private static <T> void handleWorkspaceMutationTyped(WorkspaceMutationRequestPayload payload,
-        ServerPlayer player, MinecraftServer server, ServerElementStore store,
+        ServerPlayer player, MinecraftServer server, WorkspaceRepository repository,
         RegistryWorkspaceBinding<T> binding, Path packRoot) {
-        ElementEntry<T> entry = store.get(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId());
+        ElementEntry<T> entry = repository.get(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId());
         if (entry == null) {
             sendMutationResult(player, payload.actionId(), payload.packId(), false,
                 "error:element_not_found", null);
@@ -212,8 +212,8 @@ public final class AssetEditorNetworking {
             return;
         }
 
-        store.put(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId(), updated);
-        store.flushDirty(packRoot, payload.packId(), binding, server.registryAccess());
+        repository.put(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId(), updated);
+        repository.flushDirty(packRoot, payload.packId(), binding, server.registryAccess());
         WorkspaceElementSnapshot snapshot = binding.toSnapshot(updated, server.registryAccess());
 
         sendMutationResult(player, payload.actionId(), payload.packId(), true, "", snapshot);
