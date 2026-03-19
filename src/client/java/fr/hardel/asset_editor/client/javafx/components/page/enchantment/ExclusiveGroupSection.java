@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.Category;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
@@ -90,7 +90,7 @@ public final class ExclusiveGroupSection extends VBox {
             Function<String, String> labelResolver) {
         Category category = new Category(I18n.get("enchantment.exclusive:custom"));
 
-        List<Identifier> customTags = EnchantmentActions
+        List<Identifier> customTags = EnchantmentFlushAdapter
                 .customExclusiveTags(context.allTypedEntries(Registries.ENCHANTMENT));
         if (customTags.isEmpty()) {
             Label fallback = new Label(I18n.get("enchantment.exclusive:custom.fallback"));

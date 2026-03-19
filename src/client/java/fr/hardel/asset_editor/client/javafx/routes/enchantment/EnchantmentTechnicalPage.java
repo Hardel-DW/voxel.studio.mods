@@ -8,10 +8,10 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.components.ui.SwitchCard;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.client.javafx.lib.StudioText;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -25,7 +25,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.IntFunction;
-import java.util.function.UnaryOperator;
 
 public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
@@ -36,34 +35,29 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     private record CostDef(String key,
             Function<ElementEntry<Enchantment>, Integer> selector,
-            IntFunction<UnaryOperator<Enchantment>> mutation,
             IntFunction<EditorAction> actionFactory) {
     }
 
     private static final List<BehaviourTag> BEHAVIOUR_TAGS = List.of(
-            new BehaviourTag(EnchantmentActions.SMELTS_LOOT_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_ICE_MELTING_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_INFESTED_SPAWNS_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG),
-            new BehaviourTag(EnchantmentActions.PREVENTS_DECORATED_POT_SHATTERING_TAG),
-            new BehaviourTag(EnchantmentActions.DOUBLE_TRADE_PRICE_TAG));
+            new BehaviourTag(EnchantmentFlushAdapter.SMELTS_LOOT_TAG),
+            new BehaviourTag(EnchantmentFlushAdapter.PREVENTS_ICE_MELTING_TAG),
+            new BehaviourTag(EnchantmentFlushAdapter.PREVENTS_INFESTED_SPAWNS_TAG),
+            new BehaviourTag(EnchantmentFlushAdapter.PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG),
+            new BehaviourTag(EnchantmentFlushAdapter.PREVENTS_DECORATED_POT_SHATTERING_TAG),
+            new BehaviourTag(EnchantmentFlushAdapter.DOUBLE_TRADE_PRICE_TAG));
 
     private static final List<CostDef> COST_FIELDS = List.of(
             new CostDef("minCostBase",
                     entry -> entry.data().definition().minCost().base(),
-                    EnchantmentActions::minCostBase,
                     v -> new EditorAction.SetIntField("min_cost_base", v)),
             new CostDef("minCostPerLevelAboveFirst",
                     entry -> entry.data().definition().minCost().perLevelAboveFirst(),
-                    EnchantmentActions::minCostPerLevel,
                     v -> new EditorAction.SetIntField("min_cost_per_level", v)),
             new CostDef("maxCostBase",
                     entry -> entry.data().definition().maxCost().base(),
-                    EnchantmentActions::maxCostBase,
                     v -> new EditorAction.SetIntField("max_cost_base", v)),
             new CostDef("maxCostPerLevelAboveFirst",
                     entry -> entry.data().definition().maxCost().perLevelAboveFirst(),
-                    EnchantmentActions::maxCostPerLevel,
                     v -> new EditorAction.SetIntField("max_cost_per_level", v)));
 
     public EnchantmentTechnicalPage(StudioContext context) {
@@ -90,7 +84,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
         for (CostDef field : COST_FIELDS) {
             Range range = new Range(I18n.get("enchantment:global." + field.key() + ".title"), 0, 100, 1, 0);
-            bindInt(range.valueProperty(), field.selector(), field.mutation(), field.actionFactory());
+            bindInt(range.valueProperty(), field.selector(), field.actionFactory());
             costGrid.addItem(range);
         }
         costs.addContent(costGrid);
@@ -100,7 +94,7 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
 
     private VBox buildEffectsSection() {
         Section section = new Section(I18n.get("enchantment:technical.effects.title"));
-        var effectsSelection = selectValue(entry -> EnchantmentActions.availableEffects(entry.data()));
+        var effectsSelection = selectValue(entry -> EnchantmentFlushAdapter.availableEffects(entry.data()));
         List<String> effects = effectsSelection.get() == null ? List.of() : effectsSelection.get();
 
         if (effects.isEmpty()) {
@@ -128,9 +122,8 @@ public final class EnchantmentTechnicalPage extends RegistryPage<Enchantment> {
             String effectDesc = I18n.exists(descKey) ? I18n.get(descKey) : effectId;
             SwitchCard card = SwitchCard.literal(effectLabel, effectDesc);
             bindToggle(card.valueProperty(),
-                    entry -> !EnchantmentActions.isEffectDisabled(entry, effectId),
-                    () -> applyCustomAction(EnchantmentActions.toggleDisabledEffect(effectId),
-                            new EditorAction.ToggleDisabledEffect(effectId)));
+                    entry -> !EnchantmentFlushAdapter.isEffectDisabled(entry, effectId),
+                    () -> applyAction(new EditorAction.ToggleDisabledEffect(effectId)));
             grid.addItem(card);
         }
 

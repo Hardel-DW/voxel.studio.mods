@@ -8,9 +8,9 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Selector;
 import fr.hardel.asset_editor.client.javafx.components.ui.TemplateCard;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseEvent;
@@ -25,7 +25,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.LinkedHashMap;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
@@ -49,21 +48,18 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                 "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
                 1, 127, 1,
                 entry -> entry.data().getMaxLevel(),
-                EnchantmentActions::maxLevel,
                 v -> new EditorAction.SetIntField("max_level", v));
 
         buildCounter(grid, WEIGHT_ICON,
                 "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
                 1, 1024, 1,
                 entry -> entry.data().getWeight(),
-                EnchantmentActions::weight,
                 v -> new EditorAction.SetIntField("weight", v));
 
         buildCounter(grid, ANVIL_COST_ICON,
                 "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
                 0, 255, 1,
                 entry -> entry.data().getAnvilCost(),
-                EnchantmentActions::anvilCost,
                 v -> new EditorAction.SetIntField("anvil_cost", v));
 
         section.addContent(grid, buildModeSelector());
@@ -84,28 +80,27 @@ public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
                                String titleKey, String descKey,
                                int min, int max, int step,
                                Function<ElementEntry<Enchantment>, Integer> selectorFn,
-                               java.util.function.IntFunction<UnaryOperator<Enchantment>> mutation,
                                java.util.function.IntFunction<EditorAction> actionFactory) {
         Counter counter = new Counter(min, max, step, 0);
-        bindInt(counter.valueProperty(), selectorFn, mutation, actionFactory);
+        bindInt(counter.valueProperty(), selectorFn, actionFactory);
         grid.addItem(new TemplateCard(icon, I18n.get(titleKey), I18n.get(descKey), counter));
     }
 
     private Selector buildModeSelector() {
         LinkedHashMap<String, String> modeOptions = new LinkedHashMap<>();
-        modeOptions.put(EnchantmentActions.MODE_NORMAL, I18n.get("enchantment:global.mode.enum.normal"));
-        modeOptions.put(EnchantmentActions.MODE_SOFT_DELETE, I18n.get("enchantment:global.mode.enum.soft_delete"));
-        modeOptions.put(EnchantmentActions.MODE_ONLY_CREATIVE, I18n.get("enchantment:global.mode.enum.only_creative"));
+        modeOptions.put(EnchantmentFlushAdapter.MODE_NORMAL, I18n.get("enchantment:global.mode.enum.normal"));
+        modeOptions.put(EnchantmentFlushAdapter.MODE_DISABLE, I18n.get("enchantment:global.mode.enum.soft_delete"));
+        modeOptions.put(EnchantmentFlushAdapter.MODE_ONLY_CREATIVE, I18n.get("enchantment:global.mode.enum.only_creative"));
 
         Selector selector = new Selector(
                 I18n.get("enchantment:global.mode.title"),
                 I18n.get("enchantment:global.mode.description"),
                 modeOptions,
-                EnchantmentActions.MODE_NORMAL,
+                EnchantmentFlushAdapter.MODE_NORMAL,
                 null);
 
-        bindString(selector.valueProperty(), EnchantmentActions::mode,
-                v -> applyCustomAction(EnchantmentActions.mode(v), new EditorAction.SetMode(v)));
+        bindString(selector.valueProperty(), EnchantmentFlushAdapter::mode,
+                v -> new EditorAction.SetMode(v));
 
         return selector;
     }

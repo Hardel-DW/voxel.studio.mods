@@ -8,7 +8,6 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Section;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.store.SlotManager;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs;
 import fr.hardel.asset_editor.client.javafx.lib.data.SlotConfigs.SlotConfig;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
@@ -44,8 +43,7 @@ public final class EnchantmentSlotsPage extends RegistryPage<Enchantment> {
                 EquipmentSlotGroup slotGroup = EquipmentSlotGroup.valueOf(slotId.toUpperCase());
                 Card card = new Card(cfg.image(), I18n.get("slot:" + cfg.id()), false);
 
-                card.setOnMouseClicked(e -> applyAction(EnchantmentActions.toggleSlot(slotGroup),
-                    new EditorAction.ToggleSlot(slotId)));
+                card.setOnMouseClicked(e -> applyAction(new EditorAction.ToggleSlot(slotId)));
                 bindView(entry -> new SlotManager(entry.data().definition().slots()).isActive(slotGroup),
                     card::setActive);
 

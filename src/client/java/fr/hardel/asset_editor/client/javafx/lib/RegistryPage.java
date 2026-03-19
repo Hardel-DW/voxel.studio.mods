@@ -6,9 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.Dialog;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.PackCreateDialog;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionResult;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionStatus;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.network.workspace.EditorAction;
 import javafx.geometry.Insets;
@@ -27,9 +25,7 @@ import javafx.beans.property.StringProperty;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 public abstract class RegistryPage<T> extends VBox implements Page {
 
@@ -79,40 +75,21 @@ public abstract class RegistryPage<T> extends VBox implements Page {
         return bindings;
     }
 
-    protected EditorActionResult applyAction(UnaryOperator<T> transform, EditorAction action) {
+    protected EditorActionResult applyAction(EditorAction action) {
         if (action == null)
             return EditorActionResult.error("error:invalid_action");
-        var result = context.gateway().dispatch(registry, currentId, action, entry -> {
-            T updated = transform.apply(entry.data());
-            return Objects.equals(updated, entry.data()) ? entry : entry.withData(updated);
-        });
-        if (!result.isApplied())
-            handleActionFailure(result);
-        return result;
-    }
-
-    protected EditorActionResult applyCustomAction(UnaryOperator<CustomFields> transform, EditorAction action) {
-        if (action == null)
-            return EditorActionResult.error("error:invalid_action");
-        var result = context.gateway().dispatch(registry, currentId, action, entry -> {
-            CustomFields updated = transform.apply(entry.custom());
-            return Objects.equals(updated, entry.custom()) ? entry : entry.withCustom(updated);
-        });
+        var result = context.gateway().dispatch(registry, currentId, action);
         if (!result.isApplied())
             handleActionFailure(result);
         return result;
     }
 
     protected EditorActionResult applyTagToggle(Identifier tagId) {
-        var result = context.gateway().dispatch(registry, currentId, new EditorAction.ToggleTag(tagId), entry -> entry.toggleTag(tagId));
-        if (!result.isApplied())
-            handleActionFailure(result);
-        return result;
+        return applyAction(new EditorAction.ToggleTag(tagId));
     }
 
     protected void bindInt(IntegerProperty property,
         Function<ElementEntry<T>, Integer> extractor,
-        java.util.function.IntFunction<UnaryOperator<T>> mutation,
         java.util.function.IntFunction<EditorAction> actionFactory) {
         var selection = selectValue(extractor);
         bindings.observe(selection, value -> {
@@ -124,7 +101,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
                 return;
             if (Integer.valueOf(v.intValue()).equals(selection.get()))
                 return;
-            var result = applyAction(mutation.apply(v.intValue()), actionFactory.apply(v.intValue()));
+            var result = applyAction(actionFactory.apply(v.intValue()));
             if (!result.isApplied() && selection.get() != null)
                 property.set(selection.get());
         });
@@ -151,7 +128,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
 
     protected void bindString(StringProperty property,
         Function<ElementEntry<T>, String> extractor,
-        Function<String, EditorActionResult> action) {
+        Function<String, EditorAction> actionFactory) {
         var selection = selectValue(extractor);
         bindings.observe(selection, value -> {
             if (value != null && !value.equals(property.getValue()))
@@ -162,7 +139,7 @@ public abstract class RegistryPage<T> extends VBox implements Page {
                 return;
             if (v.equals(selection.get()))
                 return;
-            var result = action.apply(v);
+            var result = applyAction(actionFactory.apply(v));
             if (!result.isApplied() && selection.get() != null)
                 property.set(selection.get());
         });
@@ -229,11 +206,11 @@ public abstract class RegistryPage<T> extends VBox implements Page {
     }
 
     private void handleActionFailure(EditorActionResult result) {
-        if (result.status() == EditorActionStatus.PACK_REQUIRED) {
+        if (result.status() == EditorActionResult.Status.PACK_REQUIRED) {
             showPackRequiredDialog();
             return;
         }
-        if (result.status() == EditorActionStatus.REJECTED) {
+        if (result.status() == EditorActionResult.Status.REJECTED) {
             showErrorDialog(result.message());
             return;
         }

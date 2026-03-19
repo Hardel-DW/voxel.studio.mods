@@ -30,7 +30,7 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
     private static final String MODE_KEY = EnchantmentFlushAdapter.MODE_KEY;
     private static final String DISABLED_EFFECTS_KEY = EnchantmentFlushAdapter.DISABLED_EFFECTS_KEY;
     private static final String MODE_NORMAL = EnchantmentFlushAdapter.MODE_NORMAL;
-    private static final String MODE_SOFT_DELETE = EnchantmentFlushAdapter.MODE_SOFT_DELETE;
+    private static final String MODE_DISABLE = EnchantmentFlushAdapter.MODE_DISABLE;
 
     @Override
     public ElementEntry<Enchantment> apply(ElementEntry<Enchantment> entry, EditorAction action,
@@ -40,7 +40,7 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
             case EditorAction.SetMode a -> applyCustom(entry, custom -> custom.with(MODE_KEY, normalizeMode(a.mode())));
             case EditorAction.ToggleDisabled() -> applyCustom(entry, custom -> {
                 String current = custom.getString(MODE_KEY, MODE_NORMAL);
-                return custom.with(MODE_KEY, MODE_SOFT_DELETE.equals(current) ? MODE_NORMAL : MODE_SOFT_DELETE);
+                return custom.with(MODE_KEY, MODE_DISABLE.equals(current) ? MODE_NORMAL : MODE_DISABLE);
             });
             case EditorAction.ToggleDisabledEffect a -> applyCustom(entry, custom -> {
                 Set<String> next = new LinkedHashSet<>(custom.getStringSet(DISABLED_EFFECTS_KEY));
@@ -177,7 +177,7 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
 
     private static String normalizeMode(String value) {
         return switch (value) {
-            case "soft_delete", "only_creative" -> value;
+            case "disable", "only_creative" -> value;
             default -> MODE_NORMAL;
         };
     }

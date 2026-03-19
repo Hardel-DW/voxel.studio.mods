@@ -6,8 +6,8 @@ import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.InfiniteScrollPane;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.EnchantmentViewMatchers;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
@@ -103,18 +103,16 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         row.setContent(name, subInfo);
 
         var sw = row.toggle();
-        sw.setValue(!EnchantmentActions.isSoftDeleted(entry));
+        sw.setValue(!EnchantmentFlushAdapter.isSoftDeleted(entry));
         sw.valueProperty().addListener((obs, o, v) -> {
             if (o == null || v == null || o.equals(v))
                 return;
             var current = context.elementStore().get(Registries.ENCHANTMENT, entry.id());
-            boolean enabled = current == null || !EnchantmentActions.isSoftDeleted(current);
+            boolean enabled = current == null || !EnchantmentFlushAdapter.isSoftDeleted(current);
             if (Boolean.valueOf(v).equals(enabled))
                 return;
             var result = context.gateway().dispatch(Registries.ENCHANTMENT, entry.id(),
-                new EditorAction.ToggleDisabled(),
-                optimisticEntry -> optimisticEntry.withCustom(
-                    EnchantmentActions.toggleDisabled().apply(optimisticEntry.custom())));
+                new EditorAction.ToggleDisabled());
             if (!result.isApplied())
                 sw.setValue(enabled);
         });
@@ -128,7 +126,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
         iconWrap.setMinSize(32, 32);
         iconWrap.setPrefSize(32, 32);
         iconWrap.setMaxSize(32, 32);
-        var itemId = EnchantmentActions.previewItemId(entry.data(),
+        var itemId = EnchantmentFlushAdapter.previewItemId(entry.data(),
             tag -> context.resolveTag(Registries.ITEM, tag));
         if (itemId != null) {
             iconWrap.getChildren().add(new ItemSprite(itemId, 32));

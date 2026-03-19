@@ -2,8 +2,8 @@ package fr.hardel.asset_editor.client.javafx.lib;
 
 import fr.hardel.asset_editor.client.ClientSessionDispatch;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
-import fr.hardel.asset_editor.client.javafx.lib.action.EnchantmentActions;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
+import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRouter;
@@ -208,7 +208,7 @@ public final class StudioContext {
             workspaceState.elementStore().snapshotFromRegistry(
                 Registries.ENCHANTMENT,
                 registry,
-                entry -> EnchantmentActions.initializeCustom(entry.data(), entry.tags())));
+                entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
     }
 
     public void dispose() {

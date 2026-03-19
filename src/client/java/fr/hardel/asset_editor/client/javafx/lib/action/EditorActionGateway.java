@@ -23,7 +23,6 @@ import net.minecraft.resources.ResourceKey;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.UnaryOperator;
 
 public final class EditorActionGateway {
 
@@ -36,11 +35,6 @@ public final class EditorActionGateway {
     }
 
     public <T> EditorActionResult dispatch(ResourceKey<Registry<T>> registry, Identifier target, EditorAction action) {
-        return dispatch(registry, target, action, null);
-    }
-
-    public <T> EditorActionResult dispatch(ResourceKey<Registry<T>> registry, Identifier target,
-        EditorAction action, UnaryOperator<ElementEntry<T>> optimisticProjector) {
         EditorActionResult check = validate(target);
         if (check != null)
             return check;
@@ -56,11 +50,7 @@ public final class EditorActionGateway {
         UUID actionId = UUID.randomUUID();
         workspaceState.trackPendingAction(actionId, new PendingClientAction<>(actionId, pack.packId(), registry, target, entry));
 
-        if (optimisticProjector != null) {
-            ElementEntry<T> projected = optimisticProjector.apply(entry);
-            if (projected != null && !Objects.equals(projected, entry))
-                workspaceState.elementStore().put(registry, target, projected);
-        }
+        projectOptimistic(registry, target, entry, action);
 
         ClientPlayNetworking.send(new WorkspaceMutationRequestPayload(
             actionId,
@@ -69,6 +59,24 @@ public final class EditorActionGateway {
             target,
             action));
         return EditorActionResult.applied();
+    }
+
+    private <T> void projectOptimistic(ResourceKey<Registry<T>> registry, Identifier target,
+        ElementEntry<T> entry, EditorAction action) {
+        RegistryWorkspaceBinding<T> binding = AssetEditorNetworking.binding(registry.identifier());
+        if (binding == null || binding.interpreter() == null)
+            return;
+
+        HolderLookup.Provider registries = clientRegistries();
+        if (registries == null)
+            return;
+
+        try {
+            ElementEntry<T> projected = binding.interpreter().apply(entry, action, registries);
+            if (projected != null && !Objects.equals(projected, entry))
+                workspaceState.elementStore().put(registry, target, projected);
+        } catch (Exception ignored) {
+        }
     }
 
     public void requestPackWorkspace(ResourceKey<?> registry) {
