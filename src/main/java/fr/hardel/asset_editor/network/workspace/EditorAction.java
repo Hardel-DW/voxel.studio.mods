@@ -5,10 +5,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public sealed interface EditorAction {
 
     String type();
@@ -122,29 +118,65 @@ public sealed interface EditorAction {
             SetExclusiveSet::new);
     }
 
-    Map<String, StreamCodec<ByteBuf, ? extends EditorAction>> CODECS = Stream.of(
-        Map.entry("set_int", SetIntField.CODEC),
-        Map.entry("set_mode", SetMode.CODEC),
-        Map.entry("toggle_disabled", ToggleDisabled.CODEC),
-        Map.entry("toggle_disabled_effect", ToggleDisabledEffect.CODEC),
-        Map.entry("toggle_slot", ToggleSlot.CODEC),
-        Map.entry("toggle_tag", ToggleTag.CODEC),
-        Map.entry("toggle_exclusive", ToggleExclusive.CODEC),
-        Map.entry("set_supported_items", SetSupportedItems.CODEC),
-        Map.entry("set_primary_items", SetPrimaryItems.CODEC),
-        Map.entry("set_exclusive_set", SetExclusiveSet.CODEC)).collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    @SuppressWarnings("unchecked")
     StreamCodec<ByteBuf, EditorAction> STREAM_CODEC = StreamCodec.of(
         (buf, action) -> {
-            ByteBufCodecs.STRING_UTF8.encode(buf, action.type());
-            ((StreamCodec<ByteBuf, EditorAction>) CODECS.get(action.type())).encode(buf, action);
+            switch (action) {
+                case SetIntField value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    SetIntField.CODEC.encode(buf, value);
+                }
+                case SetMode value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    SetMode.CODEC.encode(buf, value);
+                }
+                case ToggleDisabled value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    ToggleDisabled.CODEC.encode(buf, value);
+                }
+                case ToggleDisabledEffect value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    ToggleDisabledEffect.CODEC.encode(buf, value);
+                }
+                case ToggleSlot value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    ToggleSlot.CODEC.encode(buf, value);
+                }
+                case ToggleTag value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    ToggleTag.CODEC.encode(buf, value);
+                }
+                case ToggleExclusive value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    ToggleExclusive.CODEC.encode(buf, value);
+                }
+                case SetSupportedItems value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    SetSupportedItems.CODEC.encode(buf, value);
+                }
+                case SetPrimaryItems value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    SetPrimaryItems.CODEC.encode(buf, value);
+                }
+                case SetExclusiveSet value -> {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, value.type());
+                    SetExclusiveSet.CODEC.encode(buf, value);
+                }
+            }
         },
         buf -> {
             String type = ByteBufCodecs.STRING_UTF8.decode(buf);
-            var codec = CODECS.get(type);
-            if (codec == null)
-                throw new IllegalArgumentException("Unknown action type: " + type);
-            return codec.decode(buf);
+            return switch (type) {
+                case "set_int" -> SetIntField.CODEC.decode(buf);
+                case "set_mode" -> SetMode.CODEC.decode(buf);
+                case "toggle_disabled" -> ToggleDisabled.CODEC.decode(buf);
+                case "toggle_disabled_effect" -> ToggleDisabledEffect.CODEC.decode(buf);
+                case "toggle_slot" -> ToggleSlot.CODEC.decode(buf);
+                case "toggle_tag" -> ToggleTag.CODEC.decode(buf);
+                case "toggle_exclusive" -> ToggleExclusive.CODEC.decode(buf);
+                case "set_supported_items" -> SetSupportedItems.CODEC.decode(buf);
+                case "set_primary_items" -> SetPrimaryItems.CODEC.decode(buf);
+                case "set_exclusive_set" -> SetExclusiveSet.CODEC.decode(buf);
+                default -> throw new IllegalArgumentException("Unknown action type: " + type);
+            };
         });
 }

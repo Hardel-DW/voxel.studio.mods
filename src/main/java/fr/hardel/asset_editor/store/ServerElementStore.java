@@ -90,7 +90,6 @@ public final class ServerElementStore {
         return List.copyOf(workspace(packId, binding, packRoot, registries).entries());
     }
 
-    @SuppressWarnings("unchecked")
     public <T> void flushDirty(Path packRoot, String packId, RegistryWorkspaceBinding<T> binding,
         HolderLookup.Provider registries) {
         PackWorkspaceStore<T> workspace = workspace(packId, binding, packRoot, registries);
@@ -100,9 +99,8 @@ public final class ServerElementStore {
 
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         var flushAdapter = binding.adapter() == null ? FlushAdapter.<T> identity() : binding.adapter();
-        String name = binding.registryName();
-        var baselineMap = (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) baselines.getOrDefault(name, Map.of());
-        var currentMap = (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) workspace.entryMap();
+        Map<Identifier, ElementEntry<T>> baselineMap = baselineEntries(binding);
+        Map<Identifier, ElementEntry<T>> currentMap = workspace.entryMap();
 
         flushDirtyElements(packRoot, binding.registryKey().identifier().getPath(), baselineMap, currentMap, dirty,
             binding.codec(), ops, flushAdapter);
@@ -167,17 +165,14 @@ public final class ServerElementStore {
             ignored -> loadWorkspace(packRoot, binding, registries));
     }
 
-    @SuppressWarnings("unchecked")
     private <T> PackWorkspaceStore<T> loadWorkspace(Path packRoot, RegistryWorkspaceBinding<T> binding,
         HolderLookup.Provider registries) {
         Map<Identifier, ElementEntry<T>> entries = new LinkedHashMap<>();
         Map<Identifier, Set<Identifier>> tagsByElement = new LinkedHashMap<>();
 
-        Map<Identifier, ElementEntry<?>> baselineEntries = baselines.getOrDefault(binding.registryName(), Map.of());
-        for (var entry : baselineEntries.entrySet()) {
-            ElementEntry<T> typed = (ElementEntry<T>) entry.getValue();
-            entries.put(entry.getKey(), typed);
-            tagsByElement.put(entry.getKey(), new LinkedHashSet<>(typed.tags()));
+        for (var entry : baselineEntries(binding).entrySet()) {
+            entries.put(entry.getKey(), entry.getValue());
+            tagsByElement.put(entry.getKey(), new LinkedHashSet<>(entry.getValue().tags()));
         }
 
         loadPackElementOverrides(packRoot, binding, registries, entries, tagsByElement);
@@ -191,6 +186,11 @@ public final class ServerElementStore {
         }
 
         return new PackWorkspaceStore<>(initialized);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Map<Identifier, ElementEntry<T>> baselineEntries(RegistryWorkspaceBinding<T> binding) {
+        return (Map<Identifier, ElementEntry<T>>) (Map<?, ?>) baselines.getOrDefault(binding.registryName(), Map.of());
     }
 
     private <T> void loadPackElementOverrides(Path packRoot, RegistryWorkspaceBinding<T> binding,
@@ -330,10 +330,9 @@ public final class ServerElementStore {
         return Identifier.fromNamespaceAndPath(namespace, path);
     }
 
-    @SuppressWarnings("unchecked")
     private <T> void flushDirtyElements(Path packRoot, String registry,
-        Map<Identifier, ElementEntry<?>> vanillaMap,
-        Map<Identifier, ElementEntry<?>> currentMap,
+        Map<Identifier, ElementEntry<T>> vanillaMap,
+        Map<Identifier, ElementEntry<T>> currentMap,
         Set<Identifier> dirty,
         Codec<T> codec, DynamicOps<JsonElement> ops,
         FlushAdapter<T> adapter) {
@@ -342,9 +341,9 @@ public final class ServerElementStore {
             if (currentRaw == null)
                 continue;
 
-            var currentEntry = adapter.prepare((ElementEntry<T>) currentRaw);
+            var currentEntry = adapter.prepare(currentRaw);
             var vanillaEntry = vanillaMap.containsKey(id)
-                ? adapter.prepare((ElementEntry<T>) vanillaMap.get(id))
+                ? adapter.prepare(vanillaMap.get(id))
                 : null;
 
             Path filePath = packRoot.resolve("data").resolve(id.getNamespace())
@@ -365,11 +364,11 @@ public final class ServerElementStore {
         }
     }
 
-    private void flushDirtyTags(Path packRoot, String registry,
-        Map<Identifier, ElementEntry<?>> vanillaMap,
-        Map<Identifier, ElementEntry<?>> currentMap,
+    private <T> void flushDirtyTags(Path packRoot, String registry,
+        Map<Identifier, ElementEntry<T>> vanillaMap,
+        Map<Identifier, ElementEntry<T>> currentMap,
         Set<Identifier> dirty,
-        FlushAdapter<?> adapter) {
+        FlushAdapter<T> adapter) {
         Set<Identifier> affectedTagIds = collectAffectedTags(vanillaMap, currentMap, dirty, adapter);
         if (affectedTagIds.isEmpty())
             return;
@@ -407,29 +406,27 @@ public final class ServerElementStore {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Set<Identifier> collectAffectedTags(Map<Identifier, ElementEntry<?>> vanillaMap,
-        Map<Identifier, ElementEntry<?>> currentMap,
+    private <T> Set<Identifier> collectAffectedTags(Map<Identifier, ElementEntry<T>> vanillaMap,
+        Map<Identifier, ElementEntry<T>> currentMap,
         Set<Identifier> dirty,
-        FlushAdapter<?> adapter) {
+        FlushAdapter<T> adapter) {
         Set<Identifier> tags = new HashSet<>();
         for (Identifier id : dirty) {
             var van = vanillaMap.get(id);
             var cur = currentMap.get(id);
             if (van != null)
-                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) van).tags());
+                tags.addAll(adapter.prepare(van).tags());
             if (cur != null)
-                tags.addAll(((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) cur).tags());
+                tags.addAll(adapter.prepare(cur).tags());
         }
         return tags;
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<Identifier, Set<Identifier>> collectTagMemberships(Map<Identifier, ElementEntry<?>> elements,
-        FlushAdapter<?> adapter) {
+    private <T> Map<Identifier, Set<Identifier>> collectTagMemberships(Map<Identifier, ElementEntry<T>> elements,
+        FlushAdapter<T> adapter) {
         Map<Identifier, Set<Identifier>> result = new HashMap<>();
-        for (var entry : elements.values()) {
-            var prepared = ((FlushAdapter<Object>) adapter).prepare((ElementEntry<Object>) entry);
+        for (ElementEntry<T> entry : elements.values()) {
+            var prepared = adapter.prepare(entry);
             for (Identifier tagId : prepared.tags())
                 result.computeIfAbsent(tagId, k -> new HashSet<>()).add(prepared.id());
         }

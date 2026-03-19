@@ -6,7 +6,6 @@ import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
-import fr.hardel.asset_editor.network.workspace.EditorAction;
 import fr.hardel.asset_editor.network.workspace.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
@@ -111,29 +110,7 @@ public final class AssetEditorNetworking {
                 return;
             }
 
-            ElementEntry<?> entry = store.get(payload.packId(), binding, packRoot.get(), server.registryAccess(), payload.targetId());
-            if (entry == null) {
-                sendMutationResult(player, payload.actionId(), payload.packId(), false,
-                    "error:element_not_found", null);
-                return;
-            }
-
-            ElementEntry<?> updated;
-            try {
-                updated = applyMutation(binding, entry, payload.action(), server.registryAccess());
-            } catch (Exception e) {
-                LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
-                sendMutationResult(player, payload.actionId(), payload.packId(), false,
-                    "error:invalid_action", null);
-                return;
-            }
-
-            putUpdatedEntry(store, payload.packId(), binding, packRoot.get(), server, payload.targetId(), updated);
-            store.flushDirty(packRoot.get(), payload.packId(), binding, server.registryAccess());
-            WorkspaceElementSnapshot snapshot = toSnapshot(binding, updated, server.registryAccess());
-
-            sendMutationResult(player, payload.actionId(), payload.packId(), true, "", snapshot);
-            broadcastUpdate(server, player, payload.packId(), snapshot);
+            handleWorkspaceMutationTyped(payload, player, server, store, binding, packRoot.get());
         });
     }
 
@@ -215,22 +192,32 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, snapshot));
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> ElementEntry<T> applyMutation(RegistryWorkspaceBinding<T> binding, ElementEntry<?> entry,
-        EditorAction action, net.minecraft.core.HolderLookup.Provider registries) {
-        return binding.interpreter().apply((ElementEntry<T>) entry, action, registries);
-    }
+    private static <T> void handleWorkspaceMutationTyped(WorkspaceMutationRequestPayload payload,
+        ServerPlayer player, MinecraftServer server, ServerElementStore store,
+        RegistryWorkspaceBinding<T> binding, Path packRoot) {
+        ElementEntry<T> entry = store.get(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId());
+        if (entry == null) {
+            sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                "error:element_not_found", null);
+            return;
+        }
 
-    @SuppressWarnings("unchecked")
-    private static <T> void putUpdatedEntry(ServerElementStore store, String packId, RegistryWorkspaceBinding<T> binding,
-        Path packRoot, MinecraftServer server, Identifier targetId, ElementEntry<?> updated) {
-        store.put(packId, binding, packRoot, server.registryAccess(), targetId, (ElementEntry<T>) updated);
-    }
+        ElementEntry<T> updated;
+        try {
+            updated = binding.interpreter().apply(entry, payload.action(), server.registryAccess());
+        } catch (Exception e) {
+            LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
+            sendMutationResult(player, payload.actionId(), payload.packId(), false,
+                "error:invalid_action", null);
+            return;
+        }
 
-    @SuppressWarnings("unchecked")
-    private static <T> WorkspaceElementSnapshot toSnapshot(RegistryWorkspaceBinding<T> binding, ElementEntry<?> entry,
-        net.minecraft.core.HolderLookup.Provider registries) {
-        return binding.toSnapshot((ElementEntry<T>) entry, registries);
+        store.put(payload.packId(), binding, packRoot, server.registryAccess(), payload.targetId(), updated);
+        store.flushDirty(packRoot, payload.packId(), binding, server.registryAccess());
+        WorkspaceElementSnapshot snapshot = binding.toSnapshot(updated, server.registryAccess());
+
+        sendMutationResult(player, payload.actionId(), payload.packId(), true, "", snapshot);
+        broadcastUpdate(server, player, payload.packId(), snapshot);
     }
 
     private AssetEditorNetworking() {}
