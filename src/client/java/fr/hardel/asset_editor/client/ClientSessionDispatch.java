@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.permission.StudioPermissions;

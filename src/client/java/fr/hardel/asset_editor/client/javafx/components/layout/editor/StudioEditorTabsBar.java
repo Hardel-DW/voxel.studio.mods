@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -64,7 +64,7 @@ public final class StudioEditorTabsBar extends HBox {
         Region dragSpacer = new Region();
         HBox.setHgrow(dragSpacer, Priority.ALWAYS);
         dragSpacer.setPickOnBounds(true);
-        VoxelStudioWindow.bindDragArea(dragSpacer);
+        VoxelStudioWindow.requestBindDragArea(dragSpacer);
 
         bindings.observe(context.selectOpenTabs(), tabs -> refreshTabs());
         bindings.observe(context.selectActiveTabIndex(), index -> refreshTabs());

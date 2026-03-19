@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.application.Platform;

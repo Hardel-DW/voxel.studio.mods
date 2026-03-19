@@ -36,7 +36,7 @@ public final class VoxelFonts {
 
     private static final Map<Variant, String> registry = new EnumMap<>(Variant.class);
 
-    static void register(Variant variant, Font f) {
+    public static void register(Variant variant, Font f) {
         if (f != null) registry.put(variant, f.getName());
     }
 

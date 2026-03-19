@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.layout.HBox;
@@ -28,7 +28,7 @@ public final class WindowControls extends HBox {
         StackPane maximize = button(buttonStyleClass, MAXIMIZE_ICON, buttonWidth, buttonHeight,
                 inlineButtonStyle, VoxelColors.ZINC_200);
         maximize.setOnMouseClicked(e -> {
-            VoxelStudioWindow.toggleMaximize();
+            VoxelStudioWindow.requestToggleMaximize();
             e.consume();
         });
 

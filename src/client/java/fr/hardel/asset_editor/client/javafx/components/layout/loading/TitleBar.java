@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.javafx.components.layout.loading;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.*;
@@ -12,15 +13,9 @@ import javafx.stage.Stage;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
-/**
- * Custom undecorated title bar matching TitleBar.tsx.
- * Handles window drag, minimize, maximize and close.
- */
 public final class TitleBar extends VBox {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-
-    private double dragOffsetX, dragOffsetY;
 
     public TitleBar(Stage stage) {
         getChildren().addAll(buildBar(stage), buildSeparator());
@@ -38,22 +33,8 @@ public final class TitleBar extends VBox {
         HBox.setHgrow(drag, Priority.ALWAYS);
         HBox controls = buildControls(stage);
 
-        bar.setOnMousePressed(e -> {
-            dragOffsetX = e.getScreenX() - stage.getX();
-            dragOffsetY = e.getScreenY() - stage.getY();
-        });
-        bar.setOnMouseDragged(e -> {
-            if (!stage.isMaximized()) {
-                stage.setX(e.getScreenX() - dragOffsetX);
-                stage.setY(e.getScreenY() - dragOffsetY);
-            }
-        });
-        bar.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2)
-                stage.setMaximized(!stage.isMaximized());
-        });
-
         bar.getChildren().addAll(left, drag, controls);
+        VoxelStudioWindow.requestBindDragArea(bar);
         return bar;
     }
 

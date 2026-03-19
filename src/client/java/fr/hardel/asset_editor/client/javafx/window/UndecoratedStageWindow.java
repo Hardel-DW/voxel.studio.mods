@@ -1,13 +1,19 @@
-package fr.hardel.asset_editor.client.javafx;
+package fr.hardel.asset_editor.client.javafx.window;
 
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+
+import java.util.List;
 
 public class UndecoratedStageWindow {
 
@@ -15,6 +21,7 @@ public class UndecoratedStageWindow {
     private static final int SNAP_MARGIN = 5;
 
     protected final Stage stage;
+    protected Scene scene;
 
     private ResizeZone activeZone = ResizeZone.NONE;
     private boolean resizing, dragging;
@@ -26,16 +33,60 @@ public class UndecoratedStageWindow {
     private Node cursorOverrideNode;
     private Cursor cursorOverrideOriginal;
 
-    public UndecoratedStageWindow(Stage stage) {
-        this.stage = stage;
+    protected UndecoratedStageWindow(double minWidth, double minHeight, List<String> stylesheets) {
+        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        double width = Math.max(minWidth, bounds.getWidth() * 0.75);
+        double height = Math.max(minHeight, bounds.getHeight() * 0.75);
+
+        stage = new Stage(StageStyle.UNDECORATED);
+        stage.setWidth(width);
+        stage.setHeight(height);
+        stage.setX(bounds.getMinX() + (bounds.getWidth() - width) / 2);
+        stage.setY(bounds.getMinY() + (bounds.getHeight() - height) / 2);
+        stage.setMinWidth(minWidth);
+        stage.setMinHeight(minHeight);
+
+        scene = new Scene(new javafx.scene.layout.StackPane());
+        scene.setFill(Color.BLACK);
+        for (String css : stylesheets) {
+            scene.getStylesheets().add(css);
+        }
+
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ESCAPE)
+                stage.hide();
+        });
+
+        installResizeHandlers();
+        stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused) onWindowFocused();
+        });
+        stage.setScene(scene);
     }
 
     public Stage stage() {
         return stage;
     }
 
+    public Scene scene() {
+        return scene;
+    }
+
     public boolean isSnapped() {
         return boundsBeforeSnap != null;
+    }
+
+    public void setRoot(Parent root) {
+        scene.setRoot(root);
+    }
+
+    public void show() {
+        stage.show();
+        stage.toFront();
+    }
+
+    public void hide() {
+        stage.hide();
     }
 
     public void toggleMaximize() {
@@ -44,6 +95,13 @@ public class UndecoratedStageWindow {
         else
             snapTo(windowScreen().getVisualBounds());
     }
+
+    public void bindDragArea(Node dragArea) {
+        if (dragArea == null) return;
+        installDragHandlers(dragArea);
+    }
+
+    protected void onWindowFocused() {}
 
     public void snapTo(Rectangle2D region) {
         if (boundsBeforeSnap == null)
@@ -66,7 +124,7 @@ public class UndecoratedStageWindow {
         boundsBeforeSnap = null;
     }
 
-    public void installResizeHandlers(Scene scene) {
+    private void installResizeHandlers() {
         scene.addEventFilter(MouseEvent.MOUSE_MOVED, e -> {
             if (dragging || resizing)
                 return;
@@ -127,7 +185,7 @@ public class UndecoratedStageWindow {
         });
     }
 
-    public void installDragHandlers(Node dragArea, Scene scene) {
+    private void installDragHandlers(Node dragArea) {
         dragArea.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
             if (e.getButton() != MouseButton.PRIMARY)
                 return;

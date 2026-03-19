@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
-import fr.hardel.asset_editor.client.javafx.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
@@ -49,7 +49,7 @@ public class AssetEditorClient implements ClientModInitializer {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {
                 SESSION_STATE.clear();
-                VoxelStudioWindow.onWorldClosed();
+                VoxelStudioWindow.notifyWorldClosed();
             }
 
             this.hadWorld = hasWorld;
@@ -68,7 +68,7 @@ public class AssetEditorClient implements ClientModInitializer {
                 return;
             }
 
-            VoxelStudioWindow.open();
+            VoxelStudioWindow.requestOpen();
         });
 
         ClientNetworkHandler.register();
@@ -83,7 +83,7 @@ public class AssetEditorClient implements ClientModInitializer {
         public void onResourceManagerReload(@NonNull ResourceManager manager) {
             VoxelResourceLoader.update(manager);
             ItemAtlasRenderer.requestGeneration();
-            VoxelStudioWindow.onResourceReload();
+            VoxelStudioWindow.notifyResourceReload();
         }
     }
 
