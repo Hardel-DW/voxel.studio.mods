@@ -178,8 +178,6 @@ public final class StudioContext {
         if (workspaceState.worldSessionKey().equals(nextKey)) {
             if (force)
                 sessionState.refreshPackList();
-            if (force)
-                refreshSelectedPackWorkspace();
             return;
         }
 
@@ -218,7 +216,6 @@ public final class StudioContext {
         workspaceState.issueState().clear();
         if (workspaceState.packSelectionState().selectedPack() == null)
             return;
-        workspaceState.elementStore().replaceAll(Registries.ENCHANTMENT, List.of());
         gateway.requestPackWorkspace(Registries.ENCHANTMENT);
     }
 }
