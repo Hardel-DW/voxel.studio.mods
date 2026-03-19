@@ -9,13 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record WorkspaceSyncPayload(
-    UUID actionId,
-    String packId,
-    boolean mutationResponse,
-    boolean accepted,
-    String errorCode,
-    WorkspaceElementSnapshot snapshot) implements CustomPacketPayload {
+public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutationResponse, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) implements CustomPacketPayload {
 
     public WorkspaceSyncPayload {
         packId = packId == null ? "" : packId;

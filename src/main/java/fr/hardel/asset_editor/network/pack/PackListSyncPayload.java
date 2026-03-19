@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public record PackListSyncPayload(List<PackEntry> packs) implements CustomPacketPayload {
+
     public static final Type<PackListSyncPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath("asset_editor", "pack_list_sync"));
 

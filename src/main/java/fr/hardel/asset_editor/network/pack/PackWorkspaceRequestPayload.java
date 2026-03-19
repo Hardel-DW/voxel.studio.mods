@@ -7,9 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-public record PackWorkspaceRequestPayload(
-    String packId,
-    Identifier registryId) implements CustomPacketPayload {
+public record PackWorkspaceRequestPayload(String packId, Identifier registryId) implements CustomPacketPayload {
 
     public static final Type<PackWorkspaceRequestPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath("asset_editor", "pack_workspace_request"));

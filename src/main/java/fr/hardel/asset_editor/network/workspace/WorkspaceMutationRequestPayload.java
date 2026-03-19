@@ -10,12 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record WorkspaceMutationRequestPayload(
-    UUID actionId,
-    String packId,
-    Identifier registryId,
-    Identifier targetId,
-    EditorAction action) implements CustomPacketPayload {
+public record WorkspaceMutationRequestPayload(UUID actionId, String packId, Identifier registryId, Identifier targetId, EditorAction action) implements CustomPacketPayload {
 
     public static final Type<WorkspaceMutationRequestPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath("asset_editor", "workspace_mutation_request"));

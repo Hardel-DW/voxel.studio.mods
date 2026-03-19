@@ -11,10 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record PackWorkspaceSyncPayload(
-    String packId,
-    Identifier registryId,
-    List<WorkspaceElementSnapshot> entries) implements CustomPacketPayload {
+public record PackWorkspaceSyncPayload(String packId, Identifier registryId, List<WorkspaceElementSnapshot> entries) implements CustomPacketPayload {
 
     public PackWorkspaceSyncPayload {
         entries = List.copyOf(entries == null ? List.of() : entries);

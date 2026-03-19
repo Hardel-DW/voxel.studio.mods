@@ -9,12 +9,7 @@ import net.minecraft.resources.Identifier;
 import java.util.List;
 import java.util.Set;
 
-public record WorkspaceElementSnapshot(
-    Identifier registryId,
-    Identifier targetId,
-    String dataJson,
-    Set<Identifier> tags,
-    CustomFields custom) {
+public record WorkspaceElementSnapshot(Identifier registryId, Identifier targetId, String dataJson, Set<Identifier> tags, CustomFields custom) {
 
     public WorkspaceElementSnapshot {
         dataJson = dataJson == null ? "" : dataJson;
