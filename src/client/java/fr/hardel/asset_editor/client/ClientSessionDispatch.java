@@ -1,15 +1,14 @@
 package fr.hardel.asset_editor.client;
 
+import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry;
 import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
-import fr.hardel.asset_editor.permission.StudioPermissions;
+import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
-import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 import javafx.application.Platform;
-
-import java.util.List;
 
 public final class ClientSessionDispatch {
 
@@ -33,21 +32,26 @@ public final class ClientSessionDispatch {
             activeGateway = null;
     }
 
-    public void handlePermissionSync(StudioPermissions permissions) {
+    public void handlePermissionSync(PermissionSyncPayload payload) {
+        ClientDebugTelemetry.networkInbound(payload);
+        var permissions = payload.permissions();
         runSessionUpdate(() -> sessionState.updatePermissions(permissions));
     }
 
-    public void handlePackListSync(List<PackEntry> packs) {
-        runSessionUpdate(() -> sessionState.updatePacks(packs));
+    public void handlePackListSync(PackListSyncPayload payload) {
+        ClientDebugTelemetry.networkInbound(payload);
+        runSessionUpdate(() -> sessionState.updatePacks(payload.packs()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
+        ClientDebugTelemetry.networkInbound(payload);
         var gateway = activeGateway;
         if (gateway != null)
             Platform.runLater(() -> gateway.handleWorkspaceSync(payload));
     }
 
     public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
+        ClientDebugTelemetry.networkInbound(payload);
         var gateway = activeGateway;
         if (gateway != null)
             Platform.runLater(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));

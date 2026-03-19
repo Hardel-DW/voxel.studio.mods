@@ -39,7 +39,7 @@ public final class StudioRouter {
             return;
         }
 
-        if (route == StudioRoute.DEBUG_ITEMS && !permissionSupplier.get().isAdmin()) {
+        if (route == StudioRoute.DEBUG && !permissionSupplier.get().isAdmin()) {
             redirectNoPermission();
             return;
         }

@@ -1211,6 +1211,70 @@
     -fx-background-color: transparent;
 }
 
+/* ===== DEBUG LAYOUT ===== */
+.debug-layout {
+    -fx-background-color: transparent;
+}
+
+.debug-layout-header {
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.debug-layout-outlet {
+    -fx-background-color: transparent;
+}
+
+.debug-log-page {
+    -fx-background-color: transparent;
+}
+
+/* ===== DATA TABLE ===== */
+.ui-data-table {
+    -fx-background-color: transparent;
+}
+
+.ui-data-table-header {
+    -fx-background-color: rgba(9, 9, 11, 0.4);
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.5) transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-spacing: 12;
+}
+
+.ui-data-table-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.ui-data-table-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.ui-data-table-body {
+    -fx-background-color: transparent;
+}
+
+.ui-data-table-row {
+    -fx-background-color: rgba(9, 9, 11, 0.16);
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.35) transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-spacing: 12;
+}
+
+.ui-data-table-row:hover {
+    -fx-background-color: rgba(24, 24, 27, 0.4);
+}
+
+.ui-data-table-row-alt {
+    -fx-background-color: rgba(24, 24, 27, 0.16);
+}
+
+.ui-data-table-detail {
+    -fx-background-color: rgba(12, 12, 13, 0.55);
+    -fx-border-color: transparent transparent rgba(39, 39, 42, 0.35) transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
 /* ===== SUPPORT CARD ===== */
 /* bg-black/35 border-t-2 border-l-2 rounded-2xl border-stone-900 */
 .layout-support-card {

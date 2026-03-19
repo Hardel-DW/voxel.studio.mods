@@ -4,13 +4,13 @@ import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
+import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 
 import java.util.List;
@@ -105,11 +105,11 @@ public final class ClientSessionState {
     }
 
     public void refreshPackList() {
-        Minecraft.getInstance().execute(() -> ClientPlayNetworking.send(new PackListRequestPayload()));
+        Minecraft.getInstance().execute(() -> ClientPayloadSender.send(new PackListRequestPayload()));
     }
 
     public void createPack(String name, String namespace) {
-        Minecraft.getInstance().execute(() -> ClientPlayNetworking.send(new PackCreatePayload(name, namespace)));
+        Minecraft.getInstance().execute(() -> ClientPayloadSender.send(new PackCreatePayload(name, namespace)));
     }
 
     public void clear() {

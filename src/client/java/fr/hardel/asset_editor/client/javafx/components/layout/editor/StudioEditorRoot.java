@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.javafx.components.page.recipe.RecipeLayout;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
-import fr.hardel.asset_editor.client.javafx.routes.debug.DebugItemsPage;
+import fr.hardel.asset_editor.client.javafx.routes.debug.DebugLayout;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
@@ -40,7 +40,7 @@ public final class StudioEditorRoot extends HBox {
     private final StackPane contentOutlet = new StackPane();
     private final EnumMap<StudioConcept, ConceptLayout> layouts = new EnumMap<>(StudioConcept.class);
     private ChangesLayout changesLayout;
-    private DebugItemsPage debugItemsPage;
+    private DebugLayout debugLayout;
     private NoPermissionPage noPermissionPage;
 
     public StudioEditorRoot(Stage stage, ClientSessionState sessionState, ClientSessionDispatch dispatch) {
@@ -114,10 +114,10 @@ public final class StudioEditorRoot extends HBox {
             contentOutlet.getChildren().setAll(changesLayout);
             return;
         }
-        if (route == StudioRoute.DEBUG_ITEMS) {
-            if (debugItemsPage == null)
-                debugItemsPage = new DebugItemsPage();
-            contentOutlet.getChildren().setAll(debugItemsPage);
+        if (route == StudioRoute.DEBUG) {
+            if (debugLayout == null)
+                debugLayout = new DebugLayout();
+            contentOutlet.getChildren().setAll(debugLayout);
             return;
         }
         StudioConcept concept = StudioConcept.byRoute(route);

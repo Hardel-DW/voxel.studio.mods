@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib;
 
 import fr.hardel.asset_editor.client.ClientSessionDispatch;
+import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
@@ -21,6 +22,7 @@ import fr.hardel.asset_editor.client.state.WorkspaceUiState;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -30,6 +32,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class StudioContext {
@@ -176,10 +179,20 @@ public final class StudioContext {
     public void resyncWorldSession(boolean force) {
         String nextKey = sessionState.worldSessionKey();
         if (workspaceState.worldSessionKey().equals(nextKey)) {
-            if (force)
+            if (force) {
+                ClientDebugTelemetry.lifecycle(
+                    I18n.get("debug:telemetry.window_focus_resync_kept_workspace"),
+                    Map.of("worldSessionKey", nextKey, "refreshPackList", "true"));
+
                 sessionState.refreshPackList();
+            }
+
             return;
         }
+
+        ClientDebugTelemetry.lifecycle(
+            I18n.get("debug:telemetry.world_session_changed"),
+            Map.of("previousWorldSessionKey", workspaceState.worldSessionKey(), "nextWorldSessionKey", nextKey));
 
         workspaceState.setWorldSessionKey(nextKey);
         workspaceState.resetForWorldSync();
@@ -197,11 +210,10 @@ public final class StudioContext {
         var conn = Minecraft.getInstance().getConnection();
         if (conn == null)
             return;
-        conn.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry ->
-            workspaceState.elementStore().snapshotFromRegistry(
-                Registries.ENCHANTMENT,
-                registry,
-                entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
+        conn.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> workspaceState.elementStore().snapshotFromRegistry(
+            Registries.ENCHANTMENT,
+            registry,
+            entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())));
     }
 
     public void dispose() {
@@ -214,8 +226,14 @@ public final class StudioContext {
     private void refreshSelectedPackWorkspace() {
         workspaceState.clearPendingActions();
         workspaceState.issueState().clear();
-        if (workspaceState.packSelectionState().selectedPack() == null)
+        ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
+        if (selectedPack == null)
             return;
+
+        ClientDebugTelemetry.sync(
+            I18n.get("debug:telemetry.requested_workspace_refresh"),
+            Map.of("packId", selectedPack.packId(), "registry", Registries.ENCHANTMENT.identifier().toString()));
+
         gateway.requestPackWorkspace(Registries.ENCHANTMENT);
     }
 }

@@ -34,3 +34,25 @@ Autre Bugs:
 
 104. La génération de l’atlas items est coûteuse et lancée sur le render thread pour tous les items d’un coup. En plus, un ItemSprite construit avant la disponibilité de l’atlas reste caché jusqu’à un refresh ultérieur sans mécanisme de resubscribe. Voir ItemAtlasRenderer.java#L96, GameRendererMixin.java#L13, ItemSprite.java#L18.
 --------
+
+
+
+Analyse du 19 mars
+1.
+Mais il y a un subtilité avec les lower layers : quand PackA est modifié, les workspaces de PackB/C qui ont été chargés après PackA ne sont pas recalculés. Si PackA modifie un tag et PackB dépend de ce tag,   
+PackB ne verra pas le changement tant que son workspace n'est pas rechargé.
+
+2.
+Si un WorkspaceSyncPayload arrive quand la fenêtre est fermée (activeGateway == null), la mise à jour est perdue silencieusement. Si l'utilisateur réouvre la fenêtre, il aura un état stale jusqu'au prochain   
+requestPackWorkspace.
+
+3.
+Si le serveur ne répond jamais (crash réseau, timeout), les pending actions restent indéfiniment dans la map. Pas de nettoyage périodique, seulement au resetForWorldSync/resetForWorldClose.
+
+4.
+Chaque mutation fait un flushDirty() qui écrit sur disque de manière synchrone sur le server thread. Si le disque est lent, ça bloque le thread serveur.
+
+5.
+Quand le planner calcule les tags affectés, il collecte les memberships de tous les éléments du workspace (reference ET current). Pour les éléments non-dirty, il applique quand même adapter.prepare(). Ça veut 
+dire que si un enchantment a été modifié (mode → disable) mais n'est pas dirty (parce que c'est un état hérité d'un lower layer), son exclusion des tags est quand même appliquée dans le calcul.
+C'est correct en termes de résultat, mais c'est un risque de performance sur de gros registries.

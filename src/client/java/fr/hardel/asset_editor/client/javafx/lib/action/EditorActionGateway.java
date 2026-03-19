@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.lib.action;
 
+import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry;
+import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.client.state.ClientPackInfo;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.client.state.ClientWorkspaceState;
@@ -12,7 +14,6 @@ import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.minecraft.client.Minecraft;
@@ -55,7 +56,10 @@ public final class EditorActionGateway {
         workspaceState.trackPendingAction(actionId, new PendingClientAction<>(actionId, pack.packId(), registry, target, entry));
 
         projectOptimistic(registry, target, entry, action);
-        ClientPlayNetworking.send(new WorkspaceMutationRequestPayload(actionId, pack.packId(), registry.identifier(), target, action));
+        WorkspaceMutationRequestPayload payload = new WorkspaceMutationRequestPayload(
+            actionId, pack.packId(), registry.identifier(), target, action);
+        ClientDebugTelemetry.actionDispatched(pack.packId(), registry.identifier(), target, action, actionId);
+        ClientPayloadSender.send(payload);
         return EditorActionResult.applied();
     }
 
@@ -83,7 +87,8 @@ public final class EditorActionGateway {
         if (pack == null || pack.packId().isBlank())
             return;
 
-        ClientPlayNetworking.send(new PackWorkspaceRequestPayload(pack.packId(), registry.identifier()));
+        PackWorkspaceRequestPayload payload = new PackWorkspaceRequestPayload(pack.packId(), registry.identifier());
+        ClientPayloadSender.send(payload);
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

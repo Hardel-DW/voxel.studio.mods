@@ -101,7 +101,7 @@ public final class StudioPrimarySidebar extends VBox {
     }
 
     private VBox buildBottom() {
-        StackPane debugBtn = buildBottomButton(DEBUG, () -> context.router().navigate(StudioRoute.DEBUG_ITEMS));
+        StackPane debugBtn = buildBottomButton(DEBUG, () -> context.router().navigate(StudioRoute.DEBUG));
         StackPane settingsBtn = buildBottomButton(SETTINGS, null);
 
         VBox bottom = new VBox(8, debugBtn, settingsBtn);
@@ -127,4 +127,3 @@ public final class StudioPrimarySidebar extends VBox {
         return btn;
     }
 }
-

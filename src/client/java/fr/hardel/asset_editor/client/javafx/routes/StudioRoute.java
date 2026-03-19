@@ -16,7 +16,7 @@ public enum StudioRoute {
     RECIPE_MAIN("recipe", false, true),
     NO_PERMISSION("none", false, false),
     CHANGES_MAIN("changes", false, false),
-    DEBUG_ITEMS("debug", false, false);
+    DEBUG("debug", false, false);
 
     private final String concept;
     private final boolean overview;
@@ -48,5 +48,4 @@ public enum StudioRoute {
         };
     }
 }
-
 

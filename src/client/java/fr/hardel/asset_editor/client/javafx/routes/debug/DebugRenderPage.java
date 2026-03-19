@@ -14,17 +14,18 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
-public final class DebugItemsPage extends StackPane implements Page {
-    private final Label loading = new Label("Item atlas is generating...");
+public final class DebugRenderPage extends StackPane implements Page {
+
+    private final Label loading = new Label(I18n.get("debug:render.loading"));
     private Runnable subscription;
 
-    public DebugItemsPage() {
+    public DebugRenderPage() {
         getStyleClass().add("concept-main-page");
-
-        Label title = new Label("Debug - Item Textures (%d items)".formatted(BuiltInRegistries.ITEM.size()));
+        Label title = new Label(I18n.get("debug:render.title", BuiltInRegistries.ITEM.size()));
         title.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 18));
         title.setTextFill(VoxelColors.ZINC_100);
 
@@ -56,7 +57,6 @@ public final class DebugItemsPage extends StackPane implements Page {
                 }
                 return;
             }
-
             if (subscription == null)
                 subscription = ItemAtlasGenerator.subscribe(this::refreshLoadingState);
             refreshLoadingState();

@@ -11,10 +11,10 @@ public final class ClientNetworkHandler {
 
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(PermissionSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePermissionSync(payload.permissions())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePermissionSync(payload)));
 
         ClientPlayNetworking.registerGlobalReceiver(PackListSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackListSync(payload.packs())));
+            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackListSync(payload)));
 
         ClientPlayNetworking.registerGlobalReceiver(WorkspaceSyncPayload.TYPE, (payload, context) ->
             context.client().execute(() -> AssetEditorClient.sessionDispatch().handleWorkspaceSync(payload)));
