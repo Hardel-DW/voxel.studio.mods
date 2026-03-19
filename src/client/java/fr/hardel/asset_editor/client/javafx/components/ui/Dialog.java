@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.geometry.Insets;
@@ -9,8 +8,6 @@ import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -27,7 +24,6 @@ import net.minecraft.resources.Identifier;
 public final class Dialog {
 
     private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/shine.png");
 
     private final Stage stage = new Stage(StageStyle.TRANSPARENT);
     private final HBox footer = new HBox(12);
@@ -71,17 +67,10 @@ public final class Dialog {
         dialogCard.getStyleClass().add("ui-dialog-content");
         dialogCard.getChildren().add(layout);
 
-        try (var stream = VoxelResourceLoader.open(SHINE)) {
-            ImageView shine = new ImageView(new Image(stream));
-            shine.setPreserveRatio(false);
-            shine.setOpacity(0.15);
-            shine.setMouseTransparent(true);
-            shine.setManaged(false);
-            shine.fitWidthProperty().bind(dialogCard.widthProperty());
-            shine.fitHeightProperty().bind(dialogCard.heightProperty().multiply(0.4));
+        var shine = new ShineOverlay(dialogCard.widthProperty(), dialogCard.heightProperty().multiply(0.4))
+            .withOpacity(0.15);
+        if (shine.isLoaded())
             dialogCard.getChildren().addFirst(shine);
-        } catch (Exception ignored) {
-        }
 
         dialogCard.setMaxWidth(460);
         dialogCard.setMinWidth(360);

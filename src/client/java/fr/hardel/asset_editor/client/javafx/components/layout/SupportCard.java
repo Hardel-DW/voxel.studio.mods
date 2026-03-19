@@ -1,16 +1,13 @@
 package fr.hardel.asset_editor.client.javafx.components.layout;
 
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
+import fr.hardel.asset_editor.client.javafx.components.ui.ShineOverlay;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.effect.ColorAdjust;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -26,8 +23,6 @@ import net.minecraft.resources.Identifier;
 public final class SupportCard extends StackPane {
 
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor",
-        "textures/shine.png");
     private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
     private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor",
         "icons/company/patreon.svg");
@@ -92,20 +87,9 @@ public final class SupportCard extends StackPane {
         cardContent.setPadding(new Insets(32, 32, 32, 48));
         StackPane.setAlignment(cardContent, Pos.TOP_LEFT);
 
-        try (var stream = VoxelResourceLoader.open(SHINE)) {
-            ImageView shine = new ImageView(new Image(stream));
-            ColorAdjust shineEffect = new ColorAdjust();
-            shineEffect.setHue(0.5);
-            shineEffect.setBrightness(-0.8);
-            shine.setEffect(shineEffect);
-            shine.setPreserveRatio(false);
-            shine.setManaged(false);
-            shine.setMouseTransparent(true);
-            shine.fitWidthProperty().bind(widthProperty());
-            shine.fitHeightProperty().bind(heightProperty());
+        var shine = new ShineOverlay(widthProperty(), heightProperty()).withHue(0.5).withBrightness(-0.8);
+        if (shine.isLoaded())
             getChildren().add(shine);
-        } catch (Exception ignored) {
-        }
 
         logo.layoutXProperty().bind(widthProperty().subtract(288));
         logo.setLayoutY(-96);

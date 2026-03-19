@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -22,6 +24,8 @@ import java.io.InputStream;
  */
 public final class SvgIcon extends Pane {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SvgIcon.class);
+
     public SvgIcon(Identifier location, double size, Paint fill) {
         setPrefSize(size, size);
         setMinSize(size, size);
@@ -39,7 +43,9 @@ public final class SvgIcon extends Pane {
                 if (children.item(i) instanceof Element el)
                     addShape(el, fill, scale, inherited);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            LOGGER.warn("Failed to load SVG {}: {}", location, e.getMessage());
+        }
     }
 
     public void setIconFill(Paint fill) {

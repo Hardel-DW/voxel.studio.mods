@@ -13,6 +13,8 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.HolderLookup;
@@ -25,6 +27,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 public final class EditorActionGateway {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EditorActionGateway.class);
 
     private final ClientSessionState sessionState;
     private final ClientWorkspaceState workspaceState;
@@ -75,7 +79,8 @@ public final class EditorActionGateway {
             ElementEntry<T> projected = binding.interpreter().apply(entry, action, registries);
             if (projected != null && !Objects.equals(projected, entry))
                 workspaceState.elementStore().put(registry, target, projected);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            LOGGER.warn("Optimistic projection failed for {}: {}", target, e.getMessage());
         }
     }
 
