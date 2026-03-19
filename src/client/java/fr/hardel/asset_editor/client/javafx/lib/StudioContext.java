@@ -29,7 +29,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -132,10 +131,6 @@ public final class StudioContext {
             return;
         }
         router.revalidate();
-    }
-
-    public <T> Collection<ElementEntry<?>> allEntries(ResourceKey<Registry<T>> registryKey) {
-        return workspaceState.elementStore().allElements(registryKey);
     }
 
     public <T> List<ElementEntry<T>> allTypedEntries(ResourceKey<Registry<T>> registryKey) {

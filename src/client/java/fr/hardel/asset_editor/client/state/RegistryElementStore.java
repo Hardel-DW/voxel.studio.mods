@@ -22,15 +22,14 @@ import java.util.function.Function;
 
 public final class RegistryElementStore {
 
-    private record SelectorKey(String registry, Identifier elementId) {
-    }
+    private record SelectorKey(String registry, Identifier elementId) {}
 
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
     private final Map<SelectorKey, MutableSelectorStore<ElementEntry<?>>> elementStores = new HashMap<>();
     private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
 
     public <T> void snapshotFromRegistry(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-                                         Function<ElementEntry<T>, CustomFields> customInitializer) {
+        Function<ElementEntry<T>, CustomFields> customInitializer) {
         String name = registryName(registryKey);
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
@@ -105,11 +104,6 @@ public final class RegistryElementStore {
             registryListeners.remove(registryName(registry));
     }
 
-    public <T> Collection<ElementEntry<?>> allElements(ResourceKey<Registry<T>> registry) {
-        Map<Identifier, ElementEntry<?>> registryMap = current.get(registryName(registry));
-        return registryMap == null ? List.of() : registryMap.values();
-    }
-
     @SuppressWarnings("unchecked")
     public <T> List<ElementEntry<T>> allTypedElements(ResourceKey<Registry<T>> registry) {
         Map<Identifier, ElementEntry<?>> registryMap = current.get(registryName(registry));
@@ -120,7 +114,7 @@ public final class RegistryElementStore {
 
     @SuppressWarnings("unchecked")
     public <T, R> StoreSelection<ElementEntry<?>, R> selectValue(ResourceKey<Registry<T>> registry, Identifier id,
-                                                                 Function<ElementEntry<T>, R> extractor) {
+        Function<ElementEntry<T>, R> extractor) {
         String name = registryName(registry);
         ElementEntry<T> entry = get(registry, id);
         return elementStore(name, id, entry)

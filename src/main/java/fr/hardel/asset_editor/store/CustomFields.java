@@ -42,14 +42,15 @@ public record CustomFields(Map<String, Object> values) {
         return value instanceof String string ? string : fallback;
     }
 
-    @SuppressWarnings("unchecked")
     public Set<String> getStringSet(String key) {
         Object value = values.get(key);
         if (!(value instanceof Set<?> set))
             return Set.of();
         if (set.stream().anyMatch(element -> !(element instanceof String)))
             return Set.of();
-        return (Set<String>) set;
+        return set.stream()
+            .map(String.class::cast)
+            .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
     private static Object normalizeValue(Object value) {

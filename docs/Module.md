@@ -68,5 +68,4 @@ C:\Users\Hardel\Desktop\repository\asset_editor\src\client\java\fr\hardel\asset_
 
 Le serveur broadcast ou rollback ce qui met à jour les sélecteurs et met à jour l'UI, et les sélecteurs évitent les re-rendu si l'état final est identique.
 
-- @SuppressWarnings("unchecked") est surabondant à vérifier s'il n'est pas utilisé à outrance et peut-être le supprimer.
 - Éviter les plusieurs sources d'informations

@@ -13,7 +13,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,7 @@ import java.util.Objects;
 
 public final class EnchantmentTreeBuilder {
 
-    public static TreeNodeModel build(Collection<ElementEntry<?>> entries, StudioSidebarView view) {
-        List<ElementEntry<Enchantment>> enchantments = castEntries(entries);
-
+    public static TreeNodeModel build(List<ElementEntry<Enchantment>> enchantments, StudioSidebarView view) {
         TreeNodeModel root = new TreeNodeModel();
         root.setCount(enchantments.size());
         if (view == StudioSidebarView.SLOTS) {
@@ -122,11 +119,6 @@ public final class EnchantmentTreeBuilder {
             node.children().put(entry.id().toString(), leaf);
         }
         return node;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<ElementEntry<Enchantment>> castEntries(Collection<ElementEntry<?>> entries) {
-        return entries.stream().map(e -> (ElementEntry<Enchantment>) e).toList();
     }
 
     private EnchantmentTreeBuilder() {

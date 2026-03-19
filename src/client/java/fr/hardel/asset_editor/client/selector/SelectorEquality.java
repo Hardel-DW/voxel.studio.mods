@@ -6,24 +6,17 @@ import java.util.Objects;
 @FunctionalInterface
 public interface SelectorEquality<T> {
 
-    SelectorEquality<Object> EQUALS = Objects::equals;
-    SelectorEquality<Object> IDENTITY = (left, right) -> left == right;
-    SelectorEquality<List<?>> LIST_EQUALS = Objects::equals;
-
     boolean same(T left, T right);
 
-    @SuppressWarnings("unchecked")
     static <T> SelectorEquality<T> equalsEquality() {
-        return (SelectorEquality<T>) EQUALS;
+        return Objects::equals;
     }
 
-    @SuppressWarnings("unchecked")
     static <T> SelectorEquality<T> identityEquality() {
-        return (SelectorEquality<T>) IDENTITY;
+        return (left, right) -> left == right;
     }
 
-    @SuppressWarnings("unchecked")
     static <T> SelectorEquality<List<T>> listEquality() {
-        return (SelectorEquality<List<T>>) (SelectorEquality<?>) LIST_EQUALS;
+        return Objects::equals;
     }
 }

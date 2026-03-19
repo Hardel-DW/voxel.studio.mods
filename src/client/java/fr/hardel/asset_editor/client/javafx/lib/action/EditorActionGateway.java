@@ -126,17 +126,18 @@ public final class EditorActionGateway {
         replaceAll(binding, snapshots, registries);
     }
 
-    @SuppressWarnings("unchecked")
     private void restorePending(PendingClientAction<?> pending) {
         ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
         if (selectedPack == null || !selectedPack.packId().equals(pending.packId()))
             return;
+        restorePendingTyped(pending);
+    }
 
-        PendingClientAction<Object> typed = (PendingClientAction<Object>) pending;
+    private <T> void restorePendingTyped(PendingClientAction<T> pending) {
         workspaceState.elementStore().put(
-            (ResourceKey<Registry<Object>>) (ResourceKey<?>) typed.registry(),
-            typed.target(),
-            typed.previousSnapshot());
+            pending.registry(),
+            pending.target(),
+            pending.previousSnapshot());
     }
 
     private void applySnapshotIfCurrentPack(String packId, WorkspaceElementSnapshot snapshot) {
