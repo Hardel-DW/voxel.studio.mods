@@ -55,13 +55,7 @@ public final class EditorActionGateway {
         workspaceState.trackPendingAction(actionId, new PendingClientAction<>(actionId, pack.packId(), registry, target, entry));
 
         projectOptimistic(registry, target, entry, action);
-
-        ClientPlayNetworking.send(new WorkspaceMutationRequestPayload(
-            actionId,
-            pack.packId(),
-            registry.identifier(),
-            target,
-            action));
+        ClientPlayNetworking.send(new WorkspaceMutationRequestPayload(actionId, pack.packId(), registry.identifier(), target, action));
         return EditorActionResult.applied();
     }
 
@@ -88,24 +82,29 @@ public final class EditorActionGateway {
         ClientPackInfo pack = workspaceState.packSelectionState().selectedPack();
         if (pack == null || pack.packId().isBlank())
             return;
+
         ClientPlayNetworking.send(new PackWorkspaceRequestPayload(pack.packId(), registry.identifier()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
         if (!payload.mutationResponse()) {
-            if (payload.snapshot() != null)
+            if (payload.snapshot() != null) {
                 applySnapshotIfCurrentPack(payload.packId(), payload.snapshot());
+            }
+
             return;
         }
 
         PendingClientAction<?> pending = workspaceState.removePendingAction(payload.actionId());
         if (pending == null)
             return;
+
         if (payload.accepted()) {
             if (payload.snapshot() != null)
                 applySnapshotIfCurrentPack(payload.packId(), payload.snapshot());
             return;
         }
+
         restorePending(pending);
         workspaceState.issueState().pushError(payload.errorCode());
     }
@@ -130,14 +129,12 @@ public final class EditorActionGateway {
         ClientPackInfo selectedPack = workspaceState.packSelectionState().selectedPack();
         if (selectedPack == null || !selectedPack.packId().equals(pending.packId()))
             return;
+
         restorePendingTyped(pending);
     }
 
     private <T> void restorePendingTyped(PendingClientAction<T> pending) {
-        workspaceState.elementStore().put(
-            pending.registry(),
-            pending.target(),
-            pending.previousSnapshot());
+        workspaceState.elementStore().put(pending.registry(), pending.target(), pending.previousSnapshot());
     }
 
     private void applySnapshotIfCurrentPack(String packId, WorkspaceElementSnapshot snapshot) {
@@ -145,7 +142,7 @@ public final class EditorActionGateway {
         if (selectedPack == null || !selectedPack.packId().equals(packId))
             return;
 
-        var binding = RegistryWorkspaceBindings.get(snapshot.registryId());
+        RegistryWorkspaceBinding<Object> binding = RegistryWorkspaceBindings.get(snapshot.registryId());
         if (binding == null)
             return;
 
@@ -178,13 +175,17 @@ public final class EditorActionGateway {
     private EditorActionResult validate(Identifier target) {
         if (target == null)
             return EditorActionResult.error("error:element_not_found");
-        var pack = workspaceState.packSelectionState().selectedPack();
+
+        ClientPackInfo pack = workspaceState.packSelectionState().selectedPack();
         if (pack == null)
             return EditorActionResult.packRequired();
+
         if (!pack.writable())
             return EditorActionResult.rejected("error:pack_readonly");
+
         if (!sessionState.permissions().canEdit())
             return EditorActionResult.rejected("error:permission_denied");
+
         return null;
     }
 }
