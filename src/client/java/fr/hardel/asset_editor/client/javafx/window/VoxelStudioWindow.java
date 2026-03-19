@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.javafx.window;
 
 import fr.hardel.asset_editor.client.AssetEditorClient;
+import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.StudioEditorRoot;
 import fr.hardel.asset_editor.client.javafx.components.layout.loading.Splash;
@@ -9,14 +10,19 @@ import fr.hardel.asset_editor.client.selector.Subscription;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.text.Font;
 import javafx.util.Duration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.resources.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public final class VoxelStudioWindow extends MinecraftStageWindow {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(VoxelStudioWindow.class);
     private static final double MIN_WIDTH = 680;
     private static final double MIN_HEIGHT = 440;
     private static final List<String> STYLESHEETS = List.of(
@@ -45,7 +51,7 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
     }
 
     public static boolean isUiThreadAvailable() {
-        return instance != null && instance.isPlatformStarted();
+        return instance != null && instance.isPlatformReady();
     }
 
     public static void requestToggleMaximize() {
@@ -70,6 +76,9 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
 
     @Override
     protected void onCreated() {
+        VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
+        loadFonts();
+
         if (permissionSubscription != null)
             permissionSubscription.unsubscribe();
 
@@ -139,5 +148,16 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
     private void resync() {
         if (editorRoot != null)
             editorRoot.context().resyncWorldSession(true);
+    }
+
+    private void loadFonts() {
+        for (var variant : VoxelFonts.Variant.values()) {
+            Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + variant.fileName + ".ttf");
+            try (var is = VoxelResourceLoader.open(id)) {
+                VoxelFonts.register(variant, Font.loadFont(is, 12));
+            } catch (Exception exception) {
+                LOGGER.warn("Failed to load font {}: {}", variant.fileName, exception.getMessage());
+            }
+        }
     }
 }

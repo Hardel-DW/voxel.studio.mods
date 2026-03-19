@@ -1,21 +1,14 @@
 package fr.hardel.asset_editor.client.javafx.window;
 
-import fr.hardel.asset_editor.client.javafx.VoxelFonts;
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.application.Platform;
-import javafx.scene.text.Font;
-import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public abstract class MinecraftStageWindow extends UndecoratedStageWindow {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MinecraftStageWindow.class);
-
-    private boolean platformStarted;
+    private boolean startupRequested;
+    private volatile boolean platformReady;
+    private volatile boolean pendingWorldClose;
 
     protected MinecraftStageWindow(double minWidth, double minHeight, List<String> stylesheets) {
         super(minWidth, minHeight, stylesheets);
@@ -27,48 +20,48 @@ public abstract class MinecraftStageWindow extends UndecoratedStageWindow {
 
     protected void onResourceReload() {}
 
-    public boolean isPlatformStarted() {
-        return platformStarted;
+    public boolean isPlatformReady() {
+        return platformReady;
     }
 
     public void open() {
-        if (!platformStarted) {
-            platformStarted = true;
+        if (!startupRequested) {
+            startupRequested = true;
             Thread.ofVirtual().name("javafx-init").start(() -> {
                 Platform.startup(() -> {
-                    VoxelResourceLoader.update(Minecraft.getInstance().getResourceManager());
-                    loadFonts();
+                    platformReady = true;
                     onCreated();
+                    if (pendingWorldClose) {
+                        pendingWorldClose = false;
+                        onWorldClosed();
+                        return;
+                    }
                     show();
+                    onWindowFocused();
                 });
                 Platform.setImplicitExit(false);
             });
             return;
         }
 
+        if (!platformReady)
+            return;
+
         Platform.runLater(() -> {
+            onWindowFocused();
             show();
         });
     }
 
     public void fireWorldClosed() {
-        if (platformStarted)
+        if (platformReady)
             Platform.runLater(this::onWorldClosed);
+        else if (startupRequested)
+            pendingWorldClose = true;
     }
 
     public void fireResourceReload() {
-        if (platformStarted)
+        if (platformReady)
             Platform.runLater(this::onResourceReload);
-    }
-
-    private void loadFonts() {
-        for (var variant : VoxelFonts.Variant.values()) {
-            Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + variant.fileName + ".ttf");
-            try (var is = VoxelResourceLoader.open(id)) {
-                VoxelFonts.register(variant, Font.loadFont(is, 12));
-            } catch (Exception exception) {
-                LOGGER.warn("Failed to load font {}: {}", variant.fileName, exception.getMessage());
-            }
-        }
     }
 }
