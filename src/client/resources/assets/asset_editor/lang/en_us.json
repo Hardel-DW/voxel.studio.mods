@@ -83,6 +83,7 @@
     "debug:logs.placeholder": "No logs yet",
     "debug:logs.count": "%s entries",
     "debug:logs.no_additional_data": "No additional data",
+    "debug:logs.action.copy_all": "Copy All",
     "debug:logs.level.info": "Info",
     "debug:logs.level.warn": "Warn",
     "debug:logs.level.error": "Error",

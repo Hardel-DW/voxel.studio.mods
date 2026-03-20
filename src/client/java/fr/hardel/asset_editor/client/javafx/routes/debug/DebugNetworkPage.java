@@ -1,12 +1,20 @@
 package fr.hardel.asset_editor.client.javafx.routes.debug;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.debug.NetworkTraceStore;
 import fr.hardel.asset_editor.client.debug.NetworkTraceStore.TraceEntry;
+import fr.hardel.asset_editor.client.debug.RecordIntrospector;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
+import fr.hardel.asset_editor.client.javafx.components.ui.CopyButton;
 import fr.hardel.asset_editor.client.javafx.components.ui.DataTable;
+import fr.hardel.asset_editor.client.javafx.components.ui.Dropdown;
 import fr.hardel.asset_editor.client.javafx.components.ui.KeyValueGrid;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import javafx.application.Platform;
@@ -19,13 +27,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import net.minecraft.client.resources.language.I18n;
 
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 public final class DebugNetworkPage extends VBox implements Page {
 
@@ -33,7 +42,7 @@ public final class DebugNetworkPage extends VBox implements Page {
 
     private final DataTable<TraceEntry> table = new DataTable<>();
     private final Label countLabel = new Label();
-    private final Label filterLabel = new Label();
+    private final Dropdown<String> namespaceDd;
     private Runnable subscription;
 
     public DebugNetworkPage() {
@@ -44,6 +53,7 @@ public final class DebugNetworkPage extends VBox implements Page {
         table.addColumn(I18n.get("debug:network.column.direction"), 80, this::directionCell);
         table.addColumn(I18n.get("debug:network.column.payload_id"), 220, this::payloadIdCell);
         table.addColumn(I18n.get("debug:network.column.title"), -1, this::titleCell);
+        table.addColumn("", 40, this::copyCell);
         table.setExpandFactory(this::detailNode);
         table.setIdExtractor(TraceEntry::id);
         table.setPlaceholder(I18n.get("debug:network.placeholder"));
@@ -53,8 +63,17 @@ public final class DebugNetworkPage extends VBox implements Page {
         countLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
         countLabel.setTextFill(VoxelColors.ZINC_500);
 
-        filterLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
-        filterLabel.setTextFill(VoxelColors.ZINC_600);
+        String allLabel = I18n.get("generic:all");
+        List<String> namespaces = new ArrayList<>();
+        namespaces.add(allLabel);
+        namespaces.addAll(NetworkTraceStore.availableNamespaces());
+
+        namespaceDd = new Dropdown<>(namespaces, AssetEditor.MOD_ID, Function.identity(), ns -> {
+            if (ns.equals(allLabel))
+                NetworkTraceStore.setFilter(id -> true);
+            else
+                NetworkTraceStore.setFilter(id -> ns.equals(id.getNamespace()));
+        });
 
         Button clearBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("debug:action.clear"));
         clearBtn.setOnAction(NetworkTraceStore::clear);
@@ -62,7 +81,7 @@ public final class DebugNetworkPage extends VBox implements Page {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox toolbar = new HBox(8, countLabel, filterLabel, spacer, clearBtn);
+        HBox toolbar = new HBox(8, countLabel, namespaceDd, spacer, clearBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.setPadding(new Insets(12, 16, 12, 16));
         getChildren().addAll(toolbar, table);
@@ -86,7 +105,12 @@ public final class DebugNetworkPage extends VBox implements Page {
     private void refresh() {
         var entries = NetworkTraceStore.entries();
         countLabel.setText(I18n.get("debug:network.count", entries.size()));
-        filterLabel.setText(I18n.get("debug:network.filter.label", AssetEditor.MOD_ID));
+
+        List<String> namespaces = new ArrayList<>();
+        namespaces.add(I18n.get("generic:all"));
+        namespaces.addAll(NetworkTraceStore.availableNamespaces());
+        namespaceDd.setItems(namespaces);
+
         table.setItems(entries);
     }
 
@@ -104,21 +128,21 @@ public final class DebugNetworkPage extends VBox implements Page {
         Color leftColor = inbound ? VoxelColors.RED_400 : VoxelColors.EMERALD_400;
         Color rightColor = inbound ? VoxelColors.EMERALD_400 : VoxelColors.RED_400;
 
-        Text leftText = new Text(left);
-        leftText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
-        leftText.setFill(leftColor);
+        Label leftLabel = new Label(left);
+        leftLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
+        leftLabel.setTextFill(leftColor);
 
-        Text arrow = new Text(" → ");
+        Label arrow = new Label(" \u2192 ");
         arrow.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
-        arrow.setFill(VoxelColors.ZINC_500);
+        arrow.setTextFill(VoxelColors.ZINC_500);
 
-        Text rightText = new Text(right);
-        rightText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
-        rightText.setFill(rightColor);
+        Label rightLabel = new Label(right);
+        rightLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
+        rightLabel.setTextFill(rightColor);
 
-        TextFlow flow = new TextFlow(leftText, arrow, rightText);
-        flow.setMaxWidth(Double.MAX_VALUE);
-        return flow;
+        HBox box = new HBox(leftLabel, arrow, rightLabel);
+        box.setAlignment(Pos.CENTER);
+        return box;
     }
 
     private Label payloadIdCell(TraceEntry entry) {
@@ -128,14 +152,32 @@ public final class DebugNetworkPage extends VBox implements Page {
         return label;
     }
 
-    private Label titleCell(TraceEntry entry) {
-        String titleKey = "debug:payload." + entry.payloadId().getNamespace() + "." + entry.payloadId().getPath().replace('/', '.') + ".title";
+    private Node titleCell(TraceEntry entry) {
+        String base = "debug:payload." + entry.payloadId().getNamespace() + "." + entry.payloadId().getPath().replace('/', '.');
+        String titleKey = base + ".title";
+        String descKey = base + ".description";
         String title = I18n.exists(titleKey) ? I18n.get(titleKey) : entry.payloadId().getPath();
-        Label label = new Label(title);
-        label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
-        label.setTextFill(VoxelColors.ZINC_300);
-        label.setWrapText(true);
-        return label;
+
+        Label titleLabel = new Label(title);
+        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
+        titleLabel.setTextFill(VoxelColors.ZINC_300);
+        titleLabel.setWrapText(true);
+
+        if (I18n.exists(descKey)) {
+            Label descLabel = new Label(I18n.get(descKey));
+            descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
+            descLabel.setTextFill(VoxelColors.ZINC_500);
+            descLabel.setWrapText(true);
+            VBox box = new VBox(2, titleLabel, descLabel);
+            box.setMaxWidth(Double.MAX_VALUE);
+            return box;
+        }
+
+        return titleLabel;
+    }
+
+    private Node copyCell(TraceEntry entry) {
+        return new CopyButton(() -> serializeEntry(entry));
     }
 
     private Node detailNode(TraceEntry entry) {
@@ -144,6 +186,37 @@ public final class DebugNetworkPage extends VBox implements Page {
             return emptyDetail();
 
         return new KeyValueGrid(payload);
+    }
+
+    private static String serializeEntry(TraceEntry entry) {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", entry.id());
+        json.addProperty("timestamp", entry.timestamp());
+        json.addProperty("direction", entry.direction().name());
+        json.addProperty("payloadId", entry.payloadId().toString());
+        if (entry.payload() != null && entry.payload().getClass().isRecord())
+            json.add("payload", fieldsToJson(RecordIntrospector.introspect(entry.payload())));
+        return new GsonBuilder().setPrettyPrinting().create().toJson(json);
+    }
+
+    private static JsonElement fieldsToJson(List<RecordIntrospector.Field> fields) {
+        JsonObject obj = new JsonObject();
+        for (var field : fields)
+            obj.add(field.name(), fieldValueToJson(field.value()));
+        return obj;
+    }
+
+    private static JsonElement fieldValueToJson(RecordIntrospector.FieldValue value) {
+        return switch (value) {
+            case RecordIntrospector.FieldValue.Scalar s -> new JsonPrimitive(s.text());
+            case RecordIntrospector.FieldValue.Nested n -> fieldsToJson(n.children());
+            case RecordIntrospector.FieldValue.Items items -> {
+                JsonArray arr = new JsonArray();
+                for (var item : items.preview())
+                    arr.add(fieldValueToJson(item));
+                yield arr;
+            }
+        };
     }
 
     private static Label emptyDetail() {

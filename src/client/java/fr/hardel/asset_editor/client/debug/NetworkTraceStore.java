@@ -22,14 +22,15 @@ public final class NetworkTraceStore {
     private static final AtomicLong ID_GENERATOR = new AtomicLong();
     private static final CopyOnWriteArrayList<TraceEntry> ENTRIES = new CopyOnWriteArrayList<>();
     private static final CopyOnWriteArrayList<Runnable> LISTENERS = new CopyOnWriteArrayList<>();
+    private static final CopyOnWriteArrayList<String> KNOWN_NAMESPACES = new CopyOnWriteArrayList<>(List.of(AssetEditor.MOD_ID));
 
     private static volatile Predicate<Identifier> filter = defaultFilter();
 
     public static void capture(Direction direction, CustomPacketPayload payload) {
         Identifier payloadId = payload.type().id();
+        KNOWN_NAMESPACES.addIfAbsent(payloadId.getNamespace());
         if (!filter.test(payloadId))
             return;
-
         ENTRIES.addFirst(new TraceEntry(ID_GENERATOR.incrementAndGet(), System.currentTimeMillis(), direction, payloadId, payload));
         while (ENTRIES.size() > MAX_ENTRIES)
             ENTRIES.removeLast();
@@ -58,6 +59,10 @@ public final class NetworkTraceStore {
         filter = newFilter == null ? defaultFilter() : newFilter;
         ENTRIES.clear();
         notifyListeners();
+    }
+
+    public static List<String> availableNamespaces() {
+        return List.copyOf(KNOWN_NAMESPACES);
     }
 
     public static Runnable subscribe(Runnable listener) {

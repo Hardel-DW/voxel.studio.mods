@@ -14,6 +14,8 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -40,10 +42,14 @@ public final class DebugRenderPage extends StackPane implements Page {
         title.setTextFill(VoxelColors.ZINC_100);
 
         InputText searchInput = new InputText(I18n.get("debug:render.search"));
-        searchInput.setMaxWidth(320);
+        searchInput.setMaxWidth(576);
+        HBox.setHgrow(searchInput, Priority.ALWAYS);
         searchInput.field().textProperty().addListener((obs, old, query) -> filterItems(query));
 
-        HBox toolbar = new HBox(16, title, searchInput);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox toolbar = new HBox(16, searchInput, spacer, title);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         grid.setPadding(new Insets(16, 0, 0, 0));

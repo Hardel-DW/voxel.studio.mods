@@ -17,7 +17,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.paint.Color;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.minecraft.client.resources.language.I18n;
 
 import java.time.Instant;
@@ -50,13 +55,34 @@ public final class DebugLogsPage extends VBox implements Page {
         countLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
         countLabel.setTextFill(VoxelColors.ZINC_500);
 
+        Button copyAllBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("debug:logs.action.copy_all"));
+        copyAllBtn.setOnAction(() -> {
+            JsonArray array = new JsonArray();
+            for (Entry entry : DebugLogStore.entries()) {
+                JsonObject obj = new JsonObject();
+                obj.addProperty("timestamp", entry.timestamp());
+                obj.addProperty("level", entry.level().name());
+                obj.addProperty("category", entry.category().name());
+                obj.addProperty("message", entry.message());
+                if (entry.data() != null && !entry.data().isEmpty()) {
+                    JsonObject data = new JsonObject();
+                    entry.data().forEach(data::addProperty);
+                    obj.add("data", data);
+                }
+                array.add(obj);
+            }
+            ClipboardContent content = new ClipboardContent();
+            content.putString(new GsonBuilder().setPrettyPrinting().create().toJson(array));
+            Clipboard.getSystemClipboard().setContent(content);
+        });
+
         Button clearBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("debug:action.clear"));
         clearBtn.setOnAction(DebugLogStore::clear);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox toolbar = new HBox(8, countLabel, spacer, clearBtn);
+        HBox toolbar = new HBox(8, countLabel, spacer, copyAllBtn, clearBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.setPadding(new Insets(12, 16, 12, 16));
 
