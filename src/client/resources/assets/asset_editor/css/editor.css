@@ -694,6 +694,10 @@
 }
 
 /* ===== POPOVER ===== */
+.root.popup {
+    -fx-background-color: transparent;
+}
+
 .ui-popover {
     -fx-background-color: #09090b;
     -fx-border-color: #27272a;
