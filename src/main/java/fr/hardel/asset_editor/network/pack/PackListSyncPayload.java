@@ -8,12 +8,14 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 import java.util.List;
 
 public record PackListSyncPayload(List<PackEntry> packs) implements CustomPacketPayload {
 
     public static final Type<PackListSyncPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath("asset_editor", "pack_list_sync"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "pack_list_sync"));
 
     private static final StreamCodec<ByteBuf, PackEntry> ENTRY_CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, PackEntry::packId,

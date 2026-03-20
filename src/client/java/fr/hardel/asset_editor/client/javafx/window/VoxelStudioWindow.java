@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.window;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.AssetEditorClient;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
@@ -27,15 +28,17 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
     private static final double MIN_HEIGHT = 440;
     private static final List<String> STYLESHEETS = List.of(
         VoxelStudioWindow.class.getResource("/assets/asset_editor/css/splash.css").toExternalForm(),
-        VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm()
-    );
+        VoxelStudioWindow.class.getResource("/assets/asset_editor/css/editor.css").toExternalForm());
 
     private static VoxelStudioWindow instance;
 
     private StudioEditorRoot editorRoot;
     private Subscription permissionSubscription;
 
-    private enum State { SPLASH, EDITOR }
+    private enum State {
+        SPLASH, EDITOR
+    }
+
     private State state = State.SPLASH;
     private boolean splashMinTimeElapsed;
 
@@ -152,7 +155,7 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
 
     private void loadFonts() {
         for (var variant : VoxelFonts.Variant.values()) {
-            Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "fonts/" + variant.fileName + ".ttf");
+            Identifier id = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "fonts/" + variant.fileName + ".ttf");
             try (var is = VoxelResourceLoader.open(id)) {
                 VoxelFonts.register(variant, Font.loadFont(is, 12));
             } catch (Exception exception) {

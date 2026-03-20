@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Popover;
@@ -33,7 +34,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 public final class EnchantmentTags extends SimpleCard {
 
     private static final int MAX_DISPLAY = 3;
-    private static final Identifier STAR_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/star.svg");
+    private static final Identifier STAR_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/star.svg");
 
     private final Function<String, String> labelResolver;
     private final boolean locked;
@@ -47,14 +48,15 @@ public final class EnchantmentTags extends SimpleCard {
     private final VBox overflowContent = new VBox(4);
 
     public EnchantmentTags(String title, String description, Identifier imageId,
-            List<String> initialValues, boolean isTarget, boolean isMember, boolean locked,
-            Consumer<Boolean> onTargetToggle, Consumer<Boolean> onMembershipToggle,
-            Function<String, String> labelResolver) {
+        List<String> initialValues, boolean isTarget, boolean isMember, boolean locked,
+        Consumer<Boolean> onTargetToggle, Consumer<Boolean> onMembershipToggle,
+        Function<String, String> labelResolver) {
         super(new Insets(16, 24, 16, 24));
         setCursor(javafx.scene.Cursor.DEFAULT);
         this.labelResolver = labelResolver;
         this.locked = locked;
-        if (initialValues != null) values.addAll(initialValues);
+        if (initialValues != null)
+            values.addAll(initialValues);
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         VBox header = buildHeader(title, description, imageId);
@@ -91,7 +93,8 @@ public final class EnchantmentTags extends SimpleCard {
         contentBox.setMaxHeight(Double.MAX_VALUE);
         contentBox.getChildren().add(layout);
 
-        if (locked) setOpacity(0.5);
+        if (locked)
+            setOpacity(0.5);
         targetState.addListener((obs, oldValue, newValue) -> applyTargetStyle(newValue));
         targetState.set(isTarget);
         membershipState.set(isMember);
@@ -123,7 +126,8 @@ public final class EnchantmentTags extends SimpleCard {
 
     public void updateValues(List<String> nextValues) {
         values.clear();
-        if (nextValues != null) values.addAll(nextValues);
+        if (nextValues != null)
+            values.addAll(nextValues);
         refreshTagList();
         updateSeeMore();
         refreshOverflow();
@@ -148,8 +152,8 @@ public final class EnchantmentTags extends SimpleCard {
 
         if (imageId != null) {
             var icon = IconUtils.isSvgIcon(imageId)
-                    ? new SvgIcon(imageId, 32, Paint.valueOf("#d4d4d8"))
-                    : new ResourceImageIcon(imageId, 32);
+                ? new SvgIcon(imageId, 32, Paint.valueOf("#d4d4d8"))
+                : new ResourceImageIcon(imageId, 32);
             row.getChildren().addFirst(icon);
         }
 
@@ -197,21 +201,21 @@ public final class EnchantmentTags extends SimpleCard {
         VBox content = new VBox(8);
         content.getStyleClass().add("enchantment-tags-actions-popover");
         content.getChildren().addAll(
-                buildActionRow(
-                        I18n.get("enchantment:exclusive.actions.target.title"),
-                        I18n.get("enchantment:exclusive.actions.target.subtitle"),
-                        I18n.get("enchantment:exclusive.actions.target.description"),
-                        targetState, onTargetToggle),
-                buildActionRow(
-                        I18n.get("enchantment:exclusive.actions.membership.title"),
-                        I18n.get("enchantment:exclusive.actions.membership.subtitle"),
-                        I18n.get("enchantment:exclusive.actions.membership.description"),
-                        membershipState, onMembershipToggle));
+            buildActionRow(
+                I18n.get("enchantment:exclusive.actions.target.title"),
+                I18n.get("enchantment:exclusive.actions.target.subtitle"),
+                I18n.get("enchantment:exclusive.actions.target.description"),
+                targetState, onTargetToggle),
+            buildActionRow(
+                I18n.get("enchantment:exclusive.actions.membership.title"),
+                I18n.get("enchantment:exclusive.actions.membership.subtitle"),
+                I18n.get("enchantment:exclusive.actions.membership.description"),
+                membershipState, onMembershipToggle));
         return content;
     }
 
     private HBox buildActionRow(String titleText, String subtitleText, String descriptionText,
-            BooleanProperty state, Consumer<Boolean> handler) {
+        BooleanProperty state, Consumer<Boolean> handler) {
         Label title = new Label(titleText);
         title.getStyleClass().add("enchantment-tags-action-title");
 

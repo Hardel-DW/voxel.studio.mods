@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
@@ -28,8 +29,8 @@ import java.util.Map;
 
 public final class FileTreeView extends VBox {
 
-    private static final Identifier CHEVRON_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/chevron-down.svg");
-    private static final Identifier DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/folder.svg");
+    private static final Identifier CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg");
+    private static final Identifier DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/folder.svg");
 
     private final TreeController tree;
     private final FxSelectionBindings bindings = new FxSelectionBindings();

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.effect.ColorAdjust;
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory;
 public final class ShineOverlay extends ImageView {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShineOverlay.class);
-    private static final Identifier SHINE = Identifier.fromNamespaceAndPath("asset_editor", "textures/shine.png");
+    private static final Identifier SHINE = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/shine.png");
     private static volatile Image cachedImage;
 
     public ShineOverlay(ObservableValue<? extends Number> widthSource, ObservableValue<? extends Number> heightSource) {

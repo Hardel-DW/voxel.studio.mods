@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
@@ -26,11 +27,11 @@ import java.util.List;
 
 public final class EditorSidebar extends VBox {
 
-    private static final Identifier DISCORD_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/company/discord.svg");
+    private static final Identifier DISCORD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID,
+        "icons/company/discord.svg");
 
     public EditorSidebar(StudioContext context, TreeController tree, String titleKey, Identifier iconPath,
-            List<Node> topContent) {
+        List<Node> topContent) {
         getStyleClass().add("editor-sidebar");
 
         Button title = new Button(I18n.get(titleKey));

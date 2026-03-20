@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
@@ -17,10 +18,7 @@ import java.util.Map;
 
 public final class TreeController {
 
-    private static final Identifier DEFAULT_ELEMENT_ICON = Identifier.fromNamespaceAndPath(
-        "asset_editor",
-        "textures/features/item/bundle_open.png");
-
+    private static final Identifier DEFAULT_ELEMENT_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/features/item/bundle_open.png");
     private final StudioContext context;
     private final Config config;
     private final ObjectProperty<TreeNodeModel> tree;

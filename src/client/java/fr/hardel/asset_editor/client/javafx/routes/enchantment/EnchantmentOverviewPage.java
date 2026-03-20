@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.components.ui.ItemSprite;
 import fr.hardel.asset_editor.client.javafx.components.ui.Row;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
@@ -160,7 +161,7 @@ public final class EnchantmentOverviewPage extends VBox implements Page {
             .toList();
     }
 
-    private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");
+    private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg");
 
     private VBox emptyState() {
         var icon = new SvgIcon(SEARCH_ICON, 40, Color.WHITE);

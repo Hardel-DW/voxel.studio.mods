@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Popover;
@@ -22,9 +23,9 @@ import net.minecraft.resources.Identifier;
 
 public final class PackSelector extends StackPane {
 
-    private static final Identifier FOLDER_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/folder.svg");
-    private static final Identifier CHEVRON_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/chevron-down.svg");
-    private static final Identifier PENCIL_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/pencil.svg");
+    private static final Identifier FOLDER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/folder.svg");
+    private static final Identifier CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg");
+    private static final Identifier PENCIL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg");
 
     private final StudioContext context;
     private final FxSelectionBindings bindings = new FxSelectionBindings();

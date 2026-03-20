@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
@@ -21,15 +22,14 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 
 /**
- * Primary sidebar (w-16 = 64px).
- * Structure: logo area (h-16) → concept cards → spacer → bottom buttons.
- * Matches EditorLayout.tsx aside + StudioSidebar.tsx.
+ * Primary sidebar (w-16 = 64px). Structure: logo area (h-16) → concept cards → spacer → bottom buttons. Matches EditorLayout.tsx aside +
+ * StudioSidebar.tsx.
  */
 public final class StudioPrimarySidebar extends VBox {
 
-    private static final Identifier LOGO     = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-    private static final Identifier SETTINGS = Identifier.fromNamespaceAndPath("asset_editor", "icons/settings.svg");
-    private static final Identifier DEBUG    = Identifier.fromNamespaceAndPath("asset_editor", "icons/debug.svg");
+    private static final Identifier LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg");
+    private static final Identifier SETTINGS = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/settings.svg");
+    private static final Identifier DEBUG = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/debug.svg");
 
     private final StudioContext context;
     private final FxSelectionBindings bindings = new FxSelectionBindings();
@@ -72,7 +72,8 @@ public final class StudioPrimarySidebar extends VBox {
 
         StackPane card = new StackPane(icon);
         card.getStyleClass().add("studio-concept-card");
-        if (active) card.getStyleClass().add("studio-concept-card-active");
+        if (active)
+            card.getStyleClass().add("studio-concept-card-active");
         card.setCursor(active ? Cursor.DEFAULT : Cursor.HAND);
 
         if (!active) {
@@ -94,8 +95,10 @@ public final class StudioPrimarySidebar extends VBox {
     private void refreshConcepts() {
         concepts.getChildren().clear();
         for (StudioConcept concept : StudioConcept.values()) {
-            if (concept == StudioConcept.STRUCTURE) continue;
-            if (context.permissions().isNone()) continue;
+            if (concept == StudioConcept.STRUCTURE)
+                continue;
+            if (context.permissions().isNone())
+                continue;
             concepts.getChildren().add(conceptCard(concept));
         }
     }
@@ -121,9 +124,16 @@ public final class StudioPrimarySidebar extends VBox {
         btn.setMaxSize(40, 40);
         btn.setAlignment(Pos.CENTER);
         btn.setCursor(Cursor.HAND);
-        btn.setOnMouseEntered(e -> { svg.setIconFill(Color.WHITE); svg.setOpacity(1.0); });
-        btn.setOnMouseExited(e -> { svg.setIconFill(VoxelColors.ZINC_400); svg.setOpacity(0.7); });
-        if (onClick != null) btn.setOnMouseClicked(e -> onClick.run());
+        btn.setOnMouseEntered(e -> {
+            svg.setIconFill(Color.WHITE);
+            svg.setOpacity(1.0);
+        });
+        btn.setOnMouseExited(e -> {
+            svg.setIconFill(VoxelColors.ZINC_400);
+            svg.setOpacity(0.7);
+        });
+        if (onClick != null)
+            btn.setOnMouseClicked(e -> onClick.run());
         return btn;
     }
 }

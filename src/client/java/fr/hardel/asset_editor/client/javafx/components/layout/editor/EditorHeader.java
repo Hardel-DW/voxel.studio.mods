@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
@@ -32,10 +33,10 @@ import java.util.Locale;
 
 public final class EditorHeader extends VBox {
 
-    private static final Identifier GRID_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/tools/overview/grid.svg");
-    private static final Identifier LIST_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-            "icons/tools/overview/list.svg");
+    private static final Identifier GRID_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID,
+        "icons/tools/overview/grid.svg");
+    private static final Identifier LIST_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID,
+        "icons/tools/overview/list.svg");
 
     private final StudioContext context;
     private final FxSelectionBindings bindings = new FxSelectionBindings();
@@ -49,7 +50,7 @@ public final class EditorHeader extends VBox {
     private final VBox content = new VBox();
 
     public EditorHeader(StudioContext context, TreeController tree, StudioConcept concept, boolean showViewToggle,
-            StudioRoute simulationRoute) {
+        StudioRoute simulationRoute) {
         this.context = context;
         this.tree = tree;
         this.concept = concept;
@@ -100,14 +101,14 @@ public final class EditorHeader extends VBox {
         Color lineColor = ColorUtils.accentColor(resolveColorKey());
         tintLayer.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(lineColor) + ";");
         colorLine.setStyle("-fx-background-color: linear-gradient(from 0% 0% to 100% 0%, "
-                + ColorUtils.toCssRgba(lineColor)
-                + " 0%, transparent 100%);");
+            + ColorUtils.toCssRgba(lineColor)
+            + " 0%, transparent 100%);");
 
         EditorBreadcrumb breadcrumb = new EditorBreadcrumb(
-                I18n.get(concept.titleKey()),
-                segments,
-                !isOverview(),
-                () -> context.router().navigate(concept.overviewRoute()));
+            I18n.get(concept.titleKey()),
+            segments,
+            !isOverview(),
+            () -> context.router().navigate(concept.overviewRoute()));
         VBox left = new VBox(8, breadcrumb, title, colorLine);
         HBox.setHgrow(left, Priority.ALWAYS);
         row.getChildren().addAll(left, actions());
@@ -139,9 +140,9 @@ public final class EditorHeader extends VBox {
 
         if (showViewToggle) {
             ToggleGroup toggle = new ToggleGroup(
-                    () -> context.uiState().viewMode().name().toLowerCase(Locale.ROOT),
-                    value -> context.uiState()
-                            .setViewMode("list".equals(value) ? StudioViewMode.LIST : StudioViewMode.GRID));
+                () -> context.uiState().viewMode().name().toLowerCase(Locale.ROOT),
+                value -> context.uiState()
+                    .setViewMode("list".equals(value) ? StudioViewMode.LIST : StudioViewMode.GRID));
             toggle.addIconOption("grid", GRID_ICON);
             toggle.addIconOption("list", LIST_ICON);
             toggle.setMinHeight(Region.USE_PREF_SIZE);
@@ -162,9 +163,9 @@ public final class EditorHeader extends VBox {
         StudioRoute current = context.router().currentRoute();
         for (StudioTabDefinition tab : concept.tabs()) {
             Button button = new EditorHeaderTabItem(
-                    I18n.get(tab.translationKey()),
-                    current == tab.route(),
-                    () -> context.router().navigate(tab.route()));
+                I18n.get(tab.translationKey()),
+                current == tab.route(),
+                () -> context.router().navigate(tab.route()));
             tabs.getChildren().add(button);
         }
         return tabs;
@@ -217,8 +218,8 @@ public final class EditorHeader extends VBox {
         String[] pathParts = parsed.resourcePath().split("/");
         for (int i = 0; i < pathParts.length; i++) {
             Identifier segmentId = i == pathParts.length - 1
-                    ? parsed.identifier()
-                    : Identifier.fromNamespaceAndPath(parsed.namespace(), pathParts[i]);
+                ? parsed.identifier()
+                : Identifier.fromNamespaceAndPath(parsed.namespace(), pathParts[i]);
             segments.add(StudioText.resolve(concept.registryKey(), segmentId));
         }
         return segments;

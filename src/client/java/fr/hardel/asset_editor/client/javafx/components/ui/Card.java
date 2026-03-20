@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.beans.property.BooleanProperty;
@@ -13,15 +14,13 @@ import javafx.scene.paint.Color;
 import net.minecraft.resources.Identifier;
 
 /**
- * Slot card: p-4 card with image (bottom) and title/desc (top).
- * Active:  bg-zinc-950/50 + zinc-700 border ring.
- * Locked:  opacity-50 + zinc-700 border + lock icon + lock text.
- * Clicking toggles active state (local BooleanProperty).
+ * Slot card: p-4 card with image (bottom) and title/desc (top). Active: bg-zinc-950/50 + zinc-700 border ring. Locked: opacity-50 + zinc-700 border +
+ * lock icon + lock text. Clicking toggles active state (local BooleanProperty).
  */
 public final class Card extends SimpleCard {
 
-    private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier LOCK  = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
+    private static final Identifier CHECK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg");
+    private static final Identifier LOCK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/lock.svg");
 
     private final BooleanProperty active = new SimpleBooleanProperty(false);
     private final boolean locked;
@@ -117,7 +116,15 @@ public final class Card extends SimpleCard {
         }
     }
 
-    public BooleanProperty activeProperty() { return active; }
-    public boolean isActive() { return active.get(); }
-    public void setActive(boolean v) { active.set(v); }
+    public BooleanProperty activeProperty() {
+        return active;
+    }
+
+    public boolean isActive() {
+        return active.get();
+    }
+
+    public void setActive(boolean v) {
+        active.set(v);
+    }
 }

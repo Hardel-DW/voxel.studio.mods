@@ -7,6 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 import java.util.UUID;
 
 public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutationResponse, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) implements CustomPacketPayload {
@@ -17,7 +19,7 @@ public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutatio
     }
 
     public static final Type<WorkspaceSyncPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath("asset_editor", "workspace_sync"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "workspace_sync"));
 
     private static final StreamCodec<ByteBuf, UUID> UUID_CODEC = StreamCodec.of(
         (buf, uuid) -> {

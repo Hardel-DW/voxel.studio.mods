@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import javafx.geometry.Pos;
@@ -12,28 +13,28 @@ import net.minecraft.resources.Identifier;
 
 public final class WindowControls extends HBox {
 
-    private static final Identifier MINIMIZE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/minimize.svg");
-    private static final Identifier MAXIMIZE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/maximize.svg");
-    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/window/close.svg");
+    private static final Identifier MINIMIZE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/window/minimize.svg");
+    private static final Identifier MAXIMIZE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/window/maximize.svg");
+    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/window/close.svg");
 
     public WindowControls(Stage stage, String buttonStyleClass, double buttonWidth, double buttonHeight,
-            String inlineButtonStyle, Runnable closeAction) {
+        String inlineButtonStyle, Runnable closeAction) {
         StackPane minimize = button(buttonStyleClass, MINIMIZE_ICON, buttonWidth, buttonHeight,
-                inlineButtonStyle, VoxelColors.ZINC_200);
+            inlineButtonStyle, VoxelColors.ZINC_200);
         minimize.setOnMouseClicked(e -> {
             stage.setIconified(true);
             e.consume();
         });
 
         StackPane maximize = button(buttonStyleClass, MAXIMIZE_ICON, buttonWidth, buttonHeight,
-                inlineButtonStyle, VoxelColors.ZINC_200);
+            inlineButtonStyle, VoxelColors.ZINC_200);
         maximize.setOnMouseClicked(e -> {
             VoxelStudioWindow.requestToggleMaximize();
             e.consume();
         });
 
         StackPane close = button(buttonStyleClass, CLOSE_ICON, buttonWidth, buttonHeight,
-                inlineButtonStyle, VoxelColors.RED_400);
+            inlineButtonStyle, VoxelColors.RED_400);
         close.setOnMouseClicked(e -> {
             closeAction.run();
             e.consume();
@@ -45,7 +46,7 @@ public final class WindowControls extends HBox {
     }
 
     private StackPane button(String styleClass, Identifier iconPath,
-            double buttonWidth, double buttonHeight, String inlineStyle, Color hoverFill) {
+        double buttonWidth, double buttonHeight, String inlineStyle, Color hoverFill) {
         SvgIcon icon = new SvgIcon(iconPath, 12, VoxelColors.ZINC_500);
 
         StackPane button = new StackPane(icon);

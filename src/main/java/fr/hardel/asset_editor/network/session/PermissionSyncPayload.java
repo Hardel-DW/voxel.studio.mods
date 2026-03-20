@@ -7,10 +7,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 public record PermissionSyncPayload(StudioPermissions permissions) implements CustomPacketPayload {
 
     public static final Type<PermissionSyncPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath("asset_editor", "permission_sync"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "permission_sync"));
 
     public static final net.minecraft.network.codec.StreamCodec<ByteBuf, PermissionSyncPayload> CODEC = ByteBufCodecs.fromCodec(StudioPermissions.CODEC)
         .map(PermissionSyncPayload::new, PermissionSyncPayload::permissions);

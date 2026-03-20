@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import javafx.geometry.Pos;
@@ -10,7 +11,7 @@ import net.minecraft.resources.Identifier;
 
 public final class NoPermissionPage extends VBox {
 
-    private static final Identifier LOCK_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/lock.svg");
+    private static final Identifier LOCK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/lock.svg");
 
     public NoPermissionPage() {
         setAlignment(Pos.CENTER);

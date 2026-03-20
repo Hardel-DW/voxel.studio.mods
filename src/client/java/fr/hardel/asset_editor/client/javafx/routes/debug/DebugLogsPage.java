@@ -3,10 +3,11 @@ package fr.hardel.asset_editor.client.javafx.routes.debug;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
+import fr.hardel.asset_editor.client.javafx.components.ui.CopyButton;
 import fr.hardel.asset_editor.client.javafx.components.ui.DataTable;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
-import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore;
-import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore.Entry;
+import fr.hardel.asset_editor.client.debug.DebugLogStore;
+import fr.hardel.asset_editor.client.debug.DebugLogStore.Entry;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,11 +29,6 @@ public final class DebugLogsPage extends VBox implements Page {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
-    private static final Color INFO_COLOR = Color.web("#38bdf8");
-    private static final Color WARN_COLOR = Color.web("#fbbf24");
-    private static final Color ERROR_COLOR = Color.web("#f87171");
-    private static final Color SUCCESS_COLOR = Color.web("#34d399");
-
     private final DataTable<Entry> table = new DataTable<>();
     private final Label countLabel = new Label();
     private Runnable subscription;
@@ -48,6 +44,7 @@ public final class DebugLogsPage extends VBox implements Page {
         table.setExpandFactory(this::detailNode);
         table.setIdExtractor(Entry::id);
         table.setPlaceholder(I18n.get("debug:logs.placeholder"));
+        table.setPagination(50);
         VBox.setVgrow(table, Priority.ALWAYS);
 
         countLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
@@ -73,8 +70,10 @@ public final class DebugLogsPage extends VBox implements Page {
                 }
                 return;
             }
+
             if (subscription == null)
                 subscription = DebugLogStore.subscribe(() -> Platform.runLater(this::refresh));
+
             refresh();
         });
 
@@ -82,9 +81,7 @@ public final class DebugLogsPage extends VBox implements Page {
     }
 
     private void refresh() {
-        var entries = DebugLogStore.entries().stream()
-            .filter(entry -> entry.category() != DebugLogStore.Category.NETWORK)
-            .toList();
+        var entries = DebugLogStore.entries();
         countLabel.setText(I18n.get("debug:logs.count", entries.size()));
         table.setItems(entries);
     }
@@ -128,21 +125,32 @@ public final class DebugLogsPage extends VBox implements Page {
 
         VBox box = new VBox(4);
         for (Map.Entry<String, String> kv : entry.data().entrySet()) {
-            Label line = new Label(kv.getKey() + ": " + kv.getValue());
-            line.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
-            line.setTextFill(VoxelColors.ZINC_400);
-            line.setWrapText(true);
-            box.getChildren().add(line);
+            Label keyLabel = new Label(kv.getKey());
+            keyLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
+            keyLabel.setTextFill(VoxelColors.ZINC_500);
+            keyLabel.setMinWidth(Region.USE_PREF_SIZE);
+
+            Label valueLabel = new Label(kv.getValue());
+            valueLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
+            valueLabel.setTextFill(VoxelColors.ZINC_300);
+            valueLabel.setWrapText(true);
+            HBox.setHgrow(valueLabel, Priority.ALWAYS);
+
+            CopyButton copy = new CopyButton(kv.getValue());
+
+            HBox row = new HBox(8, keyLabel, valueLabel, copy);
+            row.setAlignment(Pos.CENTER_LEFT);
+            box.getChildren().add(row);
         }
         return box;
     }
 
     private static Color levelColor(DebugLogStore.Level level) {
         return switch (level) {
-            case INFO -> INFO_COLOR;
-            case WARN -> WARN_COLOR;
-            case ERROR -> ERROR_COLOR;
-            case SUCCESS -> SUCCESS_COLOR;
+            case INFO -> VoxelColors.SKY_400;
+            case WARN -> VoxelColors.AMBER_400;
+            case ERROR -> VoxelColors.RED_400;
+            case SUCCESS -> VoxelColors.EMERALD_400;
         };
     }
 }

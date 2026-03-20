@@ -7,10 +7,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 public record PackCreatePayload(String name, String namespace) implements CustomPacketPayload {
 
     public static final Type<PackCreatePayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath("asset_editor", "pack_create"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "pack_create"));
 
     public static final StreamCodec<ByteBuf, PackCreatePayload> CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, PackCreatePayload::name,

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.ShineOverlay;
@@ -22,10 +23,9 @@ import net.minecraft.resources.Identifier;
 
 public final class SupportCard extends StackPane {
 
-    private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
-    private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath("asset_editor",
-        "icons/company/patreon.svg");
+    private static final Identifier LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg");
+    private static final Identifier CHECK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg");
+    private static final Identifier PATREON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/patreon.svg");
     private static final String[] ADVANTAGES = { "early_access", "submit_ideas", "discord_role", "live_voxel" };
 
     public SupportCard() {

@@ -23,6 +23,10 @@ public final class VoxelColors {
     public static final Color SWITCH_RAIL_ON_TO = Color.web("#7a009f");
     public static final Color SWITCH_KNOB_OFF = Color.web("#dfdfdf");
 
+    public static final Color EMERALD_400 = Color.web("#34d399");
+    public static final Color SKY_400 = Color.web("#38bdf8");
+    public static final Color AMBER_400 = Color.web("#fbbf24");
+
     public static final Color BACKGROUND = Color.web("#080507");
     public static final Color SIDEBAR    = Color.web("#101011");
     public static final Color EDITOR     = Color.web("#0f0e0e");

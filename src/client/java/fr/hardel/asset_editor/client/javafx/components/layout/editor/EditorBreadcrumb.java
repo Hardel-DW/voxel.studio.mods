@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import javafx.geometry.Pos;
@@ -14,7 +15,7 @@ import java.util.Locale;
 
 public final class EditorBreadcrumb extends HBox {
 
-    private static final Identifier BACK_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/back.svg");
+    private static final Identifier BACK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/back.svg");
 
     public EditorBreadcrumb(String rootLabel, List<String> segments, boolean showBack, Runnable onBack) {
         getStyleClass().add("editor-breadcrumb");
@@ -54,8 +55,8 @@ public final class EditorBreadcrumb extends HBox {
 
             Label segment = new Label(segments.get(i).toUpperCase(Locale.ROOT));
             segment.getStyleClass().add(i == segments.size() - 1
-                    ? "editor-breadcrumb-leaf"
-                    : "editor-breadcrumb-segment");
+                ? "editor-breadcrumb-leaf"
+                : "editor-breadcrumb-segment");
             getChildren().addAll(separator, segment);
         }
     }

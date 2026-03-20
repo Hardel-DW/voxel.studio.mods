@@ -8,12 +8,14 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 import java.util.UUID;
 
 public record WorkspaceMutationRequestPayload(UUID actionId, String packId, Identifier registryId, Identifier targetId, EditorAction action) implements CustomPacketPayload {
 
     public static final Type<WorkspaceMutationRequestPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath("asset_editor", "workspace_mutation_request"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "workspace_mutation_request"));
 
     private static final StreamCodec<ByteBuf, UUID> UUID_CODEC = StreamCodec.of(
         (buf, uuid) -> {

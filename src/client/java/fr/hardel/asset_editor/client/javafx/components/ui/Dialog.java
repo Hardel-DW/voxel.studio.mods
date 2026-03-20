@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.geometry.Insets;
@@ -23,7 +24,7 @@ import net.minecraft.resources.Identifier;
 
 public final class Dialog {
 
-    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
+    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg");
 
     private final Stage stage = new Stage(StageStyle.TRANSPARENT);
     private final HBox footer = new HBox(12);

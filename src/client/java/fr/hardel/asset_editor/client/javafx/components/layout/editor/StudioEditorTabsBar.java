@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.editor;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
@@ -25,14 +26,12 @@ import javafx.stage.Stage;
 import net.minecraft.resources.Identifier;
 
 /**
- * Workspace header bar — always visible.
- * Left: window controls (minimize / maximize / close).
- * Center/right: open element tabs + drag spacer.
+ * Workspace header bar — always visible. Left: window controls (minimize / maximize / close). Center/right: open element tabs + drag spacer.
  * Drag/resize behavior is handled at window level (VoxelStudioWindow).
  */
 public final class StudioEditorTabsBar extends HBox {
 
-    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/close.svg");
+    private static final Identifier CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg");
 
     private final StudioContext context;
     private final FxSelectionBindings bindings = new FxSelectionBindings();
@@ -108,10 +107,10 @@ public final class StudioEditorTabsBar extends HBox {
 
         StudioElementId parsed = StudioElementId.parse(tab.elementId());
         String displayName = parsed != null
-                ? StudioText.resolve(
-                        StudioConcept.byRoute(tab.route()).registryKey(),
-                        parsed.identifier())
-                : (tab.elementId() != null ? tab.elementId() : "");
+            ? StudioText.resolve(
+                StudioConcept.byRoute(tab.route()).registryKey(),
+                parsed.identifier())
+            : (tab.elementId() != null ? tab.elementId() : "");
         Label label = new Label(displayName);
         label.getStyleClass().add("studio-editor-tab-label");
         label.getStyleClass().add(active ? "studio-editor-tab-label-active" : "studio-editor-tab-label-inactive");

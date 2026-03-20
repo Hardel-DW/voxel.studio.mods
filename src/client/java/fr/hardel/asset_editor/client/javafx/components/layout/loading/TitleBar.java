@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.layout.loading;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.WindowControls;
@@ -15,7 +16,7 @@ import net.minecraft.resources.Identifier;
 
 public final class TitleBar extends VBox {
 
-    private static final Identifier LOGO = Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg");
+    private static final Identifier LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg");
 
     public TitleBar(Stage stage) {
         getChildren().addAll(buildBar(stage), buildSeparator());
@@ -54,7 +55,7 @@ public final class TitleBar extends VBox {
 
     private HBox buildControls(Stage stage) {
         HBox controls = new WindowControls(stage, "title-bar-button", 36, 32, "-fx-background-color: transparent;",
-                stage::close);
+            stage::close);
         controls.setAlignment(Pos.CENTER_RIGHT);
         return controls;
     }

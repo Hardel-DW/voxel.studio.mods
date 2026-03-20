@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.rendering;
 
+import fr.hardel.asset_editor.AssetEditor;
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.Lighting;
@@ -48,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class ItemAtlasRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemAtlasRenderer.class);
-    private static final Identifier DEBUG_TEXTURE_ID = Identifier.fromNamespaceAndPath("asset_editor", "item_atlas");
+    private static final Identifier DEBUG_TEXTURE_ID = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "item_atlas");
     private static final int ITEM_SIZE = 32;
 
     private static final AtomicBoolean needsGeneration = new AtomicBoolean(false);

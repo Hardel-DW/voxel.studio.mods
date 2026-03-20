@@ -1,13 +1,14 @@
 package fr.hardel.asset_editor.client.javafx.routes.debug;
 
+import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.client.debug.NetworkTraceStore;
+import fr.hardel.asset_editor.client.debug.NetworkTraceStore.TraceEntry;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.DataTable;
-import fr.hardel.asset_editor.client.javafx.components.ui.SelectableTextBlock;
+import fr.hardel.asset_editor.client.javafx.components.ui.KeyValueGrid;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
-import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore;
-import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore.Entry;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -26,17 +26,14 @@ import net.minecraft.client.resources.language.I18n;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 public final class DebugNetworkPage extends VBox implements Page {
 
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
-    private static final Color CLIENT_COLOR = Color.web("#34d399");
-    private static final Color SERVER_COLOR = Color.web("#f87171");
-    private static final Color MUTED_COLOR = VoxelColors.ZINC_500;
 
-    private final DataTable<Entry> table = new DataTable<>();
+    private final DataTable<TraceEntry> table = new DataTable<>();
     private final Label countLabel = new Label();
+    private final Label filterLabel = new Label();
     private Runnable subscription;
 
     public DebugNetworkPage() {
@@ -45,22 +42,27 @@ public final class DebugNetworkPage extends VBox implements Page {
 
         table.addColumn(I18n.get("debug:network.column.time"), 100, this::timeCell);
         table.addColumn(I18n.get("debug:network.column.direction"), 80, this::directionCell);
+        table.addColumn(I18n.get("debug:network.column.payload_id"), 220, this::payloadIdCell);
         table.addColumn(I18n.get("debug:network.column.title"), -1, this::titleCell);
         table.setExpandFactory(this::detailNode);
-        table.setIdExtractor(Entry::id);
+        table.setIdExtractor(TraceEntry::id);
         table.setPlaceholder(I18n.get("debug:network.placeholder"));
+        table.setPagination(50);
         VBox.setVgrow(table, Priority.ALWAYS);
 
         countLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
         countLabel.setTextFill(VoxelColors.ZINC_500);
 
+        filterLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
+        filterLabel.setTextFill(VoxelColors.ZINC_600);
+
         Button clearBtn = new Button(Button.Variant.GHOST_BORDER, Button.Size.SM, I18n.get("debug:action.clear"));
-        clearBtn.setOnAction(() -> DebugLogStore.clearCategory(DebugLogStore.Category.NETWORK));
+        clearBtn.setOnAction(NetworkTraceStore::clear);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox toolbar = new HBox(8, countLabel, spacer, clearBtn);
+        HBox toolbar = new HBox(8, countLabel, filterLabel, spacer, clearBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.setPadding(new Insets(12, 16, 12, 16));
         getChildren().addAll(toolbar, table);
@@ -73,11 +75,8 @@ public final class DebugNetworkPage extends VBox implements Page {
                 }
                 return;
             }
-
-            if (subscription == null) {
-                subscription = DebugLogStore.subscribe(() -> Platform.runLater(this::refresh));
-            }
-
+            if (subscription == null)
+                subscription = NetworkTraceStore.subscribe(() -> Platform.runLater(this::refresh));
             refresh();
         });
 
@@ -85,86 +84,72 @@ public final class DebugNetworkPage extends VBox implements Page {
     }
 
     private void refresh() {
-        var entries = DebugLogStore.entriesByCategory(DebugLogStore.Category.NETWORK);
+        var entries = NetworkTraceStore.entries();
         countLabel.setText(I18n.get("debug:network.count", entries.size()));
+        filterLabel.setText(I18n.get("debug:network.filter.label", AssetEditor.MOD_ID));
         table.setItems(entries);
     }
 
-    private Label timeCell(Entry entry) {
+    private Label timeCell(TraceEntry entry) {
         Label label = new Label(TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())));
         label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
         label.setTextFill(VoxelColors.ZINC_500);
         return label;
     }
 
-    private Label titleCell(Entry entry) {
-        Label label = new Label(entry.message());
+    private Node directionCell(TraceEntry entry) {
+        boolean inbound = entry.direction() == NetworkTraceStore.Direction.INBOUND;
+        String left = inbound ? "S" : "C";
+        String right = inbound ? "C" : "S";
+        Color leftColor = inbound ? VoxelColors.RED_400 : VoxelColors.EMERALD_400;
+        Color rightColor = inbound ? VoxelColors.EMERALD_400 : VoxelColors.RED_400;
+
+        Text leftText = new Text(left);
+        leftText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
+        leftText.setFill(leftColor);
+
+        Text arrow = new Text(" → ");
+        arrow.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
+        arrow.setFill(VoxelColors.ZINC_500);
+
+        Text rightText = new Text(right);
+        rightText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
+        rightText.setFill(rightColor);
+
+        TextFlow flow = new TextFlow(leftText, arrow, rightText);
+        flow.setMaxWidth(Double.MAX_VALUE);
+        return flow;
+    }
+
+    private Label payloadIdCell(TraceEntry entry) {
+        Label label = new Label(entry.payloadId().getPath());
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
+        label.setTextFill(VoxelColors.ZINC_400);
+        return label;
+    }
+
+    private Label titleCell(TraceEntry entry) {
+        String titleKey = "debug:payload." + entry.payloadId().getNamespace() + "." + entry.payloadId().getPath().replace('/', '.') + ".title";
+        String title = I18n.exists(titleKey) ? I18n.get(titleKey) : entry.payloadId().getPath();
+        Label label = new Label(title);
         label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
         label.setTextFill(VoxelColors.ZINC_300);
         label.setWrapText(true);
         return label;
     }
 
-    private Node detailNode(Entry entry) {
-        if (entry.data() == null || entry.data().isEmpty()) {
-            Label empty = new Label(I18n.get("debug:network.no_additional_data"));
-            empty.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
-            empty.setTextFill(VoxelColors.ZINC_500);
-            return empty;
-        }
+    private Node detailNode(TraceEntry entry) {
+        Object payload = entry.payload();
+        if (payload == null || !payload.getClass().isRecord())
+            return emptyDetail();
 
-        String payloadId = entry.data().getOrDefault("payloadId", "");
-        String description = entry.data().getOrDefault("payloadDescription", "");
-
-        Node idLabel = new SelectableTextBlock(payloadId, VoxelFonts.Variant.SEMI_BOLD, 14, VoxelColors.ZINC_100);
-        Node descriptionLabel = new SelectableTextBlock(description, VoxelFonts.Variant.REGULAR, 12, VoxelColors.ZINC_400);
-
-        Region separator = new Region();
-        separator.setPrefHeight(1);
-        separator.setMaxWidth(Double.MAX_VALUE);
-        separator.setStyle("-fx-background-color: rgba(63, 63, 70, 0.45);");
-
-        VBox box = new VBox(8, idLabel, descriptionLabel, separator);
-        for (Map.Entry<String, String> kv : entry.data().entrySet()) {
-            if ("direction".equals(kv.getKey()) || "payloadId".equals(kv.getKey()) || "payloadDescription".equals(kv.getKey()))
-                continue;
-
-            Label key = new Label(kv.getKey());
-            key.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
-            key.setTextFill(VoxelColors.ZINC_500);
-
-            VBox line = new VBox(2, key, new SelectableTextBlock(kv.getValue(), VoxelFonts.Variant.REGULAR, 12, VoxelColors.ZINC_300));
-            line.setFillWidth(true);
-            box.getChildren().add(line);
-        }
-        return box;
+        return new KeyValueGrid(payload);
     }
 
-    private TextFlow directionCellFlow(String direction) {
-        String[] parts = direction.split("->");
-        String left = parts.length > 0 ? parts[0].trim() : "?";
-        String right = parts.length > 1 ? parts[1].trim() : "?";
-
-        Text leftText = new Text(left);
-        leftText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
-        leftText.setFill("C".equals(left) ? CLIENT_COLOR : SERVER_COLOR);
-
-        Text arrowText = new Text(" -> ");
-        arrowText.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
-        arrowText.setFill(MUTED_COLOR);
-
-        Text rightText = new Text(right);
-        rightText.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 11));
-        rightText.setFill("C".equals(right) ? CLIENT_COLOR : SERVER_COLOR);
-
-        return new TextFlow(leftText, arrowText, rightText);
-    }
-
-    private Node directionCell(Entry entry) {
-        String dir = entry.data().getOrDefault("direction", "?");
-        StackPane wrapper = new StackPane(directionCellFlow(dir));
-        wrapper.setAlignment(Pos.CENTER);
-        wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        return wrapper;
+    private static Label emptyDetail() {
+        Label label = new Label(I18n.get("debug:network.no_additional_data"));
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
+        label.setTextFill(VoxelColors.ZINC_500);
+        return label;
     }
 }

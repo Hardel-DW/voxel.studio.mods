@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.page.enchantment;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
@@ -113,7 +114,7 @@ public final class ExclusiveGroupSection extends VBox {
 
             EnchantmentTags card = buildCard(
                 title, rawTag,
-                Identifier.fromNamespaceAndPath("asset_editor", "icons/logo.svg"),
+                Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg"),
                 tagIdent, rawTag,
                 currentExclusiveTag, currentTags, labelResolver);
             if (rawTag.equals(currentExclusiveTag))

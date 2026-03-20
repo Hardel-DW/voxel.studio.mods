@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.components.ui.Card;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
 import fr.hardel.asset_editor.client.javafx.components.ui.SectionSelector;
@@ -88,7 +89,7 @@ public final class EnchantmentItemsPage extends RegistryPage<Enchantment> {
         }
 
         if (includePrimaryNone) {
-            Identifier noneImg = Identifier.fromNamespaceAndPath("asset_editor", "textures/cross.png");
+            Identifier noneImg = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/cross.png");
             primaryNoneCard = new Card(noneImg, I18n.get("enchantment.supported:none"), false);
             grid.addItem(primaryNoneCard);
         }

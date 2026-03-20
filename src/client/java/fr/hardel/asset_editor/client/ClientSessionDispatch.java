@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry;
 import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
@@ -33,25 +32,20 @@ public final class ClientSessionDispatch {
     }
 
     public void handlePermissionSync(PermissionSyncPayload payload) {
-        ClientDebugTelemetry.networkInbound(payload);
-        var permissions = payload.permissions();
-        runSessionUpdate(() -> sessionState.updatePermissions(permissions));
+        runSessionUpdate(() -> sessionState.updatePermissions(payload.permissions()));
     }
 
     public void handlePackListSync(PackListSyncPayload payload) {
-        ClientDebugTelemetry.networkInbound(payload);
         runSessionUpdate(() -> sessionState.updatePacks(payload.packs()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
-        ClientDebugTelemetry.networkInbound(payload);
         var gateway = activeGateway;
         if (gateway != null)
             Platform.runLater(() -> gateway.handleWorkspaceSync(payload));
     }
 
     public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
-        ClientDebugTelemetry.networkInbound(payload);
         var gateway = activeGateway;
         if (gateway != null)
             Platform.runLater(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
@@ -62,10 +56,12 @@ public final class ClientSessionDispatch {
             update.run();
             return;
         }
+
         if (Platform.isFxApplicationThread()) {
             update.run();
             return;
         }
+
         Platform.runLater(update);
     }
 }

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import javafx.beans.property.BooleanProperty;
@@ -15,14 +16,12 @@ import javafx.scene.paint.Color;
 import net.minecraft.resources.Identifier;
 
 /**
- * Inline button card: px-6 py-4, title + description on left, check/lock icon
- * on right.
- * Active: bg-zinc-950/50 + zinc-700 ring. Locked: opacity-50.
+ * Inline button card: px-6 py-4, title + description on left, check/lock icon on right. Active: bg-zinc-950/50 + zinc-700 ring. Locked: opacity-50.
  */
 public final class InlineCard extends SimpleCard {
 
-    private static final Identifier CHECK = Identifier.fromNamespaceAndPath("asset_editor", "icons/check.svg");
-    private static final Identifier LOCK = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/lock.svg");
+    private static final Identifier CHECK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg");
+    private static final Identifier LOCK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/lock.svg");
 
     private final BooleanProperty active = new SimpleBooleanProperty(false);
 

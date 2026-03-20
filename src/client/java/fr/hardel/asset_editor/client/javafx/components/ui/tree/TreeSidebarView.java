@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.tree;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
@@ -19,8 +20,8 @@ import java.util.Locale;
 
 public final class TreeSidebarView extends VBox {
 
-    private static final Identifier PENCIL_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/pencil.svg");
-    private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/search.svg");
+    private static final Identifier PENCIL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg");
+    private static final Identifier SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg");
 
     private final StudioContext context;
     private final TreeController tree;

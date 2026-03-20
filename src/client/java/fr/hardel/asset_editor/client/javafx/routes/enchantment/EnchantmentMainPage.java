@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.routes.enchantment;
 
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.components.layout.SupportCard;
 import fr.hardel.asset_editor.client.javafx.components.ui.Counter;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResponsiveGrid;
@@ -28,80 +29,81 @@ import java.util.function.Function;
 
 public final class EnchantmentMainPage extends RegistryPage<Enchantment> {
 
-    private static final Identifier MAX_LEVEL_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/max_level.svg");
-    private static final Identifier WEIGHT_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/weight.svg");
-    private static final Identifier ANVIL_COST_ICON = Identifier.fromNamespaceAndPath("asset_editor", "icons/tools/anvil_cost.svg");
+        private static final Identifier MAX_LEVEL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/max_level.svg");
+        private static final Identifier WEIGHT_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/weight.svg");
+        private static final Identifier ANVIL_COST_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/anvil_cost.svg");
 
-    public EnchantmentMainPage(StudioContext context) {
-        super(context, Registries.ENCHANTMENT, "editor-main-scroll", 32, new Insets(16, 32, 28, 32));
-        ((ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
-                .addListener((obs, o, bounds) -> content().setMinHeight(Math.max(0, bounds.getHeight())));
-    }
+        public EnchantmentMainPage(StudioContext context) {
+                super(context, Registries.ENCHANTMENT, "editor-main-scroll", 32, new Insets(16, 32, 28, 32));
+                ((ScrollPane) getChildren().getFirst()).viewportBoundsProperty()
+                        .addListener((obs, o, bounds) -> content().setMinHeight(Math.max(0, bounds.getHeight())));
+        }
 
-    @Override
-    protected void buildContent() {
-        Section section = new Section(I18n.get("enchantment:section.global.description"));
-        ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
-                .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
+        @Override
+        protected void buildContent() {
+                Section section = new Section(I18n.get("enchantment:section.global.description"));
+                ResponsiveGrid grid = new ResponsiveGrid(ResponsiveGrid.autoFit(256))
+                        .atMost(StudioBreakpoint.XL, ResponsiveGrid.fixed(1));
 
-        buildCounter(grid, MAX_LEVEL_ICON,
-                "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
-                1, 127, 1,
-                entry -> entry.data().getMaxLevel(),
-                v -> new EditorAction.SetIntField("max_level", v));
+                buildCounter(grid, MAX_LEVEL_ICON,
+                        "enchantment:global.maxLevel.title", "enchantment:global.explanation.list.1",
+                        1, 127, 1,
+                        entry -> entry.data().getMaxLevel(),
+                        v -> new EditorAction.SetIntField("max_level", v));
 
-        buildCounter(grid, WEIGHT_ICON,
-                "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
-                1, 1024, 1,
-                entry -> entry.data().getWeight(),
-                v -> new EditorAction.SetIntField("weight", v));
+                buildCounter(grid, WEIGHT_ICON,
+                        "enchantment:global.weight.title", "enchantment:global.explanation.list.2",
+                        1, 1024, 1,
+                        entry -> entry.data().getWeight(),
+                        v -> new EditorAction.SetIntField("weight", v));
 
-        buildCounter(grid, ANVIL_COST_ICON,
-                "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
-                0, 255, 1,
-                entry -> entry.data().getAnvilCost(),
-                v -> new EditorAction.SetIntField("anvil_cost", v));
+                buildCounter(grid, ANVIL_COST_ICON,
+                        "enchantment:global.anvilCost.title", "enchantment:global.explanation.list.3",
+                        0, 255, 1,
+                        entry -> entry.data().getAnvilCost(),
+                        v -> new EditorAction.SetIntField("anvil_cost", v));
 
-        section.addContent(grid, buildModeSelector());
+                section.addContent(grid, buildModeSelector());
 
-        section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-            if (hasWritablePack()) return;
-            e.consume();
-            showPackGuard();
-        });
+                section.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+                        if (hasWritablePack())
+                                return;
+                        e.consume();
+                        showPackGuard();
+                });
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
+                Region spacer = new Region();
+                VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        content().getChildren().setAll(section, spacer, new SupportCard());
-    }
+                content().getChildren().setAll(section, spacer, new SupportCard());
+        }
 
-    private void buildCounter(ResponsiveGrid grid, Identifier icon,
-                               String titleKey, String descKey,
-                               int min, int max, int step,
-                               Function<ElementEntry<Enchantment>, Integer> selectorFn,
-                               java.util.function.IntFunction<EditorAction> actionFactory) {
-        Counter counter = new Counter(min, max, step, 0);
-        bindInt(counter.valueProperty(), selectorFn, actionFactory);
-        grid.addItem(new TemplateCard(icon, I18n.get(titleKey), I18n.get(descKey), counter));
-    }
+        private void buildCounter(ResponsiveGrid grid, Identifier icon,
+                String titleKey, String descKey,
+                int min, int max, int step,
+                Function<ElementEntry<Enchantment>, Integer> selectorFn,
+                java.util.function.IntFunction<EditorAction> actionFactory) {
+                Counter counter = new Counter(min, max, step, 0);
+                bindInt(counter.valueProperty(), selectorFn, actionFactory);
+                grid.addItem(new TemplateCard(icon, I18n.get(titleKey), I18n.get(descKey), counter));
+        }
 
-    private Selector buildModeSelector() {
-        LinkedHashMap<String, String> modeOptions = new LinkedHashMap<>();
-        modeOptions.put(EnchantmentFlushAdapter.MODE_NORMAL, I18n.get("enchantment:global.mode.enum.normal"));
-        modeOptions.put(EnchantmentFlushAdapter.MODE_DISABLE, I18n.get("enchantment:global.mode.enum.soft_delete"));
-        modeOptions.put(EnchantmentFlushAdapter.MODE_ONLY_CREATIVE, I18n.get("enchantment:global.mode.enum.only_creative"));
+        private Selector buildModeSelector() {
+                LinkedHashMap<String, String> modeOptions = new LinkedHashMap<>();
+                modeOptions.put(EnchantmentFlushAdapter.MODE_NORMAL, I18n.get("enchantment:global.mode.enum.normal"));
+                modeOptions.put(EnchantmentFlushAdapter.MODE_DISABLE, I18n.get("enchantment:global.mode.enum.soft_delete"));
+                modeOptions.put(EnchantmentFlushAdapter.MODE_ONLY_CREATIVE, I18n.get("enchantment:global.mode.enum.only_creative"));
 
-        Selector selector = new Selector(
-                I18n.get("enchantment:global.mode.title"),
-                I18n.get("enchantment:global.mode.description"),
-                modeOptions,
-                EnchantmentFlushAdapter.MODE_NORMAL,
-                null);
+                Selector selector = new Selector(
+                        I18n.get("enchantment:global.mode.title"),
+                        I18n.get("enchantment:global.mode.description"),
+                        modeOptions,
+                        EnchantmentFlushAdapter.MODE_NORMAL,
+                        null);
 
-        bindString(selector.valueProperty(), EnchantmentFlushAdapter::mode,
-                v -> new EditorAction.SetMode(v));
+                bindString(selector.valueProperty(), EnchantmentFlushAdapter::mode,
+                        v -> new EditorAction.SetMode(v));
 
-        return selector;
-    }
+                return selector;
+        }
 }

@@ -27,10 +27,12 @@ public final class DataTable<T> extends VBox {
     private final VBox body = new VBox();
     private final HBox headerRow = new HBox();
     private final Label placeholder = new Label();
+    private final Pagination pagination = new Pagination();
     private final Set<Long> expandedIds = new HashSet<>();
     private Function<T, Node> expandFactory;
     private Function<T, Long> idExtractor;
     private List<T> items = List.of();
+    private int pageSize = -1;
 
     public DataTable() {
         getStyleClass().add("ui-data-table");
@@ -59,7 +61,12 @@ public final class DataTable<T> extends VBox {
         placeholder.setVisible(false);
         placeholder.setManaged(false);
 
-        getChildren().addAll(headerRow, scroll, placeholder);
+        pagination.setVisible(false);
+        pagination.setManaged(false);
+        pagination.setPadding(new Insets(8, 16, 8, 16));
+        pagination.setOnPageChange(page -> rebuild());
+
+        getChildren().addAll(headerRow, scroll, placeholder, pagination);
     }
 
     public void addColumn(String header, double width, Function<T, Node> cellFactory) {
@@ -79,9 +86,23 @@ public final class DataTable<T> extends VBox {
         placeholder.setText(text);
     }
 
+    public void setPagination(int pageSize) {
+        this.pageSize = pageSize;
+        rebuild();
+    }
+
     public void setItems(List<T> items) {
         this.items = items == null ? List.of() : items;
         rebuild();
+    }
+
+    private List<T> visibleItems() {
+        if (pageSize <= 0 || items.size() <= pageSize)
+            return items;
+
+        int start = pagination.currentPage() * pageSize;
+        int end = Math.min(start + pageSize, items.size());
+        return items.subList(start, end);
     }
 
     private void rebuildHeader() {
@@ -101,8 +122,17 @@ public final class DataTable<T> extends VBox {
         placeholder.setVisible(empty);
         placeholder.setManaged(empty);
 
-        for (int i = 0; i < items.size(); i++) {
-            T item = items.get(i);
+        boolean paginated = pageSize > 0 && items.size() > pageSize;
+        pagination.setVisible(paginated);
+        pagination.setManaged(paginated);
+        if (paginated) {
+            int totalPages = (items.size() + pageSize - 1) / pageSize;
+            pagination.setPageCount(totalPages);
+        }
+
+        List<T> visible = visibleItems();
+        for (int i = 0; i < visible.size(); i++) {
+            T item = visible.get(i);
             long rowId = idExtractor != null ? idExtractor.apply(item) : i;
             boolean expanded = expandedIds.contains(rowId);
 

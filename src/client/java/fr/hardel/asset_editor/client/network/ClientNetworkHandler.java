@@ -1,28 +1,29 @@
 package fr.hardel.asset_editor.client.network;
 
 import fr.hardel.asset_editor.client.AssetEditorClient;
+import fr.hardel.asset_editor.client.debug.NetworkTraceStore;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public final class ClientNetworkHandler {
 
     public static void register() {
-        ClientPlayNetworking.registerGlobalReceiver(PermissionSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePermissionSync(payload)));
-
-        ClientPlayNetworking.registerGlobalReceiver(PackListSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackListSync(payload)));
-
-        ClientPlayNetworking.registerGlobalReceiver(WorkspaceSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handleWorkspaceSync(payload)));
-
-        ClientPlayNetworking.registerGlobalReceiver(PackWorkspaceSyncPayload.TYPE, (payload, context) ->
-            context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackWorkspaceSync(payload)));
+        registerInbound(PermissionSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePermissionSync(payload)));
+        registerInbound(PackListSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackListSync(payload)));
+        registerInbound(WorkspaceSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> AssetEditorClient.sessionDispatch().handleWorkspaceSync(payload)));
+        registerInbound(PackWorkspaceSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> AssetEditorClient.sessionDispatch().handlePackWorkspaceSync(payload)));
     }
 
-    private ClientNetworkHandler() {
+    private static <T extends CustomPacketPayload> void registerInbound(CustomPacketPayload.Type<T> type, ClientPlayNetworking.PlayPayloadHandler<T> handler) {
+        ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
+            NetworkTraceStore.capture(NetworkTraceStore.Direction.INBOUND, payload);
+            handler.receive(payload, context);
+        });
     }
+
+    private ClientNetworkHandler() {}
 }

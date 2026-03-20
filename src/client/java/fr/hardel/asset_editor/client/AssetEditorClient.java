@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
@@ -29,7 +30,7 @@ public class AssetEditorClient implements ClientModInitializer {
     private static final ClientSessionDispatch SESSION_DISPATCH = new ClientSessionDispatch(SESSION_STATE);
 
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
-        Identifier.fromNamespaceAndPath("asset_editor", "main"));
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"));
     private static final KeyMapping OPEN_STUDIO = KeyBindingHelper.registerKeyBinding(
         new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
     private boolean hadWorld;
@@ -74,7 +75,7 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientNetworkHandler.register();
         ResourceLoader.get(PackType.CLIENT_RESOURCES)
             .registerReloader(
-                Identifier.fromNamespaceAndPath("asset_editor", "studio_reload"),
+                Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_reload"),
                 new StudioReloadListener());
     }
 
