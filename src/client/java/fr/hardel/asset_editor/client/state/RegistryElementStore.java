@@ -27,6 +27,7 @@ public final class RegistryElementStore {
     private final Map<String, Map<Identifier, ElementEntry<?>>> current = new HashMap<>();
     private final Map<SelectorKey, MutableSelectorStore<ElementEntry<?>>> elementStores = new HashMap<>();
     private final Map<String, List<Runnable>> registryListeners = new HashMap<>();
+    private final List<Runnable> globalListeners = new ArrayList<>();
 
     public <T> void snapshotFromRegistry(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
         Function<ElementEntry<T>, CustomFields> customInitializer) {
@@ -112,6 +113,16 @@ public final class RegistryElementStore {
         return registryMap.values().stream().map(entry -> (ElementEntry<T>) entry).toList();
     }
 
+    public void subscribeAll(Runnable listener) {
+        if (listener == null || globalListeners.contains(listener))
+            return;
+        globalListeners.add(listener);
+    }
+
+    public void unsubscribeAll(Runnable listener) {
+        globalListeners.remove(listener);
+    }
+
     @SuppressWarnings("unchecked")
     public <T, R> StoreSelection<ElementEntry<?>, R> selectValue(ResourceKey<Registry<T>> registry, Identifier id,
         Function<ElementEntry<T>, R> extractor) {
@@ -126,6 +137,12 @@ public final class RegistryElementStore {
         elementStores.values().forEach(store -> store.setState(null));
     }
 
+    public Map<String, Integer> entryCountsSnapshot() {
+        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
+        current.forEach((registry, entries) -> counts.put(registry, entries.size()));
+        return counts;
+    }
+
     private MutableSelectorStore<ElementEntry<?>> elementStore(String registry, Identifier id, ElementEntry<?> initial) {
         return elementStores.computeIfAbsent(new SelectorKey(registry, id),
             ignored -> new MutableSelectorStore<>(initial));
@@ -135,6 +152,7 @@ public final class RegistryElementStore {
         List<Runnable> listeners = registryListeners.get(registry);
         if (listeners != null)
             listeners.forEach(Runnable::run);
+        globalListeners.forEach(Runnable::run);
     }
 
     static String registryName(ResourceKey<?> key) {

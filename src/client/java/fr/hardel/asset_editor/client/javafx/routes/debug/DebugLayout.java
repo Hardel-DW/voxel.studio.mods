@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorBreadcrumb;
 import fr.hardel.asset_editor.client.javafx.components.layout.editor.EditorHeaderTabItem;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
+import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.utils.ColorUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -25,6 +26,7 @@ import java.util.function.Supplier;
 
 public final class DebugLayout extends VBox implements Page {
 
+    private static final String TAB_WORKSPACE = "workspace";
     private static final String TAB_RENDER = "render";
     private static final String TAB_LOGS = "logs";
     private static final String TAB_NETWORK = "network";
@@ -34,9 +36,11 @@ public final class DebugLayout extends VBox implements Page {
     private final StackPane outlet = new StackPane();
     private final Map<String, Node> pages = new HashMap<>();
     private final VBox headerContent = new VBox();
-    private String currentTab = TAB_RENDER;
+    private final StudioContext context;
+    private String currentTab = TAB_WORKSPACE;
 
-    public DebugLayout() {
+    public DebugLayout(StudioContext context) {
+        this.context = context;
         getStyleClass().add("concept-main-page");
         getStyleClass().add("debug-layout");
         setFillWidth(true);
@@ -69,7 +73,7 @@ public final class DebugLayout extends VBox implements Page {
 
         getChildren().addAll(headerSurface, outlet);
         refreshHeader();
-        showTab(TAB_RENDER);
+        showTab(TAB_WORKSPACE);
     }
 
     private void refreshHeader() {
@@ -100,6 +104,7 @@ public final class DebugLayout extends VBox implements Page {
         tabs.setAlignment(Pos.CENTER_LEFT);
         tabs.setPadding(new Insets(24, 0, 0, 0));
         tabs.getChildren().addAll(
+            new EditorHeaderTabItem(I18n.get("debug:layout.tab.workspace"), TAB_WORKSPACE.equals(currentTab), () -> showTab(TAB_WORKSPACE)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.render"), TAB_RENDER.equals(currentTab), () -> showTab(TAB_RENDER)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.logs"), TAB_LOGS.equals(currentTab), () -> showTab(TAB_LOGS)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.network"), TAB_NETWORK.equals(currentTab), () -> showTab(TAB_NETWORK)));
@@ -110,6 +115,7 @@ public final class DebugLayout extends VBox implements Page {
     private void showTab(String tab) {
         currentTab = tab;
         subtitle.setText(switch (tab) {
+            case TAB_WORKSPACE -> I18n.get("debug:layout.subtitle.workspace");
             case TAB_LOGS -> I18n.get("debug:layout.subtitle.logs");
             case TAB_NETWORK -> I18n.get("debug:layout.subtitle.network");
             default -> I18n.get("debug:layout.subtitle.render");
@@ -124,6 +130,7 @@ public final class DebugLayout extends VBox implements Page {
 
     private Node createPage(String tab) {
         Supplier<Node> factory = switch (tab) {
+            case TAB_WORKSPACE -> () -> new DebugWorkspacePage(context);
             case TAB_LOGS -> DebugLogsPage::new;
             case TAB_NETWORK -> DebugNetworkPage::new;
             default -> DebugRenderPage::new;

@@ -3,6 +3,20 @@ Le client ne doit qu'afficher et interagir avec les éléments, il ne doit pas a
 
 ### Module JavaFX -> Gère tout le rendu.
 
+### Module Debug
+Tous ce qui concerne l'avant démarrage de Studio ont utilise le Logger Minecraft, faut bien pouvoir debug le démarrage si elle se lance pas.
+
+Il faut travailler une sorte de React-Scan, un overlay qui affiche le FPS, et indique quels composant est re-rendu avec un encadrés, ont doit le faire le plus dynmaiquement et génériquement possible, une couche par dessus JavaFX uniquement.
+
+Accéssible en bas a droite de la fenêtre, dans la barre latérale.
+-Permet d'accéder a un Layout de debug qui contient le Header/Tabs comme concept. (Le même)
+- Page Workspace -> Affiche toutes les données et l'état du workspace a l'instant T.
+- Page Logs -> Affiche les logs de l'application, ont passe par une API génériques non liés a JavaFX, ont s'en sers de logs a travers l'application. (N'inclut pas Network)
+- Page Network -> Affiche les logs de réseau. Ont se place directement a l'endroit ou les requétes client/server parte, et ont fait au plus génériques possibles en filtrant par notre namespace. I18n avec clefs de traduction par concatenation dynamiques par l'identifier, avec title et description.
+- Page Render -> Affiche le rendu de l'atlas des items.
+- Layers (Mais j'avoue ne pas trop savoir comment faire un truc comme ça, c'est juste une idée, faut voir si c'est possible)
+
+
 ### Module Rendering
 Pour obtenir le rendu des items on passe par un module indépendant non lié à rien d'autre mentionné dans ce document.
 On crée un atlas supplémentaire par le thread qu'utilise Minecraft pour générer ces atlas et on crée le rendu 2D des items, on utilise le même système que Minecraft pour générer ces atlas et les positions.

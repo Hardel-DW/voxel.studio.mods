@@ -92,6 +92,10 @@ public final class ClientWorkspaceState {
         syncPendingActionCount();
     }
 
+    public java.util.List<PendingClientAction<?>> pendingActionsSnapshot() {
+        return java.util.List.copyOf(pendingActions.values());
+    }
+
     public void resetForWorldSync() {
         elementStore.clearAll();
         tabsState.reset();

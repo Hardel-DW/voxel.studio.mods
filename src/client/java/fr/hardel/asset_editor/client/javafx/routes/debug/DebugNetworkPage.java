@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.javafx.VoxelColors;
 import fr.hardel.asset_editor.client.javafx.VoxelFonts;
 import fr.hardel.asset_editor.client.javafx.components.ui.Button;
 import fr.hardel.asset_editor.client.javafx.components.ui.DataTable;
+import fr.hardel.asset_editor.client.javafx.components.ui.SelectableTextBlock;
 import fr.hardel.asset_editor.client.javafx.lib.Page;
 import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore;
 import fr.hardel.asset_editor.client.javafx.lib.debug.DebugLogStore.Entry;
@@ -15,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -61,7 +63,6 @@ public final class DebugNetworkPage extends VBox implements Page {
         HBox toolbar = new HBox(8, countLabel, spacer, clearBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
         toolbar.setPadding(new Insets(12, 16, 12, 16));
-
         getChildren().addAll(toolbar, table);
 
         sceneProperty().addListener((obs, oldScene, newScene) -> {
@@ -72,8 +73,11 @@ public final class DebugNetworkPage extends VBox implements Page {
                 }
                 return;
             }
-            if (subscription == null)
+
+            if (subscription == null) {
                 subscription = DebugLogStore.subscribe(() -> Platform.runLater(this::refresh));
+            }
+
             refresh();
         });
 
@@ -112,15 +116,8 @@ public final class DebugNetworkPage extends VBox implements Page {
         String payloadId = entry.data().getOrDefault("payloadId", "");
         String description = entry.data().getOrDefault("payloadDescription", "");
 
-        Label idLabel = new Label(payloadId);
-        idLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.SEMI_BOLD, 14));
-        idLabel.setTextFill(VoxelColors.ZINC_100);
-        idLabel.setWrapText(true);
-
-        Label descriptionLabel = new Label(description);
-        descriptionLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
-        descriptionLabel.setTextFill(VoxelColors.ZINC_400);
-        descriptionLabel.setWrapText(true);
+        Node idLabel = new SelectableTextBlock(payloadId, VoxelFonts.Variant.SEMI_BOLD, 14, VoxelColors.ZINC_100);
+        Node descriptionLabel = new SelectableTextBlock(description, VoxelFonts.Variant.REGULAR, 12, VoxelColors.ZINC_400);
 
         Region separator = new Region();
         separator.setPrefHeight(1);
@@ -136,12 +133,7 @@ public final class DebugNetworkPage extends VBox implements Page {
             key.setFont(VoxelFonts.of(VoxelFonts.Variant.MEDIUM, 11));
             key.setTextFill(VoxelColors.ZINC_500);
 
-            Label value = new Label(kv.getValue());
-            value.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
-            value.setTextFill(VoxelColors.ZINC_300);
-            value.setWrapText(true);
-
-            VBox line = new VBox(2, key, value);
+            VBox line = new VBox(2, key, new SelectableTextBlock(kv.getValue(), VoxelFonts.Variant.REGULAR, 12, VoxelColors.ZINC_300));
             line.setFillWidth(true);
             box.getChildren().add(line);
         }
@@ -170,6 +162,9 @@ public final class DebugNetworkPage extends VBox implements Page {
 
     private Node directionCell(Entry entry) {
         String dir = entry.data().getOrDefault("direction", "?");
-        return directionCellFlow(dir);
+        StackPane wrapper = new StackPane(directionCellFlow(dir));
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        return wrapper;
     }
 }

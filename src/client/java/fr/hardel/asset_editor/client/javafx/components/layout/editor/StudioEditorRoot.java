@@ -116,7 +116,7 @@ public final class StudioEditorRoot extends HBox {
         }
         if (route == StudioRoute.DEBUG) {
             if (debugLayout == null)
-                debugLayout = new DebugLayout();
+                debugLayout = new DebugLayout(context);
             contentOutlet.getChildren().setAll(debugLayout);
             return;
         }

@@ -61,6 +61,13 @@ public final class ColorUtils {
                 color.getOpacity());
     }
 
+    public static String toCssRgb(Color color) {
+        return "rgb(%d,%d,%d)".formatted(
+            (int) Math.round(color.getRed() * 255),
+            (int) Math.round(color.getGreen() * 255),
+            (int) Math.round(color.getBlue() * 255));
+    }
+
     private static double clamp(double value) {
         return Math.max(0.0, Math.min(1.0, value));
     }
