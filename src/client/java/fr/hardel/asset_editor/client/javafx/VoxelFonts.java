@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.javafx;
 import javafx.scene.text.Font;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public final class VoxelFonts {
@@ -42,6 +43,20 @@ public final class VoxelFonts {
 
     public static Font of(Variant variant, double size) {
         return new Font(registry.getOrDefault(variant, variant.defaultFamily), size);
+    }
+
+    public static Font firstAvailable(double size, String... families) {
+        List<String> availableFamilies = Font.getFamilies();
+        for (String family : families) {
+            if (availableFamilies.contains(family))
+                return Font.font(family, size);
+        }
+
+        return Font.font("System", size);
+    }
+
+    public static Font codeBlock(double size) {
+        return firstAvailable(size, "JetBrains Mono", "Cascadia Code", "Consolas", "Monospaced");
     }
 
     private VoxelFonts() {}

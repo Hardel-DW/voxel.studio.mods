@@ -22,7 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
 import net.minecraft.client.resources.language.I18n;
 
 import java.util.List;
@@ -91,7 +91,8 @@ public final class DebugCodeBlockPage extends StackPane implements Page {
         jsonPreview.setTextFill(VoxelColors.ZINC_300);
         jsonPreview.setBackgroundFill(VoxelColors.ZINC_960);
         jsonPreview.setBorderFill(VoxelColors.ZINC_800);
-        jsonPreview.setFont(Font.font("Monospaced", 14));
+        jsonPreview.setFont(VoxelFonts.codeBlock(14));
+        jsonPreview.setFontSmoothingType(FontSmoothingType.LCD);
         jsonPreview.setContentPadding(new Insets(18));
         jsonPreview.setLineSpacing(5);
         jsonPreview.setWrapText(false);

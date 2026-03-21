@@ -40,6 +40,7 @@ import javafx.scene.shape.PathElement;
 import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.scene.text.TextFlow;
@@ -59,6 +60,7 @@ public final class CodeBlock extends Region {
     private final StringProperty text = new SimpleStringProperty(this, "text", "");
     private final ObjectProperty<CodeBlockHighlighter> highlighter = new SimpleObjectProperty<>(this, "highlighter");
     private final ObjectProperty<Font> font = new SimpleObjectProperty<>(this, "font", Font.font("Monospaced", 13));
+    private final ObjectProperty<FontSmoothingType> fontSmoothingType = new SimpleObjectProperty<>(this, "fontSmoothingType", FontSmoothingType.LCD);
     private final ObjectProperty<Paint> textFill = new SimpleObjectProperty<>(this, "textFill", Color.web("#abb2bf"));
     private final ObjectProperty<Paint> backgroundFill = new SimpleObjectProperty<>(this, "backgroundFill", VoxelColors.ZINC_950);
     private final ObjectProperty<Paint> borderFill = new SimpleObjectProperty<>(this, "borderFill", VoxelColors.ZINC_800);
@@ -111,6 +113,7 @@ public final class CodeBlock extends Region {
         });
 
         font.addListener((obs, oldValue, newValue) -> markGeometryDirty());
+        fontSmoothingType.addListener((obs, oldValue, newValue) -> markRenderDirty());
         textFill.addListener((obs, oldValue, newValue) -> {
             baseText.setFill(newValue);
             markRenderDirty();
@@ -204,6 +207,18 @@ public final class CodeBlock extends Region {
 
     public ObjectProperty<Paint> textFillProperty() {
         return textFill;
+    }
+
+    public FontSmoothingType getFontSmoothingType() {
+        return fontSmoothingType.get();
+    }
+
+    public void setFontSmoothingType(FontSmoothingType value) {
+        fontSmoothingType.set(value);
+    }
+
+    public ObjectProperty<FontSmoothingType> fontSmoothingTypeProperty() {
+        return fontSmoothingType;
     }
 
     public Paint getBackgroundFill() {
@@ -304,7 +319,7 @@ public final class CodeBlock extends Region {
         BackgroundFill fill = new BackgroundFill(getBackgroundFill(), new CornerRadii(10), Insets.EMPTY);
         setBackground(new Background(fill));
         setBorder(new Border(new BorderStroke(getBorderFill(), BorderStrokeStyle.SOLID, new CornerRadii(10), BorderStroke.THIN)));
-        contentPane.setBackground(Background.EMPTY);
+        contentPane.setBackground(new Background(fill));
     }
 
     private void updateBaseTextGeometry() {
@@ -385,6 +400,7 @@ public final class CodeBlock extends Region {
         node.setBoundsType(TextBoundsType.LOGICAL);
         node.setText(getText());
         node.setFont(getFont());
+        node.setFontSmoothingType(getFontSmoothingType());
         node.setFill(fill);
         node.setLineSpacing(getLineSpacing());
         node.setWrappingWidth(wrappingWidth);
@@ -521,6 +537,7 @@ public final class CodeBlock extends Region {
             Paint fill = resolveForegroundFill(start, end);
             Text run = new Text(content.substring(start, end));
             run.setFont(getFont());
+            run.setFontSmoothingType(getFontSmoothingType());
             run.setFill(fill);
             run.setBoundsType(TextBoundsType.LOGICAL);
             runs.add(run);
