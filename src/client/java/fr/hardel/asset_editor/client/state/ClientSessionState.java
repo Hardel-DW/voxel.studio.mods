@@ -6,7 +6,6 @@ import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
 import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
-import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 import javafx.collections.FXCollections;
@@ -102,10 +101,6 @@ public final class ClientSessionState {
             state.worldSessionKey(),
             state.permissionsReceived(),
             true));
-    }
-
-    public void refreshPackList() {
-        Minecraft.getInstance().execute(() -> ClientPayloadSender.send(new PackListRequestPayload()));
     }
 
     public void createPack(String name, String namespace) {

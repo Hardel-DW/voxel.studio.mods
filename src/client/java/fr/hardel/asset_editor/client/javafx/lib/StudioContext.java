@@ -176,19 +176,10 @@ public final class StudioContext {
         return conn.registryAccess().lookup(registryKey).flatMap(registry -> registry.get(ResourceKey.create(registryKey, id)));
     }
 
-    public void resyncWorldSession(boolean force) {
+    public void resyncWorldSession() {
         String nextKey = sessionState.worldSessionKey();
-        if (workspaceState.worldSessionKey().equals(nextKey)) {
-            if (force) {
-                ClientDebugTelemetry.lifecycle(
-                    I18n.get("debug:telemetry.window_focus_resync_kept_workspace"),
-                    Map.of("worldSessionKey", nextKey, "refreshPackList", "true"));
-
-                sessionState.refreshPackList();
-            }
-
+        if (workspaceState.worldSessionKey().equals(nextKey))
             return;
-        }
 
         ClientDebugTelemetry.lifecycle(
             I18n.get("debug:telemetry.world_session_changed"),
@@ -196,7 +187,6 @@ public final class StudioContext {
 
         workspaceState.setWorldSessionKey(nextKey);
         workspaceState.resetForWorldSync();
-        sessionState.refreshPackList();
         snapshotRegistries();
     }
 

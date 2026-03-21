@@ -46,7 +46,6 @@ public final class StudioEditorRoot extends HBox {
     public StudioEditorRoot(Stage stage, ClientSessionState sessionState, ClientSessionDispatch dispatch) {
         this.context = new StudioContext(sessionState, dispatch);
         getStyleClass().add("studio-root");
-        context.sessionState().refreshPackList();
 
         StudioPrimarySidebar sidebar = new StudioPrimarySidebar(context);
         StudioEditorTabsBar header = new StudioEditorTabsBar(context, stage);

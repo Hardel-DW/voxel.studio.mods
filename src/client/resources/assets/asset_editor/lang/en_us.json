@@ -95,6 +95,7 @@
     "debug:network.column.time": "Time",
     "debug:network.column.direction": "Direction",
     "debug:network.column.title": "Title",
+    "debug:network.column.description": "Description",
     "debug:network.placeholder": "No network activity",
     "debug:network.count": "%s packets",
     "debug:network.no_additional_data": "No additional data",

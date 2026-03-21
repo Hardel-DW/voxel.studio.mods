@@ -52,7 +52,8 @@ public final class DebugNetworkPage extends VBox implements Page {
         table.addColumn(I18n.get("debug:network.column.time"), 100, this::timeCell);
         table.addColumn(I18n.get("debug:network.column.direction"), 80, this::directionCell);
         table.addColumn(I18n.get("debug:network.column.payload_id"), 220, this::payloadIdCell);
-        table.addColumn(I18n.get("debug:network.column.title"), -1, this::titleCell);
+        table.addColumn(I18n.get("debug:network.column.title"), 200, this::titleCell);
+        table.addColumn(I18n.get("debug:network.column.description"), -1, this::descriptionCell);
         table.addColumn("", 40, this::copyCell);
         table.setExpandFactory(this::detailNode);
         table.setIdExtractor(TraceEntry::id);
@@ -153,27 +154,27 @@ public final class DebugNetworkPage extends VBox implements Page {
     }
 
     private Node titleCell(TraceEntry entry) {
-        String base = "debug:payload." + entry.payloadId().getNamespace() + "." + entry.payloadId().getPath().replace('/', '.');
-        String titleKey = base + ".title";
-        String descKey = base + ".description";
+        String titleKey = payloadKeyBase(entry) + ".title";
         String title = I18n.exists(titleKey) ? I18n.get(titleKey) : entry.payloadId().getPath();
+        Label label = new Label(title);
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
+        label.setTextFill(VoxelColors.ZINC_300);
+        label.setWrapText(true);
+        return label;
+    }
 
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 13));
-        titleLabel.setTextFill(VoxelColors.ZINC_300);
-        titleLabel.setWrapText(true);
+    private Node descriptionCell(TraceEntry entry) {
+        String descKey = payloadKeyBase(entry) + ".description";
+        String desc = I18n.exists(descKey) ? I18n.get(descKey) : "";
+        Label label = new Label(desc);
+        label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
+        label.setTextFill(VoxelColors.ZINC_500);
+        label.setWrapText(true);
+        return label;
+    }
 
-        if (I18n.exists(descKey)) {
-            Label descLabel = new Label(I18n.get(descKey));
-            descLabel.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 11));
-            descLabel.setTextFill(VoxelColors.ZINC_500);
-            descLabel.setWrapText(true);
-            VBox box = new VBox(2, titleLabel, descLabel);
-            box.setMaxWidth(Double.MAX_VALUE);
-            return box;
-        }
-
-        return titleLabel;
+    private static String payloadKeyBase(TraceEntry entry) {
+        return "debug:payload." + entry.payloadId().getNamespace() + "." + entry.payloadId().getPath().replace('/', '.');
     }
 
     private Node copyCell(TraceEntry entry) {

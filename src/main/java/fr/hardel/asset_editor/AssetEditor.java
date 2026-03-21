@@ -56,12 +56,19 @@ public class AssetEditor implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             server.execute(() -> {
                 var permManager = PermissionManager.get();
-                if (permManager != null)
+                if (permManager != null) {
                     permManager.syncToPlayer(handler.getPlayer());
+                }
 
                 PACK_SERVICE.listPacks()
                     .ifPresent(packs -> AssetEditorNetworking.sendPackList(handler.getPlayer(), packs));
             });
+        });
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            if (success) {
+                PACK_SERVICE.listPacks().ifPresent(packs -> AssetEditorNetworking.broadcastPackList(server, packs));
+            }
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));

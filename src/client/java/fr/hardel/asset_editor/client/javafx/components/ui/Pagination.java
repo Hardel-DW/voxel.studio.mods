@@ -6,11 +6,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 
 import java.util.function.IntConsumer;
 
 public final class Pagination extends HBox {
+
+    private static final int VISIBLE = 5;
 
     private int currentPage;
     private int totalPages;
@@ -49,36 +50,18 @@ public final class Pagination extends HBox {
         this.onPageChange = listener;
     }
 
-    private static final int SLOT_COUNT = 5;
-
     private void rebuild() {
         getChildren().clear();
         if (totalPages <= 1) return;
 
+        int count = Math.min(totalPages, VISIBLE);
+        int half = count / 2;
+        int start = Math.max(0, Math.min(currentPage - half, totalPages - count));
+
         getChildren().add(navButton("<", currentPage > 0, currentPage - 1));
-
-        int last = totalPages - 1;
-        int center = Math.max(2, Math.min(currentPage, last - 2));
-        int[] pages = {0, center - 1, center, center + 1, last};
-
-        for (int i = 0; i < SLOT_COUNT; i++) {
-            if (i >= totalPages)
-                getChildren().add(spacer());
-            else if (i > 0 && pages[i] > pages[i - 1] + 1)
-                getChildren().add(ellipsis());
-            else
-                getChildren().add(pageButton(pages[i]));
-        }
-
-        getChildren().add(navButton(">", currentPage < last, currentPage + 1));
-    }
-
-    private static Region spacer() {
-        Region region = new Region();
-        region.setPrefSize(28, 28);
-        region.setMinSize(28, 28);
-        region.setMaxSize(28, 28);
-        return region;
+        for (int i = 0; i < count; i++)
+            getChildren().add(pageButton(start + i));
+        getChildren().add(navButton(">", currentPage < totalPages - 1, currentPage + 1));
     }
 
     private Label pageButton(int page) {
@@ -108,15 +91,6 @@ public final class Pagination extends HBox {
             label.setOnMouseClicked(e -> setCurrentPage(targetPage));
         }
 
-        return label;
-    }
-
-    private static Label ellipsis() {
-        Label label = new Label("…");
-        label.setFont(VoxelFonts.of(VoxelFonts.Variant.REGULAR, 12));
-        label.setTextFill(VoxelColors.ZINC_600);
-        label.setPrefSize(28, 28);
-        label.setAlignment(Pos.CENTER);
         return label;
     }
 }

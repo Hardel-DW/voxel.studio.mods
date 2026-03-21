@@ -38,7 +38,9 @@ public final class RecordIntrospector {
         List<Field> fields = new ArrayList<>(components.length);
         for (RecordComponent component : components) {
             try {
-                Object value = component.getAccessor().invoke(obj);
+                var accessor = component.getAccessor();
+                accessor.setAccessible(true);
+                Object value = accessor.invoke(obj);
                 fields.add(new Field(component.getName(), resolve(value, depth)));
             } catch (ReflectiveOperationException e) {
                 DebugLogStore.log(DebugLogStore.Level.ERROR, DebugLogStore.Category.LIFECYCLE,

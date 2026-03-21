@@ -150,7 +150,7 @@ public final class VoxelStudioWindow extends MinecraftStageWindow {
 
     private void resync() {
         if (editorRoot != null)
-            editorRoot.context().resyncWorldSession(true);
+            editorRoot.context().resyncWorldSession();
     }
 
     private void loadFonts() {

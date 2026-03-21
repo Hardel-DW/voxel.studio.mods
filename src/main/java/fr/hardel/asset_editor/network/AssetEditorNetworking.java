@@ -57,6 +57,12 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
+    public static void broadcastPackList(MinecraftServer server, java.util.List<ServerPackManager.PackEntry> packs) {
+        PackListSyncPayload payload = new PackListSyncPayload(packs);
+        for (ServerPlayer player : server.getPlayerList().getPlayers())
+            ServerPlayNetworking.send(player, payload);
+    }
+
     private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) {
         ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, snapshot));
     }
@@ -70,7 +76,7 @@ public final class AssetEditorNetworking {
     }
 
     private static void handlePackCreate(PackCreatePayload payload, ServerPlayNetworking.Context context) {
-        context.server().execute(() -> PACK_SERVICE.createPack(context.player(), payload.name(), payload.namespace()).ifPresent(packs -> sendPackList(context.player(), packs)));
+        context.server().execute(() -> PACK_SERVICE.createPack(context.player(), payload.name(), payload.namespace()).ifPresent(packs -> broadcastPackList(context.server(), packs)));
     }
 
     private static void handleWorkspaceMutation(WorkspaceMutationRequestPayload payload, ServerPlayNetworking.Context context) {

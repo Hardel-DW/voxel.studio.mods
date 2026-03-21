@@ -56,3 +56,4 @@ Chaque mutation fait un flushDirty() qui écrit sur disque de manière synchrone
 Quand le planner calcule les tags affectés, il collecte les memberships de tous les éléments du workspace (reference ET current). Pour les éléments non-dirty, il applique quand même adapter.prepare(). Ça veut 
 dire que si un enchantment a été modifié (mode → disable) mais n'est pas dirty (parce que c'est un état hérité d'un lower layer), son exclusion des tags est quand même appliquée dans le calcul.
 C'est correct en termes de résultat, mais c'est un risque de performance sur de gros registries.
+
