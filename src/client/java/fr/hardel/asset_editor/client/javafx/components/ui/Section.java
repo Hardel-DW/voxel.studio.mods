@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
@@ -16,6 +17,8 @@ public final class Section extends VBox {
 
     public Section(String title) {
         setSpacing(0);
+        setFillWidth(true);
+        setMaxWidth(Double.MAX_VALUE);
 
         HBox titleRow = new HBox(16);
         titleRow.setAlignment(Pos.CENTER_LEFT);
@@ -31,13 +34,22 @@ public final class Section extends VBox {
         hr.setMaxWidth(Double.MAX_VALUE);
 
         VBox titleBlock = new VBox(8, titleLabel, hr);
+        titleBlock.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(titleBlock, Priority.ALWAYS);
         titleRow.getChildren().add(titleBlock);
 
         childrenBox.setPadding(new Insets(16, 0, 0, 0));
+        childrenBox.setFillWidth(true);
+        VBox.setVgrow(childrenBox, Priority.ALWAYS);
         getChildren().addAll(titleRow, childrenBox);
     }
 
     public void addContent(Node... nodes) {
-        childrenBox.getChildren().addAll(nodes);
+        for (Node node : nodes) {
+            if (node instanceof Region region)
+                region.setMaxWidth(Double.MAX_VALUE);
+
+            childrenBox.getChildren().add(node);
+        }
     }
 }

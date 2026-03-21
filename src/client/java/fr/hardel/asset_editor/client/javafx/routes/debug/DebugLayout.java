@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 public final class DebugLayout extends VBox implements Page {
 
     private static final String TAB_WORKSPACE = "workspace";
+    private static final String TAB_CODE = "code";
     private static final String TAB_RENDER = "render";
     private static final String TAB_LOGS = "logs";
     private static final String TAB_NETWORK = "network";
@@ -105,6 +106,7 @@ public final class DebugLayout extends VBox implements Page {
         tabs.setPadding(new Insets(24, 0, 0, 0));
         tabs.getChildren().addAll(
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.workspace"), TAB_WORKSPACE.equals(currentTab), () -> showTab(TAB_WORKSPACE)),
+            new EditorHeaderTabItem(I18n.get("debug:layout.tab.code"), TAB_CODE.equals(currentTab), () -> showTab(TAB_CODE)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.render"), TAB_RENDER.equals(currentTab), () -> showTab(TAB_RENDER)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.logs"), TAB_LOGS.equals(currentTab), () -> showTab(TAB_LOGS)),
             new EditorHeaderTabItem(I18n.get("debug:layout.tab.network"), TAB_NETWORK.equals(currentTab), () -> showTab(TAB_NETWORK)));
@@ -116,6 +118,7 @@ public final class DebugLayout extends VBox implements Page {
         currentTab = tab;
         subtitle.setText(switch (tab) {
             case TAB_WORKSPACE -> I18n.get("debug:layout.subtitle.workspace");
+            case TAB_CODE -> I18n.get("debug:layout.subtitle.code");
             case TAB_LOGS -> I18n.get("debug:layout.subtitle.logs");
             case TAB_NETWORK -> I18n.get("debug:layout.subtitle.network");
             default -> I18n.get("debug:layout.subtitle.render");
@@ -131,6 +134,7 @@ public final class DebugLayout extends VBox implements Page {
     private Node createPage(String tab) {
         Supplier<Node> factory = switch (tab) {
             case TAB_WORKSPACE -> () -> new DebugWorkspacePage(context);
+            case TAB_CODE -> DebugCodeBlockPage::new;
             case TAB_LOGS -> DebugLogsPage::new;
             case TAB_NETWORK -> DebugNetworkPage::new;
             default -> DebugRenderPage::new;
