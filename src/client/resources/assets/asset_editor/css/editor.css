@@ -477,7 +477,6 @@
 
 .ui-tree-row-accent {
     -fx-background-radius: 0 999 999 0;
-    -fx-effect: dropshadow(gaussian, #8a8a93, 8, 0.2, 0, 0);
 }
 
 .ui-tree-sidebar-row-label {

@@ -107,19 +107,6 @@ public final class FileTreeView extends VBox {
             row.setOpacity(0.5);
         }
 
-        if (isHighlighted) {
-            Color accentColor = ColorUtils.accentColor(isElement ? node.elementId() : path);
-            Region accent = new Region();
-            accent.getStyleClass().add("ui-tree-row-accent");
-            accent.setPrefWidth(4);
-            accent.setMinWidth(4);
-            accent.setMaxWidth(4);
-            accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(accentColor) + ";");
-            StackPane.setAlignment(accent, Pos.CENTER_LEFT);
-            StackPane.setMargin(accent, new Insets(8, 0, 8, 0));
-            rowContainer.getChildren().add(accent);
-        }
-
         if (!isElement) {
             Node chevronIcon = new SvgIcon(CHEVRON_ICON, 12, Color.WHITE);
             chevronIcon.setRotate(isOpen ? 0 : -90);
@@ -181,6 +168,20 @@ public final class FileTreeView extends VBox {
         }
 
         rowContainer.getChildren().add(row);
+
+        if (isHighlighted) {
+            Color accentColor = ColorUtils.accentColor(isElement ? node.elementId() : path);
+            Region accent = new Region();
+            accent.getStyleClass().add("ui-tree-row-accent");
+            accent.setPrefWidth(4);
+            accent.setMinWidth(4);
+            accent.setMaxWidth(4);
+            accent.setStyle("-fx-background-color: " + ColorUtils.toCssRgba(accentColor) + ";");
+            StackPane.setAlignment(accent, Pos.CENTER_LEFT);
+            StackPane.setMargin(accent, new Insets(8, 0, 8, 0));
+            rowContainer.getChildren().add(accent);
+        }
+
         wrapper.getChildren().add(rowContainer);
 
         if (hasChildren && isOpen) {
