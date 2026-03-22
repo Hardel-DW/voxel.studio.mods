@@ -4,37 +4,27 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import fr.hardel.asset_editor.client.compose.components.page.ChangesPage
-import fr.hardel.asset_editor.client.compose.components.page.DebugPage
-import fr.hardel.asset_editor.client.compose.components.page.EnchantmentPage
-import fr.hardel.asset_editor.client.compose.components.page.LootTablePage
-import fr.hardel.asset_editor.client.compose.components.page.RecipePage
+import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesLayout
+import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentLayout
+import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableLayout
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeLayout
+import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
-import fr.hardel.asset_editor.client.compose.routes.StudioRouter
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
 
 @Composable
-fun ContentOutlet(router: StudioRouter, modifier: Modifier = Modifier) {
+fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
-        when (val route = router.currentRoute) {
+        when (val route = context.router.currentRoute) {
             is StudioRoute.NoPermission -> NoPermissionPage()
-            is StudioRoute.Debug -> DebugPage()
-            is StudioRoute.ChangesMain -> ChangesPage()
-
-            is StudioRoute.EnchantmentOverview,
-            is StudioRoute.EnchantmentMain,
-            is StudioRoute.EnchantmentFind,
-            is StudioRoute.EnchantmentSlots,
-            is StudioRoute.EnchantmentItems,
-            is StudioRoute.EnchantmentExclusive,
-            is StudioRoute.EnchantmentTechnical,
-            is StudioRoute.EnchantmentSimulation -> EnchantmentPage(route)
-
-            is StudioRoute.LootTableOverview,
-            is StudioRoute.LootTableMain,
-            is StudioRoute.LootTablePools -> LootTablePage(route)
-
-            is StudioRoute.RecipeOverview,
-            is StudioRoute.RecipeMain -> RecipePage(route)
+            is StudioRoute.Debug -> DebugLayout(context)
+            is StudioRoute.ChangesMain -> ChangesLayout()
+            else -> when (route.concept) {
+                "enchantment" -> EnchantmentLayout(context)
+                "loot_table" -> LootTableLayout(context)
+                "recipe" -> RecipeLayout(context)
+                else -> NoPermissionPage()
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.layout.editor
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,8 +27,10 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
+import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
-import fr.hardel.asset_editor.client.compose.routes.StudioRouter
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
@@ -35,10 +38,11 @@ private val DEBUG_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "ic
 private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/settings.svg")
 
 @Composable
-fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
+fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
+            .background(VoxelColors.Sidebar)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -47,8 +51,9 @@ fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
                 .height(64.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable {
-                    val overview = StudioRoute.overviewOf(router.currentRoute.concept)
-                    router.navigate(overview)
+                    val overview = StudioConcept.firstAccessible(context.permissions)?.overviewRoute
+                        ?: StudioRoute.EnchantmentOverview
+                    context.router.navigate(overview)
                 }
         ) {
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
@@ -63,7 +68,20 @@ fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
                 .padding(top = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Concept cards will go here when concepts are wired
+            StudioConcept.entries
+                .filter { it != StudioConcept.STRUCTURE }
+                .filter { !context.permissions.isNone }
+                .forEach { concept ->
+                    ConceptButton(
+                        concept = concept,
+                        active = context.router.currentRoute.concept == concept.registry(),
+                        onClick = {
+                            context.uiState().setFilterPath("")
+                            context.tabsState().setCurrentElementId("")
+                            context.router.navigate(concept.overviewRoute)
+                        }
+                    )
+                }
         }
 
         Column(
@@ -71,9 +89,30 @@ fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            SidebarIconButton(icon = DEBUG_ICON) { router.navigate(StudioRoute.Debug) }
+            SidebarIconButton(icon = DEBUG_ICON) { context.router.navigate(StudioRoute.Debug) }
             SidebarIconButton(icon = SETTINGS_ICON) {}
         }
+    }
+}
+
+@Composable
+private fun ConceptButton(
+    concept: StudioConcept,
+    active: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(56.dp)
+            .background(
+                color = if (active) Color(0xFF141418) else Color.Transparent,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+            )
+            .pointerHoverIcon(PointerIcon.Hand)
+            .clickable(onClick = onClick)
+    ) {
+        ResourceImageIcon(concept.icon, 24.dp)
     }
 }
 

@@ -1,0 +1,166 @@
+package fr.hardel.asset_editor.client.compose.routes.debug
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.components.ui.Button
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
+import fr.hardel.asset_editor.client.compose.components.ui.DataTable
+import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
+import fr.hardel.asset_editor.client.debug.DebugLogStore
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import net.minecraft.client.resources.language.I18n
+
+private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
+
+@Composable
+fun DebugLogsPage() {
+    var version by remember { mutableIntStateOf(0) }
+    var currentPage by remember { mutableStateOf(0) }
+
+    DisposableEffect(Unit) {
+        val subscription = DebugLogStore.subscribe(Runnable { version++ })
+        onDispose(subscription::run)
+    }
+
+    val entries = remember(version) { DebugLogStore.entries() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = I18n.get("debug:logs.count", entries.size),
+                style = VoxelTypography.regular(12),
+                color = VoxelColors.Zinc500
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = {
+                    val serialized = buildString {
+                        append("[\n")
+                        entries.forEachIndexed { index, entry ->
+                            append("  {\"timestamp\":${entry.timestamp()},\"level\":\"${entry.level()}\",\"category\":\"${entry.category()}\",\"message\":")
+                            append("\"${entry.message().replace("\"", "\\\"")}\"")
+                            if (entry.data().isNotEmpty()) {
+                                append(",\"data\":{")
+                                entry.data().entries.joinToString(",") { "\"${it.key}\":\"${it.value.replace("\"", "\\\"")}\"" }.also(::append)
+                                append("}")
+                            }
+                            append("}")
+                            if (index < entries.lastIndex) append(",")
+                            append("\n")
+                        }
+                        append("]")
+                    }
+                    Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(serialized), null)
+                },
+                variant = ButtonVariant.GHOST_BORDER,
+                size = ButtonSize.SM,
+                text = I18n.get("debug:logs.action.copy_all")
+            )
+            Button(
+                onClick = DebugLogStore::clear,
+                variant = ButtonVariant.GHOST_BORDER,
+                size = ButtonSize.SM,
+                text = I18n.get("debug:action.clear")
+            )
+        }
+
+        DataTable(
+            items = entries,
+            columns = listOf(
+                TableColumn(I18n.get("debug:logs.column.time"), weight = 0.8f) { entry ->
+                    Text(TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = VoxelTypography.regular(11), color = VoxelColors.Zinc500)
+                },
+                TableColumn(I18n.get("debug:logs.column.level"), weight = 0.7f) { entry ->
+                    Text(I18n.get("debug:logs.level.${entry.level().name.lowercase()}"), style = VoxelTypography.semiBold(11), color = levelColor(entry.level()))
+                },
+                TableColumn(I18n.get("debug:logs.column.category"), weight = 0.9f) { entry ->
+                    Text(I18n.get("debug:logs.category.${entry.category().name.lowercase()}"), style = VoxelTypography.medium(11), color = VoxelColors.Zinc400)
+                },
+                TableColumn(I18n.get("debug:logs.column.message"), weight = 2.6f) { entry ->
+                    Text(entry.message(), style = VoxelTypography.regular(13), color = VoxelColors.Zinc300)
+                }
+            ),
+            pageSize = 50,
+            currentPage = currentPage,
+            onPageChange = { page -> currentPage = page },
+            placeholder = I18n.get("debug:logs.placeholder"),
+            idExtractor = { entry -> entry.id() },
+            expandedIds = emptySet(),
+            onToggleExpand = null,
+            expandContent = { entry ->
+                if (entry.data().isEmpty()) {
+                    Text(
+                        text = I18n.get("debug:logs.no_additional_data"),
+                        style = VoxelTypography.regular(12),
+                        color = VoxelColors.Zinc500
+                    )
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    ) {
+                        entry.data().forEach { (key, value) ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(key, style = VoxelTypography.medium(11), color = VoxelColors.Zinc500)
+                                Text(value, style = VoxelTypography.regular(12), color = VoxelColors.Zinc300, modifier = Modifier.weight(1f))
+                                CopyButton(textProvider = { value })
+                            }
+                        }
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        )
+    }
+}
+
+private fun levelColor(level: DebugLogStore.Level): Color =
+    when (level) {
+        DebugLogStore.Level.INFO -> VoxelColors.Sky400
+        DebugLogStore.Level.WARN -> VoxelColors.Amber400
+        DebugLogStore.Level.ERROR -> VoxelColors.Red400
+        DebugLogStore.Level.SUCCESS -> VoxelColors.Emerald400
+    }
