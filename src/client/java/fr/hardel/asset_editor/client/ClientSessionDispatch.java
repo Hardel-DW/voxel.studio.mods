@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client;
 
 import fr.hardel.asset_editor.client.action.WorkspaceSyncGateway;
+import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
@@ -52,6 +53,11 @@ public final class ClientSessionDispatch {
     }
 
     private void runSessionUpdate(Runnable update) {
+        if (!VoxelStudioWindow.isUiThreadAvailable()) {
+            update.run();
+            return;
+        }
+
         runOnUiThread(update);
     }
 

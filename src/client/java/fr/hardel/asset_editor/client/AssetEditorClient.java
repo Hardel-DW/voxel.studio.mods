@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.AssetEditor;
-import fr.hardel.asset_editor.client.compose.window.ComposeStudioWindow;
+import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
@@ -45,12 +45,12 @@ public class AssetEditorClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientPreferences.load();
-        ComposeStudioWindow.initializeRuntime();
+        VoxelStudioWindow.initializeRuntime();
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {
                 SESSION_STATE.clear();
-                ComposeStudioWindow.notifyWorldClosed();
+                VoxelStudioWindow.notifyWorldClosed();
             }
 
             this.hadWorld = hasWorld;
@@ -69,7 +69,7 @@ public class AssetEditorClient implements ClientModInitializer {
                 return;
             }
 
-            ComposeStudioWindow.requestOpen();
+            VoxelStudioWindow.requestOpen();
         });
 
         ClientNetworkHandler.register();
@@ -83,7 +83,7 @@ public class AssetEditorClient implements ClientModInitializer {
         @Override
         public void onResourceManagerReload(@NonNull ResourceManager manager) {
             ItemAtlasRenderer.requestGeneration();
-            ComposeStudioWindow.notifyResourceReload();
+            VoxelStudioWindow.notifyResourceReload();
         }
     }
 
