@@ -5,13 +5,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import fr.hardel.asset_editor.client.compose.VoxelColors
 
 private const val CELL_SIZE = 64f
-private val LINE_COLOR = Color.White.copy(alpha = 0.1f)
+private val LINE_COLOR = VoxelColors.Zinc950
+private val GRID_DIM = Color.Black.copy(alpha = 0.6f)
 
 @Composable
 fun GridBackground(modifier: Modifier = Modifier) {
@@ -48,18 +51,18 @@ private fun DrawScope.drawGrid() {
         translate(left = cx, top = cy)
         scale(scaleX = 1f, scaleY = ry / rx, pivot = Offset.Zero)
     }) {
-        drawCircle(
+        drawRect(
             brush = Brush.radialGradient(
                 colorStops = arrayOf(
                     0.0f to Color.Transparent,
-                    0.7f to Color.Transparent,
-                    1.0f to Color.Black
+                    0.4f to Color.Transparent,
+                    1.0f to GRID_DIM
                 ),
                 center = Offset.Zero,
-                radius = rx
+                radius = 1f
             ),
-            radius = maxOf(w, h) * 2f,
-            center = Offset.Zero
+            topLeft = Offset(-w / (2f * rx), -h / (2f * ry)),
+            size = Size(w / rx, h / ry)
         )
     }
 }

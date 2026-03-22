@@ -1,34 +1,24 @@
 package fr.hardel.asset_editor.client.compose.components.layout.editor
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.components.ui.FileInput
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
-import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import java.io.File
 import net.minecraft.client.resources.language.I18n
@@ -49,110 +39,84 @@ object PackCreateDialog {
         var iconFile by remember { mutableStateOf<File?>(null) }
 
         Dialog(
-            onCloseRequest = onDismiss,
-            resizable = false
-        ) {
-            Box(
-                modifier = Modifier
-                    .widthIn(min = 360.dp, max = 460.dp)
-                    .background(Color(0xFF09090B), RoundedCornerShape(12.dp))
-            ) {
-                ShineOverlay(opacity = 0.12f)
-
-                Column(
-                    modifier = Modifier.padding(20.dp)
-                ) {
-                    Text(
-                        text = I18n.get("studio:pack.create.title"),
-                        style = VoxelTypography.semiBold(18),
-                        color = VoxelColors.Zinc100
-                    )
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.padding(top = 24.dp)
-                    ) {
-                        FieldLabel("studio:pack.create.name")
-                        InputText(
-                            value = name,
-                            onValueChange = { value ->
-                                name = value
-                                errorMessage = null
-                                if (!userEditedNamespace) {
-                                    syncing = true
-                                    namespace = value.lowercase().replace(Regex("[^a-z0-9_]"), "_")
-                                    syncing = false
-                                }
-                            },
-                            placeholder = I18n.get("studio:pack.create.name.placeholder")
-                        )
-
-                        FieldLabel("studio:pack.create.namespace")
-                        InputText(
-                            value = namespace,
-                            onValueChange = { value ->
-                                namespace = value
-                                errorMessage = null
-                                if (!syncing) {
-                                    userEditedNamespace = true
-                                }
-                            },
-                            placeholder = I18n.get("studio:pack.create.namespace.placeholder")
-                        )
-
-                        FieldLabel("studio:pack.create.icon")
-                        FileInput(
-                            promptText = I18n.get("studio:pack.create.icon.placeholder"),
-                            accept = "*.png",
-                            onFileSelected = { file ->
-                                iconFile = file
-                            }
-                        )
-
-                        if (errorMessage != null) {
-                            Text(
-                                text = errorMessage!!,
-                                style = VoxelTypography.regular(12),
-                                color = VoxelColors.Red400
-                            )
+            title = I18n.get("studio:pack.create.title"),
+            onDismiss = onDismiss,
+            footer = {
+                Button(
+                    onClick = onDismiss,
+                    variant = ButtonVariant.GHOST_BORDER,
+                    size = ButtonSize.SM,
+                    text = I18n.get("studio:action.cancel")
+                )
+                Button(
+                    onClick = {
+                        val nextName = name.trim()
+                        val nextNamespace = namespace.trim()
+                        errorMessage = when {
+                            nextName.isEmpty() || nextNamespace.isEmpty() ->
+                                I18n.get("error:pack_name_and_namespace_required")
+                            !Identifier.isValidNamespace(nextNamespace) ->
+                                I18n.get("error:invalid_namespace")
+                            else -> null
                         }
-                    }
+                        if (errorMessage == null) {
+                            context.packState().createPack(nextName, nextNamespace)
+                            onDismiss()
+                        }
+                    },
+                    variant = ButtonVariant.SHIMMER,
+                    size = ButtonSize.SM,
+                    text = I18n.get("studio:action.create")
+                )
+            }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                FieldLabel("studio:pack.create.name")
+                InputText(
+                    value = name,
+                    onValueChange = { value ->
+                        name = value
+                        errorMessage = null
+                        if (!userEditedNamespace) {
+                            syncing = true
+                            namespace = value.lowercase().replace(Regex("[^a-z0-9_]"), "_")
+                            syncing = false
+                        }
+                    },
+                    placeholder = I18n.get("studio:pack.create.name.placeholder")
+                )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 20.dp)
-                    ) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        Button(
-                            onClick = onDismiss,
-                            variant = ButtonVariant.GHOST_BORDER,
-                            size = ButtonSize.SM,
-                            text = I18n.get("studio:action.cancel")
-                        )
-                        Button(
-                            onClick = {
-                                val nextName = name.trim()
-                                val nextNamespace = namespace.trim()
-                                errorMessage = when {
-                                    nextName.isEmpty() || nextNamespace.isEmpty() ->
-                                        I18n.get("error:pack_name_and_namespace_required")
-                                    !Identifier.isValidNamespace(nextNamespace) ->
-                                        I18n.get("error:invalid_namespace")
-                                    else -> null
-                                }
-                                if (errorMessage == null) {
-                                    context.packState().createPack(nextName, nextNamespace)
-                                    onDismiss()
-                                }
-                            },
-                            variant = ButtonVariant.SHIMMER,
-                            size = ButtonSize.SM,
-                            text = I18n.get("studio:action.create")
-                        )
+                FieldLabel("studio:pack.create.namespace")
+                InputText(
+                    value = namespace,
+                    onValueChange = { value ->
+                        namespace = value
+                        errorMessage = null
+                        if (!syncing) {
+                            userEditedNamespace = true
+                        }
+                    },
+                    placeholder = I18n.get("studio:pack.create.namespace.placeholder")
+                )
+
+                FieldLabel("studio:pack.create.icon")
+                FileInput(
+                    promptText = I18n.get("studio:pack.create.icon.placeholder"),
+                    accept = "*.png",
+                    onFileSelected = { file ->
+                        iconFile = file
                     }
+                )
+
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        style = VoxelTypography.regular(12),
+                        color = VoxelColors.Red400
+                    )
                 }
             }
         }

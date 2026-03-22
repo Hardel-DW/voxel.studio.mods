@@ -9,6 +9,7 @@ object VoxelColors {
     val Zinc300 = Color(0xFFD9D9DD)
     val Zinc400 = Color(0xFFA8A8B2)
     val Zinc500 = Color(0xFF7A7A85)
+    val Zinc650 = Color(0xFF52525B)
     val Zinc550 = Color(0xFF787878)
     val Zinc600 = Color(0xFF5C5C66)
     val Zinc700 = Color(0xFF48484F)
@@ -34,4 +35,10 @@ object VoxelColors {
     val Editor = Color(0xFF0F0E0E)
     val Content = Color(0xFF17171A)
     val Card = Color(0xFF1C1B1E)
+
+    val Border = Color(0xFF27272A)
+    val BorderHover = Color(0xFF3F3F46)
+    val SurfaceOverlay = Color(0xFF09090B)
+    val SurfaceRaised = Color(0xFF18181B)
+    val SurfaceHeader = Color(0xFF151418)
 }

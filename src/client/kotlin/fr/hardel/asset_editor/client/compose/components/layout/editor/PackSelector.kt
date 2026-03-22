@@ -23,7 +23,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -73,8 +77,8 @@ fun PackSelector(
                 anchorPosition = IntOffset(position.x.roundToInt(), position.y.roundToInt())
                 anchorSize = coordinates.size
             }
-            .background(if (hovered) Color(0xFF18181B) else Color.Transparent, packSelectorShape)
-            .border(1.dp, if (hovered) Color(0xFF3F3F46) else Color(0xFF27272A), packSelectorShape)
+            .background(if (hovered) VoxelColors.SurfaceRaised else Color.Transparent, packSelectorShape)
+            .border(1.dp, if (hovered) VoxelColors.BorderHover else VoxelColors.Border, packSelectorShape)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
@@ -105,13 +109,25 @@ fun PackSelector(
             onDismissRequest = { expanded = false },
             properties = PopupProperties(focusable = true)
         ) {
+            val popupShape = RoundedCornerShape(16.dp)
+
             Box(
                 modifier = Modifier
                     .width(280.dp)
-                    .background(Color(0xFF09090B), RoundedCornerShape(16.dp))
-                    .border(1.dp, Color(0xFF27272A), RoundedCornerShape(16.dp))
+                    .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
+                    .border(1.dp, VoxelColors.Border, popupShape)
+                    .background(VoxelColors.SurfaceOverlay, popupShape)
+                    .clip(popupShape)
             ) {
-                ShineOverlay(opacity = 0.12f)
+                ShineOverlay(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .graphicsLayer {
+                            scaleY = 0.35f
+                            transformOrigin = TransformOrigin(0.5f, 0f)
+                        },
+                    opacity = 0.12f
+                )
 
                 Column(
                     modifier = Modifier.padding(16.dp)
@@ -139,7 +155,7 @@ fun PackSelector(
                             .padding(vertical = 6.dp)
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(Color(0xFF27272A))
+                            .background(VoxelColors.Border)
                     )
 
                     CreatePackButton {
@@ -174,7 +190,7 @@ private fun PackRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (!selected && hovered) Color(0xFF18181B) else Color.Transparent,
+                color = if (!selected && hovered) VoxelColors.SurfaceRaised else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)
@@ -211,7 +227,7 @@ private fun CreatePackButton(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (hovered) Color(0xFF18181B) else Color.Transparent,
+                color = if (hovered) VoxelColors.SurfaceRaised else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)

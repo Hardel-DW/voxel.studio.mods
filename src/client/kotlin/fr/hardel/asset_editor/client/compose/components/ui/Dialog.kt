@@ -1,8 +1,11 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +19,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -39,6 +46,8 @@ fun Dialog(
     footer: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
+    val shape = RoundedCornerShape(12.dp)
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -52,17 +61,26 @@ fun Dialog(
         Box(
             modifier = modifier
                 .widthIn(min = 360.dp, max = 460.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(VoxelColors.Content)
+                .shadow(24.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
+                .border(1.dp, VoxelColors.Border, shape)
+                .background(VoxelColors.SurfaceOverlay, shape)
+                .clip(shape)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
                 ) {}
         ) {
-            ShineOverlay(opacity = 0.15f)
+            ShineOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        scaleY = 0.4f
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    },
+                opacity = 0.15f
+            )
 
             Column {
-                // Header
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
@@ -75,30 +93,33 @@ fun Dialog(
                         color = VoxelColors.Zinc100
                     )
                     Spacer(Modifier.weight(1f))
+                    val closeInteraction = remember { MutableInteractionSource() }
+                    val closeHovered by closeInteraction.collectIsHoveredAsState()
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .size(28.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (closeHovered) VoxelColors.Border else Color.Transparent)
+                            .hoverable(closeInteraction)
                             .pointerHoverIcon(PointerIcon.Hand)
                             .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
+                                interactionSource = closeInteraction,
                                 indication = null
                             ) { onDismiss() }
                     ) {
-                        SvgIcon(CLOSE_ICON, 16.dp, VoxelColors.Zinc400)
+                        SvgIcon(CLOSE_ICON, 16.dp, if (closeHovered) VoxelColors.Zinc100 else VoxelColors.Zinc400)
                     }
                 }
 
-                // Body
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 ) {
                     content()
                 }
 
-                // Footer
                 if (footer != null) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
