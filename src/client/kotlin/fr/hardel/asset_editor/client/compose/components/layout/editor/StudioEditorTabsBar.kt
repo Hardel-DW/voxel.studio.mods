@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.client.compose.components.layout.editor
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -11,15 +13,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -80,6 +86,10 @@ private fun StudioEditorTabItem(
     index: Int,
     active: Boolean
 ) {
+    val itemInteraction = remember(index) { MutableInteractionSource() }
+    val itemHovered by itemInteraction.collectIsHoveredAsState()
+    val closeInteraction = remember(index) { MutableInteractionSource() }
+    val closeHovered by closeInteraction.collectIsHoveredAsState()
     val concept = StudioConcept.byRoute(tab.route)
     val parsed = StudioElementId.parse(tab.elementId)
     val label = if (parsed != null) {
@@ -93,12 +103,17 @@ private fun StudioEditorTabItem(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .background(
-                color = if (active) Color(0xFF232328) else Color.Transparent,
+                color = when {
+                    active -> Color(0xFF232328)
+                    itemHovered -> VoxelColors.Zinc900
+                    else -> Color.Transparent
+                },
                 shape = RoundedCornerShape(6.dp)
             )
+            .hoverable(itemInteraction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = itemInteraction,
                 indication = null
             ) {
                 context.tabsState().switchTab(index)
@@ -106,20 +121,32 @@ private fun StudioEditorTabItem(
             }
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        ResourceImageIcon(concept.icon, 16.dp)
+        ResourceImageIcon(
+            location = concept.icon,
+            size = 16.dp,
+            modifier = Modifier.alpha(if (active) 1f else 0.85f)
+        )
         Text(
             text = label,
             style = VoxelTypography.medium(14),
             color = if (active) VoxelColors.Zinc100 else VoxelColors.Zinc400,
-            maxLines = 1
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            modifier = Modifier.widthIn(max = 192.dp)
         )
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(16.dp)
+                .alpha(if (active || itemHovered) 1f else 0f)
+                .background(
+                    color = if (closeHovered) Color(0xFF3F3F46) else Color.Transparent,
+                    shape = RoundedCornerShape(4.dp)
+                )
+                .hoverable(closeInteraction)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
+                    interactionSource = closeInteraction,
                     indication = null
                 ) {
                     context.tabsState().closeTab(index)
@@ -131,7 +158,7 @@ private fun StudioEditorTabItem(
             SvgIcon(
                 location = CLOSE_ICON,
                 size = 10.dp,
-                tint = if (active) VoxelColors.Zinc200 else VoxelColors.Zinc400
+                tint = if (closeHovered) Color.White else if (active) VoxelColors.Zinc200 else VoxelColors.Zinc400
             )
         }
     }

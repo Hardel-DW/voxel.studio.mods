@@ -1,6 +1,9 @@
 package fr.hardel.asset_editor.client.compose.routes.enchantment
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,30 +16,30 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
 import fr.hardel.asset_editor.client.compose.components.ui.ContentRow
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
-import fr.hardel.asset_editor.client.compose.components.ui.LayoutSpec
-import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
-import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleSwitch
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
+import fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentViewMatchers
-import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
-import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
@@ -77,32 +80,15 @@ fun EnchantmentOverviewPage(context: StudioContext) {
         if (filtered.isEmpty()) {
             EmptyOverviewState()
         } else {
-            if (context.viewMode == StudioViewMode.LIST) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 32.dp, vertical = 24.dp)
-                ) {
-                    filtered.forEach { entry ->
-                        OverviewRow(context, entry, dialogs)
-                    }
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 32.dp, vertical = 24.dp)
-                ) {
-                    ResponsiveGrid(
-                        items = filtered.map { entry -> { OverviewCard(context, entry, dialogs) } },
-                        defaultSpec = LayoutSpec.AutoFit(280.dp),
-                        rules = listOf(BreakpointRule(maxWidth = StudioBreakpoint.XL.px.dp, spec = LayoutSpec.Fixed(floatArrayOf(1f))))
-                    )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 32.dp, vertical = 24.dp)
+            ) {
+                filtered.forEach { entry ->
+                    OverviewRow(context, entry, dialogs)
                 }
             }
         }
@@ -144,88 +130,47 @@ private fun EmptyOverviewState() {
 }
 
 @Composable
-private fun OverviewCard(
-    context: StudioContext,
-    entry: ElementEntry<Enchantment>,
-    dialogs: fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
-) {
-    val enabled = !EnchantmentFlushAdapter.isSoftDeleted(entry)
-    val itemId = EnchantmentFlushAdapter.previewItemId(entry.data()) { tag -> context.resolveTag(Registries.ITEM, tag) }
-
-    SimpleCard(
-        onClick = {
-            context.openTab(entry.id().toString(), StudioRoute.EnchantmentMain)
-            context.router.navigate(StudioRoute.EnchantmentMain)
-        }
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(32.dp)
-            ) {
-                if (itemId != null) {
-                    ItemSprite(itemId, 32.dp)
-                } else {
-                    Text("?", style = VoxelTypography.semiBold(18), color = Color.White)
-                }
-            }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = entry.data().description().string,
-                    style = VoxelTypography.semiBold(16),
-                    color = Color.White
-                )
-                Text(
-                    text = "${entry.id()} • ${I18n.get("enchantment:overview.level")} ${entry.data().getMaxLevel()}",
-                    style = VoxelTypography.regular(12),
-                    color = VoxelColors.Zinc500
-                )
-            }
-
-            ToggleSwitch(
-                checked = enabled,
-                onCheckedChange = {
-                    context.dispatchRegistryAction(
-                        registry = Registries.ENCHANTMENT,
-                        target = entry.id(),
-                        action = EditorAction.ToggleDisabled(),
-                        dialogs = dialogs
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
 private fun OverviewRow(
     context: StudioContext,
     entry: ElementEntry<Enchantment>,
-    dialogs: fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
+    dialogs: RegistryDialogState
 ) {
     val enabled = !EnchantmentFlushAdapter.isSoftDeleted(entry)
     val itemId = EnchantmentFlushAdapter.previewItemId(entry.data()) { tag -> context.resolveTag(Registries.ITEM, tag) }
+    val interaction = remember(entry.id()) { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    val openEntry = {
+        context.openTab(entry.id().toString(), StudioRoute.EnchantmentMain)
+        context.router.navigate(StudioRoute.EnchantmentMain)
+    }
 
-    SimpleCard {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (hovered) Color(0x9918181B) else Color(0x4D09090B))
+            .drawBehind {
+                val stroke = 1.dp.toPx()
+                drawLine(
+                    color = Color(0x5927272A),
+                    start = Offset(0f, size.height - stroke / 2f),
+                    end = Offset(size.width, size.height - stroke / 2f),
+                    strokeWidth = stroke
+                )
+            }
+    ) {
         ContentRow(
-            onClick = {
-                context.openTab(entry.id().toString(), StudioRoute.EnchantmentMain)
-                context.router.navigate(StudioRoute.EnchantmentMain)
-            },
+            modifier = Modifier.hoverable(interaction),
+            onClick = { openEntry() },
+            onAction = { openEntry() },
             icon = {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(32.dp)) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(32.dp)
+                ) {
                     if (itemId != null) {
                         ItemSprite(itemId, 32.dp)
                     } else {
-                        Text("?", style = VoxelTypography.semiBold(18), color = Color.White)
+                        Text("?", style = VoxelTypography.semiBold(10), color = VoxelColors.Zinc500)
                     }
                 }
             },
@@ -245,14 +190,29 @@ private fun OverviewRow(
         ) {
             Text(
                 text = entry.data().description().string,
-                style = VoxelTypography.medium(15),
-                color = Color.White
+                style = VoxelTypography.medium(14),
+                color = Color(0xFFE4E4E7)
             )
-            Text(
-                text = "${entry.id()} • ${I18n.get("enchantment:overview.level")} ${entry.data().getMaxLevel()}",
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = entry.id().toString(),
+                    style = VoxelTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
+                    color = Color(0xFF71717A)
+                )
+                Text(
+                    text = "\u2022",
+                    style = VoxelTypography.regular(10),
+                    color = Color(0xFF5C5C66)
+                )
+                Text(
+                    text = "${I18n.get("enchantment:overview.level")} ${entry.data().getMaxLevel()}",
+                    style = VoxelTypography.regular(10),
+                    color = Color(0xFF71717A)
+                )
+            }
         }
     }
 }

@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -9,6 +11,7 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -18,14 +21,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.VoxelColors
 
 @Composable
 fun SimpleCard(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(vertical = 24.dp, horizontal = 32.dp),
+    active: Boolean = false,
     onClick: (() -> Unit)? = null,
     overlay: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit
@@ -54,9 +60,23 @@ fun SimpleCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = offsetY)
+                .background(
+                    color = if (active) Color(0xFF0D0D0E) else Color.Black.copy(alpha = 0.35f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .border(
+                    width = 1.dp,
+                    color = if (active) VoxelColors.Zinc700 else Color(0xFF18181B),
+                    shape = RoundedCornerShape(12.dp)
+                )
                 .clip(RoundedCornerShape(12.dp))
         ) {
-            ShineOverlay(opacity = 0.15f)
+            ShineOverlay(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f),
+                opacity = 0.15f
+            )
 
             overlay?.invoke()
 

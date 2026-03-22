@@ -67,7 +67,7 @@ fun Button(
     val shape = RoundedCornerShape(12.dp)
     val bgModifier = variantBackground(variant, isHovered)
     val borderModifier = variantBorder(variant, isHovered)
-    val textColor = if (variant == ButtonVariant.SHIMMER) Color(0xFF080507) else Color.White
+    val textColor = buttonTextColor(variant, isHovered)
 
     val hoverAlpha = when {
         !enabled -> 0.5f
@@ -91,7 +91,7 @@ fun Button(
                 indication = null,
                 enabled = enabled
             ) { onClick() }
-            .then(if (variant == ButtonVariant.SHIMMER || variant == ButtonVariant.PATREON) shimmerOverlay() else Modifier)
+            .then(buttonEffects(variant))
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -108,6 +108,18 @@ fun Button(
             }
         }
     }
+}
+
+private fun buttonTextColor(variant: ButtonVariant, hovered: Boolean): Color = when (variant) {
+    ButtonVariant.DEFAULT -> Color(0xFF27272A)
+    ButtonVariant.BLACK -> VoxelColors.Zinc200
+    ButtonVariant.GHOST -> if (hovered) Color(0xFF27272A) else VoxelColors.Zinc200
+    ButtonVariant.GHOST_BORDER -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc200
+    ButtonVariant.AURORA -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc400
+    ButtonVariant.TRANSPARENT -> VoxelColors.Zinc200
+    ButtonVariant.LINK -> if (hovered) Color.White else VoxelColors.Zinc400
+    ButtonVariant.SHIMMER -> Color(0xFF080507)
+    ButtonVariant.PATREON -> Color.White
 }
 
 private fun buttonHeight(size: ButtonSize): Dp = when (size) {
@@ -131,7 +143,15 @@ private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifie
     ButtonVariant.BLACK -> Modifier.background(if (hovered) VoxelColors.Zinc900 else Color.Black)
     ButtonVariant.GHOST -> Modifier.background(if (hovered) VoxelColors.Zinc200 else Color.Transparent)
     ButtonVariant.GHOST_BORDER -> Modifier.background(Color.Transparent)
-    ButtonVariant.AURORA -> Modifier.background(Color.Transparent)
+    ButtonVariant.AURORA -> Modifier.background(
+        Brush.horizontalGradient(
+            colors = listOf(
+                Color.Transparent,
+                Color.Transparent,
+                VoxelColors.Zinc700.copy(alpha = 0.3f)
+            )
+        )
+    )
     ButtonVariant.TRANSPARENT -> Modifier.background(if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent)
     ButtonVariant.LINK -> Modifier.background(Color.Transparent)
     ButtonVariant.SHIMMER -> Modifier.background(Color(0xFFF5F5F5))
@@ -149,7 +169,11 @@ private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier = 
 }
 
 @Composable
-private fun shimmerOverlay(): Modifier {
+private fun buttonEffects(variant: ButtonVariant): Modifier {
+    if (variant != ButtonVariant.SHIMMER && variant != ButtonVariant.PATREON) {
+        return Modifier
+    }
+
     val infiniteTransition = rememberInfiniteTransition()
     val shimmerOffset by infiniteTransition.animateFloat(
         initialValue = -1.5f,
@@ -162,6 +186,21 @@ private fun shimmerOverlay(): Modifier {
 
     return Modifier.drawWithContent {
         drawContent()
+        if (variant == ButtonVariant.SHIMMER) {
+            val strokeWidth = 1.dp.toPx()
+            drawLine(
+                color = VoxelColors.Zinc900,
+                start = Offset(0f, strokeWidth / 2f),
+                end = Offset(size.width, strokeWidth / 2f),
+                strokeWidth = strokeWidth
+            )
+            drawLine(
+                color = VoxelColors.Zinc900,
+                start = Offset(strokeWidth / 2f, 0f),
+                end = Offset(strokeWidth / 2f, size.height),
+                strokeWidth = strokeWidth
+            )
+        }
         val stripeWidth = size.width * 0.4f
         val x = shimmerOffset * size.width
         drawRect(

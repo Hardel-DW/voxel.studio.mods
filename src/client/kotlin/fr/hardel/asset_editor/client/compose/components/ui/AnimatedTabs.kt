@@ -5,7 +5,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.offset
@@ -18,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -56,38 +60,48 @@ fun AnimatedTabs(
         modifier = modifier
             .wrapContentWidth()
             .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF18181B), RoundedCornerShape(16.dp))
             .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(16.dp))
-            .padding(4.dp)
     ) {
-        if (indicatorWidth > 0.dp) {
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(indicatorX.roundToPx(), 0) }
-                    .width(indicatorWidth)
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.1f))
-            )
-        }
-
-        Row {
-            for ((value, label) in options) {
-                val isActive = value == selectedValue
-                Text(
-                    text = label,
-                    style = VoxelTypography.medium(14),
-                    color = if (isActive) Color.White else VoxelColors.Zinc500,
+        Box(modifier = Modifier.padding(4.dp)) {
+            if (indicatorWidth > 0.dp) {
+                Box(
                     modifier = Modifier
-                        .pointerHoverIcon(PointerIcon.Hand)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { onValueChange(value) }
-                        .onGloballyPositioned { coords ->
-                            tabPositions[value] = coords.positionInParent().x to coords.size.width.toFloat()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .offset { IntOffset(indicatorX.roundToPx(), 0) }
+                        .width(indicatorWidth)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.1f))
                 )
+            }
+
+            Row {
+                for ((value, label) in options) {
+                    val isActive = value == selectedValue
+                    val interaction = remember(value) { MutableInteractionSource() }
+                    val hovered by interaction.collectIsHoveredAsState()
+
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .pointerHoverIcon(PointerIcon.Hand)
+                            .hoverable(interaction)
+                            .clickable(
+                                interactionSource = interaction,
+                                indication = null
+                            ) { onValueChange(value) }
+                            .onGloballyPositioned { coords ->
+                                tabPositions[value] = coords.positionInParent().x to coords.size.width.toFloat()
+                            }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = label,
+                            style = VoxelTypography.medium(14),
+                            color = if (isActive || hovered) Color.White else VoxelColors.Zinc500
+                        )
+                    }
+                }
             }
         }
     }

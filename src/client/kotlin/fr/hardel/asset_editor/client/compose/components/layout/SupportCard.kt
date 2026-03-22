@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -53,7 +54,7 @@ fun SupportCard(modifier: Modifier = Modifier) {
             tint = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = (-96).dp, end = (-96).dp)
+                .offset(x = 96.dp, y = (-96).dp)
                 .alpha(0.2f)
         )
 

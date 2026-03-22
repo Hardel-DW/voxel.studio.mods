@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -37,6 +39,17 @@ fun EditorHeaderTabItem(
                 color = if (active || hovered) Color(0xFF19191C) else Color.Transparent,
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
+            .drawBehind {
+                if (active) {
+                    val stroke = 1.dp.toPx()
+                    drawLine(
+                        color = Color(0xFFA1A1AA),
+                        start = Offset(0f, size.height - stroke / 2f),
+                        end = Offset(size.width, size.height - stroke / 2f),
+                        strokeWidth = stroke
+                    )
+                }
+            }
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -82,7 +83,7 @@ fun DebugLayout(context: StudioContext) {
 
                         androidx.compose.material.Text(
                             text = I18n.get("debug:layout.title"),
-                            style = VoxelTypography.bold(36),
+                            style = VoxelTypography.minecraftTen(36),
                             color = Color.White
                         )
 
@@ -99,7 +100,9 @@ fun DebugLayout(context: StudioContext) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(top = 24.dp, bottom = (-8).dp)
+                    modifier = Modifier
+                        .padding(top = 24.dp)
+                        .offset(y = 8.dp)
                 ) {
                     DebugTab(I18n.get("debug:layout.tab.workspace"), currentTab == TAB_WORKSPACE) { currentTab = TAB_WORKSPACE }
                     DebugTab(I18n.get("debug:layout.tab.code"), currentTab == TAB_CODE) { currentTab = TAB_CODE }

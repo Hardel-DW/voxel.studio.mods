@@ -64,6 +64,7 @@ fun PackSelector(
     val selectedPack = context.selectedPack
 
     Box(
+        contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .width(280.dp)
             .height(36.dp)

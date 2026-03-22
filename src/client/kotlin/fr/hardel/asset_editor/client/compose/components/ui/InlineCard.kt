@@ -34,6 +34,7 @@ fun InlineCard(
 
     SimpleCard(
         padding = PaddingValues(vertical = 16.dp, horizontal = 24.dp),
+        active = active,
         onClick = if (!locked) ({ onActiveChange(!active) }) else null,
         modifier = modifier.alpha(if (locked) 0.5f else 1f)
     ) {

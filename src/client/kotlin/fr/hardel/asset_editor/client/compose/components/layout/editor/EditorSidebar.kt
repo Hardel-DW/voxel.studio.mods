@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.layout.editor
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -24,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -56,6 +59,15 @@ fun EditorSidebar(
             .width(288.dp)
             .fillMaxHeight()
             .background(Color(0xFF0F0F0F))
+            .drawBehind {
+                val stroke = 1.dp.toPx()
+                drawLine(
+                    color = Color(0x8027272A),
+                    start = Offset(size.width - stroke / 2f, 0f),
+                    end = Offset(size.width - stroke / 2f, size.height),
+                    strokeWidth = stroke
+                )
+            }
     ) {
         Column(
             modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
@@ -102,6 +114,15 @@ fun EditorSidebar(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF101011))
+                .drawBehind {
+                    val stroke = 1.dp.toPx()
+                    drawLine(
+                        color = Color(0x8027272A),
+                        start = Offset(0f, stroke / 2f),
+                        end = Offset(size.width, stroke / 2f),
+                        strokeWidth = stroke
+                    )
+                }
                 .padding(16.dp)
         ) {
             Row(
@@ -110,6 +131,7 @@ fun EditorSidebar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color(0xFF0C0C0D), RoundedCornerShape(8.dp))
+                    .border(1.dp, if (hovered) Color(0xFF2F2F36) else Color(0xFF1C1C1D), RoundedCornerShape(8.dp))
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(
                         interactionSource = interaction,

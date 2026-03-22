@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui.tree
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -26,8 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -40,7 +44,6 @@ import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.client.compose.lib.utils.IconUtils
 import net.minecraft.resources.Identifier
 
-private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 private val DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/folder.svg")
 private val TREE_ROW_SHAPE = RoundedCornerShape(8.dp)
 private val TREE_COUNT_SHAPE = RoundedCornerShape(4.dp)
@@ -99,6 +102,7 @@ private fun TreeNode(
     val rowInteraction = remember(path) { MutableInteractionSource() }
     val chevronInteraction = remember(path) { MutableInteractionSource() }
     val isHovered by rowInteraction.collectIsHoveredAsState()
+    val chevronHovered by chevronInteraction.collectIsHoveredAsState()
 
     Column {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -139,6 +143,7 @@ private fun TreeNode(
                             .size(20.dp)
                             .pointerHoverIcon(PointerIcon.Hand)
                             .clip(RoundedCornerShape(6.dp))
+                            .hoverable(chevronInteraction)
                             .clickable(
                                 interactionSource = chevronInteraction,
                                 indication = null
@@ -148,14 +153,11 @@ private fun TreeNode(
                                 }
                             }
                             .then(
-                                if (hasChildren) Modifier.background(VoxelColors.Zinc700.copy(alpha = 0.5f))
+                                if (hasChildren && chevronHovered) Modifier.background(VoxelColors.Zinc700.copy(alpha = 0.5f))
                                 else Modifier
                             )
                     ) {
-                        SvgIcon(
-                            location = CHEVRON_ICON,
-                            size = 12.dp,
-                            tint = Color.White,
+                        TreeChevron(
                             modifier = Modifier
                                 .rotate(if (isOpen) 0f else -90f)
                                 .alpha(if (hasChildren) 0.6f else 0.2f)
@@ -221,7 +223,15 @@ private fun TreeNode(
             Column(
                 modifier = Modifier
                     .padding(start = 12.dp)
-                    .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f))
+                    .drawBehind {
+                        val stroke = 1.dp.toPx()
+                        drawLine(
+                            color = VoxelColors.Zinc800.copy(alpha = 0.5f),
+                            start = Offset(stroke / 2f, 0f),
+                            end = Offset(stroke / 2f, size.height),
+                            strokeWidth = stroke
+                        )
+                    }
                     .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
             ) {
                 for ((childName, childNode) in sortedEntries(node.children)) {
@@ -247,3 +257,30 @@ private fun sortedEntries(map: Map<String, TreeNodeModel>): List<Pair<String, Tr
 
 private fun isElement(node: TreeNodeModel): Boolean =
     !node.elementId.isNullOrBlank()
+
+@Composable
+private fun TreeChevron(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(12.dp)) {
+        val stroke = 2f
+        val left = size.width * 0.22f
+        val midX = size.width * 0.5f
+        val right = size.width * 0.78f
+        val top = size.height * 0.28f
+        val bottom = size.height * 0.72f
+
+        drawLine(
+            color = Color.White,
+            start = Offset(left, top),
+            end = Offset(midX, bottom),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = Color.White,
+            start = Offset(midX, bottom),
+            end = Offset(right, top),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round
+        )
+    }
+}

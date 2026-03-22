@@ -3,21 +3,26 @@ package fr.hardel.asset_editor.client.compose.components.layout.editor
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -65,7 +70,15 @@ fun EditorHeader(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF18181B).copy(alpha = 0.2f))
+            .background(Color(0xFF151418))
+            .drawBehind {
+                drawLine(
+                    color = Color(0x8027272A),
+                    start = Offset(0f, size.height - 0.5f),
+                    end = Offset(size.width, size.height - 0.5f),
+                    strokeWidth = 1f
+                )
+            }
     ) {
         Box(
             modifier = Modifier.fillMaxWidth()
@@ -111,7 +124,7 @@ fun EditorHeader(
 
                         Text(
                             text = title,
-                            style = VoxelTypography.bold(36),
+                            style = VoxelTypography.minecraftTen(36),
                             color = Color.White
                         )
 
@@ -158,7 +171,9 @@ fun EditorHeader(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.padding(top = 24.dp, bottom = (-8).dp)
+                        modifier = Modifier
+                            .padding(top = 24.dp)
+                            .offset(y = 8.dp)
                     ) {
                         concept.tabs.forEach { tab ->
                             EditorHeaderTabItem(
@@ -179,13 +194,27 @@ private fun HeaderActionButton(
     text: String,
     onClick: () -> Unit
 ) {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(Color(0xFF18181B), RoundedCornerShape(8.dp))
+            .background(if (hovered) VoxelColors.Zinc800 else Color(0xFF18181B), RoundedCornerShape(8.dp))
+            .drawBehind {
+                val stroke = 1.dp.toPx()
+                drawRoundRect(
+                    color = Color(0xFF27272A),
+                    topLeft = Offset(stroke / 2f, stroke / 2f),
+                    size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke)
+                )
+            }
+            .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interaction,
                 indication = null,
                 onClick = onClick
             )
@@ -194,7 +223,7 @@ private fun HeaderActionButton(
         Text(
             text = text,
             style = VoxelTypography.medium(13),
-            color = VoxelColors.Zinc400
+            color = if (hovered) VoxelColors.Zinc300 else VoxelColors.Zinc400
         )
     }
 }

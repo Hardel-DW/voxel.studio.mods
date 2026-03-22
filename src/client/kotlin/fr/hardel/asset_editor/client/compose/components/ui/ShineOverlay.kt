@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -35,7 +34,6 @@ fun ShineOverlay(
         contentDescription = null,
         contentScale = ContentScale.FillBounds,
         modifier = modifier
-            .fillMaxSize()
             .alpha(opacity)
     )
 }
