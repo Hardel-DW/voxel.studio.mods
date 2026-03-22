@@ -40,7 +40,7 @@ private val supportCardShape = RoundedCornerShape(16.dp)
 fun SupportCard(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .background(Color(0xFF0B0B0B), supportCardShape)
+            .background(VoxelColors.Zinc970, supportCardShape)
             .border(2.dp, Color(0xFF1C1917), supportCardShape)
     ) {
         ShineOverlay(

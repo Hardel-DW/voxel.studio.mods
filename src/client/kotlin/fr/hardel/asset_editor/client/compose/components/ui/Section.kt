@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
@@ -27,14 +30,20 @@ fun Section(
                 style = VoxelTypography.semiBold(24),
                 color = VoxelColors.Zinc100
             )
-        }
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(VoxelColors.Zinc700)
-        )
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .height(1.dp)
+                    .alpha(0.25f)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color.Transparent, Color.White, Color.Transparent)
+                        )
+                    )
+            )
+        }
 
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),

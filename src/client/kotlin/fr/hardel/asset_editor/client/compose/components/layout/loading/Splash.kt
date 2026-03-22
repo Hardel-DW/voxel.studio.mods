@@ -58,9 +58,9 @@ import net.minecraft.resources.Identifier
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
 private val GITHUB = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 
-private val DASHED_BORDER_COLOR = Color(0xFF151518)
-private val CORNER_COLOR = Color(0xFF787878)
-private val DOT_1_COLOR = Color(0xFF7A7A85)
+private val DASHED_BORDER_COLOR = VoxelColors.SurfaceElevated
+private val CORNER_COLOR = VoxelColors.Zinc550
+private val DOT_1_COLOR = VoxelColors.Zinc500
 private val DOT_2_COLOR = Color(0xFF404048)
 private val DOT_3_COLOR = Color(0xFF1E1E21)
 

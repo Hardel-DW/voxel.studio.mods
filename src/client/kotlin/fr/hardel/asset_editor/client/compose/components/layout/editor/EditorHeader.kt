@@ -70,10 +70,10 @@ fun EditorHeader(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFF151418))
+            .background(VoxelColors.SurfaceHeader)
             .drawBehind {
                 drawLine(
-                    color = Color(0x8027272A),
+                    color = VoxelColors.BorderAlpha50,
                     start = Offset(0f, size.height - 0.5f),
                     end = Offset(size.width, size.height - 0.5f),
                     strokeWidth = 1f
@@ -93,7 +93,7 @@ fun EditorHeader(
                     .matchParentSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xFF09090B), Color(0xFF09090B))
+                            colors = listOf(Color.Transparent, VoxelColors.SurfaceOverlay, VoxelColors.SurfaceOverlay)
                         )
                     )
             )
@@ -200,11 +200,11 @@ private fun HeaderActionButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(if (hovered) VoxelColors.Zinc800 else Color(0xFF18181B), RoundedCornerShape(8.dp))
+            .background(if (hovered) VoxelColors.Zinc800 else VoxelColors.SurfaceRaised, RoundedCornerShape(8.dp))
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawRoundRect(
-                    color = Color(0xFF27272A),
+                    color = VoxelColors.Border,
                     topLeft = Offset(stroke / 2f, stroke / 2f),
                     size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),

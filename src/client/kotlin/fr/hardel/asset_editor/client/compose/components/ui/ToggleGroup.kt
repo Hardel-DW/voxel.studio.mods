@@ -48,7 +48,7 @@ fun ToggleGroup(
     Row(
         modifier = modifier
             .clip(groupShape)
-            .background(Color(0xFF151518))
+            .background(VoxelColors.SurfaceElevated)
             .border(1.dp, VoxelColors.Zinc900, groupShape)
             .padding(4.dp)
     ) {
@@ -66,7 +66,7 @@ fun ToggleGroup(
                 contentAlignment = Alignment.Center,
                 modifier = optionModifier
                     .clip(optionShape)
-                    .then(if (isActive) Modifier.background(VoxelColors.Zinc900) else Modifier)
+                    .then(if (isActive) Modifier.background(VoxelColors.SurfaceRaised) else Modifier)
                     .hoverable(interactionSource)
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(

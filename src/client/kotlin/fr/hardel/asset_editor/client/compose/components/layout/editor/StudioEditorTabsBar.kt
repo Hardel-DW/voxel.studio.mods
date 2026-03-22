@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,12 +39,17 @@ import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
+import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.resources.Identifier
 
 private val CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg")
+private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 
 @Composable
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
+    RememberWindowDragArea(EDITOR_TABS_DRAG_AREA)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -56,7 +62,7 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .size(width = 1.dp, height = 24.dp)
-                .background(Color(0xFF3F3F46))
+                .background(VoxelColors.BorderHover)
         )
 
         Row(
@@ -73,7 +79,12 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(
+            Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .windowDragArea(EDITOR_TABS_DRAG_AREA)
+        )
 
         WindowControls(buttonWidth = 48.dp, buttonHeight = 48.dp)
     }
@@ -104,7 +115,7 @@ private fun StudioEditorTabItem(
         modifier = Modifier
             .background(
                 color = when {
-                    active -> Color(0xFF232328)
+                    active -> VoxelColors.ActiveBg
                     itemHovered -> VoxelColors.Zinc900
                     else -> Color.Transparent
                 },
@@ -140,7 +151,7 @@ private fun StudioEditorTabItem(
                 .size(16.dp)
                 .alpha(if (active || itemHovered) 1f else 0f)
                 .background(
-                    color = if (closeHovered) Color(0xFF3F3F46) else Color.Transparent,
+                    color = if (closeHovered) VoxelColors.BorderHover else Color.Transparent,
                     shape = RoundedCornerShape(4.dp)
                 )
                 .hoverable(closeInteraction)

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,13 +20,18 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
+import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
+private const val TITLE_BAR_DRAG_AREA = "splash_title_bar_drag"
 
 @Composable
 fun TitleBar(modifier: Modifier = Modifier) {
+    RememberWindowDragArea(TITLE_BAR_DRAG_AREA)
+
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -33,18 +39,26 @@ fun TitleBar(modifier: Modifier = Modifier) {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 12.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .windowDragArea(TITLE_BAR_DRAG_AREA)
             ) {
-                SvgIcon(location = LOGO, size = 16.dp, tint = Color.White)
-                Text(
-                    text = I18n.get("app:title"),
-                    style = VoxelTypography.medium(12),
-                    color = VoxelColors.Zinc400,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 12.dp)
+                ) {
+                    SvgIcon(location = LOGO, size = 16.dp, tint = Color.White)
+                    Text(
+                        text = I18n.get("app:title"),
+                        style = VoxelTypography.medium(12),
+                        color = VoxelColors.Zinc400,
+                        modifier = Modifier.padding(start = 8.dp)
+                    )
+                }
 
-            Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
+            }
 
             WindowControls()
         }
@@ -55,7 +69,7 @@ fun TitleBar(modifier: Modifier = Modifier) {
                 .height(1.dp)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color(0xFF0E0E10), Color(0xFF151518), Color(0xFF0E0E10))
+                        listOf(Color(0xFF0E0E10), VoxelColors.SurfaceElevated, Color(0xFF0E0E10))
                     )
                 )
         )

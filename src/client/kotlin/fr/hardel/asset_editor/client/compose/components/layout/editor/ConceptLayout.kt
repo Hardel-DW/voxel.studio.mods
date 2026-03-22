@@ -12,7 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeController
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
@@ -85,7 +85,7 @@ fun ConceptLayout(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(Color(0xFF0F0E0E))
+                .background(VoxelColors.Editor)
         ) {
             EditorHeader(
                 context = context,

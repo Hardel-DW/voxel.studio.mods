@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.window.ComposeStudioWindow
+import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow
 import net.minecraft.resources.Identifier
 
 private val MINIMIZE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/window/minimize.svg")
@@ -34,9 +34,9 @@ fun WindowControls(
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.Start) {
-        WindowButton(MINIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { ComposeStudioWindow.requestMinimize() }
-        WindowButton(MAXIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { ComposeStudioWindow.requestToggleMaximize() }
-        WindowButton(CLOSE_ICON, VoxelColors.Red400, buttonWidth, buttonHeight) { ComposeStudioWindow.requestClose() }
+        WindowButton(MINIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestMinimize() }
+        WindowButton(MAXIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestToggleMaximize() }
+        WindowButton(CLOSE_ICON, VoxelColors.Red400, buttonWidth, buttonHeight) { VoxelStudioWindow.requestClose() }
     }
 }
 

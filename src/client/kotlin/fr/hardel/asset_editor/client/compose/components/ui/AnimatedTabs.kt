@@ -60,7 +60,7 @@ fun AnimatedTabs(
         modifier = modifier
             .wrapContentWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF18181B), RoundedCornerShape(16.dp))
+            .background(VoxelColors.SurfaceRaised, RoundedCornerShape(16.dp))
             .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(16.dp))
     ) {
         Box(modifier = Modifier.padding(4.dp)) {

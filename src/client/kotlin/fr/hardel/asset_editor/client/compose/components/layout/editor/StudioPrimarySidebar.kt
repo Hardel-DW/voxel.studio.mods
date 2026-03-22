@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.layout.editor
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -101,18 +102,24 @@ private fun ConceptButton(
     active: Boolean,
     onClick: () -> Unit
 ) {
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(56.dp)
             .background(
-                color = if (active) Color(0xFF141418) else Color.Transparent,
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                color = if (active) VoxelColors.ConceptActive else Color.Transparent,
+                shape = shape
             )
-            .pointerHoverIcon(PointerIcon.Hand)
+            .then(
+                if (active) Modifier.border(1.dp, VoxelColors.ConceptActiveBorder, shape)
+                else Modifier
+            )
+            .then(if (!active) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
             .clickable(onClick = onClick)
     ) {
-        ResourceImageIcon(concept.icon, 24.dp)
+        ResourceImageIcon(concept.icon, 24.dp, modifier = Modifier.alpha(if (active) 1f else 0.8f))
     }
 }
 

@@ -36,14 +36,14 @@ fun EditorHeaderTabItem(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = if (active || hovered) Color(0xFF19191C) else Color.Transparent,
+                color = if (active || hovered) VoxelColors.TabHoverBg else Color.Transparent,
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
             .drawBehind {
                 if (active) {
-                    val stroke = 1.dp.toPx()
+                    val stroke = 2.dp.toPx()
                     drawLine(
-                        color = Color(0xFFA1A1AA),
+                        color = VoxelColors.TabActiveBorder,
                         start = Offset(0f, size.height - stroke / 2f),
                         end = Offset(size.width, size.height - stroke / 2f),
                         strokeWidth = stroke

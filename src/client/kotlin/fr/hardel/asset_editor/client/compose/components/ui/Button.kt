@@ -111,14 +111,14 @@ fun Button(
 }
 
 private fun buttonTextColor(variant: ButtonVariant, hovered: Boolean): Color = when (variant) {
-    ButtonVariant.DEFAULT -> Color(0xFF27272A)
+    ButtonVariant.DEFAULT -> VoxelColors.Border
     ButtonVariant.BLACK -> VoxelColors.Zinc200
-    ButtonVariant.GHOST -> if (hovered) Color(0xFF27272A) else VoxelColors.Zinc200
+    ButtonVariant.GHOST -> if (hovered) VoxelColors.Border else VoxelColors.Zinc200
     ButtonVariant.GHOST_BORDER -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc200
     ButtonVariant.AURORA -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc400
     ButtonVariant.TRANSPARENT -> VoxelColors.Zinc200
     ButtonVariant.LINK -> if (hovered) Color.White else VoxelColors.Zinc400
-    ButtonVariant.SHIMMER -> Color(0xFF080507)
+    ButtonVariant.SHIMMER -> VoxelColors.Background
     ButtonVariant.PATREON -> Color.White
 }
 
@@ -154,7 +154,7 @@ private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifie
     )
     ButtonVariant.TRANSPARENT -> Modifier.background(if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent)
     ButtonVariant.LINK -> Modifier.background(Color.Transparent)
-    ButtonVariant.SHIMMER -> Modifier.background(Color(0xFFF5F5F5))
+    ButtonVariant.SHIMMER -> Modifier.background(VoxelColors.Zinc100)
     ButtonVariant.PATREON -> Modifier.background(Color(0xFFC2410C))
 }
 

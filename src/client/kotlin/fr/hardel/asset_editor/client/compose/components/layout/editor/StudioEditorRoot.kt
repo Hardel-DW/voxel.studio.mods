@@ -52,7 +52,7 @@ fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
                         }
                         drawPath(
                             path = frame,
-                            color = Color(0x8027272A),
+                            color = VoxelColors.BorderAlpha50,
                             style = Stroke(width = stroke)
                         )
                     }
@@ -63,7 +63,7 @@ fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
                         .clip(contentShape)
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(Color(0xFF18181D), Color(0xFF151418), Color(0xFF151418))
+                                colors = listOf(Color(0xFF18181D), VoxelColors.SurfaceHeader, VoxelColors.SurfaceHeader)
                             )
                         )
                 ) {

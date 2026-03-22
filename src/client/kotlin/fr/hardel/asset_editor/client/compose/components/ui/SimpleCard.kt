@@ -62,12 +62,12 @@ fun SimpleCard(
                 .fillMaxWidth()
                 .offset(y = offsetY)
                 .background(
-                    color = if (active) Color(0xFF0D0D0E) else Color.Black.copy(alpha = 0.35f),
+                    color = if (active) VoxelColors.Zinc960 else Color.Black.copy(alpha = 0.35f),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .border(
                     width = 1.dp,
-                    color = if (active) VoxelColors.Zinc700 else Color(0xFF18181B),
+                    color = if (active) VoxelColors.Zinc700 else VoxelColors.SurfaceRaised,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .clip(RoundedCornerShape(12.dp))

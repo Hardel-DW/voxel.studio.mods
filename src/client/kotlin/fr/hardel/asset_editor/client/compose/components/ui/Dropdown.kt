@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +31,7 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import net.minecraft.resources.Identifier
 
 private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
+private val dropdownShape = RoundedCornerShape(12.dp)
 
 @Composable
 fun <T> Dropdown(
@@ -46,8 +48,9 @@ fun <T> Dropdown(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .height(40.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .height(32.dp)
+                .clip(dropdownShape)
+                .border(2.dp, VoxelColors.Zinc900, dropdownShape)
                 .padding(horizontal = 12.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable(
@@ -61,7 +64,7 @@ fun <T> Dropdown(
                 color = VoxelColors.Zinc300,
                 modifier = Modifier.weight(1f)
             )
-            SvgIcon(CHEVRON_ICON, 16.dp, VoxelColors.Zinc500)
+            SvgIcon(CHEVRON_ICON, 10.dp, VoxelColors.Zinc500)
         }
 
         Popover(

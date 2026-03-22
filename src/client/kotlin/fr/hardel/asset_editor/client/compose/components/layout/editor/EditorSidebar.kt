@@ -58,11 +58,11 @@ fun EditorSidebar(
         modifier = modifier
             .width(288.dp)
             .fillMaxHeight()
-            .background(Color(0xFF0F0F0F))
+            .background(VoxelColors.SidebarBg)
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawLine(
-                    color = Color(0x8027272A),
+                    color = VoxelColors.BorderAlpha50,
                     start = Offset(size.width - stroke / 2f, 0f),
                     end = Offset(size.width - stroke / 2f, size.height),
                     strokeWidth = stroke
@@ -113,11 +113,11 @@ fun EditorSidebar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF101011))
+                .background(VoxelColors.Sidebar)
                 .drawBehind {
                     val stroke = 1.dp.toPx()
                     drawLine(
-                        color = Color(0x8027272A),
+                        color = VoxelColors.BorderAlpha50,
                         start = Offset(0f, stroke / 2f),
                         end = Offset(size.width, stroke / 2f),
                         strokeWidth = stroke
@@ -130,8 +130,8 @@ fun EditorSidebar(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF0C0C0D), RoundedCornerShape(8.dp))
-                    .border(1.dp, if (hovered) Color(0xFF2F2F36) else Color(0xFF1C1C1D), RoundedCornerShape(8.dp))
+                    .background(VoxelColors.DiscordCardBg, RoundedCornerShape(8.dp))
+                    .border(1.dp, if (hovered) VoxelColors.DiscordCardBorderHover else VoxelColors.DiscordCardBorder, RoundedCornerShape(8.dp))
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(
                         interactionSource = interaction,
@@ -151,7 +151,7 @@ fun EditorSidebar(
                     modifier = Modifier
                         .size(32.dp)
                         .background(
-                            color = if (hovered) Color(0xFF27272A) else Color(0xFF202024),
+                            color = if (hovered) VoxelColors.DiscordCircleBgHover else VoxelColors.DiscordCircleBg,
                             shape = CircleShape
                         )
                 ) {
