@@ -144,12 +144,8 @@ fun EditorHeader(
                                     ),
                                     selectedValue = context.viewMode.name.lowercase(),
                                     onValueChange = { value ->
-                                        context.uiState().setViewMode(
-                                            if (value == "list") {
-                                                StudioViewMode.LIST.toJavaFx()
-                                            } else {
-                                                StudioViewMode.GRID.toJavaFx()
-                                            }
+                                        context.updateViewMode(
+                                            if (value == "list") StudioViewMode.LIST else StudioViewMode.GRID
                                         )
                                     }
                                 )
@@ -322,9 +318,3 @@ private fun resolveFilterPathLabels(tree: TreeController): List<String> {
     }
     return labels
 }
-
-private fun StudioViewMode.toJavaFx(): fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode =
-    when (this) {
-        StudioViewMode.GRID -> fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.GRID
-        StudioViewMode.LIST -> fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.LIST
-    }

@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.layout.loading.WindowControls
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.bridge.toComposeRoute
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
@@ -125,7 +126,7 @@ private fun StudioEditorTabItem(
                     context.tabsState().closeTab(index)
                     val next = context.tabsState().activeTab()
                     val fallback = StudioRoute.overviewOf(context.router.currentRoute.concept)
-                    context.router.navigate(next?.route()?.toComposeRoute() ?: fallback)
+                    context.router.navigate(next?.toComposeRoute() ?: fallback)
                 }
         ) {
             SvgIcon(
@@ -136,23 +137,3 @@ private fun StudioEditorTabItem(
         }
     }
 }
-
-private fun fr.hardel.asset_editor.client.javafx.routes.StudioRoute.toComposeRoute(): StudioRoute =
-    when (this) {
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_OVERVIEW -> StudioRoute.EnchantmentOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_MAIN -> StudioRoute.EnchantmentMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_FIND -> StudioRoute.EnchantmentFind
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SLOTS -> StudioRoute.EnchantmentSlots
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_ITEMS -> StudioRoute.EnchantmentItems
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_EXCLUSIVE -> StudioRoute.EnchantmentExclusive
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_TECHNICAL -> StudioRoute.EnchantmentTechnical
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SIMULATION -> StudioRoute.EnchantmentSimulation
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_OVERVIEW -> StudioRoute.LootTableOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_MAIN -> StudioRoute.LootTableMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_POOLS -> StudioRoute.LootTablePools
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_OVERVIEW -> StudioRoute.RecipeOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_MAIN -> StudioRoute.RecipeMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.CHANGES_MAIN -> StudioRoute.ChangesMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.DEBUG -> StudioRoute.Debug
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.NO_PERMISSION -> StudioRoute.NoPermission
-    }

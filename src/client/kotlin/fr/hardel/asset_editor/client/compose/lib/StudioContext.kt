@@ -4,8 +4,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import fr.hardel.asset_editor.client.bridge.ComposeWorkspaceGateway
+import fr.hardel.asset_editor.client.bridge.legacySidebarViewToCompose
+import fr.hardel.asset_editor.client.bridge.legacyViewModeToCompose
+import fr.hardel.asset_editor.client.bridge.openComposeElement
+import fr.hardel.asset_editor.client.bridge.setComposeSidebarView
+import fr.hardel.asset_editor.client.bridge.setComposeViewMode
+import fr.hardel.asset_editor.client.bridge.toComposeOpenTab
 import fr.hardel.asset_editor.client.ClientSessionDispatch
-import fr.hardel.asset_editor.client.compose.lib.action.EditorActionGateway
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode
@@ -45,7 +51,7 @@ class StudioContext(
     private val subscriptions = mutableListOf<Subscription>()
 
     val router = StudioRouter()
-    val gateway = EditorActionGateway(sessionState, workspaceState)
+    val gateway = ComposeWorkspaceGateway(sessionState, workspaceState)
 
     var permissions: StudioPermissions by mutableStateOf(sessionState.permissions())
         private set
@@ -71,10 +77,10 @@ class StudioContext(
     var filterPath: String by mutableStateOf(workspaceState.uiState().filterPath())
         private set
 
-    var viewMode: StudioViewMode by mutableStateOf(workspaceState.uiState().viewMode().toCompose())
+    var viewMode: StudioViewMode by mutableStateOf(legacyViewModeToCompose(workspaceState.uiState().viewMode()))
         private set
 
-    var sidebarView: StudioSidebarView by mutableStateOf(workspaceState.uiState().sidebarView().toCompose())
+    var sidebarView: StudioSidebarView by mutableStateOf(legacySidebarViewToCompose(workspaceState.uiState().sidebarView()))
         private set
 
     init {
@@ -129,17 +135,17 @@ class StudioContext(
         subscriptions += workspaceState.uiState()
             .select({ snapshot -> snapshot.viewMode() })
             .subscribe({ mode ->
-                viewMode = mode.toCompose()
+                viewMode = legacyViewModeToCompose(mode)
             }, true)
 
         subscriptions += workspaceState.uiState()
             .select({ snapshot -> snapshot.sidebarView() })
             .subscribe({ mode ->
-                sidebarView = mode.toCompose()
+                sidebarView = legacySidebarViewToCompose(mode)
             }, true)
 
         router.permissionSupplier = sessionState::permissions
-        dispatch.setGateway(gateway)
+        gateway.attach(dispatch)
     }
 
     fun sessionState(): ClientSessionState = sessionState
@@ -155,15 +161,15 @@ class StudioContext(
     fun elementStore(): RegistryElementStore = workspaceState.elementStore()
 
     fun openTab(elementId: String, route: StudioRoute) {
-        workspaceState.tabsState().openElement(elementId, route.toJavaFx())
+        workspaceState.tabsState().openComposeElement(elementId, route)
     }
 
     fun updateSidebarView(view: StudioSidebarView) {
-        workspaceState.uiState().setSidebarView(view.toJavaFx())
+        workspaceState.uiState().setComposeSidebarView(view)
     }
 
     fun updateViewMode(mode: StudioViewMode) {
-        workspaceState.uiState().setViewMode(mode.toJavaFx())
+        workspaceState.uiState().setComposeViewMode(mode)
     }
 
     fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
@@ -222,13 +228,13 @@ class StudioContext(
 
     fun resetForWorldClose() {
         workspaceState.resetForWorldClose()
-        dispatch.clearGateway(gateway)
+        gateway.detach(dispatch)
         router.navigate(StudioRoute.NoPermission)
     }
 
     fun dispose() {
         subscriptions.forEach(Subscription::unsubscribe)
-        dispatch.clearGateway(gateway)
+        gateway.detach(dispatch)
         workspaceState.dispose()
     }
 
@@ -271,71 +277,5 @@ class StudioContext(
     }
 
     private fun mapOpenTabs(tabs: List<fr.hardel.asset_editor.client.state.StudioOpenTab>): List<OpenTab> =
-        tabs.map { tab -> OpenTab(tab.elementId(), tab.route().toCompose()) }
+        tabs.map { tab -> tab.toComposeOpenTab() }
 }
-
-private fun fr.hardel.asset_editor.client.javafx.routes.StudioRoute.toCompose(): StudioRoute =
-    when (this) {
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_OVERVIEW -> StudioRoute.EnchantmentOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_MAIN -> StudioRoute.EnchantmentMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_FIND -> StudioRoute.EnchantmentFind
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SLOTS -> StudioRoute.EnchantmentSlots
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_ITEMS -> StudioRoute.EnchantmentItems
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_EXCLUSIVE -> StudioRoute.EnchantmentExclusive
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_TECHNICAL -> StudioRoute.EnchantmentTechnical
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SIMULATION -> StudioRoute.EnchantmentSimulation
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_OVERVIEW -> StudioRoute.LootTableOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_MAIN -> StudioRoute.LootTableMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_POOLS -> StudioRoute.LootTablePools
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_OVERVIEW -> StudioRoute.RecipeOverview
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_MAIN -> StudioRoute.RecipeMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.CHANGES_MAIN -> StudioRoute.ChangesMain
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.DEBUG -> StudioRoute.Debug
-        fr.hardel.asset_editor.client.javafx.routes.StudioRoute.NO_PERMISSION -> StudioRoute.NoPermission
-    }
-
-private fun fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.toCompose(): StudioViewMode =
-    when (this) {
-        fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.GRID -> StudioViewMode.GRID
-        fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.LIST -> StudioViewMode.LIST
-    }
-
-private fun StudioRoute.toJavaFx(): fr.hardel.asset_editor.client.javafx.routes.StudioRoute =
-    when (this) {
-        StudioRoute.EnchantmentOverview -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_OVERVIEW
-        StudioRoute.EnchantmentMain -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_MAIN
-        StudioRoute.EnchantmentFind -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_FIND
-        StudioRoute.EnchantmentSlots -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SLOTS
-        StudioRoute.EnchantmentItems -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_ITEMS
-        StudioRoute.EnchantmentExclusive -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_EXCLUSIVE
-        StudioRoute.EnchantmentTechnical -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_TECHNICAL
-        StudioRoute.EnchantmentSimulation -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.ENCHANTMENT_SIMULATION
-        StudioRoute.LootTableOverview -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_OVERVIEW
-        StudioRoute.LootTableMain -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_MAIN
-        StudioRoute.LootTablePools -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.LOOT_TABLE_POOLS
-        StudioRoute.RecipeOverview -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_OVERVIEW
-        StudioRoute.RecipeMain -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.RECIPE_MAIN
-        StudioRoute.ChangesMain -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.CHANGES_MAIN
-        StudioRoute.Debug -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.DEBUG
-        StudioRoute.NoPermission -> fr.hardel.asset_editor.client.javafx.routes.StudioRoute.NO_PERMISSION
-    }
-
-private fun StudioSidebarView.toJavaFx(): fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView =
-    when (this) {
-        StudioSidebarView.SLOTS -> fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.SLOTS
-        StudioSidebarView.ITEMS -> fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.ITEMS
-        StudioSidebarView.EXCLUSIVE -> fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.EXCLUSIVE
-    }
-
-private fun StudioViewMode.toJavaFx(): fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode =
-    when (this) {
-        StudioViewMode.GRID -> fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.GRID
-        StudioViewMode.LIST -> fr.hardel.asset_editor.client.javafx.lib.data.StudioViewMode.LIST
-    }
-
-private fun fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.toCompose(): StudioSidebarView =
-    when (this) {
-        fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.SLOTS -> StudioSidebarView.SLOTS
-        fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.ITEMS -> StudioSidebarView.ITEMS
-        fr.hardel.asset_editor.client.javafx.lib.data.StudioSidebarView.EXCLUSIVE -> StudioSidebarView.EXCLUSIVE
-    }

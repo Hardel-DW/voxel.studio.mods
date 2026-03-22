@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader
+import fr.hardel.asset_editor.client.resource.StudioResourceLoader
 import net.minecraft.resources.Identifier
 import org.jetbrains.skia.Image as SkiaImage
 import org.slf4j.LoggerFactory
@@ -29,7 +29,7 @@ private fun loadResourceImage(location: Identifier, size: Dp): ImageBitmap? {
     resourceImageCache[cacheKey]?.let { return it }
 
     return try {
-        val bitmap = VoxelResourceLoader.open(location).use { stream ->
+        val bitmap = StudioResourceLoader.open(location).use { stream ->
             SkiaImage.makeFromEncoded(stream.readBytes()).toComposeImageBitmap()
         }
         resourceImageCache[cacheKey] = bitmap

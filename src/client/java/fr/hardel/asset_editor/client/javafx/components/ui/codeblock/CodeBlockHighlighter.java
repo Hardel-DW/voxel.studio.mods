@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.codeblock;
 
-import fr.hardel.asset_editor.client.highlight.HighlightRegistry;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.HighlightRegistry;
 
 @FunctionalInterface
 public interface CodeBlockHighlighter {

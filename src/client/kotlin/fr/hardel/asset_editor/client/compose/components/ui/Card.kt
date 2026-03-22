@@ -19,11 +19,11 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader
 import org.jetbrains.skia.Image as SkiaImage
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.resource.StudioResourceLoader
 import net.minecraft.resources.Identifier
 
 private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
@@ -88,7 +88,7 @@ fun Card(
         ) {
             val bitmap = remember(imageId) {
                 try {
-                    val bytes = VoxelResourceLoader.open(imageId).use { it.readBytes() }
+                    val bytes = StudioResourceLoader.open(imageId).use { it.readBytes() }
                     SkiaImage.makeFromEncoded(bytes).toComposeImageBitmap()
                 } catch (_: Exception) { null }
             }

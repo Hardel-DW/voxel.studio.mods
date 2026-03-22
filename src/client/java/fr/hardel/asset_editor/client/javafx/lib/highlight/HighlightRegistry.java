@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.highlight;
+package fr.hardel.asset_editor.client.javafx.lib.highlight;
 
 import java.util.ArrayList;
 import java.util.Comparator;

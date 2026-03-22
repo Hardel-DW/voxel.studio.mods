@@ -1,11 +1,11 @@
 package fr.hardel.asset_editor.client.javafx.components.ui.codeblock;
 
 import fr.hardel.asset_editor.client.javafx.VoxelColors;
-import fr.hardel.asset_editor.client.highlight.Highlight;
-import fr.hardel.asset_editor.client.highlight.HighlightPalette;
-import fr.hardel.asset_editor.client.highlight.HighlightRange;
-import fr.hardel.asset_editor.client.highlight.HighlightRegistry;
-import fr.hardel.asset_editor.client.highlight.HighlightStyle;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.Highlight;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.HighlightPalette;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.HighlightRange;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.HighlightRegistry;
+import fr.hardel.asset_editor.client.javafx.lib.highlight.HighlightStyle;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;

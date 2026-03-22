@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader
+import fr.hardel.asset_editor.client.resource.StudioResourceLoader
 import net.minecraft.resources.Identifier
 import org.jetbrains.skia.BlendMode
 import org.jetbrains.skia.ColorFilter
@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("SvgIcon")
 
 private fun loadSvgDocument(location: Identifier): SVGDOM? = try {
-    VoxelResourceLoader.open(location).use { stream ->
+    StudioResourceLoader.open(location).use { stream ->
         SVGDOM(Data.makeFromBytes(stream.readBytes())).apply {
             root?.apply {
                 x = SVGLength(0f)
