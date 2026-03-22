@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.lib.action
 
+import fr.hardel.asset_editor.client.action.WorkspaceSyncGateway
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
 import fr.hardel.asset_editor.client.state.ClientPackInfo

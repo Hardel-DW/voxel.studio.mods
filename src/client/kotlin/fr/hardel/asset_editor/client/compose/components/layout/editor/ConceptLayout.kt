@@ -49,7 +49,7 @@ fun ConceptLayout(
     }
 
     LaunchedEffect(route, context.currentElementId) {
-        if (route.concept != config.concept.registry()) {
+        if (route.concept() != config.concept.registry()) {
             return@LaunchedEffect
         }
 
@@ -64,7 +64,7 @@ fun ConceptLayout(
         }
     }
 
-    if (route.concept != config.concept.registry()) {
+    if (route.concept() != config.concept.registry()) {
         return
     }
 

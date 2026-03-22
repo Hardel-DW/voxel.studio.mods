@@ -105,7 +105,7 @@ fun EditorHeader(
                         EditorBreadcrumb(
                             rootLabel = I18n.get(concept.titleKey),
                             segments = segments,
-                            showBack = !route.isOverview,
+                            showBack = !route.isOverview(),
                             onBack = { context.router.navigate(concept.overviewRoute) }
                         )
 
@@ -124,7 +124,7 @@ fun EditorHeader(
                         )
                     }
 
-                    if (route.isOverview) {
+                    if (route.isOverview()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -239,7 +239,7 @@ private fun showTabs(
     if (tree.currentElementId().isNullOrBlank()) {
         return false
     }
-    return route.concept == concept.registry() && concept.tabRoutes().contains(route)
+    return route.concept() == concept.registry() && concept.tabRoutes().contains(route)
 }
 
 private fun resolveTitle(
@@ -248,7 +248,7 @@ private fun resolveTitle(
     segments: List<String>,
     route: StudioRoute
 ): String {
-    if (route.isOverview) {
+    if (route.isOverview()) {
         return segments.lastOrNull() ?: I18n.get("generic:all")
     }
 
@@ -266,7 +266,7 @@ private fun resolveColorKey(
     concept: StudioConcept,
     route: StudioRoute
 ): String {
-    if (route.isOverview) {
+    if (route.isOverview()) {
         val filterPath = tree.filterPath()
         return if (filterPath.isBlank()) "all" else filterPath
     }
@@ -278,7 +278,7 @@ private fun buildBreadcrumbSegments(
     concept: StudioConcept,
     route: StudioRoute
 ): List<String> {
-    if (route.isOverview) {
+    if (route.isOverview()) {
         return resolveFilterPathLabels(tree)
     }
 

@@ -1,17 +1,9 @@
 package fr.hardel.asset_editor.client.state;
 
-import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
+import fr.hardel.asset_editor.client.compose.routes.StudioRoute;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.client.selector.Subscription;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ReadOnlyIntegerProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,15 +26,6 @@ public final class WorkspaceTabsState {
     private static final int MAX_TABS = 10;
 
     private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.initial());
-    private final ObservableList<StudioOpenTab> openTabs = FXCollections.observableArrayList();
-    private final IntegerProperty activeTabIndex = new SimpleIntegerProperty(-1);
-    private final SimpleStringProperty currentElementId = new SimpleStringProperty("");
-    private final Subscription syncSubscription = store.subscribe(this::syncFromStore);
-    private boolean syncing;
-
-    public WorkspaceTabsState() {
-        syncFromStore();
-    }
 
     public Snapshot snapshot() {
         return store.getState();
@@ -57,20 +40,12 @@ public final class WorkspaceTabsState {
         return store.select(selector, equality);
     }
 
-    public ObservableList<StudioOpenTab> openTabs() {
-        return openTabs;
-    }
-
-    public ReadOnlyIntegerProperty activeTabIndexProperty() {
-        return activeTabIndex;
+    public List<StudioOpenTab> openTabs() {
+        return snapshot().openTabs();
     }
 
     public int activeTabIndex() {
         return snapshot().activeTabIndex();
-    }
-
-    public ReadOnlyStringProperty currentElementIdProperty() {
-        return currentElementId;
     }
 
     public String currentElementId() {
@@ -149,26 +124,5 @@ public final class WorkspaceTabsState {
     }
 
     public void dispose() {
-        syncSubscription.unsubscribe();
-    }
-
-    private void syncFromStore() {
-        if (syncing)
-            return;
-
-        syncing = true;
-        try {
-            Snapshot state = snapshot();
-            if (!openTabs.equals(state.openTabs()))
-                openTabs.setAll(state.openTabs());
-
-            if (activeTabIndex.get() != state.activeTabIndex())
-                activeTabIndex.set(state.activeTabIndex());
-
-            if (!currentElementId.get().equals(state.currentElementId()))
-                currentElementId.set(state.currentElementId());
-        } finally {
-            syncing = false;
-        }
     }
 }

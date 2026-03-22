@@ -15,7 +15,7 @@ class StudioRouter {
     fun navigate(route: StudioRoute) {
         if (route == currentRoute) return
 
-        if (route is StudioRoute.NoPermission) {
+        if (route == StudioRoute.NoPermission) {
             currentRoute = route
             return
         }
@@ -25,7 +25,7 @@ class StudioRouter {
             return
         }
 
-        if (route is StudioRoute.Debug && !permissionSupplier().isAdmin) {
+        if (route == StudioRoute.Debug && !permissionSupplier().isAdmin) {
             redirectNoPermission()
             return
         }
@@ -40,7 +40,7 @@ class StudioRouter {
     }
 
     private fun redirectNoPermission() {
-        if (currentRoute !is StudioRoute.NoPermission)
+        if (currentRoute != StudioRoute.NoPermission)
             currentRoute = StudioRoute.NoPermission
     }
 }

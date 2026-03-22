@@ -5,7 +5,6 @@ import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.client.selector.Subscription;
-import javafx.collections.ObservableList;
 
 import java.util.List;
 import java.util.function.Function;
@@ -42,7 +41,7 @@ public final class WorkspacePackSelectionState {
         return store.select(selector, equality);
     }
 
-    public ObservableList<ClientPackInfo> availablePacks() {
+    public List<ClientPackInfo> availablePacks() {
         return sessionState.availablePacks();
     }
 

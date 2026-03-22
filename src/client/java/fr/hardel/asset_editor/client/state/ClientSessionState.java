@@ -8,8 +8,6 @@ import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import net.minecraft.client.Minecraft;
 
 import java.util.List;
@@ -35,12 +33,6 @@ public final class ClientSessionState {
     }
 
     private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.empty());
-    private final ObservableList<ClientPackInfo> availablePacks = FXCollections.observableArrayList();
-    private final Subscription syncSubscription = store.subscribe(this::syncFromStore);
-
-    public ClientSessionState() {
-        syncFromStore();
-    }
 
     public Snapshot snapshot() {
         return store.getState();
@@ -59,8 +51,8 @@ public final class ClientSessionState {
         return snapshot().permissions();
     }
 
-    public ObservableList<ClientPackInfo> availablePacks() {
-        return availablePacks;
+    public List<ClientPackInfo> availablePacks() {
+        return snapshot().availablePacks();
     }
 
     public String worldSessionKey() {
@@ -112,12 +104,5 @@ public final class ClientSessionState {
     }
 
     public void dispose() {
-        syncSubscription.unsubscribe();
-    }
-
-    private void syncFromStore() {
-        Snapshot state = snapshot();
-        if (!availablePacks.equals(state.availablePacks()))
-            availablePacks.setAll(state.availablePacks());
     }
 }

@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.compose.window.ComposeStudioWindow;
-import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
@@ -84,7 +83,6 @@ public class AssetEditorClient implements ClientModInitializer {
         @Override
         public void onResourceManagerReload(@NonNull ResourceManager manager) {
             ItemAtlasRenderer.requestGeneration();
-            VoxelResourceLoader.update(manager);
             ComposeStudioWindow.notifyResourceReload();
         }
     }

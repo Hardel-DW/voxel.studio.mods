@@ -38,7 +38,9 @@ repositories {
 
 sourceSets {
     client {
-        kotlin.srcDir("src/client/kotlin")
+        java {
+            exclude "fr/hardel/asset_editor/client/javafx/**"
+        }
     }
 }
 
@@ -48,9 +50,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     implementation compose.desktop.currentOs
-    implementation "org.openjfx:javafx-base:21.0.7:win"
-    implementation "org.openjfx:javafx-graphics:21.0.7:win"
-    implementation "org.openjfx:javafx-controls:21.0.7:win"
 }
 
 processResources {

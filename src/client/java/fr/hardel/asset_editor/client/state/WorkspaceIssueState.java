@@ -3,9 +3,6 @@ package fr.hardel.asset_editor.client.state;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.client.selector.Subscription;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
 import java.util.List;
 import java.util.function.Function;
@@ -25,15 +22,6 @@ public final class WorkspaceIssueState {
     }
 
     private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.empty());
-    private final ObservableList<String> warnings = FXCollections.observableArrayList();
-    private final ObservableList<String> errors = FXCollections.observableArrayList();
-    private final Subscription syncSubscription = store.subscribe(this::syncFromStore);
-    private boolean syncing;
-
-    public WorkspaceIssueState() {
-        syncFromStore();
-    }
-
     public Snapshot snapshot() {
         return store.getState();
     }
@@ -47,12 +35,12 @@ public final class WorkspaceIssueState {
         return store.select(selector, equality);
     }
 
-    public ObservableList<String> warnings() {
-        return warnings;
+    public List<String> warnings() {
+        return snapshot().warnings();
     }
 
-    public ObservableList<String> errors() {
-        return errors;
+    public List<String> errors() {
+        return snapshot().errors();
     }
 
     public void replaceWarnings(List<String> nextWarnings) {
@@ -79,22 +67,5 @@ public final class WorkspaceIssueState {
     }
 
     public void dispose() {
-        syncSubscription.unsubscribe();
-    }
-
-    private void syncFromStore() {
-        if (syncing)
-            return;
-
-        syncing = true;
-        try {
-            Snapshot state = snapshot();
-            if (!warnings.equals(state.warnings()))
-                warnings.setAll(state.warnings());
-            if (!errors.equals(state.errors()))
-                errors.setAll(state.errors());
-        } finally {
-            syncing = false;
-        }
     }
 }

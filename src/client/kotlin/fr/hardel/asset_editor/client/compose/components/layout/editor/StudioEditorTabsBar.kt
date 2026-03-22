@@ -27,7 +27,6 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.layout.loading.WindowControls
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.bridge.toComposeRoute
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
@@ -125,8 +124,8 @@ private fun StudioEditorTabItem(
                 ) {
                     context.tabsState().closeTab(index)
                     val next = context.tabsState().activeTab()
-                    val fallback = StudioRoute.overviewOf(context.router.currentRoute.concept)
-                    context.router.navigate(next?.toComposeRoute() ?: fallback)
+                    val fallback = StudioRoute.overviewOf(context.router.currentRoute.concept())
+                    context.router.navigate(next?.route() ?: fallback)
                 }
         ) {
             SvgIcon(

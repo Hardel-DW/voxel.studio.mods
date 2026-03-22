@@ -4,14 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import fr.hardel.asset_editor.client.bridge.ComposeWorkspaceGateway
-import fr.hardel.asset_editor.client.bridge.legacySidebarViewToCompose
-import fr.hardel.asset_editor.client.bridge.legacyViewModeToCompose
-import fr.hardel.asset_editor.client.bridge.openComposeElement
-import fr.hardel.asset_editor.client.bridge.setComposeSidebarView
-import fr.hardel.asset_editor.client.bridge.setComposeViewMode
-import fr.hardel.asset_editor.client.bridge.toComposeOpenTab
 import fr.hardel.asset_editor.client.ClientSessionDispatch
+import fr.hardel.asset_editor.client.compose.lib.action.EditorActionGateway
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode
@@ -51,7 +45,7 @@ class StudioContext(
     private val subscriptions = mutableListOf<Subscription>()
 
     val router = StudioRouter()
-    val gateway = ComposeWorkspaceGateway(sessionState, workspaceState)
+    val gateway = EditorActionGateway(sessionState, workspaceState)
 
     var permissions: StudioPermissions by mutableStateOf(sessionState.permissions())
         private set
@@ -77,10 +71,10 @@ class StudioContext(
     var filterPath: String by mutableStateOf(workspaceState.uiState().filterPath())
         private set
 
-    var viewMode: StudioViewMode by mutableStateOf(legacyViewModeToCompose(workspaceState.uiState().viewMode()))
+    var viewMode: StudioViewMode by mutableStateOf(workspaceState.uiState().viewMode())
         private set
 
-    var sidebarView: StudioSidebarView by mutableStateOf(legacySidebarViewToCompose(workspaceState.uiState().sidebarView()))
+    var sidebarView: StudioSidebarView by mutableStateOf(workspaceState.uiState().sidebarView())
         private set
 
     init {
@@ -135,17 +129,17 @@ class StudioContext(
         subscriptions += workspaceState.uiState()
             .select({ snapshot -> snapshot.viewMode() })
             .subscribe({ mode ->
-                viewMode = legacyViewModeToCompose(mode)
+                viewMode = mode
             }, true)
 
         subscriptions += workspaceState.uiState()
             .select({ snapshot -> snapshot.sidebarView() })
             .subscribe({ mode ->
-                sidebarView = legacySidebarViewToCompose(mode)
+                sidebarView = mode
             }, true)
 
         router.permissionSupplier = sessionState::permissions
-        gateway.attach(dispatch)
+        dispatch.setGateway(gateway)
     }
 
     fun sessionState(): ClientSessionState = sessionState
@@ -161,15 +155,15 @@ class StudioContext(
     fun elementStore(): RegistryElementStore = workspaceState.elementStore()
 
     fun openTab(elementId: String, route: StudioRoute) {
-        workspaceState.tabsState().openComposeElement(elementId, route)
+        workspaceState.tabsState().openElement(elementId, route)
     }
 
     fun updateSidebarView(view: StudioSidebarView) {
-        workspaceState.uiState().setComposeSidebarView(view)
+        workspaceState.uiState().setSidebarView(view)
     }
 
     fun updateViewMode(mode: StudioViewMode) {
-        workspaceState.uiState().setComposeViewMode(mode)
+        workspaceState.uiState().setViewMode(mode)
     }
 
     fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
@@ -228,13 +222,13 @@ class StudioContext(
 
     fun resetForWorldClose() {
         workspaceState.resetForWorldClose()
-        gateway.detach(dispatch)
+        dispatch.clearGateway(gateway)
         router.navigate(StudioRoute.NoPermission)
     }
 
     fun dispose() {
         subscriptions.forEach(Subscription::unsubscribe)
-        gateway.detach(dispatch)
+        dispatch.clearGateway(gateway)
         workspaceState.dispose()
     }
 
@@ -277,5 +271,5 @@ class StudioContext(
     }
 
     private fun mapOpenTabs(tabs: List<fr.hardel.asset_editor.client.state.StudioOpenTab>): List<OpenTab> =
-        tabs.map { tab -> tab.toComposeOpenTab() }
+        tabs.map { tab -> OpenTab(tab.elementId(), tab.route()) }
 }

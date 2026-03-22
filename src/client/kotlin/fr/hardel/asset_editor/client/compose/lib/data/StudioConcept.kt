@@ -72,7 +72,7 @@ enum class StudioConcept(
 
         @JvmStatic
         fun byRoute(route: StudioRoute): StudioConcept =
-            byRegistry(route.concept)
+            byRegistry(route.concept())
 
         @JvmStatic
         fun firstAccessible(permissions: StudioPermissions): StudioConcept? {

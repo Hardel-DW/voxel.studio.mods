@@ -16,10 +16,10 @@ import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
 fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
     Box(modifier = modifier.fillMaxSize()) {
         when (val route = context.router.currentRoute) {
-            is StudioRoute.NoPermission -> NoPermissionPage()
-            is StudioRoute.Debug -> DebugLayout(context)
-            is StudioRoute.ChangesMain -> ChangesLayout()
-            else -> when (route.concept) {
+            StudioRoute.NoPermission -> NoPermissionPage()
+            StudioRoute.Debug -> DebugLayout(context)
+            StudioRoute.ChangesMain -> ChangesLayout()
+            else -> when (route.concept()) {
                 "enchantment" -> EnchantmentLayout(context)
                 "loot_table" -> LootTableLayout(context)
                 "recipe" -> RecipeLayout(context)

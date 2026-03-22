@@ -1,24 +1,24 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
+import fr.hardel.asset_editor.client.action.WorkspaceSyncGateway;
 import fr.hardel.asset_editor.client.state.ClientSessionState;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
-import javafx.application.Platform;
+
+import javax.swing.SwingUtilities;
 
 public final class ClientSessionDispatch {
 
     private final ClientSessionState sessionState;
-    private EditorActionGateway activeGateway;
+    private WorkspaceSyncGateway activeGateway;
 
     public ClientSessionDispatch(ClientSessionState sessionState) {
         this.sessionState = sessionState;
     }
 
-    public void setGateway(EditorActionGateway gateway) {
+    public void setGateway(WorkspaceSyncGateway gateway) {
         activeGateway = gateway;
     }
 
@@ -26,7 +26,7 @@ public final class ClientSessionDispatch {
         clearGateway(activeGateway);
     }
 
-    public void clearGateway(EditorActionGateway gateway) {
+    public void clearGateway(WorkspaceSyncGateway gateway) {
         if (activeGateway == gateway)
             activeGateway = null;
     }
@@ -42,26 +42,25 @@ public final class ClientSessionDispatch {
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handleWorkspaceSync(payload));
+            runOnUiThread(() -> gateway.handleWorkspaceSync(payload));
     }
 
     public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
+            runOnUiThread(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
     }
 
     private void runSessionUpdate(Runnable update) {
-        if (!VoxelStudioWindow.isUiThreadAvailable()) {
+        runOnUiThread(update);
+    }
+
+    private void runOnUiThread(Runnable update) {
+        if (SwingUtilities.isEventDispatchThread()) {
             update.run();
             return;
         }
 
-        if (Platform.isFxApplicationThread()) {
-            update.run();
-            return;
-        }
-
-        Platform.runLater(update);
+        SwingUtilities.invokeLater(update);
     }
 }
