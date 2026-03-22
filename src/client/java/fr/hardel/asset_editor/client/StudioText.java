@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.lib;
+package fr.hardel.asset_editor.client;
 
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Registry;

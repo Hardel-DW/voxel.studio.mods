@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.client.javafx.lib.data.StudioElementId;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.client.StudioText;
 import fr.hardel.asset_editor.client.javafx.routes.StudioRoute;
 import fr.hardel.asset_editor.client.javafx.components.ui.ResourceImageIcon;
 import fr.hardel.asset_editor.client.javafx.components.ui.SvgIcon;

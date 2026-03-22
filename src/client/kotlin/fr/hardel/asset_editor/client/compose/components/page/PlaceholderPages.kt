@@ -12,11 +12,6 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
 
 @Composable
-fun NoPermissionPage() {
-    PlaceholderContent("No Permission")
-}
-
-@Composable
 fun DebugPage() {
     PlaceholderContent("Debug")
 }
@@ -28,17 +23,17 @@ fun ChangesPage() {
 
 @Composable
 fun EnchantmentPage(route: StudioRoute) {
-    PlaceholderContent("Enchantment — ${route::class.simpleName}")
+    PlaceholderContent("Enchantment - ${route::class.simpleName}")
 }
 
 @Composable
 fun LootTablePage(route: StudioRoute) {
-    PlaceholderContent("Loot Table — ${route::class.simpleName}")
+    PlaceholderContent("Loot Table - ${route::class.simpleName}")
 }
 
 @Composable
 fun RecipePage(route: StudioRoute) {
-    PlaceholderContent("Recipe — ${route::class.simpleName}")
+    PlaceholderContent("Recipe - ${route::class.simpleName}")
 }
 
 @Composable

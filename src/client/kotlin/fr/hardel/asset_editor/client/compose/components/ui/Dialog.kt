@@ -85,7 +85,7 @@ fun Dialog(
                                 indication = null
                             ) { onDismiss() }
                     ) {
-                        SvgIcon(CLOSE_ICON, 14.dp, VoxelColors.Zinc400)
+                        SvgIcon(CLOSE_ICON, 16.dp, VoxelColors.Zinc400)
                     }
                 }
 

@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.SwitchCard;
 import fr.hardel.asset_editor.client.javafx.lib.RegistryPage;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.client.StudioText;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.workspace.action.EditorAction;

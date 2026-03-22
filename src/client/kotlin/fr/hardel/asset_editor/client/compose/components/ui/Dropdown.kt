@@ -46,8 +46,8 @@ fun <T> Dropdown(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .height(32.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .height(40.dp)
+                .clip(RoundedCornerShape(6.dp))
                 .padding(horizontal = 12.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable(
@@ -61,7 +61,7 @@ fun <T> Dropdown(
                 color = VoxelColors.Zinc300,
                 modifier = Modifier.weight(1f)
             )
-            SvgIcon(CHEVRON_ICON, 10.dp, VoxelColors.Zinc500)
+            SvgIcon(CHEVRON_ICON, 16.dp, VoxelColors.Zinc500)
         }
 
         Popover(

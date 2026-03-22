@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.client.javafx.lib.data.ExclusiveSetGroup;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.client.StudioText;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;

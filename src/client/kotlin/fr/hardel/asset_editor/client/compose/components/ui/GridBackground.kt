@@ -5,12 +5,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import androidx.compose.ui.graphics.drawscope.withTransform
 
 private const val CELL_SIZE = 64f
+private val LINE_COLOR = Color.White.copy(alpha = 0.1f)
 
 @Composable
 fun GridBackground(modifier: Modifier = Modifier) {
@@ -24,17 +25,17 @@ private fun DrawScope.drawGrid() {
     val h = size.height
     if (w <= 0f || h <= 0f) return
 
-    val lineColor = VoxelColors.Zinc950
-
     var x = 0f
     while (x <= w) {
-        drawLine(lineColor, Offset(x, 0f), Offset(x, h), strokeWidth = 1f)
+        val snappedX = snap(x)
+        drawLine(LINE_COLOR, Offset(snappedX, 0f), Offset(snappedX, h), strokeWidth = 1f)
         x += CELL_SIZE
     }
 
     var y = 0f
     while (y <= h) {
-        drawLine(lineColor, Offset(0f, y), Offset(w, y), strokeWidth = 1f)
+        val snappedY = snap(y)
+        drawLine(LINE_COLOR, Offset(0f, snappedY), Offset(w, snappedY), strokeWidth = 1f)
         y += CELL_SIZE
     }
 
@@ -43,18 +44,24 @@ private fun DrawScope.drawGrid() {
     val rx = 0.6f * w
     val ry = 0.5f * h
 
-    val steps = 60
-    for (ring in 0..steps) {
-        val t = ring.toFloat() / steps
-        if (t < 0.4f) continue
-        val alpha = ((t - 0.4f) / 0.6f) * 0.6f
-        val innerR = t
-        val outerR = (ring + 1).toFloat() / steps
-
-        drawOval(
-            color = Color.Black.copy(alpha = alpha),
-            topLeft = Offset(cx - rx * outerR, cy - ry * outerR),
-            size = Size(rx * outerR * 2, ry * outerR * 2)
+    withTransform({
+        translate(left = cx, top = cy)
+        scale(scaleX = 1f, scaleY = ry / rx, pivot = Offset.Zero)
+    }) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colorStops = arrayOf(
+                    0.0f to Color.Transparent,
+                    0.7f to Color.Transparent,
+                    1.0f to Color.Black
+                ),
+                center = Offset.Zero,
+                radius = rx
+            ),
+            radius = maxOf(w, h) * 2f,
+            center = Offset.Zero
         )
     }
 }
+
+private fun snap(value: Float): Float = kotlin.math.floor(value) + 0.5f

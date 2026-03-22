@@ -46,7 +46,7 @@ fun CopyButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(24.dp)
+            .size(40.dp)
             .pointerHoverIcon(PointerIcon.Hand)
             .hoverable(interactionSource)
             .clickable(
@@ -59,9 +59,9 @@ fun CopyButton(
             }
     ) {
         if (showCheck) {
-            SvgIcon(CHECK_ICON, 14.dp, VoxelColors.Emerald400)
+            SvgIcon(CHECK_ICON, 24.dp, VoxelColors.Emerald400)
         } else {
-            SvgIcon(COPY_ICON, 14.dp, if (isHovered) VoxelColors.Zinc300 else VoxelColors.Zinc500)
+            SvgIcon(COPY_ICON, 24.dp, if (isHovered) VoxelColors.Zinc300 else VoxelColors.Zinc500)
         }
     }
 }

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.javafx.lib.highlight;
+package fr.hardel.asset_editor.client.highlight;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;

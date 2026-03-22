@@ -7,9 +7,9 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +24,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.routes.StudioRoute
 import fr.hardel.asset_editor.client.compose.routes.StudioRouter
@@ -35,10 +36,15 @@ private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, 
 
 @Composable
 fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxWidth().height(64.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable {
                     val overview = StudioRoute.overviewOf(router.currentRoute.concept)
@@ -54,17 +60,20 @@ fun StudioPrimarySidebar(router: StudioRouter, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .padding(top = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             // Concept cards will go here when concepts are wired
         }
 
-        Spacer(Modifier.height(8.dp))
-
-        SidebarIconButton(icon = DEBUG_ICON) { router.navigate(StudioRoute.Debug) }
-        SidebarIconButton(icon = SETTINGS_ICON) {}
-
-        Spacer(Modifier.height(16.dp))
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(bottom = 12.dp)
+        ) {
+            SidebarIconButton(icon = DEBUG_ICON) { router.navigate(StudioRoute.Debug) }
+            SidebarIconButton(icon = SETTINGS_ICON) {}
+        }
     }
 }
 
@@ -76,13 +85,16 @@ private fun SidebarIconButton(icon: Identifier, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .fillMaxWidth()
-            .height(40.dp)
+            .size(40.dp)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .alpha(if (isHovered) 1.0f else 0.7f)
     ) {
-        SvgIcon(location = icon, size = 24.dp, tint = Color.White)
+        SvgIcon(
+            location = icon,
+            size = 24.dp,
+            tint = if (isHovered) Color.White else VoxelColors.Zinc400
+        )
     }
 }

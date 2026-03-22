@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.javafx.components.ui.InlineCard;
 import fr.hardel.asset_editor.client.javafx.lib.FxSelectionBindings;
 import fr.hardel.asset_editor.client.javafx.lib.StudioContext;
 import fr.hardel.asset_editor.client.javafx.lib.data.StudioBreakpoint;
-import fr.hardel.asset_editor.client.javafx.lib.StudioText;
+import fr.hardel.asset_editor.client.StudioText;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.registries.Registries;

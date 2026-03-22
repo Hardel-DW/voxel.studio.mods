@@ -1,10 +1,12 @@
 package fr.hardel.asset_editor.client.compose.window
 
 import androidx.compose.ui.awt.ComposePanel
+import fr.hardel.asset_editor.client.javafx.VoxelResourceLoader
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import net.minecraft.client.Minecraft
 import org.slf4j.LoggerFactory
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
@@ -38,6 +40,7 @@ object ComposeStudioWindow {
 
     @JvmStatic
     fun requestOpen() {
+        VoxelResourceLoader.update(Minecraft.getInstance().resourceManager)
         SwingUtilities.invokeLater(::openOrFocusWindow)
     }
 

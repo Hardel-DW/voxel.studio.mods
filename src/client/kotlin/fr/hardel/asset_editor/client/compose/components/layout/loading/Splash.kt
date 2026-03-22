@@ -51,6 +51,7 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.GridBackground
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -162,7 +163,9 @@ private fun FrameBottom(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .hoverable(helpInteraction)
                 .pointerHoverIcon(PointerIcon.Hand)
-                .clickable(interactionSource = helpInteraction, indication = null) {}
+                .clickable(interactionSource = helpInteraction, indication = null) {
+                    BrowserUtils.openBrowser("https://github.com")
+                }
         )
 
         Spacer(Modifier.weight(1f))
@@ -172,9 +175,12 @@ private fun FrameBottom(modifier: Modifier = Modifier) {
 
         Box(
             modifier = Modifier
+                .size(16.dp)
                 .hoverable(ghInteraction)
                 .pointerHoverIcon(PointerIcon.Hand)
-                .clickable(interactionSource = ghInteraction, indication = null) {}
+                .clickable(interactionSource = ghInteraction, indication = null) {
+                    BrowserUtils.openBrowser("https://github.com")
+                }
                 .alpha(if (ghHovered) 0.7f else 1.0f)
         ) {
             SvgIcon(location = GITHUB, size = 16.dp, tint = Color.White)
