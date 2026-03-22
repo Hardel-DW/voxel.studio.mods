@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
 
+import fr.hardel.asset_editor.client.selector.Subscription;
 import java.util.function.Function;
 
 public final class WorkspaceUiState {
@@ -28,6 +29,10 @@ public final class WorkspaceUiState {
 
     public Snapshot snapshot() {
         return store.getState();
+    }
+
+    public Subscription subscribe(Runnable listener) {
+        return store.subscribe(listener);
     }
 
     public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector) {

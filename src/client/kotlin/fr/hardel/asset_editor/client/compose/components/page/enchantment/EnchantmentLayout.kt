@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
@@ -28,10 +29,14 @@ import net.minecraft.core.registries.Registries
 @Composable
 fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
-    val folderIcons = when (context.sidebarView) {
-        StudioSidebarView.SLOTS -> EnchantmentTreeBuilder.slotFolderIcons()
-        StudioSidebarView.ITEMS -> EnchantmentTreeBuilder.itemFolderIcons()
-        StudioSidebarView.EXCLUSIVE -> emptyMap()
+    val sidebarView = context.sidebarView
+    val tree = remember(entries, sidebarView) { EnchantmentTreeBuilder.build(entries, sidebarView) }
+    val folderIcons = remember(sidebarView) {
+        when (sidebarView) {
+            StudioSidebarView.SLOTS -> EnchantmentTreeBuilder.slotFolderIcons()
+            StudioSidebarView.ITEMS -> EnchantmentTreeBuilder.itemFolderIcons()
+            StudioSidebarView.EXCLUSIVE -> emptyMap()
+        }
     }
 
     ConceptLayout(
@@ -46,10 +51,10 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                 changesRoute = StudioRoute.ChangesMain,
                 concept = StudioConcept.ENCHANTMENT.registry(),
                 tabRoutes = StudioConcept.ENCHANTMENT.tabRoutes(),
-                tree = EnchantmentTreeBuilder.build(entries, context.sidebarView),
+                tree = tree,
                 elementIcon = StudioConcept.ENCHANTMENT.icon,
                 folderIcons = folderIcons,
-                disableAutoExpand = context.sidebarView == StudioSidebarView.SLOTS,
+                disableAutoExpand = sidebarView == StudioSidebarView.SLOTS,
                 filterPath = { context.filterPath },
                 setFilterPath = { value -> context.uiState().setFilterPath(value) },
                 currentElementId = { context.currentElementId },

@@ -59,10 +59,13 @@ fun EnchantmentOverviewPage(context: StudioContext) {
     val search = context.search.trim().lowercase(Locale.ROOT)
     val filterPath = context.filterPath.trim().lowercase(Locale.ROOT)
 
-    val filtered = entries
-        .filter { entry -> search.isEmpty() || entry.id().path.contains(search) }
-        .filter { entry -> EnchantmentViewMatchers.matches(entry, filterPath, context.sidebarView) }
-        .sortedBy { entry -> entry.data().description().string }
+    val sidebarView = context.sidebarView
+    val filtered = remember(entries, search, filterPath, sidebarView) {
+        entries
+            .filter { entry -> search.isEmpty() || entry.id().path.contains(search) }
+            .filter { entry -> EnchantmentViewMatchers.matches(entry, filterPath, sidebarView) }
+            .sortedBy { entry -> entry.data().description().string }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -136,7 +139,9 @@ private fun OverviewRow(
     dialogs: RegistryDialogState
 ) {
     val enabled = !EnchantmentFlushAdapter.isSoftDeleted(entry)
-    val itemId = EnchantmentFlushAdapter.previewItemId(entry.data()) { tag -> context.resolveTag(Registries.ITEM, tag) }
+    val itemId = remember(entry) {
+        EnchantmentFlushAdapter.previewItemId(entry.data()) { tag -> context.resolveTag(Registries.ITEM, tag) }
+    }
     val interaction = remember(entry.id()) { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val openEntry = {

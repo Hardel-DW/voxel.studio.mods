@@ -75,7 +75,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .forEach { concept ->
                     ConceptButton(
                         concept = concept,
-                        active = context.router.currentRoute.concept() == concept.registry(),
+                        active = context.router.currentConcept == concept.registry(),
                         onClick = {
                             context.uiState().setFilterPath("")
                             context.tabsState().setCurrentElementId("")

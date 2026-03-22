@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeController
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -22,7 +25,7 @@ import net.minecraft.resources.Identifier
 typealias SidebarExtra = @Composable () -> Unit
 typealias PageFactory = @Composable (StudioRoute) -> Unit
 
-data class ConceptLayoutConfig(
+class ConceptLayoutConfig(
     val concept: StudioConcept,
     val icon: Identifier,
     val sidebarTitleKey: String,
@@ -39,7 +42,7 @@ fun ConceptLayout(
     config: ConceptLayoutConfig,
     modifier: Modifier = Modifier
 ) {
-    val tree = remember(context, config.treeConfig) {
+    val tree = remember(config.concept) {
         TreeController(context.router, config.treeConfig)
     }
     val route = context.router.currentRoute
@@ -95,11 +98,47 @@ fun ConceptLayout(
                 simulationRoute = config.simulationRoute
             )
 
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                config.pageFactory(route)
+            KeepAlivePages(
+                currentRoute = route,
+                concept = config.concept,
+                pageFactory = config.pageFactory
+            )
+        }
+    }
+}
+
+@Composable
+private fun KeepAlivePages(
+    currentRoute: StudioRoute,
+    concept: StudioConcept,
+    pageFactory: PageFactory
+) {
+    val allRoutes = remember(concept) {
+        buildList {
+            add(concept.overviewRoute)
+            addAll(concept.tabRoutes())
+        }
+    }
+    val visited = remember(concept) { mutableStateListOf<StudioRoute>() }
+
+    if (currentRoute in allRoutes && currentRoute !in visited) {
+        visited.add(currentRoute)
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        visited.forEach { route ->
+            val active = route == currentRoute
+            key(route) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .then(if (!active) HiddenModifier else Modifier)
+                ) {
+                    pageFactory(route)
+                }
             }
         }
     }
 }
+
+private val HiddenModifier = Modifier.drawWithContent { }

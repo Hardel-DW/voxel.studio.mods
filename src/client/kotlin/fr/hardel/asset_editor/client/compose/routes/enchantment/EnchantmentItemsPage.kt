@@ -40,13 +40,17 @@ fun EnchantmentItemsPage(context: StudioContext) {
     val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
     var section by remember { mutableStateOf("supportedItems") }
 
-    val supportedTag = entry.data().definition().supportedItems().unwrapKey()
-        .map { key -> key.location() }
-        .orElse(null)
-    val primaryTag = entry.data().definition().primaryItems()
-        .flatMap { holderSet -> holderSet.unwrapKey() }
-        .map { key -> key.location() }
-        .orElse(null)
+    val supportedTag = remember(entry) {
+        entry.data().definition().supportedItems().unwrapKey()
+            .map { key -> key.location() }
+            .orElse(null)
+    }
+    val primaryTag = remember(entry) {
+        entry.data().definition().primaryItems()
+            .flatMap { holderSet -> holderSet.unwrapKey() }
+            .map { key -> key.location() }
+            .orElse(null)
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(32.dp),

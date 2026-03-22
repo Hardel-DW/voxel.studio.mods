@@ -118,7 +118,7 @@ fun EditorHeader(
                         EditorBreadcrumb(
                             rootLabel = I18n.get(concept.titleKey),
                             segments = segments,
-                            showBack = !route.isOverview(),
+                            showBack = !context.router.isOverview,
                             onBack = { context.router.navigate(concept.overviewRoute) }
                         )
 
@@ -137,7 +137,7 @@ fun EditorHeader(
                         )
                     }
 
-                    if (route.isOverview()) {
+                    if (context.router.isOverview) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)

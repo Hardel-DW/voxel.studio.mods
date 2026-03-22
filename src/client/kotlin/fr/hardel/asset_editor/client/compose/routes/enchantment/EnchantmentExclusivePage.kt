@@ -33,9 +33,11 @@ fun EnchantmentExclusivePage(context: StudioContext) {
     val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
     var mode by remember { mutableStateOf("group") }
 
-    val currentExclusiveTag = entry.data().exclusiveSet().unwrapKey()
-        .map { key -> key.location().toString() }
-        .orElse("")
+    val currentExclusiveTag = remember(entry) {
+        entry.data().exclusiveSet().unwrapKey()
+            .map { key -> key.location().toString() }
+            .orElse("")
+    }
 
     val directExclusiveIds = remember(entry) {
         if (entry.data().exclusiveSet().unwrapKey().isPresent) {

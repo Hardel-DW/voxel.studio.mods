@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,12 +71,14 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             context.openTabs.forEachIndexed { index, tab ->
-                StudioEditorTabItem(
-                    context = context,
-                    tab = tab,
-                    index = index,
-                    active = index == context.activeTabIndex
-                )
+                key(tab.elementId) {
+                    StudioEditorTabItem(
+                        context = context,
+                        tab = tab,
+                        index = index,
+                        active = index == context.activeTabIndex
+                    )
+                }
             }
         }
 
@@ -97,9 +100,9 @@ private fun StudioEditorTabItem(
     index: Int,
     active: Boolean
 ) {
-    val itemInteraction = remember(index) { MutableInteractionSource() }
+    val itemInteraction = remember { MutableInteractionSource() }
     val itemHovered by itemInteraction.collectIsHoveredAsState()
-    val closeInteraction = remember(index) { MutableInteractionSource() }
+    val closeInteraction = remember { MutableInteractionSource() }
     val closeHovered by closeInteraction.collectIsHoveredAsState()
     val concept = StudioConcept.byRoute(tab.route)
     val parsed = StudioElementId.parse(tab.elementId)

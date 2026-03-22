@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -33,6 +34,10 @@ fun EnchantmentSlotsPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
 
+    val activeSlots = remember(entry) {
+        entry.data().definition().slots().map { it.getSerializedName() }.toSet()
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(32.dp),
         modifier = Modifier
@@ -48,9 +53,7 @@ fun EnchantmentSlotsPage(context: StudioContext) {
                             Card(
                                 imageId = config.image(),
                                 title = I18n.get("slot:${config.id}"),
-                                active = entry.data().definition().slots().stream().anyMatch { groupValue ->
-                                    config.slots.contains(groupValue.getSerializedName())
-                                },
+                                active = config.slots.any { slot -> activeSlots.contains(slot) },
                                 onActiveChange = {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,

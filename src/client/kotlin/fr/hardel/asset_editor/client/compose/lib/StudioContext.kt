@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import fr.hardel.asset_editor.client.ClientSessionDispatch
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionGateway
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
@@ -21,6 +22,8 @@ import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
 import java.util.Optional
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.Holder
@@ -50,13 +53,13 @@ class StudioContext(
     var permissions: StudioPermissions by mutableStateOf(sessionState.permissions())
         private set
 
-    var availablePacks: List<ClientPackInfo> by mutableStateOf(sessionState.snapshot().availablePacks())
+    var availablePacks: ImmutableList<ClientPackInfo> by mutableStateOf(sessionState.snapshot().availablePacks().toImmutableList())
         private set
 
     var selectedPack: ClientPackInfo? by mutableStateOf(workspaceState.packSelectionState().selectedPack())
         private set
 
-    var openTabs: List<OpenTab> by mutableStateOf(mapOpenTabs(workspaceState.tabsState().openTabsView()))
+    var openTabs: ImmutableList<OpenTab> by mutableStateOf(mapOpenTabs(workspaceState.tabsState().openTabsView()))
         private set
 
     var activeTabIndex: Int by mutableIntStateOf(workspaceState.tabsState().activeTabIndex())
@@ -86,7 +89,7 @@ class StudioContext(
 
         subscriptions += sessionState.select({ snapshot -> snapshot.availablePacks() })
             .subscribe({ packs ->
-                availablePacks = packs
+                availablePacks = packs.toImmutableList()
             }, true)
 
         subscriptions += workspaceState.packSelectionState()
@@ -96,47 +99,24 @@ class StudioContext(
                 refreshSelectedPackWorkspace()
             }, true)
 
-        subscriptions += workspaceState.tabsState()
-            .select({ snapshot -> snapshot.openTabs() })
-            .subscribe({ tabs ->
-                openTabs = mapOpenTabs(tabs)
-            }, true)
+        subscriptions += workspaceState.tabsState().subscribe {
+            val snapshot = workspaceState.tabsState().snapshot()
+            Snapshot.withMutableSnapshot {
+                openTabs = mapOpenTabs(snapshot.openTabs())
+                activeTabIndex = snapshot.activeTabIndex()
+                currentElementId = snapshot.currentElementId()
+            }
+        }
 
-        subscriptions += workspaceState.tabsState()
-            .select({ snapshot -> snapshot.activeTabIndex() })
-            .subscribe({ index ->
-                activeTabIndex = index
-            }, true)
-
-        subscriptions += workspaceState.tabsState()
-            .select({ snapshot -> snapshot.currentElementId() })
-            .subscribe({ elementId ->
-                currentElementId = elementId
-            }, true)
-
-        subscriptions += workspaceState.uiState()
-            .select({ snapshot -> snapshot.search() })
-            .subscribe({ value ->
-                search = value
-            }, true)
-
-        subscriptions += workspaceState.uiState()
-            .select({ snapshot -> snapshot.filterPath() })
-            .subscribe({ value ->
-                filterPath = value
-            }, true)
-
-        subscriptions += workspaceState.uiState()
-            .select({ snapshot -> snapshot.viewMode() })
-            .subscribe({ mode ->
-                viewMode = mode
-            }, true)
-
-        subscriptions += workspaceState.uiState()
-            .select({ snapshot -> snapshot.sidebarView() })
-            .subscribe({ mode ->
-                sidebarView = mode
-            }, true)
+        subscriptions += workspaceState.uiState().subscribe {
+            val snapshot = workspaceState.uiState().snapshot()
+            Snapshot.withMutableSnapshot {
+                search = snapshot.search()
+                filterPath = snapshot.filterPath()
+                viewMode = snapshot.viewMode()
+                sidebarView = snapshot.sidebarView()
+            }
+        }
 
         router.permissionSupplier = sessionState::permissions
         dispatch.setGateway(gateway)
@@ -270,6 +250,6 @@ class StudioContext(
         gateway.requestPackWorkspace(Registries.ENCHANTMENT)
     }
 
-    private fun mapOpenTabs(tabs: List<fr.hardel.asset_editor.client.state.StudioOpenTab>): List<OpenTab> =
-        tabs.map { tab -> OpenTab(tab.elementId(), tab.route()) }
+    private fun mapOpenTabs(tabs: List<fr.hardel.asset_editor.client.state.StudioOpenTab>): ImmutableList<OpenTab> =
+        tabs.map { tab -> OpenTab(tab.elementId(), tab.route()) }.toImmutableList()
 }

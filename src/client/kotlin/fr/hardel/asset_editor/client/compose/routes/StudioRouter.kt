@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.routes
 
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +10,9 @@ class StudioRouter {
 
     var currentRoute: StudioRoute by mutableStateOf(StudioRoute.NoPermission)
         private set
+
+    val currentConcept: String by derivedStateOf { currentRoute.concept() }
+    val isOverview: Boolean by derivedStateOf { currentRoute.isOverview() }
 
     var permissionSupplier: () -> StudioPermissions = { StudioPermissions.NONE }
 

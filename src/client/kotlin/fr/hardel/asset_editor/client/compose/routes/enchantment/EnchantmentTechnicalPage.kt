@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -58,7 +59,7 @@ private val COST_FIELDS = listOf(
 fun EnchantmentTechnicalPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
-    val effects = EnchantmentFlushAdapter.availableEffects(entry.data())
+    val effects = remember(entry) { EnchantmentFlushAdapter.availableEffects(entry.data()) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(32.dp),
