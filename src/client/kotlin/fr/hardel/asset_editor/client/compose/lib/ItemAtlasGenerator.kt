@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer.AtlasEntry
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.SwingUtilities
 import net.minecraft.resources.Identifier
@@ -15,9 +16,16 @@ import org.jetbrains.skia.ImageInfo
 object ItemAtlasGenerator {
 
     private val listeners = CopyOnWriteArrayList<Runnable>()
+    private val rebuildLock = Any()
 
     @Volatile
     private var atlasImage: ImageBitmap? = null
+
+    @Volatile
+    private var materializedGeneration: Long = -1L
+
+    @Volatile
+    private var pendingGeneration: Long = -1L
 
     init {
         ItemAtlasRenderer.subscribeGeneration(::rebuild)
@@ -25,7 +33,7 @@ object ItemAtlasGenerator {
 
     @JvmStatic
     fun getAtlasImage(): ImageBitmap? {
-        if (atlasImage == null && ItemAtlasRenderer.isReady()) {
+        if (ItemAtlasRenderer.isReady() && ItemAtlasRenderer.getGeneration() > materializedGeneration) {
             rebuild()
         }
         return atlasImage
@@ -50,16 +58,46 @@ object ItemAtlasGenerator {
         val pixels = ItemAtlasRenderer.getArgbPixels() ?: return
         val width = ItemAtlasRenderer.getWidth()
         val height = ItemAtlasRenderer.getHeight()
-        val update = Runnable {
-            atlasImage = createImage(pixels, width, height)
-            listeners.forEach(Runnable::run)
+        val generation = ItemAtlasRenderer.getGeneration()
+
+        synchronized(rebuildLock) {
+            if (generation <= materializedGeneration || generation == pendingGeneration) {
+                return
+            }
+            pendingGeneration = generation
         }
 
-        if (SwingUtilities.isEventDispatchThread()) {
-            update.run()
-        } else {
-            SwingUtilities.invokeLater(update)
-        }
+        CompletableFuture
+            .supplyAsync { createImage(pixels, width, height) }
+            .thenAccept { image ->
+                val publish = Runnable {
+                    synchronized(rebuildLock) {
+                        if (generation < materializedGeneration) {
+                            return@Runnable
+                        }
+                        atlasImage = image
+                        materializedGeneration = generation
+                        if (pendingGeneration == generation) {
+                            pendingGeneration = -1L
+                        }
+                    }
+                    listeners.forEach(Runnable::run)
+                }
+
+                if (SwingUtilities.isEventDispatchThread()) {
+                    publish.run()
+                } else {
+                    SwingUtilities.invokeLater(publish)
+                }
+            }
+            .exceptionally {
+                synchronized(rebuildLock) {
+                    if (pendingGeneration == generation) {
+                        pendingGeneration = -1L
+                    }
+                }
+                null
+            }
     }
 
     private fun createImage(argbPixels: IntArray, width: Int, height: Int): ImageBitmap {

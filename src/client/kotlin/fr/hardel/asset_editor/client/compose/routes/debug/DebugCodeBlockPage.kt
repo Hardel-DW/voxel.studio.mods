@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -27,34 +24,22 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
+import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlockState
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.JsonCodeBlockHighlighter
-import fr.hardel.asset_editor.client.compose.components.ui.codeblock.rememberCodeBlockState
 import java.util.concurrent.atomic.AtomicReference
 import net.minecraft.client.resources.language.I18n
 
+private val PRETTY_GSON = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+
 @Composable
 fun DebugCodeBlockPage() {
-    val state = rememberCodeBlockState()
-
-    LaunchedEffect(Unit) {
-        JsonCodeBlockHighlighter.installDefaultPalette(state.palette)
-        state.highlighter = JsonCodeBlockHighlighter()
-        state.textFill = VoxelColors.Zinc300
-        state.backgroundFill = VoxelColors.Zinc960
-        state.borderFill = VoxelColors.Zinc800
-        state.textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-        state.contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)
-        state.lineSpacing = 5.sp
-        state.wrapText = false
-        state.minHeight = 360.dp
-        state.text = encodeSampleJson()
-    }
+    val sampleJson = remember { encodeSampleJson() }
+    val state = remember(sampleJson) { debugCodeBlockState(sampleJson) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(32.dp)
     ) {
         Section(I18n.get("debug:code.title")) {
@@ -68,14 +53,31 @@ fun DebugCodeBlockPage() {
                 Spacer(modifier = Modifier.weight(1f))
                 CopyButton(textProvider = { state.text })
             }
-
-            CodeBlock(
-                state = state,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
+
+        CodeBlock(
+            state = state,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
     }
 }
+
+private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
+    CodeBlockState().apply {
+        JsonCodeBlockHighlighter.installDefaultPalette(palette)
+        highlighter = JsonCodeBlockHighlighter()
+        textFill = VoxelColors.Zinc300
+        backgroundFill = VoxelColors.Zinc960
+        borderFill = VoxelColors.Zinc800
+        textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)
+        lineSpacing = 5.sp
+        wrapText = false
+        minHeight = 360.dp
+        text = sampleJson
+    }
 
 private fun encodeSampleJson(): String {
     val encoded = AtomicReference("{}")
@@ -86,7 +88,7 @@ private fun encodeSampleJson(): String {
 }
 
 private fun prettyPrint(json: JsonElement): String =
-    GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(json)
+    PRETTY_GSON.toJson(json)
 
 private data class Address(val street: String, val city: String, val country: String) {
     companion object {
