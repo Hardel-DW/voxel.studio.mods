@@ -20,7 +20,7 @@ fun ComposeStudioContent(windowState: WindowState) {
     val router = remember { StudioRouter() }
 
     LaunchedEffect(Unit) {
-        delay(30_000)
+        delay(1000)
         windowState.markSplashTimerDone()
     }
 

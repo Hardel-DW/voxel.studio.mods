@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib.utils
 
 import androidx.compose.ui.graphics.Color
 import kotlin.math.abs
-import kotlin.text.iterator
+import kotlin.math.roundToInt
 
 object ColorUtils {
 
@@ -42,4 +42,17 @@ object ColorUtils {
             blue = (b + m).coerceIn(0f, 1f)
         )
     }
+
+    fun toCssRgba(color: Color): String = "rgba(%d,%d,%d,%.3f)".format(
+        (color.red * 255).roundToInt().coerceIn(0, 255),
+        (color.green * 255).roundToInt().coerceIn(0, 255),
+        (color.blue * 255).roundToInt().coerceIn(0, 255),
+        color.alpha
+    )
+
+    fun toCssRgb(color: Color): String = "rgb(%d,%d,%d)".format(
+        (color.red * 255).roundToInt().coerceIn(0, 255),
+        (color.green * 255).roundToInt().coerceIn(0, 255),
+        (color.blue * 255).roundToInt().coerceIn(0, 255)
+    )
 }

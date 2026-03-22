@@ -9,5 +9,5 @@ class TreeNodeModel {
     var elementId: String? = null
     var label: String? = null
     var icon: Identifier? = null
-    var isFolder: Boolean = false
+    var folder: Boolean = false
 }

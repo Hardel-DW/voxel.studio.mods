@@ -51,7 +51,7 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.GridBackground
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.javafx.lib.utils.BrowserUtils
+import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 

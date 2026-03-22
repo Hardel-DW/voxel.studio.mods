@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.tree
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +14,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.background
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,14 +33,11 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 
 @Composable
 fun TreeSidebarView(
-    tree: TreeNodeModel?,
-    treeConfig: FileTreeConfig,
-    modifiedCount: Int,
-    isAllActive: Boolean,
-    onUpdatedClick: () -> Unit,
-    onAllClick: () -> Unit,
+    tree: TreeController,
     modifier: Modifier = Modifier
 ) {
+    tree.refreshState()
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.padding(top = 16.dp)
@@ -48,22 +45,22 @@ fun TreeSidebarView(
         SidebarActionRow(
             icon = PENCIL_ICON,
             label = I18n.get("generic:updated"),
-            count = modifiedCount,
+            count = tree.modifiedCount(),
             colorKey = "updated",
             active = false,
-            onClick = onUpdatedClick
+            onClick = tree::navigateChanges
         )
 
         SidebarActionRow(
             icon = SEARCH_ICON,
             label = I18n.get("generic:all"),
-            count = tree?.count ?: 0,
+            count = tree.tree?.count ?: 0,
             colorKey = "all",
-            active = isAllActive,
-            onClick = onAllClick
+            active = tree.isAllActive(),
+            onClick = tree::selectAll
         )
 
-        FileTreeView(root = tree, config = treeConfig)
+        FileTreeView(tree = tree)
     }
 }
 
@@ -83,21 +80,25 @@ private fun SidebarActionRow(
             .fillMaxWidth()
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(onClick = onClick)
-            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .padding(vertical = 4.dp)
     ) {
         if (active) {
-            val accentColor = ColorUtils.accentColor(colorKey)
             Box(
                 modifier = Modifier
                     .width(4.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(accentColor)
+                    .clip(RoundedCornerShape(topEnd = 999.dp, bottomEnd = 999.dp))
+                    .background(ColorUtils.accentColor(colorKey))
             )
         } else {
             Box(modifier = Modifier.width(4.dp))
         }
 
-        SvgIcon(location = icon, size = 20.dp, tint = Color.White, modifier = Modifier.alpha(0.6f))
+        SvgIcon(
+            location = icon,
+            size = 20.dp,
+            tint = Color.White,
+            modifier = Modifier.alpha(0.6f)
+        )
 
         Text(
             text = label,
