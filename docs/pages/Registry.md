@@ -11,7 +11,7 @@ The modification system is a layering system: the Minecraft registry provides th
 As mentioned, we use the layer and override system. For this, when we want to make modifications, they must be in a custom pack. The modifications we make apply to the currently selected pack. We can have multiple custom packs at the same time.
 
 ### Actions & Datagen
-Actions use Minecraft's Datagen system to generate JSON data. All actions are centralized in the same Java file and then used across different Pages. See the folder src\client\java\fr\hardel\asset_editor\client\javafx\lib\action.
+Actions use Minecraft's Datagen system to generate JSON data. All actions are centralized in the same Kotlin file and then used across different Pages. See the folder src\client\kotlin\fr\hardel\asset_editor\client\compose\lib\action.
 
 ### Registry
 We display in the in-game editor the registries that we have copied. This includes all built-in elements like the minecraft namespace, as well as datapacks, resource packs, and mods. We use their `Identifiers` to identify them.

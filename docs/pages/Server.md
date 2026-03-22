@@ -84,7 +84,7 @@ Clients update their local state or rollback optimistic state
 ```
 
 ## Client-Side State Used By The Server Flow
-Permissions and pack lists are pushed by the server on join, the client stores them in cache objects independent from the JavaFX window.
+Permissions and pack lists are pushed by the server on join, the client stores them in cache objects independent from the Compose window.
 These client caches exist to feed the UI and the gateway, They are not the server source of truth.
 
 ## Pack Sync

@@ -1,5 +1,5 @@
 # Reactive Store / Selector (Zustand Like)
-Le système de selectors doit être une couche technique indépendante de l’application, Son rôle n’est pas de connaître Minecraft, les packs, les enchantments, les tags, JavaFX ou l’UI.
+Le système de selectors doit être une couche technique indépendante de l’application, Son rôle n’est pas de connaître Minecraft, les packs, les enchantments, les tags, Compose ou l’UI.
 la lib selector fournit le moteur, l'application les données et les selecteurs. L'ui/pages consomme les selecteurs.
 
 Son seul rôle est stocker un état permettre de sélectionner une partie de cet état, notifier seulement si la valeur sélectionnée a réellement changé
@@ -20,7 +20,7 @@ Elle ne contientera pas de logiques comme :
 - Pack
 - EditorAction
 - Gateway
-- JavaFX
+- Compose
 - I18n
 
 ### Application

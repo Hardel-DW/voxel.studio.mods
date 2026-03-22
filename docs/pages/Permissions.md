@@ -1,5 +1,5 @@
 # Permissions
-The permission system is independent from JavaFX, concepts, registries, and Minecraft OP.
+The permission system is independent from Compose, concepts, registries, and Minecraft OP.
 It defines who can open the editor, who can edit, and who can manage other users.
 
 ## Roles
