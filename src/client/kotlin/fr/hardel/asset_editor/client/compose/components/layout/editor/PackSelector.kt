@@ -43,6 +43,8 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.rememberAvailablePacks
+import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
 import fr.hardel.asset_editor.client.state.ClientPackInfo
 import kotlin.math.roundToInt
 import net.minecraft.client.resources.language.I18n
@@ -65,7 +67,8 @@ fun PackSelector(
 
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
-    val selectedPack = context.selectedPack
+    val selectedPack = rememberSelectedPack(context)
+    val availablePacks = rememberAvailablePacks(context)
 
     Box(
         contentAlignment = Alignment.CenterStart,
@@ -139,7 +142,7 @@ fun PackSelector(
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
-                    context.availablePacks.forEach { pack ->
+                    availablePacks.forEach { pack ->
                         PackRow(
                             pack = pack,
                             selected = pack == selectedPack,

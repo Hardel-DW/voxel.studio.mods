@@ -39,7 +39,9 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
+import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
+import fr.hardel.asset_editor.client.navigation.StudioTabEntry
 import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.resources.Identifier
@@ -50,6 +52,8 @@ private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 @Composable
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
     RememberWindowDragArea(EDITOR_TABS_DRAG_AREA)
+    val openTabs = rememberOpenTabs(context)
+    val activeTabId = rememberActiveTabId(context)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -70,13 +74,13 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            context.openTabs.forEachIndexed { index, tab ->
-                key(tab.elementId) {
+            openTabs.forEachIndexed { index, tab ->
+                key(tab.tabId) {
                     StudioEditorTabItem(
                         context = context,
                         tab = tab,
                         index = index,
-                        active = index == context.activeTabIndex
+                        active = tab.tabId == activeTabId
                     )
                 }
             }
@@ -96,7 +100,7 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
 @Composable
 private fun StudioEditorTabItem(
     context: StudioContext,
-    tab: StudioContext.OpenTab,
+    tab: StudioTabEntry,
     index: Int,
     active: Boolean
 ) {
@@ -104,12 +108,12 @@ private fun StudioEditorTabItem(
     val itemHovered by itemInteraction.collectIsHoveredAsState()
     val closeInteraction = remember { MutableInteractionSource() }
     val closeHovered by closeInteraction.collectIsHoveredAsState()
-    val concept = StudioConcept.byRoute(tab.route)
-    val parsed = StudioElementId.parse(tab.elementId)
+    val concept = tab.destination.concept
+    val parsed = StudioElementId.parse(tab.destination.elementId)
     val label = if (parsed != null) {
         StudioText.resolve(concept.registryKey, parsed.identifier)
     } else {
-        tab.elementId
+        tab.destination.elementId
     }
 
     Row(
@@ -130,8 +134,7 @@ private fun StudioEditorTabItem(
                 interactionSource = itemInteraction,
                 indication = null
             ) {
-                context.tabsState().switchTab(index)
-                context.router.navigate(tab.route)
+                context.navigationState().switchTab(tab.tabId)
             }
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
@@ -163,10 +166,7 @@ private fun StudioEditorTabItem(
                     interactionSource = closeInteraction,
                     indication = null
                 ) {
-                    context.tabsState().closeTab(index)
-                    val next = context.tabsState().activeTab()
-                    val fallback = StudioRoute.overviewOf(context.router.currentRoute.concept())
-                    context.router.navigate(next?.route() ?: fallback)
+                    context.navigationState().closeTab(tab.tabId)
                 }
         ) {
             SvgIcon(

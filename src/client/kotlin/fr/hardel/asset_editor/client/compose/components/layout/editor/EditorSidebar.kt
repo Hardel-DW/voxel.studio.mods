@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,7 +34,7 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeController
+import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeSidebarView
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
@@ -48,7 +46,7 @@ private val DISCORD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "
 @Composable
 fun EditorSidebar(
     context: StudioContext,
-    tree: TreeController,
+    treeState: ConceptTreeState,
     titleKey: String,
     iconPath: Identifier,
     topContent: List<@Composable () -> Unit>,
@@ -77,7 +75,7 @@ fun EditorSidebar(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .pointerHoverIcon(PointerIcon.Hand)
-                    .clickable(onClick = tree::selectAll)
+                    .clickable(onClick = treeState.onSelectAll)
             ) {
                 ResourceImageIcon(iconPath, 20.dp)
                 Text(
@@ -98,13 +96,12 @@ fun EditorSidebar(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 12.dp)
         ) {
             topContent.forEach { extra ->
                 extra()
             }
-            TreeSidebarView(tree = tree)
+            TreeSidebarView(treeState = treeState, modifier = Modifier.weight(1f))
         }
 
         val interaction = remember { MutableInteractionSource() }

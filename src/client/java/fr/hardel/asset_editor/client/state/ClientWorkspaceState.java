@@ -23,8 +23,6 @@ public final class ClientWorkspaceState {
     }
 
     private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.empty());
-    private final WorkspaceUiState uiState = new WorkspaceUiState();
-    private final WorkspaceTabsState tabsState = new WorkspaceTabsState();
     private final WorkspacePackSelectionState packSelectionState;
     private final WorkspaceIssueState issueState = new WorkspaceIssueState();
     private final RegistryElementStore elementStore = new RegistryElementStore();
@@ -45,14 +43,6 @@ public final class ClientWorkspaceState {
     public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
         SelectorEquality<? super R> equality) {
         return store.select(selector, equality);
-    }
-
-    public WorkspaceUiState uiState() {
-        return uiState;
-    }
-
-    public WorkspaceTabsState tabsState() {
-        return tabsState;
     }
 
     public WorkspacePackSelectionState packSelectionState() {
@@ -98,11 +88,9 @@ public final class ClientWorkspaceState {
 
     public void resetForWorldSync() {
         elementStore.clearAll();
-        tabsState.reset();
         packSelectionState.clearSelection();
         issueState.clear();
         clearPendingActionStateOnly();
-        uiState.reset();
     }
 
     public void resetForWorldClose() {
@@ -111,8 +99,6 @@ public final class ClientWorkspaceState {
     }
 
     public void dispose() {
-        uiState.dispose();
-        tabsState.dispose();
         packSelectionState.dispose();
         issueState.dispose();
     }

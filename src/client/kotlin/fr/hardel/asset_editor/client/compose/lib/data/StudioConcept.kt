@@ -1,7 +1,13 @@
 package fr.hardel.asset_editor.client.compose.lib.data
 
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
+import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.navigation.StudioConceptSpec
+import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import fr.hardel.asset_editor.permission.StudioPermissions
+import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.toImmutableSet
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -10,54 +16,70 @@ import net.minecraft.resources.ResourceKey
 enum class StudioConcept(
     val registryKey: ResourceKey<out Registry<*>>,
     val titleKey: String,
-    val overviewRoute: StudioRoute,
     val icon: Identifier,
+    override val defaultEditorTab: StudioEditorTab,
     val tabs: List<StudioTabDefinition>
-) {
+) : StudioConceptSpec {
     ENCHANTMENT(
         Registries.ENCHANTMENT,
         "studio.concept.enchantment",
-        StudioRoute.EnchantmentOverview,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/enchantment.png"),
+        StudioEditorTab.MAIN,
         listOf(
-            StudioTabDefinition("global", "enchantment:section.global", StudioRoute.EnchantmentMain),
-            StudioTabDefinition("find", "enchantment:section.find", StudioRoute.EnchantmentFind),
-            StudioTabDefinition("slots", "enchantment:section.slots", StudioRoute.EnchantmentSlots),
-            StudioTabDefinition("items", "enchantment:section.supported", StudioRoute.EnchantmentItems),
-            StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioRoute.EnchantmentExclusive),
-            StudioTabDefinition("technical", "enchantment:section.technical", StudioRoute.EnchantmentTechnical)
+            StudioTabDefinition("global", "enchantment:section.global", StudioEditorTab.MAIN),
+            StudioTabDefinition("find", "enchantment:section.find", StudioEditorTab.FIND),
+            StudioTabDefinition("slots", "enchantment:section.slots", StudioEditorTab.SLOTS),
+            StudioTabDefinition("items", "enchantment:section.supported", StudioEditorTab.ITEMS),
+            StudioTabDefinition("exclusive", "enchantment:section.exclusive", StudioEditorTab.EXCLUSIVE),
+            StudioTabDefinition("technical", "enchantment:section.technical", StudioEditorTab.TECHNICAL)
         )
     ),
     LOOT_TABLE(
         Registries.LOOT_TABLE,
         "studio.concept.loot_table",
-        StudioRoute.LootTableOverview,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/loot_table.png"),
+        StudioEditorTab.MAIN,
         listOf(
-            StudioTabDefinition("main", "loot:section.main", StudioRoute.LootTableMain),
-            StudioTabDefinition("pools", "loot:section.pools", StudioRoute.LootTablePools)
+            StudioTabDefinition("main", "loot:section.main", StudioEditorTab.MAIN),
+            StudioTabDefinition("pools", "loot:section.pools", StudioEditorTab.POOLS)
         )
     ),
     RECIPE(
         Registries.RECIPE,
         "studio.concept.recipe",
-        StudioRoute.RecipeOverview,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/recipe.png"),
+        StudioEditorTab.MAIN,
         listOf(
-            StudioTabDefinition("main", "recipe:section.main", StudioRoute.RecipeMain)
+            StudioTabDefinition("main", "recipe:section.main", StudioEditorTab.MAIN)
         )
     ),
     STRUCTURE(
         Registries.STRUCTURE,
         "studio.concept.structure",
-        StudioRoute.EnchantmentOverview,
         Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/structure.png"),
+        StudioEditorTab.MAIN,
         listOf()
     );
 
-    fun registry(): String = registryKey.identifier().path
+    override val concept: StudioConcept
+        get() = this
 
-    fun tabRoutes(): List<StudioRoute> = tabs.map(StudioTabDefinition::route)
+    override val supportedTabs: ImmutableSet<StudioEditorTab>
+        get() = tabs.map(StudioTabDefinition::tab).toImmutableSet()
+
+    override fun overview(): ConceptOverviewDestination =
+        ConceptOverviewDestination(this)
+
+    override fun changes(): ConceptChangesDestination =
+        ConceptChangesDestination(this)
+
+    override fun editor(
+        elementId: String,
+        tab: StudioEditorTab
+    ): ElementEditorDestination =
+        ElementEditorDestination(this, elementId, tab)
+
+    fun registry(): String = registryKey.identifier().path
 
     companion object {
         @JvmStatic
@@ -69,10 +91,6 @@ enum class StudioConcept(
             }
             return ENCHANTMENT
         }
-
-        @JvmStatic
-        fun byRoute(route: StudioRoute): StudioConcept =
-            byRegistry(route.concept())
 
         @JvmStatic
         fun firstAccessible(permissions: StudioPermissions): StudioConcept? {

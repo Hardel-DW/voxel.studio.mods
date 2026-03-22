@@ -33,11 +33,9 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 
 @Composable
 fun TreeSidebarView(
-    tree: TreeController,
+    treeState: ConceptTreeState,
     modifier: Modifier = Modifier
 ) {
-    tree.refreshState()
-
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.padding(top = 16.dp)
@@ -45,22 +43,22 @@ fun TreeSidebarView(
         SidebarActionRow(
             icon = PENCIL_ICON,
             label = I18n.get("generic:updated"),
-            count = tree.modifiedCount(),
+            count = treeState.modifiedCount,
             colorKey = "updated",
             active = false,
-            onClick = tree::navigateChanges
+            onClick = treeState.onNavigateChanges
         )
 
         SidebarActionRow(
             icon = SEARCH_ICON,
             label = I18n.get("generic:all"),
-            count = tree.tree?.count ?: 0,
+            count = treeState.rootCount,
             colorKey = "all",
-            active = tree.isAllActive(),
-            onClick = tree::selectAll
+            active = treeState.isAllActive(),
+            onClick = treeState.onSelectAll
         )
 
-        FileTreeView(tree = tree)
+        FileTreeView(treeState = treeState)
     }
 }
 

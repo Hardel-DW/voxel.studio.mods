@@ -34,15 +34,20 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
-import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeController
+import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode
+import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -52,20 +57,23 @@ private val LIST_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "ico
 @Composable
 fun EditorHeader(
     context: StudioContext,
-    tree: TreeController,
+    treeState: ConceptTreeState,
     concept: StudioConcept,
     showViewToggle: Boolean,
-    simulationRoute: StudioRoute?,
+    simulationTab: StudioEditorTab?,
     modifier: Modifier = Modifier
 ) {
-    val route = context.router.currentRoute
-    val segments = remember(route, context.filterPath, context.currentElementId, tree.tree) {
-        buildBreadcrumbSegments(tree, concept, route)
+    val destination = rememberCurrentDestination(context)
+    val editorDestination = rememberCurrentElementDestination(context, concept)
+    val conceptUi = rememberConceptUi(context, concept)
+    val isOverview = destination is ConceptOverviewDestination
+    val segments = remember(destination, treeState.filterPath, treeState.selectedElementId, treeState.tree) {
+        buildBreadcrumbSegments(treeState, concept, destination)
     }
-    val title = remember(route, segments, context.currentElementId) {
-        resolveTitle(tree, concept, segments, route)
+    val title = remember(destination, segments, treeState.selectedElementId) {
+        resolveTitle(treeState, concept, segments, destination)
     }
-    val color = ColorUtils.accentColor(resolveColorKey(tree, concept, route))
+    val color = ColorUtils.accentColor(resolveColorKey(treeState, concept, destination))
 
     Column(
         modifier = modifier
@@ -80,9 +88,7 @@ fun EditorHeader(
                 )
             }
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -97,9 +103,7 @@ fun EditorHeader(
                         )
                     )
             )
-            HeaderGrid(
-                modifier = Modifier.matchParentSize()
-            )
+            HeaderGrid(modifier = Modifier.matchParentSize())
 
             Column(
                 modifier = Modifier
@@ -118,8 +122,8 @@ fun EditorHeader(
                         EditorBreadcrumb(
                             rootLabel = I18n.get(concept.titleKey),
                             segments = segments,
-                            showBack = !context.router.isOverview,
-                            onBack = { context.router.navigate(concept.overviewRoute) }
+                            showBack = !isOverview,
+                            onBack = { context.navigationState().navigate(concept.overview()) }
                         )
 
                         Text(
@@ -137,15 +141,19 @@ fun EditorHeader(
                         )
                     }
 
-                    if (context.router.isOverview) {
+                    if (isOverview) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (simulationRoute != null) {
+                            if (simulationTab != null && editorDestination != null) {
                                 HeaderActionButton(
                                     text = I18n.get("enchantment:simulation"),
-                                    onClick = { context.router.navigate(simulationRoute) }
+                                    onClick = {
+                                        context.navigationState().replaceCurrentTab(
+                                            editorDestination.copy(tab = simulationTab)
+                                        )
+                                    }
                                 )
                             }
 
@@ -155,9 +163,10 @@ fun EditorHeader(
                                         ToggleOption.IconOption("grid", GRID_ICON),
                                         ToggleOption.IconOption("list", LIST_ICON)
                                     ),
-                                    selectedValue = context.viewMode.name.lowercase(),
+                                    selectedValue = conceptUi.viewMode.name.lowercase(),
                                     onValueChange = { value ->
-                                        context.updateViewMode(
+                                        context.uiState().updateViewMode(
+                                            concept,
                                             if (value == "list") StudioViewMode.LIST else StudioViewMode.GRID
                                         )
                                     }
@@ -167,7 +176,7 @@ fun EditorHeader(
                     }
                 }
 
-                if (showTabs(tree, concept, route)) {
+                if (editorDestination != null && concept.tabs.size > 1) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -178,8 +187,12 @@ fun EditorHeader(
                         concept.tabs.forEach { tab ->
                             EditorHeaderTabItem(
                                 label = I18n.get(tab.translationKey),
-                                active = route == tab.route,
-                                onClick = { context.router.navigate(tab.route) }
+                                active = tab.tab == editorDestination.tab,
+                                onClick = {
+                                    context.navigationState().replaceCurrentTab(
+                                        editorDestination.copy(tab = tab.tab)
+                                    )
+                                }
                             )
                         }
                     }
@@ -257,31 +270,17 @@ private fun HeaderGrid(modifier: Modifier = Modifier) {
     }
 }
 
-private fun showTabs(
-    tree: TreeController,
-    concept: StudioConcept,
-    route: StudioRoute
-): Boolean {
-    if (concept.tabs.size <= 1) {
-        return false
-    }
-    if (tree.currentElementId().isNullOrBlank()) {
-        return false
-    }
-    return route.concept() == concept.registry() && concept.tabRoutes().contains(route)
-}
-
 private fun resolveTitle(
-    tree: TreeController,
+    treeState: ConceptTreeState,
     concept: StudioConcept,
     segments: List<String>,
-    route: StudioRoute
+    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): String {
-    if (route.isOverview()) {
+    if (destination is ConceptOverviewDestination) {
         return segments.lastOrNull() ?: I18n.get("generic:all")
     }
 
-    val id = tree.currentElementId()
+    val id = treeState.selectedElementId
     if (id.isNullOrBlank()) {
         return I18n.get(concept.titleKey)
     }
@@ -291,50 +290,51 @@ private fun resolveTitle(
 }
 
 private fun resolveColorKey(
-    tree: TreeController,
+    treeState: ConceptTreeState,
     concept: StudioConcept,
-    route: StudioRoute
+    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): String {
-    if (route.isOverview()) {
-        val filterPath = tree.filterPath()
-        return if (filterPath.isBlank()) "all" else filterPath
+    if (destination is ConceptOverviewDestination) {
+        return if (treeState.filterPath.isBlank()) "all" else treeState.filterPath
     }
-    return tree.currentElementId().takeUnless { it.isNullOrBlank() } ?: concept.registry()
+    return treeState.selectedElementId ?: concept.registry()
 }
 
 private fun buildBreadcrumbSegments(
-    tree: TreeController,
+    treeState: ConceptTreeState,
     concept: StudioConcept,
-    route: StudioRoute
+    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): List<String> {
-    if (route.isOverview()) {
-        return resolveFilterPathLabels(tree)
+    if (destination is ConceptOverviewDestination) {
+        return resolveFilterPathLabels(treeState)
     }
 
-    val id = tree.currentElementId() ?: return emptyList()
+    val id = treeState.selectedElementId ?: return emptyList()
     val parsed = StudioElementId.parse(id) ?: return listOf(id)
+    val resourceParts = parsed.resourcePath().split("/")
 
-    val segments = mutableListOf(parsed.namespace())
-    parsed.resourcePath().split("/").forEachIndexed { index, part ->
-        val segmentId = if (index == parsed.resourcePath().split("/").lastIndex) {
-            parsed.identifier
-        } else {
-            Identifier.fromNamespaceAndPath(parsed.namespace(), part)
+    return buildList {
+        add(parsed.namespace())
+        resourceParts.forEachIndexed { index, part ->
+            val segmentId = if (index == resourceParts.lastIndex) {
+                parsed.identifier
+            } else {
+                Identifier.fromNamespaceAndPath(parsed.namespace(), part)
+            }
+            add(StudioText.resolve(concept.registryKey, segmentId))
         }
-        segments += StudioText.resolve(concept.registryKey, segmentId)
     }
-    return segments
 }
 
-private fun resolveFilterPathLabels(tree: TreeController): List<String> {
-    val filterPath = tree.filterPath()
+private fun resolveFilterPathLabels(treeState: ConceptTreeState): List<String> {
+    val filterPath = treeState.filterPath
     if (filterPath.isBlank()) {
         return emptyList()
     }
 
     val parts = filterPath.split("/")
     val labels = ArrayList<String>(parts.size)
-    var cursor: TreeNodeModel? = tree.tree
+    var cursor: TreeNodeModel? = treeState.tree
     parts.forEach { part ->
         val child = cursor?.children?.get(part)
         if (child == null) {

@@ -78,14 +78,13 @@ fun <T : Any> rememberCurrentRegistryEntry(
     context: StudioContext,
     registry: ResourceKey<Registry<T>>
 ): ElementEntry<T>? {
-    val version = rememberRegistryVersion(context, registry)
-    return remember(context, registry, context.currentElementId, version) {
-        context.currentEntry(registry)
-    }
+    val destination = rememberCurrentElementDestination(context)
+    return rememberCurrentEntry(context, registry, destination)
 }
 
+@Composable
 fun StudioContext.hasWritablePack(): Boolean =
-    selectedPack?.writable() == true
+    rememberSelectedPack(this)?.writable() == true
 
 fun <T : Any> StudioContext.dispatchRegistryAction(
     registry: ResourceKey<Registry<T>>,

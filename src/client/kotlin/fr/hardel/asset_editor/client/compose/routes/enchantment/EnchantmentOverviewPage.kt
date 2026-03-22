@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,10 +37,12 @@ import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentViewMatchers
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.EditorAction
@@ -56,10 +58,10 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 fun EnchantmentOverviewPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
-    val search = context.search.trim().lowercase(Locale.ROOT)
-    val filterPath = context.filterPath.trim().lowercase(Locale.ROOT)
-
-    val sidebarView = context.sidebarView
+    val conceptUi = rememberConceptUi(context, StudioConcept.ENCHANTMENT)
+    val search = conceptUi.search.trim().lowercase(Locale.ROOT)
+    val filterPath = conceptUi.filterPath.trim().lowercase(Locale.ROOT)
+    val sidebarView = conceptUi.sidebarView
     val filtered = remember(entries, search, filterPath, sidebarView) {
         entries
             .filter { entry -> search.isEmpty() || entry.id().path.contains(search) }
@@ -74,8 +76,8 @@ fun EnchantmentOverviewPage(context: StudioContext) {
                 .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             InputText(
-                value = context.search,
-                onValueChange = { value -> context.uiState().setSearch(value) },
+                value = conceptUi.search,
+                onValueChange = { value -> context.uiState().updateSearch(StudioConcept.ENCHANTMENT, value) },
                 placeholder = I18n.get("enchantment:overview.search")
             )
         }
@@ -83,14 +85,13 @@ fun EnchantmentOverviewPage(context: StudioContext) {
         if (filtered.isEmpty()) {
             EmptyOverviewState()
         } else {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 32.dp, vertical = 24.dp)
             ) {
-                filtered.forEach { entry ->
+                items(items = filtered, key = { entry -> entry.id().toString() }) { entry ->
                     OverviewRow(context, entry, dialogs)
                 }
             }
@@ -145,8 +146,9 @@ private fun OverviewRow(
     val interaction = remember(entry.id()) { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val openEntry = {
-        context.openTab(entry.id().toString(), StudioRoute.EnchantmentMain)
-        context.router.navigate(StudioRoute.EnchantmentMain)
+        context.navigationState().openElement(
+            StudioConcept.ENCHANTMENT.editor(entry.id().toString(), StudioEditorTab.MAIN)
+        )
     }
 
     Box(

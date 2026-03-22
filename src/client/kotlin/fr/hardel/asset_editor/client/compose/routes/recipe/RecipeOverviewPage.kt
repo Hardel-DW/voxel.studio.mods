@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,10 +15,14 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import net.minecraft.client.resources.language.I18n
 
 @Composable
 fun RecipeOverviewPage(context: StudioContext) {
+    val conceptUi = rememberConceptUi(context, StudioConcept.RECIPE)
+
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -28,8 +30,8 @@ fun RecipeOverviewPage(context: StudioContext) {
                 .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             InputText(
-                value = context.search,
-                onValueChange = { value -> context.uiState().setSearch(value) },
+                value = conceptUi.search,
+                onValueChange = { value -> context.uiState().updateSearch(StudioConcept.RECIPE, value) },
                 placeholder = I18n.get("recipe:overview.search")
             )
         }
@@ -39,7 +41,6 @@ fun RecipeOverviewPage(context: StudioContext) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,

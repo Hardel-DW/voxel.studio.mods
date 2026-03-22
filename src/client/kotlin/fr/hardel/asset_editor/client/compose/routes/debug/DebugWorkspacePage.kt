@@ -8,11 +8,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -20,48 +15,39 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberNavigationSnapshot
+import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
+import fr.hardel.asset_editor.client.compose.lib.rememberUiSnapshot
 import net.minecraft.client.resources.language.I18n
 
 @Composable
 fun DebugWorkspacePage(context: StudioContext) {
-    var version by remember { mutableIntStateOf(0) }
+    val destination = rememberCurrentDestination(context)
+    val currentEditor = rememberCurrentElementDestination(context)
+    val selectedPack = rememberSelectedPack(context)
+    val navigationSnapshot = rememberNavigationSnapshot(context)
+    val uiSnapshot = rememberUiSnapshot(context)
+    val registrySnapshot = context.elementStore().entryCountsSnapshot()
 
-    DisposableEffect(context) {
-        val subscriptions = listOf(
-            context.sessionState().select({ snapshot -> snapshot }).subscribe({ version++ }, true),
-            context.workspaceState().select({ snapshot -> snapshot }).subscribe({ version++ }, true),
-            context.packState().select({ snapshot -> snapshot }).subscribe({ version++ }, true),
-            context.tabsState().select({ snapshot -> snapshot }).subscribe({ version++ }, true),
-            context.uiState().select({ snapshot -> snapshot }).subscribe({ version++ }, true),
-            context.workspaceState().issueState().select({ snapshot -> snapshot }).subscribe({ version++ }, true)
-        )
-        val listener = Runnable { version++ }
-        context.elementStore().subscribeAll(listener)
-        onDispose {
-            subscriptions.forEach { it.unsubscribe() }
-            context.elementStore().unsubscribeAll(listener)
-        }
-    }
-
-    val sections = remember(version) {
-        linkedMapOf<String, Any>(
-            I18n.get("debug:workspace.section.overview") to OverviewSnapshot(
-                route = context.router.currentRoute.toString(),
-                selectedPack = context.selectedPack?.packId() ?: "none",
-                currentElement = context.currentElementId.ifBlank { "none" },
-                pendingActions = context.workspaceState().snapshot().pendingActionCount(),
-                openTabs = context.openTabs.size,
-                registries = context.elementStore().entryCountsSnapshot().size,
-                totalEntries = context.elementStore().entryCountsSnapshot().values.sum()
-            ),
-            I18n.get("debug:workspace.section.session") to context.sessionState().snapshot(),
-            I18n.get("debug:workspace.section.ui") to context.uiState().snapshot(),
-            "Tabs" to context.tabsState().snapshot(),
-            "Pack" to context.packState().snapshot(),
-            I18n.get("debug:workspace.section.registries") to RegistriesSnapshot(context.elementStore().entryCountsSnapshot()),
-            I18n.get("debug:workspace.section.issues") to context.workspaceState().issueState().snapshot()
-        )
-    }
+    val sections = linkedMapOf<String, Any>(
+        I18n.get("debug:workspace.section.overview") to OverviewSnapshot(
+            destination = destination.toString(),
+            selectedPack = selectedPack?.packId() ?: "none",
+            currentElement = currentEditor?.elementId ?: "none",
+            pendingActions = context.workspaceState().snapshot().pendingActionCount(),
+            openTabs = navigationSnapshot.tabs.size,
+            registries = registrySnapshot.size,
+            totalEntries = registrySnapshot.values.sum()
+        ),
+        I18n.get("debug:workspace.section.session") to context.sessionState().snapshot(),
+        I18n.get("debug:workspace.section.ui") to uiSnapshot,
+        "Navigation" to navigationSnapshot,
+        "Pack" to context.packState().snapshot(),
+        I18n.get("debug:workspace.section.registries") to RegistriesSnapshot(registrySnapshot),
+        I18n.get("debug:workspace.section.issues") to context.workspaceState().issueState().snapshot()
+    )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -87,7 +73,7 @@ fun DebugWorkspacePage(context: StudioContext) {
 }
 
 private data class OverviewSnapshot(
-    val route: String,
+    val destination: String,
     val selectedPack: String,
     val currentElement: String,
     val pendingActions: Int,

@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.layout.editor
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -9,30 +8,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeController
+import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
+import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
+import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.navigation.StudioDestination
+import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import net.minecraft.resources.Identifier
 
 typealias SidebarExtra = @Composable () -> Unit
-typealias PageFactory = @Composable (StudioRoute) -> Unit
+typealias DestinationPageFactory = @Composable (StudioDestination) -> Unit
 
 class ConceptLayoutConfig(
     val concept: StudioConcept,
     val icon: Identifier,
     val sidebarTitleKey: String,
-    val treeConfig: TreeController.Config,
-    val simulationRoute: StudioRoute?,
+    val treeState: ConceptTreeState,
+    val simulationTab: StudioEditorTab?,
     val showViewModeToggle: Boolean,
-    val pageFactory: PageFactory,
+    val pageFactory: DestinationPageFactory,
     val sidebarExtras: List<SidebarExtra>
 )
 
@@ -42,43 +41,20 @@ fun ConceptLayout(
     config: ConceptLayoutConfig,
     modifier: Modifier = Modifier
 ) {
-    val tree = remember(config.concept) {
-        TreeController(context.router, config.treeConfig)
-    }
-    val route = context.router.currentRoute
-
-    SideEffect {
-        tree.setTree(config.treeConfig.tree)
-        tree.setFolderIcons(config.treeConfig.folderIcons)
-        tree.setDisableAutoExpand(config.treeConfig.disableAutoExpand)
-    }
-
-    LaunchedEffect(route, context.currentElementId) {
-        if (route.concept() != config.concept.registry()) {
-            return@LaunchedEffect
-        }
-
-        if (config.concept.tabRoutes().contains(route) && context.currentElementId.isBlank()) {
-            context.tabsState().setCurrentElementId("")
-            context.router.navigate(config.concept.overviewRoute)
-            return@LaunchedEffect
-        }
-
-        if (route == config.concept.overviewRoute) {
-            context.uiState().setSearch("")
-        }
-    }
-
-    if (route.concept() != config.concept.registry()) {
+    val destination = rememberCurrentDestination(context)
+    val destinationConcept = destination.conceptOrNull()
+    if (destinationConcept != config.concept) {
         return
     }
 
-    Row(
-        modifier = modifier.fillMaxSize()
-    ) {
+    LaunchedEffect(destination) {
+        context.prefetcher().prefetch(destination)
+    }
+
+    Row(modifier = modifier.fillMaxSize()) {
         EditorSidebar(
             context = context,
-            tree = tree,
+            treeState = config.treeState,
             titleKey = config.sidebarTitleKey,
             iconPath = config.icon,
             topContent = config.sidebarExtras
@@ -92,53 +68,21 @@ fun ConceptLayout(
         ) {
             EditorHeader(
                 context = context,
-                tree = tree,
+                treeState = config.treeState,
                 concept = config.concept,
                 showViewToggle = config.showViewModeToggle,
-                simulationRoute = config.simulationRoute
+                simulationTab = config.simulationTab
             )
 
-            KeepAlivePages(
-                currentRoute = route,
-                concept = config.concept,
-                pageFactory = config.pageFactory
-            )
+            config.pageFactory(destination)
         }
     }
 }
 
-@Composable
-private fun KeepAlivePages(
-    currentRoute: StudioRoute,
-    concept: StudioConcept,
-    pageFactory: PageFactory
-) {
-    val allRoutes = remember(concept) {
-        buildList {
-            add(concept.overviewRoute)
-            addAll(concept.tabRoutes())
-        }
+private fun StudioDestination.conceptOrNull(): StudioConcept? =
+    when (this) {
+        is ConceptOverviewDestination -> concept
+        is ConceptChangesDestination -> concept
+        is ElementEditorDestination -> concept
+        else -> null
     }
-    val visited = remember(concept) { mutableStateListOf<StudioRoute>() }
-
-    if (currentRoute in allRoutes && currentRoute !in visited) {
-        visited.add(currentRoute)
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        visited.forEach { route ->
-            val active = route == currentRoute
-            key(route) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .then(if (!active) HiddenModifier else Modifier)
-                ) {
-                    pageFactory(route)
-                }
-            }
-        }
-    }
-}
-
-private val HiddenModifier = Modifier.drawWithContent { }

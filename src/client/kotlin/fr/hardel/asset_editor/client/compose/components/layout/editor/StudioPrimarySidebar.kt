@@ -31,7 +31,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
+import fr.hardel.asset_editor.client.navigation.DebugDestination
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
@@ -40,6 +42,15 @@ private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, 
 
 @Composable
 fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) {
+    val permissions = rememberPermissions(context)
+    val destination = rememberCurrentDestination(context)
+    val currentConcept = when (destination) {
+        is fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination -> destination.concept
+        is fr.hardel.asset_editor.client.navigation.ConceptChangesDestination -> destination.concept
+        is fr.hardel.asset_editor.client.navigation.ElementEditorDestination -> destination.concept
+        else -> null
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -52,9 +63,9 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .height(64.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable {
-                    val overview = StudioConcept.firstAccessible(context.permissions)?.overviewRoute
-                        ?: StudioRoute.EnchantmentOverview
-                    context.router.navigate(overview)
+                    val overview = StudioConcept.firstAccessible(permissions)?.overview()
+                        ?: StudioConcept.ENCHANTMENT.overview()
+                    context.navigationState().navigate(overview)
                 }
         ) {
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
@@ -71,15 +82,14 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
         ) {
             StudioConcept.entries
                 .filter { it != StudioConcept.STRUCTURE }
-                .filter { !context.permissions.isNone }
+                .filter { !permissions.isNone }
                 .forEach { concept ->
                     ConceptButton(
                         concept = concept,
-                        active = context.router.currentConcept == concept.registry(),
+                        active = currentConcept == concept,
                         onClick = {
-                            context.uiState().setFilterPath("")
-                            context.tabsState().setCurrentElementId("")
-                            context.router.navigate(concept.overviewRoute)
+                            context.uiState().updateFilterPath(concept, "")
+                            context.navigationState().navigate(concept.overview())
                         }
                     )
                 }
@@ -90,7 +100,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            SidebarIconButton(icon = DEBUG_ICON) { context.router.navigate(StudioRoute.Debug) }
+            SidebarIconButton(icon = DEBUG_ICON) { context.navigationState().navigate(DebugDestination) }
             SidebarIconButton(icon = SETTINGS_ICON) {}
         }
     }

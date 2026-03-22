@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,8 +23,9 @@ import fr.hardel.asset_editor.client.AssetEditorClient
 import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.routes.StudioRoute
+import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
 import fr.hardel.asset_editor.client.selector.Subscription
 import java.awt.Component
 import javax.swing.SwingUtilities
@@ -198,15 +200,17 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
         LaunchedEffect(context) {
             context.resyncWorldSession()
-            context.router.revalidate()
-            if (context.router.currentRoute == StudioRoute.NoPermission) {
+            context.navigationState().revalidate()
+            if (context.navigationState().snapshot().current is NoPermissionDestination) {
                 StudioConcept.firstAccessible(AssetEditorClient.sessionState().permissions())?.let { concept ->
-                    context.router.navigate(concept.overviewRoute)
+                    context.navigationState().navigate(concept.overview())
                 }
             }
         }
 
-        StudioEditorRoot(context = context)
+        CompositionLocalProvider(LocalStudioAssetCache provides context.assetCache()) {
+            StudioEditorRoot(context = context)
+        }
     }
 }
 
