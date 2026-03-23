@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.state;
 import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
 import fr.hardel.asset_editor.client.selector.SelectorEquality;
 import fr.hardel.asset_editor.client.selector.StoreSelection;
-import fr.hardel.asset_editor.client.selector.Subscription;
 import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
@@ -103,6 +102,5 @@ public final class ClientSessionState {
         store.setState(Snapshot.empty());
     }
 
-    public void dispose() {
-    }
+    public void dispose() {}
 }
