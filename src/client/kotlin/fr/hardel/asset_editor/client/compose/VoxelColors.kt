@@ -29,6 +29,8 @@ object VoxelColors {
     val Card = Color(0xC21C1B1E)
     val Content = Color(0x3338373F)
     val Background = Color(0xFF080507)
+    val Primary = Color(0xFFD2D2D2)
+    val Tertiary = Color(0x2E808080)
 
     // Switch
     val CheckedRail = Brush.linearGradient(listOf(Color(0xFF180909), Color(0xFF7A009F)))
