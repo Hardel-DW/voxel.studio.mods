@@ -70,6 +70,7 @@ fun PackSelector(
     val selectedPack = rememberSelectedPack(context)
     val availablePacks = rememberAvailablePacks(context)
 
+    // Compose-only: sélecteur de pack dans la barre supérieure, pas d'équivalent TSX direct.
     Box(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
@@ -80,8 +81,8 @@ fun PackSelector(
                 anchorPosition = IntOffset(position.x.roundToInt(), position.y.roundToInt())
                 anchorSize = coordinates.size
             }
-            .background(if (hovered) VoxelColors.SurfaceRaised else Color.Transparent, packSelectorShape)
-            .border(1.dp, if (hovered) VoxelColors.BorderHover else VoxelColors.Border, packSelectorShape)
+            .background(if (hovered) VoxelColors.Zinc900 else Color.Transparent, packSelectorShape)
+            .border(1.dp, if (hovered) VoxelColors.Zinc700 else VoxelColors.Zinc800, packSelectorShape)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
@@ -89,6 +90,7 @@ fun PackSelector(
             ) { expanded = !expanded }
             .padding(horizontal = 10.dp)
     ) {
+        // div: flex items-center gap-2
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -114,12 +116,13 @@ fun PackSelector(
         ) {
             val popupShape = RoundedCornerShape(16.dp)
 
+            // popover/content: rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-md
             Box(
                 modifier = Modifier
                     .width(280.dp)
                     .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                    .border(1.dp, VoxelColors.Border, popupShape)
-                    .background(VoxelColors.SurfaceOverlay, popupShape)
+                    .border(1.dp, VoxelColors.Zinc800, popupShape)
+                    .background(VoxelColors.Zinc950, popupShape)
                     .clip(popupShape)
             ) {
                 ShineOverlay(
@@ -132,6 +135,7 @@ fun PackSelector(
                     opacity = 0.12f
                 )
 
+                // div: flex flex-col gap-? p-4
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
@@ -153,12 +157,13 @@ fun PackSelector(
                         )
                     }
 
+                    // div: separator
                     Box(
                         modifier = Modifier
                             .padding(vertical = 6.dp)
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(VoxelColors.Border)
+                            .background(VoxelColors.Zinc800)
                     )
 
                     CreatePackButton {
@@ -187,13 +192,14 @@ private fun PackRow(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
+    // button/row: compose-only pack item in popup list
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (!selected && hovered) VoxelColors.SurfaceRaised else Color.Transparent,
+                color = if (!selected && hovered) VoxelColors.Zinc900 else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)
@@ -224,13 +230,14 @@ private fun CreatePackButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
+    // button/row: compose-only "create pack" action in popup
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (hovered) VoxelColors.SurfaceRaised else Color.Transparent,
+                color = if (hovered) VoxelColors.Zinc900 else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)

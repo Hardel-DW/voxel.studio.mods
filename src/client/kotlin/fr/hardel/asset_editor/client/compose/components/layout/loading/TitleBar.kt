@@ -69,7 +69,7 @@ fun TitleBar(modifier: Modifier = Modifier) {
                 .height(1.dp)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(Color(0xFF0E0E10), VoxelColors.SurfaceElevated, Color(0xFF0E0E10))
+                        listOf(VoxelColors.Editor, VoxelColors.HeaderCloudy, VoxelColors.Editor)
                     )
                 )
         )

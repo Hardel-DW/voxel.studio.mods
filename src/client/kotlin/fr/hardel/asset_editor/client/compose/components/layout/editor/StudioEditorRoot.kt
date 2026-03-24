@@ -11,10 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -24,51 +23,40 @@ private val contentShape = RoundedCornerShape(topStart = 24.dp)
 
 @Composable
 fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
+    // div: flex h-dvh w-full overflow-hidden bg-sidebar
     Row(modifier = modifier.fillMaxSize().background(VoxelColors.Sidebar)) {
+        // aside: shrink-0 w-16 flex flex-col
         StudioPrimarySidebar(
             context = context,
             modifier = Modifier.width(64.dp).fillMaxHeight()
         )
 
+        // div: flex-1 flex flex-col min-w-0
         Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            // header: shrink-0 h-12 select-none flex items-center gap-4 pl-4
             StudioEditorTabsBar(context = context)
 
+            // main: flex-1 relative min-h-0 h-full bg-content overflow-hidden border-t border-l border-zinc-900 rounded-tl-3xl
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxSize()
-                    .drawBehind {
-                        val stroke = 1.25.dp.toPx()
-                        val inset = 0.5.dp.toPx()
-                        val safeWidth = (size.width - inset).coerceAtLeast(inset)
-                        val safeHeight = (size.height - inset).coerceAtLeast(inset)
-                        val radius = (24.dp.toPx() - inset).coerceAtMost(minOf(safeWidth, safeHeight))
-                        val frame = Path().apply {
-                            moveTo(inset + radius, inset)
-                            quadraticTo(inset, inset, inset, inset + radius)
-                            lineTo(inset, safeHeight)
-                            moveTo(inset + radius, inset)
-                            lineTo(safeWidth, inset)
-                        }
-                        drawPath(
-                            path = frame,
-                            color = VoxelColors.BorderAlpha50,
-                            style = Stroke(width = stroke)
-                        )
+                    .clip(contentShape)
+                    .background(VoxelColors.Content)
+                    .drawWithContent {
+                        drawContent()
+                        val stroke = 1.dp.toPx()
+                        val hs = stroke / 2f
+                        val r = 24.dp.toPx()
+                        val arcSize = Size((r - hs) * 2, (r - hs) * 2)
+                        val borderColor = VoxelColors.Zinc900
+
+                        drawLine(borderColor, Offset(hs, r), Offset(hs, size.height), strokeWidth = stroke)
+                        drawArc(borderColor, 180f, 90f, false, Offset(hs, hs), arcSize, style = Stroke(stroke))
+                        drawLine(borderColor, Offset(r, hs), Offset(size.width, hs), strokeWidth = stroke)
                     }
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(contentShape)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color(0xFF18181D), VoxelColors.SurfaceHeader, VoxelColors.SurfaceHeader)
-                            )
-                        )
-                ) {
-                    ContentOutlet(context = context)
-                }
+                ContentOutlet(context = context)
             }
         }
     }

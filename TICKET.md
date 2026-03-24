@@ -56,3 +56,23 @@ Chaque mutation fait un flushDirty() qui écrit sur disque de manière synchrone
 Quand le planner calcule les tags affectés, il collecte les memberships de tous les éléments du workspace (reference ET current). Pour les éléments non-dirty, il applique quand même adapter.prepare(). Ça veut 
 dire que si un enchantment a été modifié (mode → disable) mais n'est pas dirty (parce que c'est un état hérité d'un lower layer), son exclusion des tags est quand même appliquée dans le calcul.
 C'est correct en termes de résultat, mais c'est un risque de performance sur de gros registries.
+
+Ont est en train de faire le portage de JavaFX a Compose ont est a la moitié je dirais. Ont a porter tout le projet, retirer de gradle JavaFX, porter tout les fichiers, refait le routing, loading d'asset, la window. Ont corrige actuellement les bugs et ont corrige    
+les regression de l'interface. Tu dois analyser strictement JavaFX et TSX. Et refaire les composants que je vais te dire utilise les deux skill compose de la doc. Fait des recherche sur google.
+Commençons. 
+- Le LayoutPrincipale, les bordure sont pas visibles.     
+- Les SidebarEnchantment, le tree en géneral verifie le chevron il semble pas être le bon.
+- Le Modal apparait pas enfin si mais il est pas centrer au milieu de l'écran, aucun effet d'animation d'apparition, et il bloquer dans la title bar en faisant quelque pixel de haut.
+- Le Slider est complétement différent de l'original. 
+- Overview Enchantment, le inputtext a pas de limite de taille.
+- Ont voit list/grid alors qu'on a mis que le mode liste uniquement (Voir JavaFX).
+- Les bouton All - Your Change verifie l'espacement/gap.
+- All - Your Change le texte droite indiquant le nombre d'élément est pas verticalement aligner avec ceux du tree.
+- Verifie les animations de Popover, Dialog, Dropdown, Tooltip aligne toi sur la version web et JavaFX.
+- La page Where to find, les élément ne sont pas grid correctement, chaque case a une hauteur différente, grid et censés être de la même hauteur.
+- Animated Tab verifiie le composant, l'inner.
+-Verifie Tooltip,Dialog, Popover, Dropdown sur leurs implémentation et ce que conseilles les gens sur google.
+
+Fait par lot. Ne gére pas tout d'un coup.
+
+Il faut que ça soit proche de l'origial, 1:1 visuelle avec TSX. Au plus générique proche de l'original sur les méthodes, styles. Convertit dans ta tête les styles tailwind et gloabal.css.

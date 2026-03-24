@@ -154,11 +154,11 @@ private fun OverviewRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (hovered) Color(0x9918181B) else Color(0x4D09090B))
+            .background(if (hovered) VoxelColors.Zinc900.copy(alpha = 0.6f) else VoxelColors.Zinc950.copy(alpha = 0.3f))
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawLine(
-                    color = Color(0x5927272A),
+                    color = VoxelColors.Zinc800.copy(alpha = 0.3f),
                     start = Offset(0f, size.height - stroke / 2f),
                     end = Offset(size.width, size.height - stroke / 2f),
                     strokeWidth = stroke
@@ -198,7 +198,7 @@ private fun OverviewRow(
             Text(
                 text = entry.data().description().string,
                 style = VoxelTypography.medium(14),
-                color = Color(0xFFE4E4E7)
+                color = VoxelColors.Zinc200
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -207,17 +207,17 @@ private fun OverviewRow(
                 Text(
                     text = entry.id().toString(),
                     style = VoxelTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
-                    color = Color(0xFF71717A)
+                    color = VoxelColors.Zinc500
                 )
                 Text(
                     text = "\u2022",
                     style = VoxelTypography.regular(10),
-                    color = Color(0xFF5C5C66)
+                    color = VoxelColors.Zinc600
                 )
                 Text(
                     text = "${I18n.get("enchantment:overview.level")} ${entry.data().getMaxLevel()}",
                     style = VoxelTypography.regular(10),
-                    color = Color(0xFF71717A)
+                    color = VoxelColors.Zinc500
                 )
             }
         }

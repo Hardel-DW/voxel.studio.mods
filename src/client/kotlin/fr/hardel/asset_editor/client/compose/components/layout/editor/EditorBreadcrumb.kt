@@ -36,12 +36,14 @@ fun EditorBreadcrumb(
     onBack: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
+    // div: flex items-center gap-2 text-zinc-400 text-sm mb-1
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier.padding(bottom = 4.dp)
     ) {
         if (showBack && onBack != null) {
+            // button: cursor-pointer flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors mr-2
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -71,6 +73,7 @@ fun EditorBreadcrumb(
         )
 
         segments.forEachIndexed { index, segment ->
+            // span: flex items-center gap-2
             Text(
                 text = "/",
                 style = VoxelTypography.regular(12),
@@ -79,6 +82,7 @@ fun EditorBreadcrumb(
             )
 
             if (index == segments.lastIndex) {
+                // span: text-zinc-200 font-medium text-xs uppercase tracking-wider bg-black/20 px-2 py-0.5 rounded-md border border-white/5
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -92,6 +96,7 @@ fun EditorBreadcrumb(
                     )
                 }
             } else {
+                // span: opacity-50 font-medium text-xs uppercase tracking-wider
                 Text(
                     text = segment.uppercase(Locale.ROOT),
                     style = VoxelTypography.medium(12),

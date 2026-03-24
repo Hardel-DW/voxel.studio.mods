@@ -58,11 +58,11 @@ import net.minecraft.resources.Identifier
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
 private val GITHUB = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 
-private val DASHED_BORDER_COLOR = VoxelColors.SurfaceElevated
-private val CORNER_COLOR = VoxelColors.Zinc550
+private val DASHED_BORDER_COLOR = VoxelColors.HeaderCloudy
+private val CORNER_COLOR = VoxelColors.Zinc600
 private val DOT_1_COLOR = VoxelColors.Zinc500
-private val DOT_2_COLOR = Color(0xFF404048)
-private val DOT_3_COLOR = Color(0xFF1E1E21)
+private val DOT_2_COLOR = VoxelColors.Zinc600
+private val DOT_3_COLOR = VoxelColors.Zinc700
 
 @Composable
 fun Splash(modifier: Modifier = Modifier) {

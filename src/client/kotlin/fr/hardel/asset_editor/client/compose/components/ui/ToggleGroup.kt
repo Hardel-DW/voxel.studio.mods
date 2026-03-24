@@ -26,6 +26,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import net.minecraft.resources.Identifier
 import java.util.Locale
 
@@ -48,8 +49,8 @@ fun ToggleGroup(
     Row(
         modifier = modifier
             .clip(groupShape)
-            .background(VoxelColors.SurfaceElevated)
-            .border(1.dp, VoxelColors.Zinc900, groupShape)
+            .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
+            .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f), groupShape)
             .padding(4.dp)
     ) {
         for (option in options) {
@@ -66,7 +67,7 @@ fun ToggleGroup(
                 contentAlignment = Alignment.Center,
                 modifier = optionModifier
                     .clip(optionShape)
-                    .then(if (isActive) Modifier.background(VoxelColors.SurfaceRaised) else Modifier)
+                    .then(if (isActive) Modifier.background(VoxelColors.Zinc900) else Modifier)
                     .hoverable(interactionSource)
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(
@@ -78,6 +79,13 @@ fun ToggleGroup(
                         vertical = 6.dp
                     )
             ) {
+                if (isActive) {
+                    ShineOverlay(
+                        modifier = Modifier.matchParentSize(),
+                        opacity = 0.12f
+                    )
+                }
+
                 when (option) {
                     is ToggleOption.TextOption -> Text(
                         text = option.label.uppercase(Locale.ROOT),

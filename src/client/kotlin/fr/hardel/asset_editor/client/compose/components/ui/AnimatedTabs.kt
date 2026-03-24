@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import kotlin.collections.iterator
 
 @Composable
@@ -60,9 +61,12 @@ fun AnimatedTabs(
         modifier = modifier
             .wrapContentWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(VoxelColors.SurfaceRaised, RoundedCornerShape(16.dp))
             .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(16.dp))
     ) {
+        ShineOverlay(
+            modifier = Modifier.matchParentSize(),
+            opacity = 0.1f
+        )
         Box(modifier = Modifier.padding(4.dp)) {
             if (indicatorWidth > 0.dp) {
                 Box(

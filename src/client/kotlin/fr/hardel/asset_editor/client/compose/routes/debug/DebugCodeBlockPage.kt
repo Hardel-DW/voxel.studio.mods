@@ -69,7 +69,7 @@ private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
         JsonCodeBlockHighlighter.installDefaultPalette(palette)
         highlighter = JsonCodeBlockHighlighter()
         textFill = VoxelColors.Zinc300
-        backgroundFill = VoxelColors.Zinc960
+        backgroundFill = VoxelColors.Zinc950
         borderFill = VoxelColors.Zinc800
         textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
         contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)

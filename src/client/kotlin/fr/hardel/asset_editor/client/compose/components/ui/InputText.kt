@@ -40,9 +40,9 @@ fun InputText(
         modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
-            .border(1.dp, if (focused) VoxelColors.BorderHover else VoxelColors.Border, shape)
+            .border(1.dp, if (focused) VoxelColors.Zinc700 else VoxelColors.Zinc800, shape)
             .background(
-                color = if (focused) VoxelColors.BorderHover.copy(alpha = 0.2f) else VoxelColors.Border.copy(alpha = 0.3f),
+                color = if (focused) VoxelColors.Zinc700.copy(alpha = 0.2f) else VoxelColors.Zinc800.copy(alpha = 0.3f),
                 shape = shape
             )
             .pointerHoverIcon(PointerIcon.Text)
@@ -66,7 +66,7 @@ fun InputText(
                     if (value.isEmpty()) {
                         Text(
                             text = placeholder,
-                            style = textStyle.copy(color = VoxelColors.Zinc650)
+                            style = textStyle.copy(color = VoxelColors.Zinc400)
                         )
                     }
                     innerTextField()

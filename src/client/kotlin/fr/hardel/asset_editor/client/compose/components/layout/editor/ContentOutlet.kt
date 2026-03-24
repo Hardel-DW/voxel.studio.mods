@@ -22,6 +22,7 @@ import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
 fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
     val destination = rememberCurrentDestination(context)
 
+    // Compose-only: route outlet / switch de pages, équivalent conceptuel du <Outlet /> web.
     Box(modifier = modifier.fillMaxSize()) {
         when (destination) {
             is NoPermissionDestination -> NoPermissionPage()

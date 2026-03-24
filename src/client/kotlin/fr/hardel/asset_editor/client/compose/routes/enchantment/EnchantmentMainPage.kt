@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.routes.enchantment
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -140,6 +141,7 @@ fun EnchantmentMainPage(context: StudioContext) {
             )
         }
 
+        Spacer(Modifier.weight(1f))
         SupportCard()
     }
 

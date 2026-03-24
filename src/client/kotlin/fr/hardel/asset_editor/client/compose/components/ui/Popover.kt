@@ -43,8 +43,8 @@ fun Popover(
             modifier = modifier
                 .then(if (matchTriggerWidth) Modifier.fillMaxWidth() else Modifier.widthIn(min = 160.dp))
                 .shadow(20.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                .border(1.dp, VoxelColors.Border, shape)
-                .background(VoxelColors.SurfaceOverlay, shape)
+                .border(1.dp, VoxelColors.Zinc800, shape)
+                .background(VoxelColors.Zinc950, shape)
                 .clip(shape)
         ) {
             ShineOverlay(

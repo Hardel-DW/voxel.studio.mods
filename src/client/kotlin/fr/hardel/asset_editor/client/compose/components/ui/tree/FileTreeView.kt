@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui.tree
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -27,15 +27,18 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
+import net.minecraft.resources.Identifier
+
+private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 private val TREE_ROW_SHAPE = RoundedCornerShape(8.dp)
 private val TREE_COUNT_SHAPE = RoundedCornerShape(4.dp)
@@ -80,7 +83,7 @@ private fun TreeRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = (row.depth * 16 + 8).dp)
+                .padding(start = (row.depth * 8 + 8).dp)
                 .clip(TREE_ROW_SHAPE)
                 .background(
                     when {
@@ -92,31 +95,36 @@ private fun TreeRow(
                 .hoverable(rowInteraction)
                 .alpha(if (row.isEmpty && !row.isHighlighted) 0.5f else 1f)
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(20.dp)
-                    .pointerHoverIcon(PointerIcon.Hand)
-                    .clip(RoundedCornerShape(6.dp))
-                    .hoverable(chevronInteraction)
-                    .clickable(
-                        interactionSource = chevronInteraction,
-                        indication = null
-                    ) {
-                        if (row.isExpandable) {
-                            treeState.onToggleExpanded(row.path, !row.isExpanded)
-                        }
-                    }
-                    .then(
-                        if (row.isExpandable && chevronHovered) Modifier.background(VoxelColors.Zinc700.copy(alpha = 0.5f))
-                        else Modifier
-                    )
-            ) {
-                TreeChevron(
+            if (!row.isElement) {
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .rotate(if (row.isExpanded) 0f else -90f)
-                        .alpha(if (row.isExpandable) 0.6f else 0.2f)
-                )
+                        .size(20.dp)
+                        .pointerHoverIcon(PointerIcon.Hand)
+                        .clip(RoundedCornerShape(6.dp))
+                        .hoverable(chevronInteraction)
+                        .clickable(
+                            interactionSource = chevronInteraction,
+                            indication = null
+                        ) {
+                            if (row.isExpandable) {
+                                treeState.onToggleExpanded(row.path, !row.isExpanded)
+                            }
+                        }
+                        .then(
+                            if (row.isExpandable && chevronHovered) Modifier.background(VoxelColors.Zinc700.copy(alpha = 0.5f))
+                            else Modifier
+                        )
+                ) {
+                    SvgIcon(
+                        location = CHEVRON_ICON,
+                        size = 12.dp,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .rotate(if (row.isExpanded) 0f else -90f)
+                            .alpha(if (row.isExpandable) 0.6f else 0.2f)
+                    )
+                }
             }
 
             Row(
@@ -160,6 +168,11 @@ private fun TreeRow(
                         .padding(end = 8.dp)
                         .clip(TREE_COUNT_SHAPE)
                         .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
+                        .border(
+                            1.dp,
+                            if (isHovered) VoxelColors.Zinc700 else VoxelColors.Zinc800,
+                            TREE_COUNT_SHAPE
+                        )
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             } else {
@@ -180,29 +193,3 @@ private fun IconCell(row: TreeRowState) {
     }
 }
 
-@Composable
-private fun TreeChevron(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier.size(12.dp)) {
-        val stroke = 2f
-        val left = size.width * 0.22f
-        val midX = size.width * 0.5f
-        val right = size.width * 0.78f
-        val top = size.height * 0.28f
-        val bottom = size.height * 0.72f
-
-        drawLine(
-            color = Color.White,
-            start = androidx.compose.ui.geometry.Offset(left, top),
-            end = androidx.compose.ui.geometry.Offset(midX, bottom),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round
-        )
-        drawLine(
-            color = Color.White,
-            start = androidx.compose.ui.geometry.Offset(midX, bottom),
-            end = androidx.compose.ui.geometry.Offset(right, top),
-            strokeWidth = stroke,
-            cap = StrokeCap.Round
-        )
-    }
-}

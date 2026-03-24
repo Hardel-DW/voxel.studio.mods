@@ -32,18 +32,21 @@ fun EditorHeaderTabItem(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
+    // Link: px-4 py-2 text-sm font-medium rounded-t-lg transition-all border-b-2 text-zinc-400 border-transparent
+    // active -> text-white border-white/60 bg-white/5
+    // hover -> hover:text-zinc-200 hover:bg-white/5
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .background(
-                color = if (active || hovered) VoxelColors.TabHoverBg else Color.Transparent,
+                color = if (active || hovered) Color.White.copy(alpha = 0.05f) else Color.Transparent,
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
             )
             .drawBehind {
                 if (active) {
                     val stroke = 2.dp.toPx()
                     drawLine(
-                        color = VoxelColors.TabActiveBorder,
+                        color = Color.White.copy(alpha = 0.6f),
                         start = Offset(0f, size.height - stroke / 2f),
                         end = Offset(size.width, size.height - stroke / 2f),
                         strokeWidth = stroke

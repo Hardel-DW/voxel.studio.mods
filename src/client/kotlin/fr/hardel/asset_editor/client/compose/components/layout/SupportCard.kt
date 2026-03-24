@@ -1,22 +1,26 @@
 package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -34,35 +38,55 @@ private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/lo
 private val CHECK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
 private val PATREON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/patreon.svg")
 private val ADVANTAGES = listOf("early_access", "submit_ideas", "discord_role", "live_voxel")
-private val supportCardShape = RoundedCornerShape(16.dp)
+private val cardShape = RoundedCornerShape(16.dp)
+private val borderColor = Color(0xFF1C1917) // stone-900
 
 @Composable
 fun SupportCard(modifier: Modifier = Modifier) {
+    // bg-black/35 border-t-2 border-l-2 rounded-2xl border-stone-900 overflow-hidden relative
     Box(
         modifier = modifier
-            .background(VoxelColors.Zinc970, supportCardShape)
-            .border(2.dp, Color(0xFF1C1917), supportCardShape)
+            .fillMaxWidth()
+            .clip(cardShape)
+            .background(Color.Black.copy(alpha = 0.35f), cardShape)
+            .drawWithContent {
+                drawContent()
+                val stroke = 2.dp.toPx()
+                val hs = stroke / 2f
+                val r = 16.dp.toPx()
+                val arcSize = Size((r - hs) * 2, (r - hs) * 2)
+
+                drawLine(borderColor, Offset(hs, size.height), Offset(hs, r), strokeWidth = stroke)
+                drawArc(borderColor, 180f, 90f, false, Offset(hs, hs), arcSize, style = Stroke(stroke))
+                drawLine(borderColor, Offset(r, hs), Offset(size.width, hs), strokeWidth = stroke)
+            }
     ) {
-        ShineOverlay(
-            modifier = Modifier.matchParentSize(),
-            opacity = 0.15f
-        )
+        // Background shine
+        ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.15f)
 
-        SvgIcon(
-            location = LOGO,
-            size = 384.dp,
-            tint = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 96.dp, y = (-96).dp)
-                .alpha(0.2f)
-        )
+        // absolute -top-24 -right-24 size-96 opacity-20
+        // matchParentSize so the icon doesn't inflate the Box height (CSS: position absolute)
+        Box(
+            contentAlignment = Alignment.TopEnd,
+            modifier = Modifier.matchParentSize()
+        ) {
+            SvgIcon(
+                location = LOGO,
+                size = 384.dp,
+                tint = Color.White,
+                modifier = Modifier
+                    .offset(x = 96.dp, y = (-96).dp)
+                    .alpha(0.2f)
+            )
+        }
 
+        // flex flex-col justify-between h-full p-8 pl-12
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 48.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
         ) {
+            // Title + description
             Text(
                 text = I18n.get("supports:title"),
                 style = VoxelTypography.semiBold(30),
@@ -72,21 +96,17 @@ fun SupportCard(modifier: Modifier = Modifier) {
                 text = I18n.get("supports:description"),
                 style = VoxelTypography.regular(14),
                 color = VoxelColors.Zinc400,
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .widthIn(max = 480.dp)
+                modifier = Modifier.padding(top = 8.dp)
             )
 
+            // xl:flex justify-between gap-4 mt-4
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.Bottom,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                // Advantages column
+                Column(modifier = Modifier.weight(1f)) {
+                    // h3: text-white font-bold text-xl pb-4 pt-6
                     Text(
                         text = I18n.get("supports:advantages"),
                         style = VoxelTypography.bold(20),
@@ -94,6 +114,7 @@ fun SupportCard(modifier: Modifier = Modifier) {
                         modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
                     )
 
+                    // grid grid-cols-2 gap-x-8 gap-y-4
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(32.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -102,40 +123,39 @@ fun SupportCard(modifier: Modifier = Modifier) {
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            ADVANTAGES.filterIndexed { index, _ -> index % 2 == 0 }.forEach { advantage ->
-                                SupportAdvantage("supports:advantages.$advantage")
+                            ADVANTAGES.filterIndexed { i, _ -> i % 2 == 0 }.forEach {
+                                AdvantageItem("supports:advantages.$it")
                             }
                         }
                         Column(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.weight(1f)
                         ) {
-                            ADVANTAGES.filterIndexed { index, _ -> index % 2 == 1 }.forEach { advantage ->
-                                SupportAdvantage("supports:advantages.$advantage")
+                            ADVANTAGES.filterIndexed { i, _ -> i % 2 == 1 }.forEach {
+                                AdvantageItem("supports:advantages.$it")
                             }
                         }
                     }
                 }
 
+                // Buttons: self-end gap-4 pt-8
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 32.dp)
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.align(Alignment.Bottom).padding(top = 32.dp)
                 ) {
                     Button(
                         onClick = { BrowserUtils.openBrowser("https://streamelements.com/hardoudou/tip") },
                         variant = ButtonVariant.SHIMMER,
                         size = ButtonSize.LG,
-                        text = I18n.get("donate")
+                        text = I18n.get("supports:donate")
                     )
                     Button(
                         onClick = { BrowserUtils.openBrowser("https://www.patreon.com/hardel") },
                         variant = ButtonVariant.PATREON,
                         size = ButtonSize.LG,
                         text = I18n.get("supports:become"),
-                        icon = {
-                            SvgIcon(PATREON_ICON, 16.dp, Color.White)
-                        }
+                        icon = { SvgIcon(PATREON_ICON, 16.dp, Color.White) }
                     )
                 }
             }
@@ -144,7 +164,7 @@ fun SupportCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SupportAdvantage(key: String) {
+private fun AdvantageItem(key: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)

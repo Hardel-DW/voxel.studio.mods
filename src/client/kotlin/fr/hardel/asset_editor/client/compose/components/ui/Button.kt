@@ -111,9 +111,9 @@ fun Button(
 }
 
 private fun buttonTextColor(variant: ButtonVariant, hovered: Boolean): Color = when (variant) {
-    ButtonVariant.DEFAULT -> VoxelColors.Border
+    ButtonVariant.DEFAULT -> VoxelColors.Zinc800
     ButtonVariant.BLACK -> VoxelColors.Zinc200
-    ButtonVariant.GHOST -> if (hovered) VoxelColors.Border else VoxelColors.Zinc200
+    ButtonVariant.GHOST -> if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc200
     ButtonVariant.GHOST_BORDER -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc200
     ButtonVariant.AURORA -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc400
     ButtonVariant.TRANSPARENT -> VoxelColors.Zinc200

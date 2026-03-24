@@ -43,14 +43,10 @@ fun ToggleSwitch(
         animationSpec = tween(200)
     )
 
-    val railBrush = if (checked) {
-        Brush.linearGradient(listOf(VoxelColors.SwitchRailOnFrom, VoxelColors.SwitchRailOnTo))
-    } else {
-        Brush.linearGradient(listOf(VoxelColors.SwitchRailOff, VoxelColors.SwitchRailOff))
-    }
+    val railBrush = if (checked) VoxelColors.CheckedRail else Brush.linearGradient(listOf(VoxelColors.UncheckedRail, VoxelColors.UncheckedRail))
 
     val knobColor by animateColorAsState(
-        targetValue = if (checked) Color.White else VoxelColors.SwitchKnobOff,
+        targetValue = if (checked) VoxelColors.CheckedCircle else VoxelColors.UncheckedCircle,
         animationSpec = tween(200)
     )
 

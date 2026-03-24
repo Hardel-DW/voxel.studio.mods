@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorBreadcrumb
 import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorHeaderTabItem
@@ -43,7 +44,7 @@ fun DebugLayout(context: StudioContext) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF18181B).copy(alpha = 0.2f))
+                .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
         ) {
             Box(
                 modifier = Modifier
@@ -55,7 +56,11 @@ fun DebugLayout(context: StudioContext) {
                     .matchParentSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color(0xFF09090B), Color(0xFF09090B))
+                            colors = listOf(
+                                Color.Transparent,
+                                VoxelColors.Zinc950.copy(alpha = 0.8f),
+                                VoxelColors.Zinc950
+                            )
                         )
                     )
             )

@@ -51,7 +51,13 @@ fun ConceptLayout(
         context.prefetcher().prefetch(destination)
     }
 
-    Row(modifier = modifier.fillMaxSize()) {
+    // div: flex size-full overflow-hidden relative z-10 isolate
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .background(VoxelColors.Zinc950)
+    ) {
+        // aside: EditorSidebar equivalent
         EditorSidebar(
             context = context,
             treeState = config.treeState,
@@ -60,11 +66,12 @@ fun ConceptLayout(
             topContent = config.sidebarExtras
         )
 
+        // main: flex-1 flex flex-col min-w-0 relative bg-zinc-950
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(VoxelColors.Editor)
+                .background(VoxelColors.Zinc950)
         ) {
             EditorHeader(
                 context = context,

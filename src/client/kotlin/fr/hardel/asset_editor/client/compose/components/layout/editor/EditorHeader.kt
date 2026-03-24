@@ -75,46 +75,58 @@ fun EditorHeader(
     }
     val color = ColorUtils.accentColor(resolveColorKey(treeState, concept, destination))
 
+    // header: relative shrink-0 overflow-hidden border-b border-zinc-800/50 bg-zinc-900/50
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(VoxelColors.SurfaceHeader)
+            .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
             .drawBehind {
                 drawLine(
-                    color = VoxelColors.BorderAlpha50,
+                    color = VoxelColors.Zinc800.copy(alpha = 0.5f),
                     start = Offset(0f, size.height - 0.5f),
                     end = Offset(size.width, size.height - 0.5f),
                     strokeWidth = 1f
                 )
             }
     ) {
+        // div: absolute/relative layers stack for tint, gradient and grid
         Box(modifier = Modifier.fillMaxWidth()) {
+            // div.absolute.inset-0.mix-blend-overlay.opacity-40
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(color.copy(alpha = 0.4f))
             )
+            // div.absolute.inset-0.bg-linear-to-t from-zinc-950 via-zinc-950/80 to-transparent
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, VoxelColors.SurfaceOverlay, VoxelColors.SurfaceOverlay)
+                            colors = listOf(
+                                Color.Transparent,
+                                VoxelColors.Zinc950.copy(alpha = 0.8f),
+                                VoxelColors.Zinc950
+                            )
                         )
                     )
             )
+            // div.absolute.inset-0.bg-grid-white/[0.02] bg-size-[20px_20px]
             HeaderGrid(modifier = Modifier.matchParentSize())
 
+            // div.relative.z-10.flex.flex-col.justify-end.p-8.pb-6
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 24.dp)
             ) {
+                // div: flex items-end justify-between gap-8
                 Row(
                     verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(32.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
+                    // div: space-y-2
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.weight(1f)
@@ -142,6 +154,7 @@ fun EditorHeader(
                     }
 
                     if (isOverview) {
+                        // div: flex items-center gap-3
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -177,6 +190,7 @@ fun EditorHeader(
                 }
 
                 if (editorDestination != null && concept.tabs.size > 1) {
+                    // nav: flex items-center gap-1 mt-6 -mb-2
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -210,14 +224,15 @@ private fun HeaderActionButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
+    // Link/button: px-4 py-2 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-200 text-zinc-400 rounded-lg text-sm
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(if (hovered) VoxelColors.Zinc800 else VoxelColors.SurfaceRaised, RoundedCornerShape(8.dp))
+            .background(if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc900, RoundedCornerShape(8.dp))
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawRoundRect(
-                    color = VoxelColors.Border,
+                    color = VoxelColors.Zinc800,
                     topLeft = Offset(stroke / 2f, stroke / 2f),
                     size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
@@ -243,6 +258,7 @@ private fun HeaderActionButton(
 
 @Composable
 private fun HeaderGrid(modifier: Modifier = Modifier) {
+    // div.absolute.inset-0.bg-grid-white/[0.02] bg-size-[20px_20px]
     Canvas(modifier = modifier) {
         val step = 20.dp.toPx()
 

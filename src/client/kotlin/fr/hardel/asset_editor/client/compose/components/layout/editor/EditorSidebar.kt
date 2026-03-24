@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.layout.editor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -42,6 +43,8 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val DISCORD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/discord.svg")
+private val DISCORD_CARD_SHAPE = RoundedCornerShape(8.dp)
+private val borderColor = VoxelColors.Zinc800.copy(alpha = 0.5f)
 
 @Composable
 fun EditorSidebar(
@@ -52,108 +55,130 @@ fun EditorSidebar(
     topContent: List<@Composable () -> Unit>,
     modifier: Modifier = Modifier
 ) {
+    // aside: w-72 shrink-0 border-r border-zinc-800/50 bg-zinc-950/75 flex flex-col z-20
     Column(
         modifier = modifier
             .width(288.dp)
             .fillMaxHeight()
-            .background(VoxelColors.SidebarBg)
-            .drawBehind {
+            .background(VoxelColors.SecondarySidebar)
+            .drawWithContent {
+                drawContent()
                 val stroke = 1.dp.toPx()
                 drawLine(
-                    color = VoxelColors.BorderAlpha50,
-                    start = Offset(size.width - stroke / 2f, 0f),
-                    end = Offset(size.width - stroke / 2f, size.height),
+                    borderColor,
+                    Offset(size.width - stroke / 2f, 0f),
+                    Offset(size.width - stroke / 2f, size.height),
                     strokeWidth = stroke
                 )
             }
     ) {
-        Column(
-            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)
-        ) {
+        // div: px-6 pt-6
+        Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)) {
+            // Link: text-lg font-bold text-zinc-100 flex items-center gap-2 mb-1
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
+                    .padding(bottom = 4.dp)
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(onClick = treeState.onSelectAll)
             ) {
-                ResourceImageIcon(iconPath, 20.dp)
+                // img: size-5 opacity-80
+                ResourceImageIcon(iconPath, 20.dp, modifier = Modifier.alpha(0.8f))
                 Text(
                     text = I18n.get(titleKey),
                     style = VoxelTypography.bold(18),
                     color = VoxelColors.Zinc100
                 )
             }
+            // p: text-xs text-zinc-500 pl-7
             Text(
                 text = I18n.get("generic:explore"),
                 style = VoxelTypography.regular(12),
                 color = VoxelColors.Zinc500,
-                modifier = Modifier.padding(start = 28.dp, top = 2.dp)
+                modifier = Modifier.padding(start = 28.dp)
             )
         }
 
+        // div: flex-1 overflow-y-auto px-3
         Column(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
         ) {
-            topContent.forEach { extra ->
-                extra()
-            }
+            topContent.forEach { it() }
             TreeSidebarView(treeState = treeState, modifier = Modifier.weight(1f))
         }
 
-        val interaction = remember { MutableInteractionSource() }
-        val hovered by interaction.collectIsHoveredAsState()
+        // div: p-4 border-t border-zinc-800/50 bg-zinc-950/90
+        DiscordFooter()
+    }
+}
 
-        Box(
+@Composable
+private fun DiscordFooter() {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+
+    // div: p-4 border-t border-zinc-800/50 bg-zinc-950/90
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(VoxelColors.Zinc950.copy(alpha = 0.9f))
+            .drawWithContent {
+                val stroke = 1.dp.toPx()
+                drawLine(
+                    borderColor,
+                    Offset(0f, stroke / 2f),
+                    Offset(size.width, stroke / 2f),
+                    strokeWidth = stroke
+                )
+                drawContent()
+            }
+            .padding(16.dp)
+    ) {
+        // a: bg-zinc-900/30 rounded-lg p-3 border border-zinc-800/50 flex items-center gap-3
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(VoxelColors.Sidebar)
-                .drawBehind {
-                    val stroke = 1.dp.toPx()
-                    drawLine(
-                        color = VoxelColors.BorderAlpha50,
-                        start = Offset(0f, stroke / 2f),
-                        end = Offset(size.width, stroke / 2f),
-                        strokeWidth = stroke
-                    )
-                }
-                .padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(VoxelColors.DiscordCardBg, RoundedCornerShape(8.dp))
-                    .border(1.dp, if (hovered) VoxelColors.DiscordCardBorderHover else VoxelColors.DiscordCardBorder, RoundedCornerShape(8.dp))
-                    .pointerHoverIcon(PointerIcon.Hand)
-                    .clickable(
-                        interactionSource = interaction,
-                        indication = null
-                    ) { BrowserUtils.openBrowser("https://discord.gg/TAmVFvkHep") }
-                    .padding(12.dp)
-            ) {
-                Text(
-                    text = I18n.get("supports:help.discord"),
-                    style = VoxelTypography.medium(14),
-                    color = VoxelColors.Zinc300,
-                    modifier = Modifier.weight(1f)
+                .background(VoxelColors.Zinc900.copy(alpha = 0.3f), DISCORD_CARD_SHAPE)
+                .border(
+                    1.dp,
+                    if (hovered) VoxelColors.Zinc700.copy(alpha = 0.5f)
+                    else VoxelColors.Zinc800.copy(alpha = 0.5f),
+                    DISCORD_CARD_SHAPE
                 )
+                .hoverable(interaction)
+                .pointerHoverIcon(PointerIcon.Hand)
+                .clickable(
+                    interactionSource = interaction,
+                    indication = null
+                ) { BrowserUtils.openBrowser("https://discord.gg/TAmVFvkHep") }
+                .padding(12.dp)
+        ) {
+            // div.flex-1 > div: text-sm font-medium text-zinc-300 group-hover:text-white
+            Text(
+                text = I18n.get("supports:help.discord"),
+                style = VoxelTypography.medium(14),
+                color = if (hovered) Color.White else VoxelColors.Zinc300,
+                modifier = Modifier.weight(1f)
+            )
 
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            color = if (hovered) VoxelColors.DiscordCircleBgHover else VoxelColors.DiscordCircleBg,
-                            shape = CircleShape
-                        )
-                ) {
-                    SvgIcon(DISCORD_ICON, 16.dp, Color.White, modifier = Modifier.alpha(if (hovered) 0.5f else 0.3f))
-                }
+            // div: size-8 rounded-full bg-zinc-800/50 group-hover:bg-zinc-800
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc800.copy(alpha = 0.5f),
+                        CircleShape
+                    )
+            ) {
+                // img: size-4 invert opacity-30 group-hover:opacity-50
+                SvgIcon(DISCORD_ICON, 16.dp, Color.White, modifier = Modifier.alpha(if (hovered) 0.5f else 0.3f))
             }
         }
     }

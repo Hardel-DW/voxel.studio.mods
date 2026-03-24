@@ -1,57 +1,38 @@
 package fr.hardel.asset_editor.client.compose
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object VoxelColors {
+    // Tailwind Colors
     val Zinc50 = Color(0xFFFAFAFA)
     val Zinc100 = Color(0xFFF4F4F5)
     val Zinc200 = Color(0xFFE4E4E7)
-    val Zinc300 = Color(0xFFD9D9DD)
-    val Zinc400 = Color(0xFFA8A8B2)
-    val Zinc500 = Color(0xFF7A7A85)
-    val Zinc650 = Color(0xFF52525B)
-    val Zinc550 = Color(0xFF787878)
-    val Zinc600 = Color(0xFF5C5C66)
-    val Zinc700 = Color(0xFF48484F)
-    val Zinc800 = Color(0xFF303033)
-    val Zinc900 = Color(0xFF202024)
-    val Zinc950 = Color(0xFF111114)
-    val Zinc960 = Color(0xFF0D0D0D)
-    val Zinc970 = Color(0xFF0B0B0B)
-
+    val Zinc300 = Color(0xFFD4D4D8)
+    val Zinc400 = Color(0xFFA1A1AA)
+    val Zinc500 = Color(0xFF71717A)
+    val Zinc600 = Color(0xFF52525B)
+    val Zinc700 = Color(0xFF3F3F46)
+    val Zinc800 = Color(0xFF27272A)
+    val Zinc900 = Color(0xFF18181B)
+    val Zinc950 = Color(0xFF09090B)
     val Red400 = Color(0xFFF87171)
-
     val Emerald400 = Color(0xFF34D399)
     val Sky400 = Color(0xFF38BDF8)
     val Amber400 = Color(0xFFFBBF24)
 
-    val SwitchRailOff = Color(0xFF343434)
-    val SwitchRailOnFrom = Color(0xFF180909)
-    val SwitchRailOnTo = Color(0xFF7A009F)
-    val SwitchKnobOff = Color(0xFFDFDFDF)
-
-    val Background = Color(0xFF080507)
-    val Sidebar = Color(0xFF101011)
+    // globals.css @theme variables
     val Editor = Color(0xFF0F0E0E)
-    val Content = Color(0xFF17171A)
-    val Card = Color(0xFF1C1B1E)
+    val Sidebar = Color(0xFF101011)
+    val SecondarySidebar = Color(0xFF0D0D0F)
+    val HeaderCloudy = Color(0xFF151418)
+    val Card = Color(0xC21C1B1E)
+    val Content = Color(0x3338373F)
+    val Background = Color(0xFF080507)
 
-    val Border = Color(0xFF27272A)
-    val BorderHover = Color(0xFF3F3F46)
-    val BorderAlpha50 = Color(0x8027272A)
-    val SurfaceOverlay = Color(0xFF09090B)
-    val SurfaceRaised = Color(0xFF18181B)
-    val SurfaceElevated = Color(0xFF151518)
-    val SurfaceHeader = Color(0xFF151418)
-    val ActiveBg = Color(0xFF232328)
-    val ConceptActive = Color(0xFF141418)
-    val ConceptActiveBorder = Color(0xFF303033)
-    val TabHoverBg = Color(0xFF19191C)
-    val TabActiveBorder = Color(0xFFA1A1AA)
-    val SidebarBg = Color(0xFF0F0F0F)
-    val DiscordCardBg = Color(0xFF0C0C0D)
-    val DiscordCardBorder = Color(0xFF1C1C1D)
-    val DiscordCardBorderHover = Color(0xFF2F2F36)
-    val DiscordCircleBg = Color(0xFF202024)
-    val DiscordCircleBgHover = Color(0xFF27272A)
+    // Switch
+    val CheckedRail = Brush.linearGradient(listOf(Color(0xFF180909), Color(0xFF7A009F)))
+    val CheckedCircle = Color(0xFFFFFFFF)
+    val UncheckedRail = Color(0xFF343434)
+    val UncheckedCircle = Color(0xFFDFDFDF)
 }

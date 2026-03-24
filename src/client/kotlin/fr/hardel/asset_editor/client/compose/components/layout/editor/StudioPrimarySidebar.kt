@@ -33,7 +33,10 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
+import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
+import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.DebugDestination
+import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
@@ -43,19 +46,20 @@ private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, 
 @Composable
 fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) {
     val permissions = rememberPermissions(context)
-    val destination = rememberCurrentDestination(context)
-    val currentConcept = when (destination) {
-        is fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination -> destination.concept
-        is fr.hardel.asset_editor.client.navigation.ConceptChangesDestination -> destination.concept
-        is fr.hardel.asset_editor.client.navigation.ElementEditorDestination -> destination.concept
+    val currentConcept = when (val destination = rememberCurrentDestination(context)) {
+        is ConceptOverviewDestination -> destination.concept
+        is ConceptChangesDestination -> destination.concept
+        is ElementEditorDestination -> destination.concept
         else -> null
     }
 
+    // aside: shrink-0 w-16 flex flex-col bg-sidebar
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .background(VoxelColors.Sidebar)
     ) {
+        // div: h-16 flex items-center justify-center
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -71,6 +75,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
         }
 
+        // div: overflow-y-auto overflow-x-hidden flex-1 flex flex-col items-center
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -95,6 +100,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 }
         }
 
+        // div: shrink-0 flex flex-col-reverse items-center gap-2 mt-2
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -114,16 +120,18 @@ private fun ConceptButton(
 ) {
     val shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
 
+    // Link: block relative rounded-2xl overflow-hidden h-14 bg-transparent
+    // active -> bg-zinc-700/5 border border-zinc-800
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(56.dp)
             .background(
-                color = if (active) VoxelColors.ConceptActive else Color.Transparent,
+                color = if (active) VoxelColors.Zinc700.copy(alpha = 0.05f) else Color.Transparent,
                 shape = shape
             )
             .then(
-                if (active) Modifier.border(1.dp, VoxelColors.ConceptActiveBorder, shape)
+                if (active) Modifier.border(1.dp, VoxelColors.Zinc800, shape)
                 else Modifier
             )
             .then(if (!active) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
@@ -138,6 +146,7 @@ private fun SidebarIconButton(icon: Identifier, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val isHovered by interaction.collectIsHoveredAsState()
 
+    // Compose-only: debug/settings actions at the bottom of the primary sidebar.
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier

@@ -23,10 +23,12 @@ private val LOCK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "ico
 
 @Composable
 fun NoPermissionPage(modifier: Modifier = Modifier) {
+    // Compose-only: état vide d'autorisation, sans équivalent TSX direct dans le layout editor.
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier.fillMaxSize()
     ) {
+        // div: flex flex-col items-center gap-4
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)

@@ -38,6 +38,7 @@ object PackCreateDialog {
         var errorMessage by remember { mutableStateOf<String?>(null) }
         var iconFile by remember { mutableStateOf<File?>(null) }
 
+        // Compose-only: dialog de création de pack, pas d'équivalent TSX direct dans le layout editor.
         Dialog(
             title = I18n.get("studio:pack.create.title"),
             onDismiss = onDismiss,
@@ -70,6 +71,7 @@ object PackCreateDialog {
                 )
             }
         ) {
+            // div: flex flex-col gap-3
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(top = 8.dp)
@@ -124,6 +126,7 @@ object PackCreateDialog {
 
     @Composable
     private fun FieldLabel(key: String) {
+        // label: text-sm/compact helper above the field
         Text(
             text = I18n.get(key),
             style = VoxelTypography.medium(12),

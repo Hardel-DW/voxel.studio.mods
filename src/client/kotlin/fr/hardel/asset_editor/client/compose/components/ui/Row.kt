@@ -85,7 +85,7 @@ fun ContentRow(
                     Modifier
                         .width(1.dp)
                         .height(16.dp)
-                        .background(VoxelColors.BorderHover.copy(alpha = 0.5f))
+                        .background(VoxelColors.Zinc800.copy(alpha = 0.5f))
                 )
 
                 Box(
@@ -93,10 +93,10 @@ fun ContentRow(
                     modifier = Modifier
                         .widthIn(min = 80.dp)
                         .background(
-                            color = if (actionHovered) VoxelColors.BorderHover else VoxelColors.SurfaceRaised,
+                            color = if (actionHovered) VoxelColors.Zinc800 else VoxelColors.Zinc900,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .border(1.dp, VoxelColors.Border, RoundedCornerShape(8.dp))
+                        .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(8.dp))
                         .pointerHoverIcon(PointerIcon.Hand)
                         .clickable(
                             interactionSource = actionInteraction,
