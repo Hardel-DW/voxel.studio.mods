@@ -10,6 +10,8 @@ import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
+import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
@@ -45,6 +47,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             StudioSidebarView.EXCLUSIVE -> emptyMap()
         }
     }
+
     val currentEditor = rememberCurrentElementDestination(context, concept)
     val treeState = remember(
         tree,
@@ -88,10 +91,10 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             icon = concept.icon,
             sidebarTitleKey = "enchantment:overview.title",
             treeState = treeState,
-            simulationTab = StudioEditorTab.SIMULATION,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)
+                    is ConceptSimulationDestination -> EmptyPage()
                     is ElementEditorDestination -> when (destination.tab) {
                         StudioEditorTab.MAIN -> EnchantmentMainPage(context)
                         StudioEditorTab.FIND -> EnchantmentFindPage(context)
@@ -99,12 +102,21 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                         StudioEditorTab.ITEMS -> EnchantmentItemsPage(context)
                         StudioEditorTab.EXCLUSIVE -> EnchantmentExclusivePage(context)
                         StudioEditorTab.TECHNICAL -> EnchantmentTechnicalPage(context)
-                        StudioEditorTab.SIMULATION -> EmptyPage()
                         else -> EmptyPage()
                     }
 
                     else -> EmptyPage()
                 }
+            },
+            headerActions = {
+                HeaderActionButton(
+                    text = I18n.get("enchantment:simulation"),
+                    onClick = {
+                        context.navigationState().navigate(
+                            ConceptSimulationDestination(concept)
+                        )
+                    }
+                )
             },
             sidebarExtras = listOf({
                 ToggleGroup(

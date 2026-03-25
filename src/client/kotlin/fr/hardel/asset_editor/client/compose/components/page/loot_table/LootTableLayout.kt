@@ -54,7 +54,6 @@ fun LootTableLayout(context: StudioContext) {
             icon = concept.icon,
             sidebarTitleKey = "loot:overview.title",
             treeState = treeState,
-            simulationTab = null,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> LootTableOverviewPage(context)

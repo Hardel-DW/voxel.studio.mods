@@ -78,7 +78,8 @@ fun EnchantmentOverviewPage(context: StudioContext) {
             InputText(
                 value = conceptUi.search,
                 onValueChange = { value -> context.uiState().updateSearch(StudioConcept.ENCHANTMENT, value) },
-                placeholder = I18n.get("enchantment:overview.search")
+                placeholder = I18n.get("enchantment:overview.search"),
+                maxWidth = 576.dp
             )
         }
 

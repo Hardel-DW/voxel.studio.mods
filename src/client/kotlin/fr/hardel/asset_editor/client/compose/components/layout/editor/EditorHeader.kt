@@ -41,7 +41,6 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -50,8 +49,8 @@ fun EditorHeader(
     context: StudioContext,
     treeState: ConceptTreeState,
     concept: StudioConcept,
-    simulationTab: StudioEditorTab?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    actions: @Composable (() -> Unit)? = null
 ) {
     val destination = rememberCurrentDestination(context)
     val editorDestination = rememberCurrentElementDestination(context, concept)
@@ -142,22 +141,12 @@ fun EditorHeader(
                         )
                     }
 
-                    if (isOverview) {
-                        // div: flex items-center gap-3
+                    if (isOverview && actions != null) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (simulationTab != null && editorDestination != null) {
-                                HeaderActionButton(
-                                    text = I18n.get("enchantment:simulation"),
-                                    onClick = {
-                                        context.navigationState().replaceCurrentTab(
-                                            editorDestination.copy(tab = simulationTab)
-                                        )
-                                    }
-                                )
-                            }
+                            actions()
                         }
                     }
                 }
@@ -190,7 +179,7 @@ fun EditorHeader(
 }
 
 @Composable
-private fun HeaderActionButton(
+fun HeaderActionButton(
     text: String,
     onClick: () -> Unit
 ) {
@@ -284,7 +273,7 @@ private fun resolveColorKey(
     destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): String {
     if (destination is ConceptOverviewDestination) {
-        return if (treeState.filterPath.isBlank()) "all" else treeState.filterPath
+        return treeState.filterPath.ifBlank { "all" }
     }
     return treeState.selectedElementId ?: concept.registry()
 }

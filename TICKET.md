@@ -51,11 +51,3 @@ Si le serveur ne répond jamais (crash réseau, timeout), les pending actions re
 
 4.
 Chaque mutation fait un flushDirty() qui écrit sur disque de manière synchrone sur le server thread. Si le disque est lent, ça bloque le thread serveur.
-
-- Overview Enchantment, le inputtext a pas de limite de taille.
-- Ont voit list/grid alors qu'on a mis que le mode liste uniquement (Voir JavaFX).
-- Les bouton All - Your Change verifie l'espacement/gap/text size/font. L'espacement/padding/margin/height.
-- All - Your Change le texte droite indiquant le nombre d'élément est pas verticalement aligner avec ceux du tree. (Y'avais aussi le soucis sur JavaFX et TSX)
-- Verifie les animations de Popover, Dialog, Dropdown, Tooltip aligne toi sur la version web et JavaFX.
-- Animated Tab verifiie le composant, l'inner.
-

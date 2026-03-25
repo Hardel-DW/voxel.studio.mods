@@ -71,7 +71,7 @@ fun DebugRenderPage() {
                     value = query,
                     onValueChange = { value -> query = value },
                     placeholder = I18n.get("debug:render.search"),
-                    modifier = Modifier.weight(1f)
+                    maxWidth = 576.dp
                 )
                 Text(
                     text = I18n.get("debug:render.title", allItems.size),

@@ -13,6 +13,7 @@ import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.navigation.DebugDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
@@ -33,6 +34,13 @@ fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
                     StudioConcept.ENCHANTMENT -> EnchantmentLayout(context)
                     StudioConcept.LOOT_TABLE -> LootTableLayout(context)
                     StudioConcept.RECIPE -> RecipeLayout(context)
+                    else -> NoPermissionPage()
+                }
+            }
+
+            is ConceptSimulationDestination -> {
+                when (destination.concept) {
+                    StudioConcept.ENCHANTMENT -> EnchantmentLayout(context)
                     else -> NoPermissionPage()
                 }
             }

@@ -16,9 +16,9 @@ import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import net.minecraft.resources.Identifier
 
 typealias SidebarExtra = @Composable () -> Unit
@@ -29,9 +29,9 @@ class ConceptLayoutConfig(
     val icon: Identifier,
     val sidebarTitleKey: String,
     val treeState: ConceptTreeState,
-    val simulationTab: StudioEditorTab?,
     val pageFactory: DestinationPageFactory,
-    val sidebarExtras: List<SidebarExtra>
+    val sidebarExtras: List<SidebarExtra>,
+    val headerActions: @Composable (() -> Unit)? = null
 )
 
 @Composable
@@ -76,7 +76,7 @@ fun ConceptLayout(
                 context = context,
                 treeState = config.treeState,
                 concept = config.concept,
-                simulationTab = config.simulationTab
+                actions = config.headerActions
             )
 
             config.pageFactory(destination)
@@ -88,6 +88,7 @@ private fun StudioDestination.conceptOrNull(): StudioConcept? =
     when (this) {
         is ConceptOverviewDestination -> concept
         is ConceptChangesDestination -> concept
+        is ConceptSimulationDestination -> concept
         is ElementEditorDestination -> concept
         else -> null
     }

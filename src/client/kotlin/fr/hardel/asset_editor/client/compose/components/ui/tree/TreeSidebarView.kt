@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -38,6 +39,8 @@ private val PENCIL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg")
 private val ROW_SHAPE = RoundedCornerShape(8.dp)
 private val COUNT_SHAPE = RoundedCornerShape(4.dp)
+private val ACTION_ICON_BOX_SIZE = 20.dp
+private val ACTION_ICON_SIZE = 16.dp
 
 @Composable
 fun TreeSidebarView(
@@ -100,6 +103,7 @@ private fun SidebarActionRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(start = 8.dp)
                 .clip(ROW_SHAPE)
                 .background(
                     when {
@@ -115,28 +119,41 @@ private fun SidebarActionRow(
                     indication = null,
                     onClick = onClick
                 )
-                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            SvgIcon(
-                location = icon,
-                size = 20.dp,
-                tint = Color.White,
-                modifier = Modifier.alpha(0.6f)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(ACTION_ICON_BOX_SIZE)
+                ) {
+                    SvgIcon(
+                        location = icon,
+                        size = ACTION_ICON_SIZE,
+                        tint = Color.White,
+                        modifier = Modifier.alpha(0.6f)
+                    )
+                }
 
-            Text(
-                text = label,
-                style = VoxelTypography.medium(14),
-                color = if (active) Color.White else VoxelColors.Zinc400,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
-            )
+                Text(
+                    text = label,
+                    style = VoxelTypography.medium(14),
+                    color = if (active) Color.White else VoxelColors.Zinc400,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
             Text(
                 text = count.toString(),
                 style = VoxelTypography.regular(10),
                 color = VoxelColors.Zinc600,
                 modifier = Modifier
+                    .padding(end = 12.dp)
                     .clip(COUNT_SHAPE)
                     .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
                     .border(

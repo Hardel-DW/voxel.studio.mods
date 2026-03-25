@@ -152,7 +152,7 @@ private fun TreeRow(
 
                 Text(
                     text = row.label,
-                    style = VoxelTypography.medium(13),
+                    style = VoxelTypography.medium(14),
                     color = if (row.isHighlighted) Color.White else VoxelColors.Zinc400,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
@@ -165,7 +165,7 @@ private fun TreeRow(
                     style = VoxelTypography.regular(10),
                     color = VoxelColors.Zinc600,
                     modifier = Modifier
-                        .padding(end = 8.dp)
+                        .padding(end = 12.dp)
                         .clip(TREE_COUNT_SHAPE)
                         .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
                         .border(

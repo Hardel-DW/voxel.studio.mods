@@ -23,6 +23,11 @@ data class ConceptChangesDestination(
 ) : StudioDestination
 
 @Immutable
+data class ConceptSimulationDestination(
+    val concept: StudioConcept
+) : StudioDestination
+
+@Immutable
 data class ElementEditorDestination(
     val concept: StudioConcept,
     val elementId: String,
