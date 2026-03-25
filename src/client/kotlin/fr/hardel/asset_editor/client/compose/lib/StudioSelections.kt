@@ -5,7 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.memory.asFlow
+import fr.hardel.asset_editor.client.asFlow
 import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
 import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.ui.UiMemory

@@ -55,10 +55,6 @@ public final class ClientPreferences {
 
     private static String worldId() {
         Minecraft client = Minecraft.getInstance();
-        if (client == null) {
-            return null;
-        }
-
         ServerData serverInfo = client.getCurrentServer();
         if (serverInfo != null) {
             return serverInfo.ip;

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory
+package fr.hardel.asset_editor.client
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory
 import kotlinx.coroutines.channels.awaitClose

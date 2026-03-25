@@ -1,14 +1,12 @@
 package fr.hardel.asset_editor.client.compose.routes.debug
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
@@ -31,7 +29,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.memory.asFlow
+import fr.hardel.asset_editor.client.asFlow
 import fr.hardel.asset_editor.client.memory.debug.DebugLogMemory
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
