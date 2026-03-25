@@ -1,11 +1,11 @@
 package fr.hardel.asset_editor.client.network;
 
 import fr.hardel.asset_editor.client.AssetEditorClient;
-import fr.hardel.asset_editor.client.debug.NetworkTraceStore;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.client.memory.debug.NetworkTraceMemory;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
@@ -20,7 +20,7 @@ public final class ClientNetworkHandler {
 
     private static <T extends CustomPacketPayload> void registerInbound(CustomPacketPayload.Type<T> type, ClientPlayNetworking.PlayPayloadHandler<T> handler) {
         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
-            NetworkTraceStore.capture(NetworkTraceStore.Direction.INBOUND, payload);
+            AssetEditorClient.debugMemory().network().capture(NetworkTraceMemory.Direction.INBOUND, payload);
             handler.receive(payload, context);
         });
     }

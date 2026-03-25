@@ -25,7 +25,7 @@ fun EnchantmentCategory(
         ResponsiveGrid(
             items = identifiers.map { id ->
                 {
-                    val name = context.elementStore().get(Registries.ENCHANTMENT, id)?.data()?.description()?.string
+                    val name = context.registryMemory().get(Registries.ENCHANTMENT, id)?.data()?.description()?.string
                         ?: StudioText.resolve(Registries.ENCHANTMENT, id)
                     InlineCard(
                         title = name,

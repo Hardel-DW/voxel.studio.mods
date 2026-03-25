@@ -144,7 +144,7 @@ private fun StudioEditorTabItem(
                 interactionSource = itemInteraction,
                 indication = null
             ) {
-                context.navigationState().switchTab(tab.tabId)
+                context.navigationMemory().switchTab(tab.tabId)
             }
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
@@ -177,7 +177,7 @@ private fun StudioEditorTabItem(
                     interactionSource = closeInteraction,
                     indication = null
                 ) {
-                    context.navigationState().closeTab(tab.tabId)
+                    context.navigationMemory().closeTab(tab.tabId)
                 }
         ) {
             SvgIcon(

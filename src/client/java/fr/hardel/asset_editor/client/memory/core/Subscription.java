@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.selector;
+package fr.hardel.asset_editor.client.memory.core;
 
 @FunctionalInterface
 public interface Subscription {

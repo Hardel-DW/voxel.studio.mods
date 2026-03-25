@@ -8,6 +8,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -15,6 +18,7 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.memory.asFlow
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberNavigationSnapshot
@@ -29,24 +33,34 @@ fun DebugWorkspacePage(context: StudioContext) {
     val selectedPack = rememberSelectedPack(context)
     val navigationSnapshot = rememberNavigationSnapshot(context)
     val uiSnapshot = rememberUiSnapshot(context)
-    val registrySnapshot = context.elementStore().entryCountsSnapshot()
+    val sessionFlow = remember(context) { context.sessionMemory().asFlow() }
+    val sessionSnapshot by sessionFlow.collectAsState(context.sessionMemory().snapshot())
+    val workspaceFlow = remember(context) { context.workspaceMemory().asFlow() }
+    val workspaceSnapshot by workspaceFlow.collectAsState(context.workspaceMemory().snapshot())
+    val registryFlow = remember(context) { context.registryMemory().asFlow() }
+    val registryState by registryFlow.collectAsState(context.registryMemory().snapshot())
+    val issuesFlow = remember(context) { context.workspaceMemory().issues().asFlow() }
+    val issuesSnapshot by issuesFlow.collectAsState(context.workspaceMemory().issues().snapshot())
+    val packFlow = remember(context) { context.packSelectionMemory().asFlow() }
+    val packSnapshot by packFlow.collectAsState(context.packSelectionMemory().snapshot())
+    val registrySnapshot = remember(registryState) { context.registryMemory().entryCountsSnapshot() }
 
     val sections = linkedMapOf<String, Any>(
         I18n.get("debug:workspace.section.overview") to OverviewSnapshot(
             destination = destination.toString(),
             selectedPack = selectedPack?.packId() ?: "none",
             currentElement = currentEditor?.elementId ?: "none",
-            pendingActions = context.workspaceState().snapshot().pendingActionCount(),
+            pendingActions = workspaceSnapshot.pendingActionCount,
             openTabs = navigationSnapshot.tabs.size,
             registries = registrySnapshot.size,
             totalEntries = registrySnapshot.values.sum()
         ),
-        I18n.get("debug:workspace.section.session") to context.sessionState().snapshot(),
+        I18n.get("debug:workspace.section.session") to sessionSnapshot,
         I18n.get("debug:workspace.section.ui") to uiSnapshot,
         "Navigation" to navigationSnapshot,
-        "Pack" to context.packState().snapshot(),
+        "Pack" to packSnapshot,
         I18n.get("debug:workspace.section.registries") to RegistriesSnapshot(registrySnapshot),
-        I18n.get("debug:workspace.section.issues") to context.workspaceState().issueState().snapshot()
+        I18n.get("debug:workspace.section.issues") to issuesSnapshot
     )
 
     Column(

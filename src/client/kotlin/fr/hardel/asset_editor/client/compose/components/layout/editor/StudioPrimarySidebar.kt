@@ -69,7 +69,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .clickable {
                     val overview = StudioConcept.firstAccessible(permissions)?.overview()
                         ?: StudioConcept.ENCHANTMENT.overview()
-                    context.navigationState().navigate(overview)
+                    context.navigationMemory().navigate(overview)
                 }
         ) {
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
@@ -93,8 +93,8 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                         concept = concept,
                         active = currentConcept == concept,
                         onClick = {
-                            context.uiState().updateFilterPath(concept, "")
-                            context.navigationState().navigate(concept.overview())
+                            context.uiMemory().updateFilterPath(concept, "")
+                            context.navigationMemory().navigate(concept.overview())
                         }
                     )
                 }
@@ -106,7 +106,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            SidebarIconButton(icon = DEBUG_ICON) { context.navigationState().navigate(DebugDestination) }
+            SidebarIconButton(icon = DEBUG_ICON) { context.navigationMemory().navigate(DebugDestination) }
             SidebarIconButton(icon = SETTINGS_ICON) {}
         }
     }

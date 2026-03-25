@@ -77,7 +77,7 @@ fun EnchantmentOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiState().updateSearch(StudioConcept.ENCHANTMENT, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.ENCHANTMENT, value) },
                 placeholder = I18n.get("enchantment:overview.search"),
                 maxWidth = 576.dp
             )
@@ -147,7 +147,7 @@ private fun OverviewRow(
     val interaction = remember(entry.id()) { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val openEntry = {
-        context.navigationState().openElement(
+        context.navigationMemory().openElement(
             StudioConcept.ENCHANTMENT.editor(entry.id().toString(), StudioEditorTab.MAIN)
         )
     }

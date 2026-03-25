@@ -123,7 +123,7 @@ fun EditorHeader(
                             rootLabel = I18n.get(concept.titleKey),
                             segments = segments,
                             showBack = !isOverview,
-                            onBack = { context.navigationState().navigate(concept.overview()) }
+                            onBack = { context.navigationMemory().navigate(concept.overview()) }
                         )
 
                         Text(
@@ -165,7 +165,7 @@ fun EditorHeader(
                                 label = I18n.get(tab.translationKey),
                                 active = tab.tab == editorDestination.tab,
                                 onClick = {
-                                    context.navigationState().replaceCurrentTab(
+                                    context.navigationMemory().replaceCurrentTab(
                                         editorDestination.copy(tab = tab.tab)
                                     )
                                 }

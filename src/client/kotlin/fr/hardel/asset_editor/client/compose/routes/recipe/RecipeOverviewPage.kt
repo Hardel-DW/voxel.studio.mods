@@ -31,7 +31,7 @@ fun RecipeOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiState().updateSearch(StudioConcept.RECIPE, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.RECIPE, value) },
                 placeholder = I18n.get("recipe:overview.search")
             )
         }

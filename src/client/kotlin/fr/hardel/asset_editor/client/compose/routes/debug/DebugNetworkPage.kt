@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,7 +27,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.Dropdown
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
-import fr.hardel.asset_editor.client.debug.NetworkTraceStore
+import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.memory.asFlow
+import fr.hardel.asset_editor.client.memory.debug.NetworkTraceMemory
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -37,21 +38,17 @@ import net.minecraft.client.resources.language.I18n
 private val NETWORK_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
 
 @Composable
-fun DebugNetworkPage() {
-    var version by remember { mutableIntStateOf(0) }
+fun DebugNetworkPage(context: StudioContext) {
     var currentPage by remember { mutableStateOf(0) }
-    var selectedNamespace by remember { mutableStateOf(I18n.get("generic:all")) }
-
-    DisposableEffect(Unit) {
-        val subscription = NetworkTraceStore.subscribe(Runnable { version++ })
-        onDispose(subscription::run)
-    }
-
-    val entries = remember(version) { NetworkTraceStore.entries() }
-    val namespaces = remember(version, selectedNamespace) {
+    val flow = remember(context) { context.debugMemory().network().asFlow() }
+    val snapshot by flow.collectAsState(context.debugMemory().network().snapshot())
+    val allLabel = I18n.get("generic:all")
+    val selectedNamespace = snapshot.selectedNamespace ?: allLabel
+    val entries = snapshot.entries
+    val namespaces = remember(snapshot.availableNamespaces, allLabel) {
         buildList {
-            add(I18n.get("generic:all"))
-            addAll(NetworkTraceStore.availableNamespaces())
+            add(allLabel)
+            addAll(snapshot.availableNamespaces)
         }
     }
 
@@ -75,17 +72,12 @@ fun DebugNetworkPage() {
                 selected = selectedNamespace,
                 labelExtractor = { value -> value },
                 onSelect = { namespace ->
-                    selectedNamespace = namespace
-                    if (namespace == I18n.get("generic:all")) {
-                        NetworkTraceStore.setFilter { true }
-                    } else {
-                        NetworkTraceStore.setFilter { id -> id.namespace == namespace }
-                    }
+                    context.debugMemory().network().selectNamespace(if (namespace == allLabel) null else namespace)
                 }
             )
             Spacer(modifier = Modifier.weight(1f))
             Button(
-                onClick = NetworkTraceStore::clear,
+                onClick = context.debugMemory().network()::clear,
                 variant = ButtonVariant.GHOST_BORDER,
                 size = ButtonSize.SM,
                 text = I18n.get("debug:action.clear")
@@ -99,10 +91,10 @@ fun DebugNetworkPage() {
                     Text(NETWORK_TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = VoxelTypography.regular(11), color = VoxelColors.Zinc500)
                 },
                 TableColumn(I18n.get("debug:network.column.direction"), weight = 0.7f) { entry ->
-                    val inbound = entry.direction() == NetworkTraceStore.Direction.INBOUND
+                    val inbound = entry.direction() == NetworkTraceMemory.Direction.INBOUND
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(if (inbound) "S" else "C", style = VoxelTypography.semiBold(11), color = if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400)
-                        Text(" → ", style = VoxelTypography.medium(11), color = VoxelColors.Zinc500)
+                        Text(" -> ", style = VoxelTypography.medium(11), color = VoxelColors.Zinc500)
                         Text(if (inbound) "C" else "S", style = VoxelTypography.semiBold(11), color = if (inbound) VoxelColors.Emerald400 else VoxelColors.Red400)
                     }
                 },

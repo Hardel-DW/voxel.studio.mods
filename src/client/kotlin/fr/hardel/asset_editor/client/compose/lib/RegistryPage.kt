@@ -3,9 +3,8 @@ package fr.hardel.asset_editor.client.compose.lib
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,6 +17,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionResult
+import fr.hardel.asset_editor.client.memory.asFlow
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import net.minecraft.client.resources.language.I18n
@@ -45,30 +45,13 @@ fun rememberRegistryDialogState(): RegistryDialogState =
     remember { RegistryDialogState() }
 
 @Composable
-fun <T : Any> rememberRegistryVersion(
-    context: StudioContext,
-    registry: ResourceKey<Registry<T>>
-): Int {
-    var version by remember(context, registry) { mutableIntStateOf(0) }
-
-    DisposableEffect(context, registry) {
-        val listener = Runnable { version++ }
-        context.elementStore().subscribeRegistry(registry, listener)
-        onDispose {
-            context.elementStore().unsubscribeRegistry(registry, listener)
-        }
-    }
-
-    return version
-}
-
-@Composable
 fun <T : Any> rememberRegistryEntries(
     context: StudioContext,
     registry: ResourceKey<Registry<T>>
 ): List<ElementEntry<T>> {
-    val version = rememberRegistryVersion(context, registry)
-    return remember(context, registry, version) {
+    val flow = remember(context) { context.registryMemory().asFlow() }
+    val snapshot by flow.collectAsState(context.registryMemory().snapshot())
+    return remember(snapshot, registry) {
         context.allTypedEntries(registry)
     }
 }

@@ -31,7 +31,7 @@ fun LootTableOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiState().updateSearch(StudioConcept.LOOT_TABLE, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.LOOT_TABLE, value) },
                 placeholder = I18n.get("loot:overview.search")
             )
         }

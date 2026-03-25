@@ -15,6 +15,7 @@ import fr.hardel.asset_editor.client.navigation.StudioDestination
 import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableOverviewPage
+import kotlinx.collections.immutable.toImmutableSet
 
 @Composable
 fun LootTableLayout(context: StudioContext) {
@@ -26,25 +27,25 @@ fun LootTableLayout(context: StudioContext) {
         tree = LootTableTreeBuilder.build(emptyList()),
         filterPath = conceptUi.filterPath,
         selectedElementId = currentEditor?.elementId,
-        expandedTreePaths = conceptUi.expandedTreePaths,
+        expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
         elementIcon = concept.icon,
         folderIcons = emptyMap(),
         disableAutoExpand = false,
         onSelectAll = {
-            context.uiState().updateFilterPath(concept, "")
-            context.navigationState().navigate(concept.overview())
+            context.uiMemory().updateFilterPath(concept, "")
+            context.navigationMemory().navigate(concept.overview())
         },
         onSelectFolder = { path ->
-            context.uiState().updateFilterPath(concept, path)
-            context.navigationState().navigate(concept.overview())
+            context.uiMemory().updateFilterPath(concept, path)
+            context.navigationMemory().navigate(concept.overview())
         },
         onSelectElement = { elementId ->
-            context.navigationState().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
+            context.navigationMemory().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
         },
         onToggleExpanded = { path, expanded ->
-            context.uiState().setTreeExpanded(concept, path, expanded)
+            context.uiMemory().setTreeExpanded(concept, path, expanded)
         },
-        onNavigateChanges = { context.navigationState().navigate(concept.changes()) }
+        onNavigateChanges = { context.navigationMemory().navigate(concept.changes()) }
     )
 
     ConceptLayout(

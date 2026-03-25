@@ -122,8 +122,8 @@ fun DebugLayout(context: StudioContext) {
             when (currentTab) {
                 TAB_WORKSPACE -> DebugWorkspacePage(context)
                 TAB_CODE -> DebugCodeBlockPage()
-                TAB_LOGS -> DebugLogsPage()
-                TAB_NETWORK -> DebugNetworkPage()
+                TAB_LOGS -> DebugLogsPage(context)
+                TAB_NETWORK -> DebugNetworkPage(context)
                 else -> DebugRenderPage()
             }
         }

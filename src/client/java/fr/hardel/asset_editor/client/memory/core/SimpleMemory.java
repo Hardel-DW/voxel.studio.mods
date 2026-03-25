@@ -1,46 +1,50 @@
-package fr.hardel.asset_editor.client.selector;
+package fr.hardel.asset_editor.client.memory.core;
 
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.UnaryOperator;
 
-public final class MutableSelectorStore<S> implements SelectorStore<S> {
+public final class SimpleMemory<S> implements MutableMemory<S> {
 
     private final CopyOnWriteArrayList<Runnable> listeners = new CopyOnWriteArrayList<>();
-    private volatile S state;
+    private volatile S snapshot;
 
-    public MutableSelectorStore(S initialState) {
-        this.state = initialState;
+    public SimpleMemory(S initialSnapshot) {
+        this.snapshot = initialSnapshot;
     }
 
     @Override
-    public S getState() {
-        return state;
+    public S snapshot() {
+        return snapshot;
     }
 
-    public void setState(S nextState) {
+    @Override
+    public void setSnapshot(S nextSnapshot) {
         synchronized (this) {
-            if (Objects.equals(state, nextState))
+            if (Objects.equals(snapshot, nextSnapshot))
                 return;
-            state = nextState;
+
+            snapshot = nextSnapshot;
         }
         listeners.forEach(Runnable::run);
     }
 
+    @Override
     public S update(UnaryOperator<S> updater) {
         Objects.requireNonNull(updater, "updater");
 
         S previous;
-        S nextState;
+        S nextSnapshot;
         synchronized (this) {
-            previous = state;
-            nextState = updater.apply(previous);
-            if (Objects.equals(previous, nextState))
+            previous = snapshot;
+            nextSnapshot = updater.apply(previous);
+            if (Objects.equals(previous, nextSnapshot))
                 return previous;
-            state = nextState;
+
+            snapshot = nextSnapshot;
         }
         listeners.forEach(Runnable::run);
-        return nextState;
+        return nextSnapshot;
     }
 
     @Override

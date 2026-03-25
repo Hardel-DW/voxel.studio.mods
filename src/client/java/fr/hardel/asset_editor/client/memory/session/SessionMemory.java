@@ -1,8 +1,9 @@
-package fr.hardel.asset_editor.client.state;
+package fr.hardel.asset_editor.client.memory.session;
 
-import fr.hardel.asset_editor.client.selector.MutableSelectorStore;
-import fr.hardel.asset_editor.client.selector.SelectorEquality;
-import fr.hardel.asset_editor.client.selector.StoreSelection;
+import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
+import fr.hardel.asset_editor.client.memory.core.Subscription;
+import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
+import fr.hardel.asset_editor.client.memory.ClientPackInfo;
 import fr.hardel.asset_editor.client.network.ClientPayloadSender;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
@@ -10,15 +11,11 @@ import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 import net.minecraft.client.Minecraft;
 
 import java.util.List;
-import java.util.function.Function;
 
-public final class ClientSessionState {
+public final class SessionMemory implements ReadableMemory<SessionMemory.Snapshot> {
 
-    public record Snapshot(StudioPermissions permissions,
-        List<ClientPackInfo> availablePacks,
-        String worldSessionKey,
-        boolean permissionsReceived,
-        boolean packListReceived) {
+    public record Snapshot(StudioPermissions permissions, List<ClientPackInfo> availablePacks, String worldSessionKey,
+        boolean permissionsReceived, boolean packListReceived) {
 
         public Snapshot {
             permissions = permissions == null ? StudioPermissions.NONE : permissions;
@@ -31,19 +28,16 @@ public final class ClientSessionState {
         }
     }
 
-    private final MutableSelectorStore<Snapshot> store = new MutableSelectorStore<>(Snapshot.empty());
+    private final SimpleMemory<Snapshot> memory = new SimpleMemory<>(Snapshot.empty());
 
+    @Override
     public Snapshot snapshot() {
-        return store.getState();
+        return memory.snapshot();
     }
 
-    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector) {
-        return store.select(selector);
-    }
-
-    public <R> StoreSelection<Snapshot, R> select(Function<? super Snapshot, ? extends R> selector,
-        SelectorEquality<? super R> equality) {
-        return store.select(selector, equality);
+    @Override
+    public Subscription subscribe(Runnable listener) {
+        return memory.subscribe(listener);
     }
 
     public StudioPermissions permissions() {
@@ -67,31 +61,16 @@ public final class ClientSessionState {
     }
 
     public void setWorldSessionKey(String key) {
-        store.update(state -> new Snapshot(
-            state.permissions(),
-            state.availablePacks(),
-            key,
-            state.permissionsReceived(),
-            state.packListReceived()));
+        memory.update(state -> new Snapshot(state.permissions(), state.availablePacks(), key, state.permissionsReceived(), state.packListReceived()));
     }
 
     public void updatePermissions(StudioPermissions nextPermissions) {
-        store.update(state -> new Snapshot(
-            nextPermissions,
-            state.availablePacks(),
-            state.worldSessionKey(),
-            true,
-            state.packListReceived()));
+        memory.update(state -> new Snapshot(nextPermissions, state.availablePacks(), state.worldSessionKey(), true, state.packListReceived()));
     }
 
     public void updatePacks(List<PackEntry> entries) {
         List<ClientPackInfo> packs = entries == null ? List.of() : entries.stream().map(ClientPackInfo::from).toList();
-        store.update(state -> new Snapshot(
-            state.permissions(),
-            packs,
-            state.worldSessionKey(),
-            state.permissionsReceived(),
-            true));
+        memory.update(state -> new Snapshot(state.permissions(), packs, state.worldSessionKey(), state.permissionsReceived(), true));
     }
 
     public void createPack(String name, String namespace) {
@@ -99,8 +78,6 @@ public final class ClientSessionState {
     }
 
     public void clear() {
-        store.setState(Snapshot.empty());
+        memory.setSnapshot(Snapshot.empty());
     }
-
-    public void dispose() {}
 }

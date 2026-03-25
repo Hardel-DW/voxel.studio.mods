@@ -61,7 +61,7 @@ object PackCreateDialog {
                             else -> null
                         }
                         if (errorMessage == null) {
-                            context.packState().createPack(nextName, nextNamespace)
+                            context.packSelectionMemory().createPack(nextName, nextNamespace)
                             onDismiss()
                         }
                     },

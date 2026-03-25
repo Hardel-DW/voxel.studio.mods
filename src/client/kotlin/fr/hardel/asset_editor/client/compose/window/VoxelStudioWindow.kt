@@ -24,7 +24,7 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEdit
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
-import fr.hardel.asset_editor.client.selector.Subscription
+import fr.hardel.asset_editor.client.memory.core.Subscription
 import java.awt.Component
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.delay
@@ -112,12 +112,11 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         }
 
         permissionSubscription?.unsubscribe()
-        permissionSubscription = AssetEditorClient.sessionState()
-            .select({ snapshot -> snapshot.permissions() })
-            .subscribe({
-                if (state == State.SPLASH)
-                    SwingUtilities.invokeLater(::tryTransitionFromSplash)
-            }, true)
+        permissionSubscription = AssetEditorClient.sessionMemory().subscribe {
+            if (state == State.SPLASH)
+                SwingUtilities.invokeLater(::tryTransitionFromSplash)
+        }
+        SwingUtilities.invokeLater(::tryTransitionFromSplash)
 
         enterSplashState()
         contentPanel?.let(::setRoot)
@@ -146,7 +145,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     }
 
     private fun tryTransitionFromSplash() {
-        if (!splashMinTimeElapsed || !AssetEditorClient.sessionState().hasReceivedPermissions()) return
+        if (!splashMinTimeElapsed || !AssetEditorClient.sessionMemory().hasReceivedPermissions()) return
         if (state == State.EDITOR) return
 
         state = State.EDITOR
@@ -183,7 +182,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private fun EditorContent(version: Int) {
         val context = remember(version) {
             StudioContext(
-                AssetEditorClient.sessionState(),
+                AssetEditorClient.sessionMemory(),
+                AssetEditorClient.debugMemory(),
                 AssetEditorClient.sessionDispatch()
             )
         }

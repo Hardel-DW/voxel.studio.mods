@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -45,7 +44,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberAvailablePacks
 import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
-import fr.hardel.asset_editor.client.state.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.ClientPackInfo
 import kotlin.math.roundToInt
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -151,7 +150,7 @@ fun PackSelector(
                             pack = pack,
                             selected = pack == selectedPack,
                             onClick = {
-                                context.packState().selectPack(pack)
+                                context.packSelectionMemory().selectPack(pack)
                                 expanded = false
                             }
                         )

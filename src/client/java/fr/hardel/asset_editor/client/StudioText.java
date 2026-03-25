@@ -37,6 +37,7 @@ public final class StudioText {
     private static String humanize(String raw) {
         if (raw == null || raw.isBlank())
             return "";
+
         String clean = raw.contains(":") ? raw.substring(raw.indexOf(':') + 1) : raw;
         String leaf = clean.contains("/") ? clean.substring(clean.lastIndexOf('/') + 1) : clean;
         String[] parts = leaf.split("_");

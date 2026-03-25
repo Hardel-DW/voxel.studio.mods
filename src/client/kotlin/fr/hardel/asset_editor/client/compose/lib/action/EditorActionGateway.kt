@@ -2,11 +2,11 @@ package fr.hardel.asset_editor.client.compose.lib.action
 
 import fr.hardel.asset_editor.client.WorkspaceSyncGateway
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
+import fr.hardel.asset_editor.client.memory.session.SessionMemory
+import fr.hardel.asset_editor.client.memory.workspace.PendingClientAction
+import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
+import fr.hardel.asset_editor.client.memory.ClientPackInfo
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
-import fr.hardel.asset_editor.client.state.ClientPackInfo
-import fr.hardel.asset_editor.client.state.ClientSessionState
-import fr.hardel.asset_editor.client.state.ClientWorkspaceState
-import fr.hardel.asset_editor.client.state.PendingClientAction
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
@@ -26,8 +26,8 @@ import net.minecraft.resources.ResourceKey
 import org.slf4j.LoggerFactory
 
 class EditorActionGateway(
-    private val sessionState: ClientSessionState,
-    private val workspaceState: ClientWorkspaceState
+    private val sessionMemory: SessionMemory,
+    private val workspaceMemory: WorkspaceMemory
 ) : WorkspaceSyncGateway {
 
     fun <T : Any> dispatch(
@@ -40,14 +40,14 @@ class EditorActionGateway(
             return check
         }
 
-        val pack = workspaceState.packSelectionState().selectedPack()
+        val pack = workspaceMemory.packSelection().selectedPack()
             ?: return EditorActionResult.packRequired()
         val resolvedTarget = target ?: return EditorActionResult.error("error:workspace_sync_pending")
-        val entry = workspaceState.elementStore().get(registry, resolvedTarget)
+        val entry = workspaceMemory.registries().get(registry, resolvedTarget)
             ?: return EditorActionResult.error("error:workspace_sync_pending")
 
         val actionId = UUID.randomUUID()
-        workspaceState.trackPendingAction(
+        workspaceMemory.trackPendingAction(
             actionId,
             PendingClientAction(actionId, pack.packId(), registry, resolvedTarget, entry)
         )
@@ -66,7 +66,7 @@ class EditorActionGateway(
     }
 
     fun requestPackWorkspace(registry: ResourceKey<*>) {
-        val pack = workspaceState.packSelectionState().selectedPack()
+        val pack = workspaceMemory.packSelection().selectedPack()
         if (pack == null || pack.packId().isBlank()) {
             return
         }
@@ -80,14 +80,14 @@ class EditorActionGateway(
             return
         }
 
-        val pending = workspaceState.removePendingAction(payload.actionId()) ?: return
+        val pending = workspaceMemory.removePendingAction(payload.actionId()) ?: return
         if (payload.accepted()) {
             payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it) }
             return
         }
 
         restorePending(pending)
-        workspaceState.issueState().pushError(payload.errorCode())
+        workspaceMemory.issues().pushError(payload.errorCode())
     }
 
     override fun handlePackWorkspaceSync(
@@ -95,7 +95,7 @@ class EditorActionGateway(
         registryId: Identifier,
         snapshots: List<WorkspaceElementSnapshot>
     ) {
-        val selectedPack = workspaceState.packSelectionState().selectedPack()
+        val selectedPack = workspaceMemory.packSelection().selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
             return
         }
@@ -118,7 +118,7 @@ class EditorActionGateway(
         try {
             val projected = interpreter.apply(entry, action, registries)
             if (projected != null && !Objects.equals(projected, entry)) {
-                workspaceState.elementStore().put(registry, target, projected)
+                workspaceMemory.registries().put(registry, target, projected)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
@@ -126,7 +126,7 @@ class EditorActionGateway(
     }
 
     private fun restorePending(pending: PendingClientAction<*>) {
-        val selectedPack = workspaceState.packSelectionState().selectedPack()
+        val selectedPack = workspaceMemory.packSelection().selectedPack()
         if (selectedPack == null || selectedPack.packId() != pending.packId()) {
             return
         }
@@ -136,11 +136,11 @@ class EditorActionGateway(
     }
 
     private fun <T : Any> restorePendingTyped(pending: PendingClientAction<T>) {
-        workspaceState.elementStore().put(pending.registry(), pending.target(), pending.previousSnapshot())
+        workspaceMemory.registries().put(pending.registry(), pending.target(), pending.previousSnapshot())
     }
 
     private fun applySnapshotIfCurrentPack(packId: String, snapshot: WorkspaceElementSnapshot) {
-        val selectedPack = workspaceState.packSelectionState().selectedPack()
+        val selectedPack = workspaceMemory.packSelection().selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
             return
         }
@@ -156,7 +156,7 @@ class EditorActionGateway(
         registries: HolderLookup.Provider
     ) {
         val entries = snapshots.map { binding.fromSnapshot(it, registries) }
-        workspaceState.elementStore().replaceAll(binding.registryKey(), entries)
+        workspaceMemory.registries().replaceAll(binding.registryKey(), entries)
     }
 
     private fun <T : Any> applySnapshot(
@@ -165,7 +165,7 @@ class EditorActionGateway(
         registries: HolderLookup.Provider
     ) {
         val entry = binding.fromSnapshot(snapshot, registries)
-        workspaceState.elementStore().put(binding.registryKey(), snapshot.targetId(), entry)
+        workspaceMemory.registries().put(binding.registryKey(), snapshot.targetId(), entry)
     }
 
     private fun clientRegistries(): HolderLookup.Provider? {
@@ -178,12 +178,12 @@ class EditorActionGateway(
             return EditorActionResult.error("error:workspace_sync_pending")
         }
 
-        val pack: ClientPackInfo = workspaceState.packSelectionState().selectedPack()
+        val pack: ClientPackInfo = workspaceMemory.packSelection().selectedPack()
             ?: return EditorActionResult.packRequired()
         if (!pack.writable()) {
             return EditorActionResult.rejected("error:pack_readonly")
         }
-        if (!sessionState.permissions().canEdit()) {
+        if (!sessionMemory.permissions().canEdit()) {
             return EditorActionResult.rejected("error:permission_denied")
         }
 

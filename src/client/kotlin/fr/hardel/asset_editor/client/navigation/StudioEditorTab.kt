@@ -7,6 +7,5 @@ enum class StudioEditorTab {
     ITEMS,
     EXCLUSIVE,
     TECHNICAL,
-    SIMULATION,
     POOLS
 }

@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client;
 
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
-import fr.hardel.asset_editor.client.state.ClientSessionState;
+import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
@@ -11,11 +11,11 @@ import javax.swing.SwingUtilities;
 
 public final class ClientSessionDispatch {
 
-    private final ClientSessionState sessionState;
+    private final SessionMemory sessionMemory;
     private WorkspaceSyncGateway activeGateway;
 
-    public ClientSessionDispatch(ClientSessionState sessionState) {
-        this.sessionState = sessionState;
+    public ClientSessionDispatch(SessionMemory sessionMemory) {
+        this.sessionMemory = sessionMemory;
     }
 
     public void setGateway(WorkspaceSyncGateway gateway) {
@@ -32,11 +32,11 @@ public final class ClientSessionDispatch {
     }
 
     public void handlePermissionSync(PermissionSyncPayload payload) {
-        runSessionUpdate(() -> sessionState.updatePermissions(payload.permissions()));
+        runSessionUpdate(() -> sessionMemory.updatePermissions(payload.permissions()));
     }
 
     public void handlePackListSync(PackListSyncPayload payload) {
-        runSessionUpdate(() -> sessionState.updatePacks(payload.packs()));
+        runSessionUpdate(() -> sessionMemory.updatePacks(payload.packs()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

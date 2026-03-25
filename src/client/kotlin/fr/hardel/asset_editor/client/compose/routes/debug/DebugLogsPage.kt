@@ -13,9 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -31,7 +30,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
-import fr.hardel.asset_editor.client.debug.DebugLogStore
+import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.memory.asFlow
+import fr.hardel.asset_editor.client.memory.debug.DebugLogMemory
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.time.Instant
@@ -42,16 +43,11 @@ import net.minecraft.client.resources.language.I18n
 private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
 
 @Composable
-fun DebugLogsPage() {
-    var version by remember { mutableIntStateOf(0) }
+fun DebugLogsPage(context: StudioContext) {
     var currentPage by remember { mutableStateOf(0) }
-
-    DisposableEffect(Unit) {
-        val subscription = DebugLogStore.subscribe(Runnable { version++ })
-        onDispose(subscription::run)
-    }
-
-    val entries = remember(version) { DebugLogStore.entries() }
+    val flow = remember(context) { context.debugMemory().logs().asFlow() }
+    val snapshot by flow.collectAsState(context.debugMemory().logs().snapshot())
+    val entries = snapshot.entries
 
     Column(
         modifier = Modifier
@@ -94,7 +90,7 @@ fun DebugLogsPage() {
                 text = I18n.get("debug:logs.action.copy_all")
             )
             Button(
-                onClick = DebugLogStore::clear,
+                onClick = context.debugMemory().logs()::clear,
                 variant = ButtonVariant.GHOST_BORDER,
                 size = ButtonSize.SM,
                 text = I18n.get("debug:action.clear")
@@ -157,10 +153,10 @@ fun DebugLogsPage() {
     }
 }
 
-private fun levelColor(level: DebugLogStore.Level): Color =
+private fun levelColor(level: DebugLogMemory.Level): Color =
     when (level) {
-        DebugLogStore.Level.INFO -> VoxelColors.Sky400
-        DebugLogStore.Level.WARN -> VoxelColors.Amber400
-        DebugLogStore.Level.ERROR -> VoxelColors.Red400
-        DebugLogStore.Level.SUCCESS -> VoxelColors.Emerald400
+        DebugLogMemory.Level.INFO -> VoxelColors.Sky400
+        DebugLogMemory.Level.WARN -> VoxelColors.Amber400
+        DebugLogMemory.Level.ERROR -> VoxelColors.Red400
+        DebugLogMemory.Level.SUCCESS -> VoxelColors.Emerald400
     }

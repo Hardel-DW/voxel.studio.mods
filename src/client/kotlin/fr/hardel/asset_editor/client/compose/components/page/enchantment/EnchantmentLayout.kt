@@ -30,6 +30,7 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentMainP
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlotsPage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalPage
+import kotlinx.collections.immutable.toImmutableSet
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
@@ -62,25 +63,25 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             tree = tree,
             filterPath = conceptUi.filterPath,
             selectedElementId = currentEditor?.elementId,
-            expandedTreePaths = conceptUi.expandedTreePaths,
+            expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
             elementIcon = concept.icon,
             folderIcons = folderIcons,
             disableAutoExpand = sidebarView == StudioSidebarView.SLOTS,
             onSelectAll = {
-                context.uiState().updateFilterPath(concept, "")
-                context.navigationState().navigate(concept.overview())
+                context.uiMemory().updateFilterPath(concept, "")
+                context.navigationMemory().navigate(concept.overview())
             },
             onSelectFolder = { path ->
-                context.uiState().updateFilterPath(concept, path)
-                context.navigationState().navigate(concept.overview())
+                context.uiMemory().updateFilterPath(concept, path)
+                context.navigationMemory().navigate(concept.overview())
             },
             onSelectElement = { elementId ->
-                context.navigationState().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
+                context.navigationMemory().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
             },
             onToggleExpanded = { path, expanded ->
-                context.uiState().setTreeExpanded(concept, path, expanded)
+                context.uiMemory().setTreeExpanded(concept, path, expanded)
             },
-            onNavigateChanges = { context.navigationState().navigate(concept.changes()) }
+            onNavigateChanges = { context.navigationMemory().navigate(concept.changes()) }
         )
     }
 
@@ -112,7 +113,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                 HeaderActionButton(
                     text = I18n.get("enchantment:simulation"),
                     onClick = {
-                        context.navigationState().navigate(
+                        context.navigationMemory().navigate(
                             ConceptSimulationDestination(concept)
                         )
                     }
@@ -127,7 +128,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                     ),
                     selectedValue = conceptUi.sidebarView.name.lowercase(),
                     onValueChange = { value ->
-                        context.uiState().updateSidebarView(
+                        context.uiMemory().updateSidebarView(
                             concept,
                             when (value) {
                                 "items" -> StudioSidebarView.ITEMS

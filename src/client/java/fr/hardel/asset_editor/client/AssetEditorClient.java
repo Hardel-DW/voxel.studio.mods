@@ -3,9 +3,10 @@ package fr.hardel.asset_editor.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.memory.debug.DebugMemory;
+import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
-import fr.hardel.asset_editor.client.state.ClientSessionState;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -25,8 +26,9 @@ import org.lwjgl.glfw.GLFW;
 public class AssetEditorClient implements ClientModInitializer {
 
     public static final String BUILD_VERSION = "26.0.1-RC";
-    private static final ClientSessionState SESSION_STATE = new ClientSessionState();
-    private static final ClientSessionDispatch SESSION_DISPATCH = new ClientSessionDispatch(SESSION_STATE);
+    private static final SessionMemory SESSION_MEMORY = new SessionMemory();
+    private static final DebugMemory DEBUG_MEMORY = new DebugMemory();
+    private static final ClientSessionDispatch SESSION_DISPATCH = new ClientSessionDispatch(SESSION_MEMORY);
 
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"));
@@ -34,8 +36,12 @@ public class AssetEditorClient implements ClientModInitializer {
         new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
     private boolean hadWorld;
 
-    public static ClientSessionState sessionState() {
-        return SESSION_STATE;
+    public static SessionMemory sessionMemory() {
+        return SESSION_MEMORY;
+    }
+
+    public static DebugMemory debugMemory() {
+        return DEBUG_MEMORY;
     }
 
     public static ClientSessionDispatch sessionDispatch() {
@@ -49,22 +55,28 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean hasWorld = client.level != null && client.getConnection() != null;
             if (this.hadWorld && !hasWorld) {
-                SESSION_STATE.clear();
+                SESSION_MEMORY.clear();
+                DEBUG_MEMORY.resetForWorldClose();
                 VoxelStudioWindow.notifyWorldClosed();
             }
 
             this.hadWorld = hasWorld;
-            if (hasWorld)
-                SESSION_STATE.setWorldSessionKey(computeWorldSessionKey());
+            if (hasWorld) {
+                String nextWorldSessionKey = computeWorldSessionKey();
+                String previousWorldSessionKey = SESSION_MEMORY.worldSessionKey();
+                if (!previousWorldSessionKey.isBlank() && !previousWorldSessionKey.equals(nextWorldSessionKey))
+                    DEBUG_MEMORY.resetForWorldSession();
+                SESSION_MEMORY.setWorldSessionKey(nextWorldSessionKey);
+            }
             if (!OPEN_STUDIO.consumeClick())
                 return;
 
-            if (client.player != null && !SESSION_STATE.hasReceivedPermissions()) {
+            if (client.player != null && !SESSION_MEMORY.hasReceivedPermissions()) {
                 client.player.displayClientMessage(Component.translatable("studio:permission.waiting"), false);
                 return;
             }
 
-            if (client.player != null && SESSION_STATE.permissions().isNone()) {
+            if (client.player != null && SESSION_MEMORY.permissions().isNone()) {
                 client.player.displayClientMessage(Component.translatable("studio:permission.blocked"), false);
                 return;
             }
