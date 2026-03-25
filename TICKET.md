@@ -22,9 +22,6 @@
 
 - [] Créer le concept de Loot Table, qui permet de gérer les loot tables de Minecraft. Visuel calquer sur la version web.
 - [] Créer le concept de Recipe. Visuel calquer sur la version web.
-
-# Refactor
-4. Il y a beaucoup de catch (Exception ignored) et de flux silencieux, ce qui masque les bugs de ressources/UI et rend le diagnostic pénible. Voir VoxelStudioWindow.java#L198, SvgIcon.java#L30, ResourceImageIcon.java#L34, BrowserUtils.java#L5.
 --------
 
 

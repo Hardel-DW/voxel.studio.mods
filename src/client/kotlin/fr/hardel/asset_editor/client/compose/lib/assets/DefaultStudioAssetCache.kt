@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib.assets
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import fr.hardel.asset_editor.client.resource.StudioResourceLoader
+import fr.hardel.asset_editor.client.compose.StudioResourceLoader
 import java.util.concurrent.ConcurrentHashMap
 import net.minecraft.resources.Identifier
 import org.jetbrains.skia.Data

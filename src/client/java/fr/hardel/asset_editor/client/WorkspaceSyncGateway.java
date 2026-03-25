@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.action;
+package fr.hardel.asset_editor.client;
 
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
