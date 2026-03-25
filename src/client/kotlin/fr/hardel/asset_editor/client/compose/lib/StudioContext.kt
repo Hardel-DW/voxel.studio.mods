@@ -43,6 +43,9 @@ class StudioContext(
     val gateway = EditorActionGateway(sessionState, workspaceState)
 
     init {
+        workspaceState.setWorldSessionKey(sessionState.worldSessionKey())
+        snapshotRegistries()
+
         subscriptions += sessionState.select({ snapshot -> snapshot.permissions() })
             .subscribe({ permissions ->
                 navigationState.revalidate(permissions)
@@ -129,8 +132,6 @@ class StudioContext(
 
         workspaceState.setWorldSessionKey(nextKey)
         workspaceState.resetForWorldSync()
-        uiState.reset()
-        navigationState.reset()
         snapshotRegistries()
     }
 

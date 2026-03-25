@@ -24,8 +24,6 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEdit
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
 import fr.hardel.asset_editor.client.selector.Subscription
 import java.awt.Component
 import javax.swing.SwingUtilities
@@ -195,16 +193,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
             onDispose {
                 if (activeContext === context) activeContext = null
                 context.dispose()
-            }
-        }
-
-        LaunchedEffect(context) {
-            context.resyncWorldSession()
-            context.navigationState().revalidate()
-            if (context.navigationState().snapshot().current is NoPermissionDestination) {
-                StudioConcept.firstAccessible(AssetEditorClient.sessionState().permissions())?.let { concept ->
-                    context.navigationState().navigate(concept.overview())
-                }
             }
         }
 
