@@ -12,8 +12,7 @@ import java.util.UUID;
 
 public final class ClientDebugTelemetry {
 
-    public static void actionDispatched(String packId, Identifier registryId, Identifier targetId,
-        EditorAction action, UUID actionId) {
+    public static void actionDispatched(String packId, Identifier registryId, Identifier targetId, EditorAction action, UUID actionId) {
         log(DebugLogMemory.Category.ACTION,
             I18n.get("debug:telemetry.dispatched_editor_action"),
             Map.of("packId", packId, "registryId", registryId.toString(),
@@ -28,8 +27,7 @@ public final class ClientDebugTelemetry {
         log(DebugLogMemory.Category.LIFECYCLE, message, data);
     }
 
-    private static void log(DebugLogMemory.Category category, String message,
-                            Map<String, ?> data) {
+    private static void log(DebugLogMemory.Category category, String message, Map<String, ?> data) {
         if (data == null) {
             AssetEditorClient.debugMemory().logs().log(DebugLogMemory.Level.INFO, category, message);
             return;

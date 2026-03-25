@@ -66,8 +66,10 @@ public class AssetEditorClient implements ClientModInitializer {
                 String previousWorldSessionKey = SESSION_MEMORY.worldSessionKey();
                 if (!previousWorldSessionKey.isBlank() && !previousWorldSessionKey.equals(nextWorldSessionKey))
                     DEBUG_MEMORY.resetForWorldSession();
+
                 SESSION_MEMORY.setWorldSessionKey(nextWorldSessionKey);
             }
+
             if (!OPEN_STUDIO.consumeClick())
                 return;
 
