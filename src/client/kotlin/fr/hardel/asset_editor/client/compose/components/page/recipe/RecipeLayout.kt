@@ -55,7 +55,6 @@ fun RecipeLayout(context: StudioContext) {
             sidebarTitleKey = "recipe:overview.title",
             treeState = treeState,
             simulationTab = null,
-            showViewModeToggle = false,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> RecipeOverviewPage(context)

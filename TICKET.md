@@ -1,7 +1,6 @@
 # Les tickets organisés par catégories 
 
 ## Les Bugs d'interface
-- [] À traiter en dernier car mineur, quand on arrive sur une page pendant une frame leur taille semble différente ce qui crée un scroll temporaire de quelques millisecondes, sûrement un rendu initial différent.
 - [] L"icone dans la créations de pack n'est pas utilisée.
 - [] Certains cases dans "Items supportés" ne fonctionne pas, peut être que le tags n'existe pas ou autre chose. Inclus épée, bouclier, je crois que c'est les tags voxel.
 - [] Dans Exclusive Set, parfois l'action ne fait rien dans un cas qui semble éxtrémement précis. ça semble être :
@@ -26,18 +25,19 @@
 
 # Refactor
 4. Il y a beaucoup de catch (Exception ignored) et de flux silencieux, ce qui masque les bugs de ressources/UI et rend le diagnostic pénible. Voir VoxelStudioWindow.java#L198, SvgIcon.java#L30, ResourceImageIcon.java#L34, BrowserUtils.java#L5.
+--------
 
-Autre Bugs: 
+
+
+Analyse du 19 mars - C'était des bugs JavaFX il sont peut être d'actualités vu qu'ont est sur Compose. A verifier. 
+
+Autre Bugs:
 100. Un reload de ressources reconstruit tout StudioEditorRoot sans réinjecter immédiatement permissions, packs, tabs ou route courante. Le résultat probable est un retour transitoire ou durable sur un contexte incohérent après reload. Voir VoxelStudioWindow.java#L157, VoxelStudioWindow.java#L136, VoxelStudioWindow.java#L188.
 
 103. Côté perf/rendering, plusieurs vues reconstruisent et re-trient tout sur chaque changement: overview, tree, rebuild du tree de concept, reset du scroll. Ça tient sur un registre petit, mais ça ne passera pas proprement à recipes/loot tables/structures. Voir EnchantmentOverviewPage.java#L135, InfiniteScrollPane.java#L33, EnchantmentLayout.java#L50, FileTreeView.java#L49.
 
 104. La génération de l’atlas items est coûteuse et lancée sur le render thread pour tous les items d’un coup. En plus, un ItemSprite construit avant la disponibilité de l’atlas reste caché jusqu’à un refresh ultérieur sans mécanisme de resubscribe. Voir ItemAtlasRenderer.java#L96, GameRendererMixin.java#L13, ItemSprite.java#L18.
---------
-
-
-
-Analyse du 19 mars
+105. 
 1.
 Mais il y a un subtilité avec les lower layers : quand PackA est modifié, les workspaces de PackB/C qui ont été chargés après PackA ne sont pas recalculés. Si PackA modifie un tag et PackB dépend de ce tag,   
 PackB ne verra pas le changement tant que son workspace n'est pas rechargé.
@@ -52,27 +52,10 @@ Si le serveur ne répond jamais (crash réseau, timeout), les pending actions re
 4.
 Chaque mutation fait un flushDirty() qui écrit sur disque de manière synchrone sur le server thread. Si le disque est lent, ça bloque le thread serveur.
 
-5.
-Quand le planner calcule les tags affectés, il collecte les memberships de tous les éléments du workspace (reference ET current). Pour les éléments non-dirty, il applique quand même adapter.prepare(). Ça veut 
-dire que si un enchantment a été modifié (mode → disable) mais n'est pas dirty (parce que c'est un état hérité d'un lower layer), son exclusion des tags est quand même appliquée dans le calcul.
-C'est correct en termes de résultat, mais c'est un risque de performance sur de gros registries.
-
-Ont est en train de faire le portage de JavaFX a Compose ont est a la moitié je dirais. Ont a porter tout le projet, retirer de gradle JavaFX, porter tout les fichiers, refait le routing, loading d'asset, la window. Ont corrige actuellement les bugs et ont corrige    
-les regression de l'interface. Tu dois analyser strictement JavaFX et TSX. Et refaire les composants que je vais te dire utilise les deux skill compose de la doc. Fait des recherche sur google.
-Commençons. 
-- Le LayoutPrincipale, les bordure sont pas visibles.     
-- Les SidebarEnchantment, le tree en géneral verifie le chevron il semble pas être le bon.
-- Le Modal apparait pas enfin si mais il est pas centrer au milieu de l'écran, aucun effet d'animation d'apparition, et il bloquer dans la title bar en faisant quelque pixel de haut.
-- Le Slider est complétement différent de l'original. 
 - Overview Enchantment, le inputtext a pas de limite de taille.
 - Ont voit list/grid alors qu'on a mis que le mode liste uniquement (Voir JavaFX).
-- Les bouton All - Your Change verifie l'espacement/gap.
-- All - Your Change le texte droite indiquant le nombre d'élément est pas verticalement aligner avec ceux du tree.
+- Les bouton All - Your Change verifie l'espacement/gap/text size/font. L'espacement/padding/margin/height.
+- All - Your Change le texte droite indiquant le nombre d'élément est pas verticalement aligner avec ceux du tree. (Y'avais aussi le soucis sur JavaFX et TSX)
 - Verifie les animations de Popover, Dialog, Dropdown, Tooltip aligne toi sur la version web et JavaFX.
-- La page Where to find, les élément ne sont pas grid correctement, chaque case a une hauteur différente, grid et censés être de la même hauteur.
 - Animated Tab verifiie le composant, l'inner.
--Verifie Tooltip,Dialog, Popover, Dropdown sur leurs implémentation et ce que conseilles les gens sur google.
 
-Fait par lot. Ne gére pas tout d'un coup.
-
-Il faut que ça soit proche de l'origial, 1:1 visuelle avec TSX. Au plus générique proche de l'original sur les méthodes, styles. Convertit dans ta tête les styles tailwind et gloabal.css.

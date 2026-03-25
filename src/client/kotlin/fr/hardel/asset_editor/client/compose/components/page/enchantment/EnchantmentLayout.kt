@@ -89,7 +89,6 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             sidebarTitleKey = "enchantment:overview.title",
             treeState = treeState,
             simulationTab = StudioEditorTab.SIMULATION,
-            showViewModeToggle = true,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)

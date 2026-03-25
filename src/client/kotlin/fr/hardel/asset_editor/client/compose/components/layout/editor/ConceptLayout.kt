@@ -30,7 +30,6 @@ class ConceptLayoutConfig(
     val sidebarTitleKey: String,
     val treeState: ConceptTreeState,
     val simulationTab: StudioEditorTab?,
-    val showViewModeToggle: Boolean,
     val pageFactory: DestinationPageFactory,
     val sidebarExtras: List<SidebarExtra>
 )
@@ -77,7 +76,6 @@ fun ConceptLayout(
                 context = context,
                 treeState = config.treeState,
                 concept = config.concept,
-                showViewToggle = config.showViewModeToggle,
                 simulationTab = config.simulationTab
             )
 

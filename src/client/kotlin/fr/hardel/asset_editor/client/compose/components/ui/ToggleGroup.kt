@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -20,13 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import net.minecraft.resources.Identifier
 import java.util.Locale
 
@@ -49,8 +48,8 @@ fun ToggleGroup(
     Row(
         modifier = modifier
             .clip(groupShape)
-            .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
-            .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f), groupShape)
+            .background(VoxelColors.Zinc950)
+            .border(1.dp, VoxelColors.Zinc800, groupShape)
             .padding(4.dp)
     ) {
         for (option in options) {
@@ -66,8 +65,9 @@ fun ToggleGroup(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = optionModifier
+                    .then(if (isActive) Modifier.shadow(1.dp, optionShape) else Modifier)
                     .clip(optionShape)
-                    .then(if (isActive) Modifier.background(VoxelColors.Zinc900) else Modifier)
+                    .then(if (isActive) Modifier.background(VoxelColors.Zinc800) else Modifier)
                     .hoverable(interactionSource)
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(

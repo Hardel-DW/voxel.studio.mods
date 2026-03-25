@@ -29,43 +29,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
-import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
-import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode
-import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
-
-private val GRID_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/overview/grid.svg")
-private val LIST_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/overview/list.svg")
 
 @Composable
 fun EditorHeader(
     context: StudioContext,
     treeState: ConceptTreeState,
     concept: StudioConcept,
-    showViewToggle: Boolean,
     simulationTab: StudioEditorTab?,
     modifier: Modifier = Modifier
 ) {
     val destination = rememberCurrentDestination(context)
     val editorDestination = rememberCurrentElementDestination(context, concept)
-    val conceptUi = rememberConceptUi(context, concept)
     val isOverview = destination is ConceptOverviewDestination
     val segments = remember(destination, treeState.filterPath, treeState.selectedElementId, treeState.tree) {
         buildBreadcrumbSegments(treeState, concept, destination)
@@ -165,22 +154,6 @@ fun EditorHeader(
                                     onClick = {
                                         context.navigationState().replaceCurrentTab(
                                             editorDestination.copy(tab = simulationTab)
-                                        )
-                                    }
-                                )
-                            }
-
-                            if (showViewToggle) {
-                                ToggleGroup(
-                                    options = listOf(
-                                        ToggleOption.IconOption("grid", GRID_ICON),
-                                        ToggleOption.IconOption("list", LIST_ICON)
-                                    ),
-                                    selectedValue = conceptUi.viewMode.name.lowercase(),
-                                    onValueChange = { value ->
-                                        context.uiState().updateViewMode(
-                                            concept,
-                                            if (value == "list") StudioViewMode.LIST else StudioViewMode.GRID
                                         )
                                     }
                                 )
