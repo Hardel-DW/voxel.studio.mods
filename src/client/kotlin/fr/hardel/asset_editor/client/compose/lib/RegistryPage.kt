@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.compose.lib
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,7 +16,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionResult
-import fr.hardel.asset_editor.client.asFlow
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import net.minecraft.client.resources.language.I18n
@@ -49,10 +47,9 @@ fun <T : Any> rememberRegistryEntries(
     context: StudioContext,
     registry: ResourceKey<Registry<T>>
 ): List<ElementEntry<T>> {
-    val flow = remember(context) { context.registryMemory().asFlow() }
-    val snapshot by flow.collectAsState(context.registryMemory().snapshot())
-    return remember(snapshot, registry) {
-        context.allTypedEntries(registry)
+    val registryMemory = remember(context, registry) { context.registryMemory().observeTypedRegistry(registry) }
+    return rememberMemoryValue(registryMemory, registry) { entries ->
+        entries.values.toList()
     }
 }
 

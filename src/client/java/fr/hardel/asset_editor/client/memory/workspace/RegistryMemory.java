@@ -11,6 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -24,7 +25,9 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     public record Snapshot(Map<String, Map<Identifier, ElementEntry<?>>> registries) {
 
         public Snapshot {
-            registries = copyRegistries(registries);
+            registries = registries == null || registries.isEmpty()
+                ? Map.of()
+                : Collections.unmodifiableMap(new LinkedHashMap<>(registries));
         }
 
         public static Snapshot empty() {
@@ -33,6 +36,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     }
 
     private final SimpleMemory<Snapshot> memory = new SimpleMemory<>(Snapshot.empty());
+    private final LinkedHashMap<String, RegistrySlot<?>> registrySlots = new LinkedHashMap<>();
 
     @Override
     public Snapshot snapshot() {
@@ -46,7 +50,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
 
     public <T> void snapshotFromRegistry(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
         Function<ElementEntry<T>, CustomFields> customInitializer) {
-        String name = registryName(registryKey);
+        RegistrySlot<T> slot = slot(registryKey);
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         registry.listTags().forEach(named -> {
@@ -57,7 +61,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
             }
         });
 
-        LinkedHashMap<Identifier, ElementEntry<?>> entries = new LinkedHashMap<>();
+        LinkedHashMap<Identifier, ElementEntry<T>> entries = new LinkedHashMap<>();
         registry.listElements().forEach(holder -> {
             Identifier id = holder.key().identifier();
             Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
@@ -66,61 +70,55 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
             entries.put(id, enriched);
         });
 
-        memory.update(state -> {
-            LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> next = new LinkedHashMap<>(state.registries());
-            next.put(name, entries);
-            return new Snapshot(next);
-        });
+        publishRegistry(registryName(registryKey), slot, entries);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> ElementEntry<T> get(ResourceKey<Registry<T>> registry, Identifier id) {
-        Map<Identifier, ElementEntry<?>> registryMap = snapshot().registries().get(registryName(registry));
-        if (registryMap == null)
-            return null;
-        return (ElementEntry<T>) registryMap.get(id);
+        return typedRegistrySnapshot(registry).get(id);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> List<ElementEntry<T>> allTypedElements(ResourceKey<Registry<T>> registry) {
-        Map<Identifier, ElementEntry<?>> registryMap = snapshot().registries().get(registryName(registry));
-        if (registryMap == null)
-            return List.of();
-        return registryMap.values().stream().map(entry -> (ElementEntry<T>) entry).toList();
+        return List.copyOf(typedRegistrySnapshot(registry).values());
     }
 
     public <T> void put(ResourceKey<Registry<T>> registry, Identifier id, ElementEntry<T> entry) {
-        String name = registryName(registry);
-        memory.update(state -> {
-            LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> next = new LinkedHashMap<>(state.registries());
-            LinkedHashMap<Identifier, ElementEntry<?>> registryMap = new LinkedHashMap<>(next.getOrDefault(name, Map.of()));
-            registryMap.put(id, entry);
-            next.put(name, registryMap);
-            return new Snapshot(next);
-        });
+        RegistrySlot<T> slot = slot(registry);
+        LinkedHashMap<Identifier, ElementEntry<T>> nextEntries = new LinkedHashMap<>(slot.snapshot());
+        nextEntries.put(id, entry);
+        publishRegistry(registryName(registry), slot, nextEntries);
     }
 
     public <T> void replaceAll(ResourceKey<Registry<T>> registry, Collection<ElementEntry<T>> entries) {
-        String name = registryName(registry);
-        LinkedHashMap<Identifier, ElementEntry<?>> nextEntries = new LinkedHashMap<>();
+        RegistrySlot<T> slot = slot(registry);
+        LinkedHashMap<Identifier, ElementEntry<T>> nextEntries = new LinkedHashMap<>();
         for (ElementEntry<T> entry : entries) {
             nextEntries.put(entry.id(), entry);
         }
 
-        memory.update(state -> {
-            LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> next = new LinkedHashMap<>(state.registries());
-            next.put(name, nextEntries);
-            return new Snapshot(next);
-        });
+        publishRegistry(registryName(registry), slot, nextEntries);
     }
 
-    public Map<String, Integer> entryCountsSnapshot() {
+    public synchronized <T> ReadableMemory<Map<Identifier, ElementEntry<T>>> observeTypedRegistry(ResourceKey<Registry<T>> registry) {
+        return slot(registry).memory();
+    }
+
+    public synchronized <T> Map<Identifier, ElementEntry<T>> typedRegistrySnapshot(ResourceKey<Registry<T>> registry) {
+        return slot(registry).snapshot();
+    }
+
+    public synchronized Map<String, Integer> entryCountsSnapshot() {
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
-        snapshot().registries().forEach((registry, entries) -> counts.put(registry, entries.size()));
+        registrySlots.forEach((registry, slot) -> {
+            int size = slot.snapshotRaw().size();
+            if (size > 0) {
+                counts.put(registry, size);
+            }
+        });
         return Map.copyOf(counts);
     }
 
-    public void clearAll() {
+    public synchronized void clearAll() {
+        registrySlots.values().forEach(RegistrySlot::clear);
         memory.setSnapshot(Snapshot.empty());
     }
 
@@ -128,18 +126,58 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         return key.identifier().toString();
     }
 
-    private static Map<String, Map<Identifier, ElementEntry<?>>> copyRegistries(
-        Map<String, Map<Identifier, ElementEntry<?>>> registries) {
-        if (registries == null || registries.isEmpty())
+    private synchronized <T> void publishRegistry(String name, RegistrySlot<T> slot, Map<Identifier, ElementEntry<T>> nextEntries) {
+        slot.publish(immutableEntries(nextEntries));
+        registrySlots.put(name, slot);
+        memory.setSnapshot(buildSnapshot());
+    }
+
+    private synchronized Snapshot buildSnapshot() {
+        if (registrySlots.isEmpty())
+            return Snapshot.empty();
+
+        LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> registries = new LinkedHashMap<>();
+        registrySlots.forEach((name, slot) -> registries.put(name, slot.snapshotRaw()));
+        return new Snapshot(registries);
+    }
+
+    @SuppressWarnings("unchecked")
+    private synchronized <T> RegistrySlot<T> slot(ResourceKey<Registry<T>> registry) {
+        String name = registryName(registry);
+        return (RegistrySlot<T>) registrySlots.computeIfAbsent(name, ignored -> new RegistrySlot<>());
+    }
+
+    private static <T> Map<Identifier, ElementEntry<T>> immutableEntries(Map<Identifier, ElementEntry<T>> entries) {
+        if (entries == null || entries.isEmpty())
             return Map.of();
 
-        LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> copy = new LinkedHashMap<>();
-        registries.forEach((registry, entries) -> {
-            LinkedHashMap<Identifier, ElementEntry<?>> registryCopy = new LinkedHashMap<>();
-            if (entries != null)
-                registryCopy.putAll(entries);
-            copy.put(registry, java.util.Collections.unmodifiableMap(registryCopy));
-        });
-        return java.util.Collections.unmodifiableMap(copy);
+        LinkedHashMap<Identifier, ElementEntry<T>> copy = new LinkedHashMap<>(entries);
+        return Collections.unmodifiableMap(copy);
+    }
+
+    private static final class RegistrySlot<T> {
+
+        private final SimpleMemory<Map<Identifier, ElementEntry<T>>> memory = new SimpleMemory<>(Map.of());
+
+        private ReadableMemory<Map<Identifier, ElementEntry<T>>> memory() {
+            return memory;
+        }
+
+        private Map<Identifier, ElementEntry<T>> snapshot() {
+            return memory.snapshot();
+        }
+
+        @SuppressWarnings("unchecked")
+        private Map<Identifier, ElementEntry<?>> snapshotRaw() {
+            return (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) memory.snapshot();
+        }
+
+        private void publish(Map<Identifier, ElementEntry<T>> nextEntries) {
+            memory.setSnapshot(nextEntries);
+        }
+
+        private void clear() {
+            memory.setSnapshot(Map.of());
+        }
     }
 }
