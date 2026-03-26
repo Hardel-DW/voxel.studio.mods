@@ -35,10 +35,18 @@ public final class DiskWriter {
         }
 
         for (RegistryDiffPlan.TagWrite write : plan.tagWrites()) {
-            ExtendedTagFile.CODEC.encodeStart(JsonOps.INSTANCE, write.file())
-                .ifSuccess(json -> writeFile(write.path(), GSON.toJson(json)))
-                .ifError(error -> LOGGER.warn("Failed to encode tag {}: {}", write.path(), error.message()));
+            writeTag(write.path(), write.file());
         }
+    }
+
+    public boolean writeTag(Path path, ExtendedTagFile file) {
+        return ExtendedTagFile.CODEC.encodeStart(JsonOps.INSTANCE, file)
+            .result()
+            .map(json -> writeFile(path, GSON.toJson(json)))
+            .orElseGet(() -> {
+                LOGGER.warn("Failed to encode tag {}", path);
+                return false;
+            });
     }
 
     private void deleteIfExists(Path path, String type) {
@@ -49,12 +57,14 @@ public final class DiskWriter {
         }
     }
 
-    private void writeFile(Path path, String content) {
+    private boolean writeFile(Path path, String content) {
         try {
             Files.createDirectories(path.getParent());
             Files.writeString(path, content);
+            return true;
         } catch (IOException exception) {
             LOGGER.warn("Failed to write {}: {}", path, exception.getMessage());
+            return false;
         }
     }
 }

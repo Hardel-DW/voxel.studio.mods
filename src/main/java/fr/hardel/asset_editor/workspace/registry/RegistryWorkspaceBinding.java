@@ -15,7 +15,13 @@ import net.minecraft.resources.ResourceKey;
 
 import java.util.function.Function;
 
-public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter, RegistryInterpreter<T> interpreter, Function<ElementEntry<T>, CustomFields> customInitializer) {
+public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter, RegistryMutationHandler<T> mutationHandler, Function<ElementEntry<T>, CustomFields> customInitializer) {
+
+    public RegistryWorkspaceBinding {
+        adapter = adapter == null ? FlushAdapter.identity() : adapter;
+        mutationHandler = mutationHandler == null ? RegistryMutationHandler.unsupported() : mutationHandler;
+        customInitializer = customInitializer == null ? entry -> CustomFields.EMPTY : customInitializer;
+    }
 
     public WorkspaceElementSnapshot toSnapshot(ElementEntry<T> entry, HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);

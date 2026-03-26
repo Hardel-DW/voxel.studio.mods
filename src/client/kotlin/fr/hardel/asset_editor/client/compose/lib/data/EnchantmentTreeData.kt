@@ -1,40 +1,48 @@
 package fr.hardel.asset_editor.client.compose.lib.data
 
+import fr.hardel.asset_editor.tag.TagSeed
 import net.minecraft.resources.Identifier
 
 object EnchantmentTreeData {
 
     @JvmField
     val ITEM_TAGS = listOf(
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/sword")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/trident")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/mace")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/bow")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/crossbow")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/range")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/fishing")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/shield")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/weapon")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/melee")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/head_armor")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/chest_armor")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/leg_armor")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/foot_armor")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/elytra")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/armor")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/equippable")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/axes")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/shovels")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/hoes")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("voxel", "enchantable/pickaxes")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/durability")),
-        ItemTagConfig(Identifier.fromNamespaceAndPath("minecraft", "enchantable/mining_loot"))
+        ItemTagConfig(id("voxel", "enchantable/swords"), seed("#minecraft:swords")),
+        ItemTagConfig(id("minecraft", "enchantable/trident")),
+        ItemTagConfig(id("minecraft", "enchantable/mace")),
+        ItemTagConfig(id("minecraft", "enchantable/bow")),
+        ItemTagConfig(id("minecraft", "enchantable/crossbow")),
+        ItemTagConfig(
+            id("voxel", "enchantable/range"),
+            seed("#minecraft:enchantable/crossbow", "#minecraft:enchantable/bow")
+        ),
+        ItemTagConfig(id("minecraft", "enchantable/fishing")),
+        ItemTagConfig(id("voxel", "enchantable/shield"), seed("minecraft:shield")),
+        ItemTagConfig(id("minecraft", "enchantable/weapon")),
+        ItemTagConfig(
+            id("voxel", "enchantable/melee"),
+            seed("#minecraft:enchantable/weapon", "#minecraft:enchantable/trident")
+        ),
+        ItemTagConfig(id("minecraft", "enchantable/head_armor")),
+        ItemTagConfig(id("minecraft", "enchantable/chest_armor")),
+        ItemTagConfig(id("minecraft", "enchantable/leg_armor")),
+        ItemTagConfig(id("minecraft", "enchantable/foot_armor")),
+        ItemTagConfig(id("voxel", "enchantable/elytra"), seed("minecraft:elytra")),
+        ItemTagConfig(id("minecraft", "enchantable/armor")),
+        ItemTagConfig(id("minecraft", "enchantable/equippable")),
+        ItemTagConfig(id("voxel", "enchantable/axes"), seed("#minecraft:axes")),
+        ItemTagConfig(id("voxel", "enchantable/shovels"), seed("#minecraft:shovels")),
+        ItemTagConfig(id("voxel", "enchantable/hoes"), seed("#minecraft:hoes")),
+        ItemTagConfig(id("voxel", "enchantable/pickaxes"), seed("#minecraft:pickaxes")),
+        ItemTagConfig(id("minecraft", "enchantable/durability")),
+        ItemTagConfig(id("minecraft", "enchantable/mining_loot"))
     )
 
-    data class ItemTagConfig(val tagId: Identifier) {
-        fun key(): String = tagId.path
+    private fun id(namespace: String, path: String) = Identifier.fromNamespaceAndPath(namespace, path)
+    private fun seed(vararg values: String) = TagSeed.fromValueLiterals(values.toList())
 
-        fun icon(): Identifier =
-            tagId.withPath("textures/studio/item/${tagId.path}.png")
+    data class ItemTagConfig(val tagId: Identifier, val seed: TagSeed? = null) {
+        fun key(): String = tagId.path
+        fun icon(): Identifier = tagId.withPath("textures/studio/item/${tagId.path}.png")
     }
 }

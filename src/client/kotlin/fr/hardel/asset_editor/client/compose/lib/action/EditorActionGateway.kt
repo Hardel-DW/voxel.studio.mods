@@ -13,6 +13,7 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
 import java.util.Objects
@@ -112,11 +113,14 @@ class EditorActionGateway(
         action: EditorAction
     ) {
         val binding = RegistryWorkspaceBindings.get<T>(registry.identifier()) ?: return
-        val interpreter = binding.interpreter() ?: return
         val registries = clientRegistries() ?: return
 
         try {
-            val projected = interpreter.apply(entry, action, registries)
+            val projected = binding.mutationHandler().apply(
+                entry,
+                action,
+                RegistryMutationContexts.client(registries)
+            )
             if (projected != null && !Objects.equals(projected, entry)) {
                 workspaceMemory.registries().put(registry, target, projected)
             }

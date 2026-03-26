@@ -4,8 +4,13 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import fr.hardel.asset_editor.tag.TagSeed;
+import java.util.Optional;
 
 public sealed interface EditorAction {
+
+    StreamCodec<ByteBuf, TagSeed> OPTIONAL_TAG_SEED_CODEC = ByteBufCodecs.optional(TagSeed.STREAM_CODEC)
+        .map(optional -> optional.orElse(null), Optional::ofNullable);
 
     String type();
 
@@ -85,7 +90,7 @@ public sealed interface EditorAction {
             ToggleExclusive::new);
     }
 
-    record SetSupportedItems(String tagId) implements EditorAction {
+    record SetSupportedItems(String tagId, TagSeed seed) implements EditorAction {
         @Override
         public String type() {
             return "set_supported_items";
@@ -93,10 +98,11 @@ public sealed interface EditorAction {
 
         static final StreamCodec<ByteBuf, SetSupportedItems> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, SetSupportedItems::tagId,
+            OPTIONAL_TAG_SEED_CODEC, SetSupportedItems::seed,
             SetSupportedItems::new);
     }
 
-    record SetPrimaryItems(String tagId) implements EditorAction {
+    record SetPrimaryItems(String tagId, TagSeed seed) implements EditorAction {
         @Override
         public String type() {
             return "set_primary_items";
@@ -104,6 +110,7 @@ public sealed interface EditorAction {
 
         static final StreamCodec<ByteBuf, SetPrimaryItems> CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, SetPrimaryItems::tagId,
+            OPTIONAL_TAG_SEED_CODEC, SetPrimaryItems::seed,
             SetPrimaryItems::new);
     }
 

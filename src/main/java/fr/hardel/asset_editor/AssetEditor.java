@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.store.ServerPackService;
 import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
-import fr.hardel.asset_editor.workspace.registry.impl.EnchantmentInterpreter;
+import fr.hardel.asset_editor.workspace.registry.impl.EnchantmentMutationHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -35,7 +35,7 @@ public class AssetEditor implements ModInitializer {
             Registries.ENCHANTMENT,
             Enchantment.DIRECT_CODEC,
             EnchantmentFlushAdapter.INSTANCE,
-            new EnchantmentInterpreter(),
+            new EnchantmentMutationHandler(),
             entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()));
         RegistryWorkspaceBindings.register(enchantmentBinding);
         AssetEditorNetworking.registerServer();

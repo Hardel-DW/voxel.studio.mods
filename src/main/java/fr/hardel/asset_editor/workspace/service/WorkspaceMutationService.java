@@ -3,7 +3,11 @@ package fr.hardel.asset_editor.workspace.service;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.store.workspace.TagResourceService;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts;
+import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -14,6 +18,8 @@ public final class WorkspaceMutationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkspaceMutationService.class);
 
     private final WorkspaceAccessResolver accessResolver;
+    private final TagResourceService tagResources = new TagResourceService();
+    private final TagReferenceResolver tagReferences = new TagReferenceResolver();
 
     public WorkspaceMutationService(WorkspaceAccessResolver accessResolver) {
         this.accessResolver = accessResolver;
@@ -33,9 +39,11 @@ public final class WorkspaceMutationService {
         if (entry == null)
             return new MutationResult.Failure("error:element_not_found");
 
+        RegistryMutationContext context = RegistryMutationContexts.server(access.packRoot(), access.registries(), tagResources, tagReferences);
         ElementEntry<T> updated;
         try {
-            updated = binding.interpreter().apply(entry, payload.action(), access.registries());
+            binding.mutationHandler().beforeApply(payload.action(), context);
+            updated = binding.mutationHandler().apply(entry, payload.action(), context);
         } catch (Exception e) {
             LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
             return new MutationResult.Failure("error:invalid_action");

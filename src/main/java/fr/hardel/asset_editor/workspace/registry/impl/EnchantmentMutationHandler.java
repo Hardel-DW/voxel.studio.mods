@@ -4,15 +4,15 @@ import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.store.SlotManager;
+import fr.hardel.asset_editor.tag.TagSeed;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
-import fr.hardel.asset_editor.workspace.registry.RegistryInterpreter;
+import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.registry.RegistryMutationHandler;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-public final class EnchantmentInterpreter implements RegistryInterpreter<Enchantment> {
+public final class EnchantmentMutationHandler implements RegistryMutationHandler<Enchantment> {
 
     private static final String MODE_KEY = EnchantmentFlushAdapter.MODE_KEY;
     private static final String DISABLED_EFFECTS_KEY = EnchantmentFlushAdapter.DISABLED_EFFECTS_KEY;
@@ -33,8 +33,18 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
     private static final String MODE_DISABLE = EnchantmentFlushAdapter.MODE_DISABLE;
 
     @Override
+    public void beforeApply(EditorAction action, RegistryMutationContext context) {
+        switch (action) {
+            case EditorAction.SetSupportedItems value -> ensureItemTag(value.tagId(), value.seed(), context);
+            case EditorAction.SetPrimaryItems value -> ensureItemTag(value.tagId(), value.seed(), context);
+            default -> {
+            }
+        }
+    }
+
+    @Override
     public ElementEntry<Enchantment> apply(ElementEntry<Enchantment> entry, EditorAction action,
-        HolderLookup.Provider registries) {
+        RegistryMutationContext context) {
         return switch (action) {
             case EditorAction.SetIntField a -> applyIntField(entry, a.field(), a.value());
             case EditorAction.SetMode a -> applyCustom(entry, custom -> custom.with(MODE_KEY, normalizeMode(a.mode())));
@@ -56,17 +66,28 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
                     d.minCost(), d.maxCost(), d.anvilCost(), slots)));
             }
             case EditorAction.ToggleTag a -> entry.toggleTag(a.tagId());
-            case EditorAction.ToggleExclusive a -> applyToggleExclusive(entry, a.enchantmentId(), registries);
-            case EditorAction.SetSupportedItems a -> applySetSupportedItems(entry, a.tagId(), registries);
-            case EditorAction.SetPrimaryItems a -> applySetPrimaryItems(entry, a.tagId(), registries);
-            case EditorAction.SetExclusiveSet a -> applySetExclusiveSet(entry, a.tagId(), registries);
+            case EditorAction.ToggleExclusive a -> applyToggleExclusive(entry, a.enchantmentId(), context);
+            case EditorAction.SetSupportedItems a -> applySetSupportedItems(entry, a.tagId(), a.seed(), context);
+            case EditorAction.SetPrimaryItems a -> applySetPrimaryItems(entry, a.tagId(), a.seed(), context);
+            case EditorAction.SetExclusiveSet a -> applySetExclusiveSet(entry, a.tagId(), context);
         };
+    }
+
+    private void ensureItemTag(String rawTagId, TagSeed seed, RegistryMutationContext context) {
+        if (seed == null || rawTagId == null || rawTagId.isBlank())
+            return;
+
+        Identifier tagId = Identifier.tryParse(rawTagId);
+        if (tagId == null)
+            throw new IllegalArgumentException("Invalid item tag id: " + rawTagId);
+
+        context.ensureTagResource(Registries.ITEM.identifier().getPath(), tagId, seed);
     }
 
     private ElementEntry<Enchantment> applyToggleExclusive(ElementEntry<Enchantment> entry,
         Identifier enchantmentId,
-        HolderLookup.Provider registries) {
-        var lookup = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        RegistryMutationContext context) {
+        var lookup = context.registries().lookupOrThrow(Registries.ENCHANTMENT);
         var holder = lookup.get(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId)).orElse(null);
         if (holder == null)
             return entry;
@@ -88,9 +109,8 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
     }
 
     private ElementEntry<Enchantment> applySetSupportedItems(ElementEntry<Enchantment> entry,
-        String tagId,
-        HolderLookup.Provider registries) {
-        HolderSet<Item> items = resolveItemTag(tagId, registries);
+        String tagId, TagSeed seed, RegistryMutationContext context) {
+        HolderSet<Item> items = resolveItemTag(tagId, seed, context);
         if (items == null)
             return entry;
         return entry.withData(withDefinition(entry.data(), d -> new EnchantmentDefinition(
@@ -99,12 +119,11 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
     }
 
     private ElementEntry<Enchantment> applySetPrimaryItems(ElementEntry<Enchantment> entry,
-        String tagId,
-        HolderLookup.Provider registries) {
-        Optional<HolderSet<Item>> items = tagId.isEmpty()
+        String tagId, TagSeed seed, RegistryMutationContext context) {
+        Optional<HolderSet<Item>> items = tagId == null || tagId.isEmpty()
             ? Optional.empty()
-            : Optional.ofNullable(resolveItemTag(tagId, registries));
-        if (!tagId.isEmpty() && items.isEmpty())
+            : Optional.ofNullable(resolveItemTag(tagId, seed, context));
+        if (tagId != null && !tagId.isEmpty() && items.isEmpty())
             return entry;
         return entry.withData(withDefinition(entry.data(), d -> new EnchantmentDefinition(
             d.supportedItems(), items, d.weight(), d.maxLevel(),
@@ -113,7 +132,7 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
 
     private ElementEntry<Enchantment> applySetExclusiveSet(ElementEntry<Enchantment> entry,
         String tagId,
-        HolderLookup.Provider registries) {
+        RegistryMutationContext context) {
         Enchantment e = entry.data();
         if (tagId.isEmpty()) {
             return entry.withData(new Enchantment(e.description(), e.definition(), HolderSet.empty(), e.effects()));
@@ -122,21 +141,23 @@ public final class EnchantmentInterpreter implements RegistryInterpreter<Enchant
         Identifier id = Identifier.tryParse(tagId);
         if (id == null)
             return entry;
-        var tag = TagKey.create(Registries.ENCHANTMENT, id);
-        HolderSet<Enchantment> resolved = registries.lookupOrThrow(Registries.ENCHANTMENT)
-            .get(tag).<HolderSet<Enchantment>> map(named -> named)
-            .orElse(HolderSet.empty());
-        return entry.withData(new Enchantment(e.description(), e.definition(), resolved, e.effects()));
+        HolderSet<Enchantment> resolved = context.resolveTagReference(Registries.ENCHANTMENT, id);
+        return entry.withData(new Enchantment(
+            e.description(),
+            e.definition(),
+            resolved == null ? HolderSet.empty() : resolved,
+            e.effects()
+        ));
     }
 
-    private static HolderSet<Item> resolveItemTag(String tagId, HolderLookup.Provider registries) {
-        Identifier id = Identifier.tryParse(tagId);
+    private HolderSet<Item> resolveItemTag(String rawTagId, TagSeed seed, RegistryMutationContext context) {
+        Identifier id = Identifier.tryParse(rawTagId);
         if (id == null)
             return null;
-        var tag = TagKey.create(Registries.ITEM, id);
-        return registries.lookupOrThrow(Registries.ITEM)
-            .get(tag).<HolderSet<Item>> map(named -> named)
-            .orElse(null);
+
+        return seed == null
+            ? context.resolveTagReference(Registries.ITEM, id)
+            : context.resolveTagReferenceOrPlaceholder(Registries.ITEM, id);
     }
 
     private ElementEntry<Enchantment> applyIntField(ElementEntry<Enchantment> entry, String field, int value) {

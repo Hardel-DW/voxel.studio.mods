@@ -79,9 +79,9 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                 active = selected,
                                 onActiveChange = {
                                     val action = if (section == "primaryItems") {
-                                        EditorAction.SetPrimaryItems(tag.tagId.toString())
+                                        EditorAction.SetPrimaryItems(tag.tagId.toString(), tag.seed)
                                     } else {
-                                        EditorAction.SetSupportedItems(tag.tagId.toString())
+                                        EditorAction.SetSupportedItems(tag.tagId.toString(), tag.seed)
                                     }
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
@@ -104,7 +104,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.SetPrimaryItems(""),
+                                        action = EditorAction.SetPrimaryItems("", null),
                                         dialogs = dialogs
                                     )
                                 }
