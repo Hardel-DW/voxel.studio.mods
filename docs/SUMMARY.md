@@ -2,7 +2,6 @@
 
 - [Memory](pages/Memory.md) - Overview of the different memories and their contents.
 - [Registry](pages/Registry.md) - How mutable registry data is captured, edited and flushed per world session.
-- [Reactive Store](pages/ReactiveStore.md) - Zustand-like reactive store and selector architecture adapted to Compose.
 - [File Structure](pages/FileStructure.md) - Layout of the Compose source tree and each file's role.
 - [Diff With Web](pages/DiffWithWeb.md) - Key differences between this Fabric mod and the original Breeze/TSX web app.
 - [WDDE](pages/WDDE.md) - VDDE dependency mod that extends Minecraft's data-driven concepts (tag exclusion, etc.).
