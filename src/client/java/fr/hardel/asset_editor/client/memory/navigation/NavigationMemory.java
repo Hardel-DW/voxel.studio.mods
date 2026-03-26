@@ -151,6 +151,10 @@ public final class NavigationMemory implements ReadableMemory<NavigationMemory.S
             if (normalized.equals(state.current()))
                 return state;
 
+            if (normalized == NoPermissionDestination.INSTANCE) {
+                return Snapshot.empty();
+            }
+
             return new Snapshot(normalized, state.tabs(), state.activeTabId());
         });
     }

@@ -1,5 +1,6 @@
 # Summary
 
+- [Memory](pages/Memory.md) - Overview of the different memories and their contents.
 - [Registry](pages/Registry.md) - How mutable registry data is captured, edited and flushed per world session.
 - [Reactive Store](pages/ReactiveStore.md) - Zustand-like reactive store and selector architecture adapted to Compose.
 - [File Structure](pages/FileStructure.md) - Layout of the Compose source tree and each file's role.

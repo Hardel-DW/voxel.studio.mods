@@ -12,14 +12,12 @@ Accéssible en bas a droite de la fenêtre, dans la barre latérale.
 - Page Network -> Affiche les logs de réseau. Ont se place directement a l'endroit ou les requétes client/server parte, et ont fait au plus génériques possibles en filtrant par notre namespace. I18n avec clefs de traduction par concatenation dynamiques par l'identifier, avec title et description.
 - Page Atlas -> Affiche le rendu de l'atlas des items.
 
-### Module Rendering
+### Module Atlas Rendering
 Pour obtenir le rendu des items on passe par un module indépendant non lié à rien d'autre mentionné dans ce document.
 On crée un atlas supplémentaire par le thread qu'utilise Minecraft pour générer ces atlas et on crée le rendu 2D des items, on utilise le même système que Minecraft pour générer ces atlas et les positions.
 Qui sera ensuite utilisé pour afficher un item par son id.
 
-### Module Selector -> Il doit se comporter comme Zustand réagir à des Stores et uniquement re-render les valeurs dans des composants de la manière la plus générique possible sans faire aucun cas par cas. On crée des sélecteurs on s'abonne à des valeurs. Sa conception ne doit pas être liée à i18n, Compose (Du moins le moins possible), ou au concept. Il est indépendant.
-
-### Module I18n StudioText.java -> Gère absolument toutes les clefs de trad dynamiques et la logique purement générique tout doit passer par lui. Aucun cas par cas. Les composants prennent string, les routes utilisent StudioText et ce sont eux qui fournissent le contexte ou la clef.
+### Module I18n StudioText.kt -> Gère absolument toutes les clefs de traduction dynamiques et la logique purement générique tout doit passer par lui. Aucun cas par cas. Les composants prennent string, les routes utilisent StudioText et ce sont eux qui fournissent le contexte ou la clef.
 
 ### Compose
 - VoxelColors.java -> Toutes les couleurs sous la forme de constantes.
@@ -29,14 +27,15 @@ Qui sera ensuite utilisé pour afficher un item par son id.
 - Le dossier routes, ne doit contenir aucun composant générique que les pages, pas de logiques, les clefs de trad sont ici.
 - Le dossier components/ui, ce sont des composants ultra génériques non liés à aucune logique, aucun comportement d'aucun concept, pur et 100% générique, pas de I18n dedans.
 
-### Workspace Client State -> Mémoire
-Il contient le pack sélectionné, l'état affiché courant, les erreurs/warnings UI, les actions en attente si on veut les stocker
+### Module Memory
+C'est basiquement un Store. La Memory contient l'état client pur a l'instant T, Elle ne lit pas le disque, elle n'écrit rien, elle ne connait pas la diff serveur, elle ne connait pas les règles métier. Elle stocke juste des snapshots et notifie quand ça change.
+Son rôle c'est de servir de source de vérité coté client pour l'affichage. Compose observe la Memory, réagit, et re-render ce qui a changé. La Gateway modifie la Memory localement si besoin, puis le serveur valide, broadcast ou rollback.
 
 ### Gateway -> Comportement
 Toutes les interactions passent par une Gateway ultra générique qui envoie au serveur. C'est le seul et unique point d'entrée et de sortie des interactions/actions. Validation locale, Optimistic et Rollback, Le serveur si c'est bon broadcast à tous les autres clients (admin/contributeur), soit rollback, soit valide, les sélecteurs feront la mise à jour des affichages.
 Le client dit **"applique cette action sur packA"** et le serveur fait "je prends le workspace de packA, j'applique, je sauvegarde, et je te réponds".
 
-### Pas de duplication de logique	,
+### Pas de duplication de logiques
 Par exemple vérifier qu'un tag existe c'est une logique d'écriture et de lecture, nous on se contente d'envoyer le tag, c'est au serveur de se débrouiller, il crée un tag s'il n'existe pas ou l'override s'il existe déjà. On se contente de gérer l'affichage à partir des Registres et de nos données.
 Si on a besoin de données spécifiques de différence c'est au serveur de nous les fournir, c'est lui qui gère la diff, l'écriture et lecture.
 
@@ -47,9 +46,6 @@ Le serveur reste autoritaire.
 
 # Module Network (Dossier Network)
 Ne doit que envoyer et recevoir les données entre le client et le serveur. Ensuite le client/server dispatch et utilise les bonnes classes et modules. Mais globalement il doit juste envoiyer et recevoir les données.
-
-### Module Workspace
-le workspace vit côté serveur. état métier par pack
 
 ### Module Permissions complètement indépendant de tous les modules, indépendant de Compose de la window des concepts, pas lié au système de OP, il permet de définir entre admin, none et Contributor envoyé au Client.
 - **Admin**: full access, can promote/demote other players via `/studio role set`.
