@@ -13,6 +13,7 @@ public final class RegistryWorkspace<T> {
     private final Map<Identifier, ElementEntry<T>> referenceEntries;
     private final Map<Identifier, ElementEntry<T>> currentEntries;
     private final Set<Identifier> dirty = new java.util.LinkedHashSet<>();
+    private final Set<Identifier> dirtyTags = new java.util.LinkedHashSet<>();
 
     public RegistryWorkspace(Map<Identifier, ElementEntry<T>> referenceEntries,
         Map<Identifier, ElementEntry<T>> currentEntries) {
@@ -25,8 +26,12 @@ public final class RegistryWorkspace<T> {
     }
 
     public void put(Identifier id, ElementEntry<T> entry) {
+        ElementEntry<T> previous = currentEntries.get(id);
         currentEntries.put(id, entry);
         dirty.add(id);
+        if (previous != null)
+            dirtyTags.addAll(previous.tags());
+        dirtyTags.addAll(entry.tags());
     }
 
     public Collection<ElementEntry<T>> entries() {
@@ -45,7 +50,12 @@ public final class RegistryWorkspace<T> {
         return dirty;
     }
 
+    public Set<Identifier> dirtyTags() {
+        return dirtyTags;
+    }
+
     public void clearDirty() {
         dirty.clear();
+        dirtyTags.clear();
     }
 }

@@ -143,8 +143,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
 
     @SuppressWarnings("unchecked")
     private synchronized <T> RegistrySlot<T> slot(ResourceKey<Registry<T>> registry) {
-        String name = registryName(registry);
-        return (RegistrySlot<T>) registrySlots.computeIfAbsent(name, ignored -> new RegistrySlot<>());
+        return (RegistrySlot<T>) registrySlots.computeIfAbsent(registryName(registry), ignored -> new RegistrySlot<>());
     }
 
     private static <T> Map<Identifier, ElementEntry<T>> immutableEntries(Map<Identifier, ElementEntry<T>> entries) {

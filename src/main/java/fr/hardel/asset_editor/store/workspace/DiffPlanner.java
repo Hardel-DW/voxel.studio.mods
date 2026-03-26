@@ -35,6 +35,7 @@ public final class DiffPlanner {
         private final Path packRoot;
         private final String registryDir;
         private final FlushAdapter<T> adapter;
+        private final Set<Identifier> dirtyTags;
         private final Map<Identifier, ElementEntry<T>> referenceEntries;
         private final Map<Identifier, ElementEntry<T>> currentEntries;
         private final Set<Identifier> dirty;
@@ -48,6 +49,7 @@ public final class DiffPlanner {
             this.packRoot = packRoot;
             this.registryDir = binding.registryKey().identifier().getPath();
             this.adapter = binding.adapter() == null ? FlushAdapter.identity() : binding.adapter();
+            this.dirtyTags = workspace.dirtyTags();
             this.referenceEntries = workspace.referenceEntries();
             this.currentEntries = workspace.currentEntries();
             this.dirty = workspace.dirty();
@@ -106,7 +108,7 @@ public final class DiffPlanner {
         }
 
         private Set<Identifier> collectAffectedTags() {
-            Set<Identifier> tags = new HashSet<>();
+            Set<Identifier> tags = new HashSet<>(dirtyTags);
             for (Identifier id : dirty) {
                 ElementEntry<T> referenceEntry = preparedEntry(referenceEntries, id);
                 ElementEntry<T> currentEntry = preparedEntry(currentEntries, id);
