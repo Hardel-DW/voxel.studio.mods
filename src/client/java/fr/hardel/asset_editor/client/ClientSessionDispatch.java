@@ -4,6 +4,7 @@ import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 
@@ -37,6 +38,10 @@ public final class ClientSessionDispatch {
 
     public void handlePackListSync(PackListSyncPayload payload) {
         runSessionUpdate(() -> sessionMemory.updatePacks(payload.packs()));
+    }
+
+    public void handleRecipeCatalogSync(RecipeCatalogSyncPayload payload) {
+        runSessionUpdate(() -> sessionMemory.updateRecipeCatalog(payload.entries()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

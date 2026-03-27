@@ -6,34 +6,40 @@ object RecipeTreeData {
 
     @JvmField
     val RECIPE_BLOCKS = listOf(
-        RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "barrier"), listOf(), true),
+        RecipeBlockConfig(Identifier.fromNamespaceAndPath("minecraft", "barrier"), "recipe:block.all", listOf(), true),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "campfire"),
+            "recipe:block.campfire",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "campfire_cooking")),
             false
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "furnace"),
+            "recipe:block.furnace",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "smelting")),
             false
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
+            "recipe:block.blast_furnace",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "blasting")),
             false
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "smoker"),
+            "recipe:block.smoker",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "smoking")),
             false
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
+            "recipe:block.stonecutter",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")),
             false
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
+            "recipe:block.crafting_table",
             listOf(
                 Identifier.fromNamespaceAndPath("minecraft", "crafting_shapeless"),
                 Identifier.fromNamespaceAndPath("minecraft", "crafting_shaped"),
@@ -55,6 +61,7 @@ object RecipeTreeData {
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
+            "recipe:block.smithing_table",
             listOf(
                 Identifier.fromNamespaceAndPath("minecraft", "smithing_transform"),
                 Identifier.fromNamespaceAndPath("minecraft", "smithing_trim")
@@ -65,10 +72,36 @@ object RecipeTreeData {
 
     data class RecipeBlockConfig(
         val blockId: Identifier,
+        val nameKey: String,
         val recipeTypes: List<Identifier>,
         val special: Boolean
     ) {
         fun icon(): Identifier =
             blockId.withPath("textures/studio/block/${blockId.path}.png")
     }
+
+    @JvmStatic
+    fun getBlockConfig(id: String): RecipeBlockConfig? =
+        RECIPE_BLOCKS.firstOrNull { it.blockId.toString() == id }
+
+    @JvmStatic
+    fun getBlockByRecipeType(type: String): RecipeBlockConfig =
+        RECIPE_BLOCKS.firstOrNull { block -> block.recipeTypes.any { it.toString() == type } }
+            ?: RECIPE_BLOCKS.first()
+
+    @JvmStatic
+    fun getAllBlockIds(includeSpecial: Boolean = true): List<String> =
+        RECIPE_BLOCKS.filter { includeSpecial || !it.special }.map { it.blockId.toString() }
+
+    @JvmStatic
+    fun getAllRecipeTypes(): List<String> =
+        RECIPE_BLOCKS.filter { !it.special }.flatMap { it.recipeTypes.map(Identifier::toString) }
+
+    @JvmStatic
+    fun isBlockId(id: String): Boolean =
+        RECIPE_BLOCKS.any { it.blockId.toString() == id }
+
+    @JvmStatic
+    fun canBlockHandleRecipeType(id: String, type: String): Boolean =
+        id == "minecraft:barrier" || (getBlockConfig(id)?.recipeTypes?.any { type.contains(it.toString()) } == true)
 }

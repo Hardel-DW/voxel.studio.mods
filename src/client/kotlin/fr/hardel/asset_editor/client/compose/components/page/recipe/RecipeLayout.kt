@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
@@ -21,10 +22,14 @@ import kotlinx.collections.immutable.toImmutableSet
 fun RecipeLayout(context: StudioContext) {
     val concept = StudioConcept.RECIPE
     val conceptUi = rememberConceptUi(context, concept)
+    val entries = rememberRecipeEntries(context)
     val currentEditor = rememberCurrentElementDestination(context, concept)
+    val tree = remember(entries) {
+        RecipeTreeBuilder.build(entries.map { RecipeTreeBuilder.RecipeEntry(it.id.toString(), it.type) })
+    }
     val treeState = buildConceptTreeState(
         concept = concept,
-        tree = RecipeTreeBuilder.build(emptyList()),
+        tree = tree,
         filterPath = conceptUi.filterPath,
         selectedElementId = currentEditor?.elementId,
         expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
@@ -58,7 +63,7 @@ fun RecipeLayout(context: StudioContext) {
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> RecipeOverviewPage(context)
-                    is ElementEditorDestination -> RecipeMainPage()
+                    is ElementEditorDestination -> RecipeMainPage(context)
                     else -> EmptyPage()
                 }
             },

@@ -33,6 +33,10 @@ object ItemAtlasGenerator {
 
     @JvmStatic
     fun getAtlasImage(): ImageBitmap? {
+        if (!ItemAtlasRenderer.isReady()) {
+            ItemAtlasRenderer.requestGeneration()
+            return atlasImage
+        }
         if (ItemAtlasRenderer.isReady() && ItemAtlasRenderer.getGeneration() > materializedGeneration) {
             rebuild()
         }
@@ -40,8 +44,12 @@ object ItemAtlasGenerator {
     }
 
     @JvmStatic
-    fun getEntry(itemId: Identifier): AtlasEntry? =
-        ItemAtlasRenderer.getEntry(itemId)
+    fun getEntry(itemId: Identifier): AtlasEntry? {
+        if (!ItemAtlasRenderer.isReady()) {
+            ItemAtlasRenderer.requestGeneration()
+        }
+        return ItemAtlasRenderer.getEntry(itemId)
+    }
 
     @JvmStatic
     fun isReady(): Boolean =

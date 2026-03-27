@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
@@ -18,8 +19,10 @@ import fr.hardel.asset_editor.workspace.service.WorkspaceMutationService;
 import fr.hardel.asset_editor.workspace.service.WorkspaceQueryService;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.UUID;
 
@@ -33,6 +36,7 @@ public final class AssetEditorNetworking {
 
     public static void registerServer() {
         PayloadTypeRegistry.playS2C().register(PermissionSyncPayload.TYPE, PermissionSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(RecipeCatalogSyncPayload.TYPE, RecipeCatalogSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(WorkspaceSyncPayload.TYPE, WorkspaceSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PackWorkspaceSyncPayload.TYPE, PackWorkspaceSyncPayload.CODEC);
 
@@ -57,8 +61,18 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
+    public static void sendRecipeCatalog(ServerPlayer player, MinecraftServer server) {
+        ServerPlayNetworking.send(player, buildRecipeCatalog(server));
+    }
+
     public static void broadcastPackList(MinecraftServer server, java.util.List<ServerPackManager.PackEntry> packs) {
         PackListSyncPayload payload = new PackListSyncPayload(packs);
+        for (ServerPlayer player : server.getPlayerList().getPlayers())
+            ServerPlayNetworking.send(player, payload);
+    }
+
+    public static void broadcastRecipeCatalog(MinecraftServer server) {
+        RecipeCatalogSyncPayload payload = buildRecipeCatalog(server);
         for (ServerPlayer player : server.getPlayerList().getPlayers())
             ServerPlayNetworking.send(player, payload);
     }
@@ -93,6 +107,22 @@ public final class AssetEditorNetworking {
             sendMutationResult(player, payload.actionId(), success.packId(), true, "", success.snapshot());
             WORKSPACE_BROADCAST.broadcastMutation(server, player, success.packId(), success.snapshot());
         });
+    }
+
+    private static RecipeCatalogSyncPayload buildRecipeCatalog(MinecraftServer server) {
+        return new RecipeCatalogSyncPayload(
+            server.getRecipeManager().getRecipes().stream()
+                .map(AssetEditorNetworking::toRecipeCatalogEntry)
+                .filter(java.util.Objects::nonNull)
+                .toList()
+        );
+    }
+
+    private static RecipeCatalogSyncPayload.Entry toRecipeCatalogEntry(RecipeHolder<?> holder) {
+        var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(holder.value().getSerializer());
+        if (serializerId == null)
+            return null;
+        return new RecipeCatalogSyncPayload.Entry(holder.id().identifier(), serializerId.toString());
     }
 
     private AssetEditorNetworking() {}

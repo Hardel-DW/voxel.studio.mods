@@ -20,6 +20,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.crafting.Recipe;
 
 import java.util.ArrayList;
 
@@ -31,12 +32,19 @@ public class AssetEditor implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        RegistryWorkspaceBinding<Recipe<?>> recipeBinding = new RegistryWorkspaceBinding<>(
+            Registries.RECIPE,
+            Recipe.CODEC,
+            null,
+            null,
+            null);
         RegistryWorkspaceBinding<Enchantment> enchantmentBinding = new RegistryWorkspaceBinding<>(
             Registries.ENCHANTMENT,
             Enchantment.DIRECT_CODEC,
             EnchantmentFlushAdapter.INSTANCE,
             new EnchantmentMutationHandler(),
             entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()));
+        RegistryWorkspaceBindings.register(recipeBinding);
         RegistryWorkspaceBindings.register(enchantmentBinding);
         AssetEditorNetworking.registerServer();
 
@@ -44,7 +52,7 @@ public class AssetEditor implements ModInitializer {
             PermissionManager.init(server);
             WorkspaceRepository.init(server);
             ServerPackManager.init(server);
-            snapshotServerRegistries(server, enchantmentBinding);
+            snapshotServerRegistries(server, enchantmentBinding, recipeBinding);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -60,6 +68,7 @@ public class AssetEditor implements ModInitializer {
                     permManager.syncToPlayer(handler.getPlayer());
                 }
 
+                AssetEditorNetworking.sendRecipeCatalog(handler.getPlayer(), server);
                 PACK_SERVICE.listPacks()
                     .ifPresent(packs -> AssetEditorNetworking.sendPackList(handler.getPlayer(), packs));
             });
@@ -67,6 +76,7 @@ public class AssetEditor implements ModInitializer {
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
             if (success) {
+                AssetEditorNetworking.broadcastRecipeCatalog(server);
                 PACK_SERVICE.listPacks().ifPresent(packs -> AssetEditorNetworking.broadcastPackList(server, packs));
             }
         });
@@ -74,7 +84,11 @@ public class AssetEditor implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));
     }
 
-    private static void snapshotServerRegistries(MinecraftServer server, RegistryWorkspaceBinding<Enchantment> enchantmentBinding) {
+    private static void snapshotServerRegistries(
+        MinecraftServer server,
+        RegistryWorkspaceBinding<Enchantment> enchantmentBinding,
+        RegistryWorkspaceBinding<Recipe<?>> recipeBinding
+    ) {
         var repository = WorkspaceRepository.get();
         if (repository == null)
             return;
@@ -85,6 +99,9 @@ public class AssetEditor implements ModInitializer {
             .map(p -> p.open()).toList());
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
+            server.registryAccess().lookup(Registries.RECIPE).ifPresent(registry -> {
+                repository.snapshotBaseline(recipeBinding, vanillaResources, registry, server.registryAccess());
+            });
             server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
                 repository.snapshotBaseline(enchantmentBinding, vanillaResources, registry, server.registryAccess());
             });

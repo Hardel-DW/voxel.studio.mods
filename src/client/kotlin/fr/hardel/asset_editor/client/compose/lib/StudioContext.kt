@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
 import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
+import fr.hardel.asset_editor.store.CustomFields
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
 import java.util.Optional
@@ -28,6 +29,7 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.TagKey
+import net.minecraft.world.item.crafting.Recipe
 
 class StudioContext(
     private val sessionMemory: SessionMemory,
@@ -171,14 +173,9 @@ class StudioContext(
     }
 
     private fun snapshotRegistries() {
-        val connection = Minecraft.getInstance().connection ?: return
-        connection.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent { registry ->
-            workspaceMemory.registries().snapshotFromRegistry(
-                Registries.ENCHANTMENT,
-                registry
-            ) { entry ->
-                EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())
-            }
+        snapshotClientRegistry(Registries.RECIPE) { CustomFields.EMPTY }
+        snapshotClientRegistry(Registries.ENCHANTMENT) { entry ->
+            EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())
         }
     }
 
@@ -187,14 +184,32 @@ class StudioContext(
         workspaceMemory.issues().clear()
         val pack = workspaceMemory.packSelection().selectedPack() ?: return
 
+        requestWorkspaceRefresh(pack.packId(), Registries.RECIPE)
+        requestWorkspaceRefresh(pack.packId(), Registries.ENCHANTMENT)
+    }
+
+    private fun <T : Any> snapshotClientRegistry(
+        registryKey: ResourceKey<Registry<T>>,
+        customInitializer: (ElementEntry<T>) -> CustomFields
+    ) {
+        val connection = Minecraft.getInstance().connection ?: return
+        connection.registryAccess().lookup(registryKey).ifPresent { registry ->
+            workspaceMemory.registries().snapshotFromRegistry(registryKey, registry, customInitializer)
+        }
+    }
+
+    private fun requestWorkspaceRefresh(
+        packId: String,
+        registry: ResourceKey<out Registry<*>>
+    ) {
         ClientDebugTelemetry.sync(
             I18n.get("debug:telemetry.requested_workspace_refresh"),
             mapOf(
-                "packId" to pack.packId(),
-                "registry" to Registries.ENCHANTMENT.identifier().toString()
+                "packId" to packId,
+                "registry" to registry.identifier().toString()
             )
         )
 
-        gateway.requestPackWorkspace(Registries.ENCHANTMENT)
+        gateway.requestPackWorkspace(registry)
     }
 }

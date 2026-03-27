@@ -19,7 +19,7 @@ class DefaultStudioPrefetcher(
                 is ConceptChangesDestination -> prefetchConcept(destination.concept)
                 is ElementEditorDestination -> {
                     prefetchConcept(destination.concept)
-                    if (destination.concept == StudioConcept.ENCHANTMENT) {
+                    if (destination.concept == StudioConcept.ENCHANTMENT || destination.concept == StudioConcept.RECIPE) {
                         ItemAtlasGenerator.getAtlasImage()
                     }
                 }
@@ -31,7 +31,7 @@ class DefaultStudioPrefetcher(
 
     private fun prefetchConcept(concept: StudioConcept) {
         assetCache.bitmap(concept.icon)
-        if (concept == StudioConcept.ENCHANTMENT) {
+        if (concept == StudioConcept.ENCHANTMENT || concept == StudioConcept.RECIPE) {
             ItemAtlasGenerator.getAtlasImage()
         }
     }
