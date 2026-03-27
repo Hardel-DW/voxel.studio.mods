@@ -49,7 +49,7 @@ fun DebugLayout(context: StudioContext) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(DEBUG_TINT.copy(alpha = 0.4f))
+                    .background(DEBUG_TINT.copy(alpha = 0.1f))
             )
             Box(
                 modifier = Modifier
@@ -118,7 +118,7 @@ fun DebugLayout(context: StudioContext) {
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(VoxelColors.Zinc950)) {
             when (currentTab) {
                 TAB_WORKSPACE -> DebugWorkspacePage(context)
                 TAB_CODE -> DebugCodeBlockPage()

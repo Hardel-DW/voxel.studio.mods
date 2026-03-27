@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -62,7 +65,7 @@ fun EnchantmentTags(
     labelResolver: (String) -> String
 ) {
     var showOverflow by remember(title, values) { mutableStateOf(false) }
-    var showActions by remember(title, isTarget, isMember) { mutableStateOf(false) }
+    var showActions by remember(title) { mutableStateOf(false) }
     val visibleValues = values.take(MAX_DISPLAY)
     val remainingValues = values.drop(MAX_DISPLAY)
     val seeMoreInteraction = remember(title, values) { MutableInteractionSource() }
@@ -71,6 +74,7 @@ fun EnchantmentTags(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .fillMaxHeight()
             .alpha(if (locked) 0.5f else 1f)
             .clip(RoundedCornerShape(12.dp))
             .then(
@@ -82,7 +86,7 @@ fun EnchantmentTags(
             )
     ) {
         SimpleCard(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
             padding = PaddingValues(vertical = 16.dp, horizontal = 24.dp)
         ) {
             Column(
@@ -137,6 +141,8 @@ fun EnchantmentTags(
                     }
                 }
 
+                Spacer(modifier = Modifier.weight(1f))
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -160,7 +166,7 @@ fun EnchantmentTags(
                         Popover(
                             expanded = showOverflow,
                             onDismiss = { showOverflow = false },
-                            modifier = Modifier.widthIn(min = 240.dp)
+                            modifier = Modifier.widthIn(max = 320.dp)
                         ) {
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -177,12 +183,43 @@ fun EnchantmentTags(
 
                     Box(modifier = Modifier.weight(1f))
 
-                    Button(
-                        onClick = { showActions = !showActions },
-                        variant = ButtonVariant.GHOST_BORDER,
-                        size = ButtonSize.SM,
-                        text = I18n.get("generic:actions")
-                    )
+                    Column {
+                        Button(
+                            onClick = { showActions = !showActions },
+                            variant = ButtonVariant.GHOST_BORDER,
+                            size = ButtonSize.SM,
+                            text = I18n.get("generic:actions")
+                        )
+                        Popover(
+                            expanded = showActions,
+                            onDismiss = { showActions = false },
+                            modifier = Modifier.width(320.dp)
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
+                                    .padding(12.dp)
+                            ) {
+                                ActionRow(
+                                    title = I18n.get("enchantment:exclusive.actions.target.title"),
+                                    subtitle = I18n.get("enchantment:exclusive.actions.target.subtitle"),
+                                    description = I18n.get("enchantment:exclusive.actions.target.description"),
+                                    checked = isTarget,
+                                    enabled = !locked,
+                                    onClick = { onTargetToggle(!isTarget) }
+                                )
+                                ActionRow(
+                                    title = I18n.get("enchantment:exclusive.actions.membership.title"),
+                                    subtitle = I18n.get("enchantment:exclusive.actions.membership.subtitle"),
+                                    description = I18n.get("enchantment:exclusive.actions.membership.description"),
+                                    checked = isMember,
+                                    enabled = !locked,
+                                    onClick = { onMembershipToggle(!isMember) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -196,36 +233,6 @@ fun EnchantmentTags(
                     .align(Alignment.TopEnd)
                     .padding(top = 8.dp, end = 8.dp)
             )
-        }
-
-        Popover(
-            expanded = showActions,
-            onDismiss = { showActions = false },
-            modifier = Modifier.widthIn(min = 320.dp)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
-                    .padding(12.dp)
-            ) {
-                ActionRow(
-                    title = I18n.get("enchantment:exclusive.actions.target.title"),
-                    subtitle = I18n.get("enchantment:exclusive.actions.target.subtitle"),
-                    description = I18n.get("enchantment:exclusive.actions.target.description"),
-                    checked = isTarget,
-                    enabled = !locked,
-                    onClick = { onTargetToggle(!isTarget) }
-                )
-                ActionRow(
-                    title = I18n.get("enchantment:exclusive.actions.membership.title"),
-                    subtitle = I18n.get("enchantment:exclusive.actions.membership.subtitle"),
-                    description = I18n.get("enchantment:exclusive.actions.membership.description"),
-                    checked = isMember,
-                    enabled = !locked,
-                    onClick = { onMembershipToggle(!isMember) }
-                )
-            }
         }
     }
 }

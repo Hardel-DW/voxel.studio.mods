@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.VoxelColors
@@ -30,7 +31,8 @@ private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "ic
 @Composable
 fun CopyButton(
     textProvider: () -> String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconSize: Dp = 24.dp
 ) {
     var showCheck by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -46,7 +48,7 @@ fun CopyButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(40.dp)
+            .size(iconSize + 16.dp)
             .pointerHoverIcon(PointerIcon.Hand)
             .hoverable(interactionSource)
             .clickable(
@@ -59,9 +61,9 @@ fun CopyButton(
             }
     ) {
         if (showCheck) {
-            SvgIcon(CHECK_ICON, 24.dp, VoxelColors.Emerald400)
+            SvgIcon(CHECK_ICON, iconSize, VoxelColors.Emerald400)
         } else {
-            SvgIcon(COPY_ICON, 24.dp, if (isHovered) VoxelColors.Zinc300 else VoxelColors.Zinc500)
+            SvgIcon(COPY_ICON, iconSize, if (isHovered) VoxelColors.Zinc300 else VoxelColors.Zinc500)
         }
     }
 }

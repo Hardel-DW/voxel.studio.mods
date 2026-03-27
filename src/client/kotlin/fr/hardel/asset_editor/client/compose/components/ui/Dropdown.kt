@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -61,15 +62,15 @@ fun <T> Dropdown(
             Text(
                 text = if (selected != null) labelExtractor(selected) else "",
                 style = VoxelTypography.medium(12),
-                color = VoxelColors.Zinc300,
-                modifier = Modifier.weight(1f)
+                color = VoxelColors.Zinc300
             )
             SvgIcon(CHEVRON_ICON, 10.dp, VoxelColors.Zinc500)
         }
 
         Popover(
             expanded = expanded,
-            onDismiss = { expanded = false }
+            onDismiss = { expanded = false },
+            modifier = Modifier.widthIn(max = 280.dp)
         ) {
             Column(modifier = Modifier.padding(4.dp)) {
                 for (item in items) {
