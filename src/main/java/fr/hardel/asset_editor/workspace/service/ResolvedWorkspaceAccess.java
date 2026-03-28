@@ -13,9 +13,4 @@ public record ResolvedWorkspaceAccess(ServerPlayer player, MinecraftServer serve
     public HolderLookup.Provider registries() {
         return server.registryAccess();
     }
-
-    @SuppressWarnings("unchecked")
-    public <T> RegistryWorkspaceBinding<T> bindingTyped() {
-        return (RegistryWorkspaceBinding<T>) binding;
-    }
 }

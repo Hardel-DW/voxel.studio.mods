@@ -1,4 +1,6 @@
-package fr.hardel.asset_editor.store;
+package fr.hardel.asset_editor.store.adapter;
+
+import fr.hardel.asset_editor.store.ElementEntry;
 
 public interface FlushAdapter<T> {
 

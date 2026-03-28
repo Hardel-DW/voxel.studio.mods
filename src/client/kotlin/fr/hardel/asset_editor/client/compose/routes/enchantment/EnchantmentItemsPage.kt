@@ -27,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentTreeData
 import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
-import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -79,9 +79,9 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                 active = selected,
                                 onActiveChange = {
                                     val action = if (section == "primaryItems") {
-                                        EditorAction.SetPrimaryItems(tag.tagId.toString(), tag.seed)
+                                        EnchantmentEditorActions.SetPrimaryItems(tag.tagId.toString(), tag.seed)
                                     } else {
-                                        EditorAction.SetSupportedItems(tag.tagId.toString(), tag.seed)
+                                        EnchantmentEditorActions.SetSupportedItems(tag.tagId.toString(), tag.seed)
                                     }
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
@@ -104,7 +104,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.SetPrimaryItems("", null),
+                                        action = EnchantmentEditorActions.SetPrimaryItems("", null),
                                         dialogs = dialogs
                                     )
                                 }

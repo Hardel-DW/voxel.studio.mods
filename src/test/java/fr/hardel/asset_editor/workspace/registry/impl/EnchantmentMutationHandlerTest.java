@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.store.workspace.TagResourceService;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import fr.hardel.asset_editor.tag.TagSeed;
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts;
@@ -65,7 +66,7 @@ class EnchantmentMutationHandlerTest {
         EnchantmentMutationHandler handler = new EnchantmentMutationHandler();
         ElementEntry<Enchantment> entry = enchantmentEntry(HolderSet.empty(), Optional.empty());
         TagSeed seed = TagSeed.fromValueLiterals(List.of("#minecraft:axes"));
-        EditorAction action = new EditorAction.SetSupportedItems("voxel:enchantable/axes", seed);
+        EditorAction action = new EnchantmentEditorActions.SetSupportedItems("voxel:enchantable/axes", seed);
 
         handler.beforeApply(action, context);
         ElementEntry<Enchantment> updated = handler.apply(entry, action, context);
@@ -97,7 +98,7 @@ class EnchantmentMutationHandlerTest {
         EnchantmentMutationHandler handler = new EnchantmentMutationHandler();
         ElementEntry<Enchantment> entry = enchantmentEntry(HolderSet.empty(), Optional.empty());
         TagSeed seed = TagSeed.fromValueLiterals(List.of("#minecraft:axes"));
-        EditorAction action = new EditorAction.SetPrimaryItems("voxel:enchantable/axes", seed);
+        EditorAction action = new EnchantmentEditorActions.SetPrimaryItems("voxel:enchantable/axes", seed);
 
         handler.beforeApply(action, context);
         ElementEntry<Enchantment> updated = handler.apply(entry, action, context);
@@ -127,7 +128,7 @@ class EnchantmentMutationHandlerTest {
 
         ElementEntry<Enchantment> updated = handler.apply(
             entry,
-            new EditorAction.SetPrimaryItems("", null),
+            new EnchantmentEditorActions.SetPrimaryItems("", null),
             context
         );
 

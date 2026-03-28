@@ -21,7 +21,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import java.util.LinkedHashSet
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -74,7 +74,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EditorAction.ToggleExclusive(enchantmentId),
+                            action = EnchantmentEditorActions.ToggleExclusive(enchantmentId),
                             dialogs = dialogs
                         )
                     }
@@ -88,7 +88,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EditorAction.SetExclusiveSet(if (checked) tagId.toString() else ""),
+                            action = EnchantmentEditorActions.SetExclusiveSet(if (checked) tagId.toString() else ""),
                             dialogs = dialogs
                         )
                     },
@@ -96,7 +96,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EditorAction.ToggleTag(tagId),
+                            action = EnchantmentEditorActions.ToggleTag(tagId),
                             dialogs = dialogs
                         )
                     }

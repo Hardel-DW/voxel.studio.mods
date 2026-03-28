@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.store.workspace;
 import com.mojang.serialization.Codec;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.FlushAdapter;
+import fr.hardel.asset_editor.store.adapter.FlushAdapter;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -41,7 +41,6 @@ class DiffPlannerTest {
             ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("minecraft", "enchantment")),
             Codec.STRING,
             FlushAdapter.identity(),
-            null,
             entry -> CustomFields.EMPTY
         );
 

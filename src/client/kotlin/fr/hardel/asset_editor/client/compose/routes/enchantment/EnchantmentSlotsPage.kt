@@ -25,7 +25,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.data.SlotConfigs
 import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
-import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
@@ -58,7 +58,7 @@ fun EnchantmentSlotsPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.ToggleSlot(config.id),
+                                        action = EnchantmentEditorActions.ToggleSlot(config.id),
                                         dialogs = dialogs
                                     )
                                 }

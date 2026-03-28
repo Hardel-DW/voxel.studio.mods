@@ -16,7 +16,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.ExclusiveSetGroup
 import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
-import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import net.minecraft.client.resources.language.I18n

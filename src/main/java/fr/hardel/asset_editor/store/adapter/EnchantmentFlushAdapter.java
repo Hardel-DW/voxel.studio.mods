@@ -1,5 +1,7 @@
-package fr.hardel.asset_editor.store;
+package fr.hardel.asset_editor.store.adapter;
 
+import fr.hardel.asset_editor.store.CustomFields;
+import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.tag.TagHelper;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;

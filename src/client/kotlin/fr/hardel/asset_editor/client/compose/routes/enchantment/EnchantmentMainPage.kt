@@ -25,8 +25,8 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
-import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -62,7 +62,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.SetIntField("max_level", value),
+                                        action = EnchantmentEditorActions.SetIntField("max_level", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -84,7 +84,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.SetIntField("weight", value),
+                                        action = EnchantmentEditorActions.SetIntField("weight", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -106,7 +106,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EditorAction.SetIntField("anvil_cost", value),
+                                        action = EnchantmentEditorActions.SetIntField("anvil_cost", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -134,7 +134,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                     context.dispatchRegistryAction(
                         registry = Registries.ENCHANTMENT,
                         target = entry.id(),
-                        action = EditorAction.SetMode(value),
+                        action = EnchantmentEditorActions.SetMode(value),
                         dialogs = dialogs
                     )
                 }

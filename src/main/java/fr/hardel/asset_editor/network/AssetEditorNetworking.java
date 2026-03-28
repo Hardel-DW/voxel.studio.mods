@@ -34,7 +34,7 @@ public final class AssetEditorNetworking {
     private static final WorkspaceBroadcastService WORKSPACE_BROADCAST = new WorkspaceBroadcastService();
     private static final ServerPackService PACK_SERVICE = new ServerPackService();
 
-    public static void registerServer() {
+    public static void register() {
         PayloadTypeRegistry.playS2C().register(PermissionSyncPayload.TYPE, PermissionSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(RecipeCatalogSyncPayload.TYPE, RecipeCatalogSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(WorkspaceSyncPayload.TYPE, WorkspaceSyncPayload.CODEC);

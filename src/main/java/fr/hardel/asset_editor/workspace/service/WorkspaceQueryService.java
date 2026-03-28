@@ -28,8 +28,14 @@ public final class WorkspaceQueryService {
         return Optional.of(loadPackWorkspaceTyped(success.access()));
     }
 
-    private <T> PackWorkspaceSyncPayload loadPackWorkspaceTyped(ResolvedWorkspaceAccess access) {
-        RegistryWorkspaceBinding<T> binding = access.bindingTyped();
+    private PackWorkspaceSyncPayload loadPackWorkspaceTyped(ResolvedWorkspaceAccess access) {
+        return loadPackWorkspaceTyped(access.binding(), access);
+    }
+
+    private <T> PackWorkspaceSyncPayload loadPackWorkspaceTyped(
+        RegistryWorkspaceBinding<T> binding,
+        ResolvedWorkspaceAccess access
+    ) {
         List<ElementEntry<T>> entries = access.repository().snapshotWorkspace(access.packId(), binding, access.packRoot(), access.registries());
         List<WorkspaceElementSnapshot> snapshots = entries.stream()
             .map(entry -> binding.toSnapshot(entry, access.registries()))

@@ -10,11 +10,15 @@ public interface RegistryMutationHandler<T> {
 
     ElementEntry<T> apply(ElementEntry<T> entry, EditorAction action, RegistryMutationContext context);
 
+    static <T> RegistryMutationDispatcher<T> dispatcher() {
+        return new RegistryMutationDispatcher<>();
+    }
+
     static <T> RegistryMutationHandler<T> unsupported() {
         return new RegistryMutationHandler<>() {
             @Override
             public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction action, RegistryMutationContext context) {
-                throw new UnsupportedOperationException("No mutation handler registered for action " + action.type());
+                throw new UnsupportedOperationException("No mutation handler registered for action " + action.typeId());
             }
         };
     }

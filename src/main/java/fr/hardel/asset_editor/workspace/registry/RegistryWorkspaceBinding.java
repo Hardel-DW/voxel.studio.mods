@@ -7,7 +7,7 @@ import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.FlushAdapter;
+import fr.hardel.asset_editor.store.adapter.FlushAdapter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -15,11 +15,10 @@ import net.minecraft.resources.ResourceKey;
 
 import java.util.function.Function;
 
-public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter, RegistryMutationHandler<T> mutationHandler, Function<ElementEntry<T>, CustomFields> customInitializer) {
+public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> adapter, Function<ElementEntry<T>, CustomFields> customInitializer) {
 
     public RegistryWorkspaceBinding {
         adapter = adapter == null ? FlushAdapter.identity() : adapter;
-        mutationHandler = mutationHandler == null ? RegistryMutationHandler.unsupported() : mutationHandler;
         customInitializer = customInitializer == null ? entry -> CustomFields.EMPTY : customInitializer;
     }
 

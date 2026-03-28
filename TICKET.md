@@ -13,7 +13,6 @@
 - [] Travailler le debugging, pouvoir voir les éléménets re-render quel composant et la duréer d'un render par composant.
 - [] Avoir des logs détaillés des actions, des erreurs/warnings et informations utiles de render long.
 - [] Pouvoir voir le contenu de certaines variables dans le debugging.
-
 - [] Systémes de Nodes en développement. Afficher les DataDriven sous la fomre de Node.
 
 - [] Créer la page "Vos Modification", qui permet de consulter les modifications effectuées dans le projet, et les annuler. Ont peut se calquer sur la version web.
@@ -22,7 +21,14 @@
     * [] Un éditeur de texte rudimentaire pour le json, avec possibilité d'ouvrir VSC facilement.
 
 - [] Créer le concept de Loot Table, qui permet de gérer les loot tables de Minecraft. Visuel calquer sur la version web.
-- [] Créer le concept de Recipe. Visuel calquer sur la version web.
 
 - [] Pour la pages Items de Enchantment, pouvoir créer un tags, ou afficher une case "?" quand c'est un tags pas lister dans les presets.
 - [] Pour la pages "Non" Combinable pourvoir créer des tags d'enchantment.
+
+- [] Travailler sur la possibilités d'extension. Permettre a un mods de rajouter ces propres concepts :
+    - Les Memory doivent avoir un systems de registre et trés génériques. Avec deux types "Session" et "Instance", chaque Memory doit contenir des données logiques et fragmentés.
+    - Un Registre pour les Actions.
+    - Un Registre pour les Mutation Handlers.
+    - Les Concepts devienne un registre aussi.
+    - Les outils de debug doivent être dynmaiques et pas être modifier a chaque concept.
+    - Chaque Concept doit être indépendant aux possible. Avec possibilités de "Naviguer" d'un concept a l'autre avec une convention établies dans le projet. Par un Id par exemple.

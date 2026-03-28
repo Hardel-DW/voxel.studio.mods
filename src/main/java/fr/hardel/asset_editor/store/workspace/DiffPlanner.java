@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.store.workspace;
 
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.FlushAdapter;
+import fr.hardel.asset_editor.store.adapter.FlushAdapter;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import net.minecraft.resources.Identifier;

@@ -13,9 +13,11 @@ public final class RegistryWorkspaceBindings {
 
     public static <T> void register(RegistryWorkspaceBinding<T> binding) {
         if (binding == null)
-            return;
+            throw new IllegalArgumentException("Registry binding cannot be null");
 
-        BINDINGS.put(binding.registryId().toString(), binding);
+        RegistryWorkspaceBinding<?> previous = BINDINGS.putIfAbsent(binding.registryId().toString(), binding);
+        if (previous != null)
+            throw new IllegalStateException("Duplicate registry binding registration: " + binding.registryId());
     }
 
     @SuppressWarnings("unchecked")

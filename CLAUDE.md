@@ -27,7 +27,7 @@ Important: if you need knowledge, search in the directory:
 - Try to criticize my choices which can sometimes go in the wrong direction.
 - Don't just create full static files all the time; it's useless, unreadable, and counterproductive.
 - Prioritize the OOP approach. Don't make everything in a static class. Use a correct Pattern. (Static is good but not for everything)
-
+- Avoid "unchecked", "UNCHECKED_CAST" find good architectural solutions that avoid them as much as possible.
 # Studio Project :
 - Unlike Studio Web, we don't have to manage all versions of Minecraft, just the current e.g 1.21.11
 - You can use Minecraft/Mixins registries and codecs and everything.
@@ -36,4 +36,4 @@ Important: if you need knowledge, search in the directory:
 - So just “trying to get closer” is not enough; you have to do it exactly the same. If there are any issues, let me know, such as CSS or Tailwind styles that cannot be reproduced.
 - We work by component; each Kotlin File constitutes a component.
 - SVGs/Asset should not be rewritten. Copy from tsx.
-- Avoid adding too many unnecessary comments that serve no purpose. 
+- Avoid adding too many unnecessary comments that serve no purpose.

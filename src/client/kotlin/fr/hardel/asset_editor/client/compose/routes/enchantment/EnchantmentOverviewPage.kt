@@ -44,8 +44,8 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentViewMatchers
 import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import fr.hardel.asset_editor.store.ElementEntry
-import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.action.EditorAction
+import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -189,7 +189,7 @@ private fun OverviewRow(
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EditorAction.ToggleDisabled(),
+                            action = EnchantmentEditorActions.ToggleDisabled(),
                             dialogs = dialogs
                         )
                     }
