@@ -3,6 +3,7 @@ accessWidener v2 named
 accessible method net/minecraft/world/level/storage/LevelResource <init> (Ljava/lang/String;)V
 
 # Recipe mutation support
+accessible field net/minecraft/world/item/crafting/Ingredient values Lnet/minecraft/core/HolderSet;
 accessible field net/minecraft/world/item/crafting/ShapedRecipe result Lnet/minecraft/world/item/ItemStack;
 accessible field net/minecraft/world/item/crafting/ShapelessRecipe result Lnet/minecraft/world/item/ItemStack;
 accessible field net/minecraft/world/item/crafting/ShapelessRecipe ingredients Ljava/util/List;

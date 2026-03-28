@@ -36,7 +36,7 @@ public final class RecipeIngredientHelper {
         Set<Identifier> seen = new LinkedHashSet<>();
         List<Holder<Item>> merged = new ArrayList<>();
 
-        existing.items().forEach(holder -> {
+        existing.values.stream().forEach(holder -> {
             Identifier id = holder.unwrapKey()
                 .map(ResourceKey::identifier)
                 .orElse(null);
@@ -56,7 +56,7 @@ public final class RecipeIngredientHelper {
 
     public @Nullable Ingredient remove(Ingredient existing, List<Identifier> toRemove) {
         Set<Identifier> removeSet = new HashSet<>(toRemove);
-        List<Holder<Item>> remaining = existing.items()
+        List<Holder<Item>> remaining = existing.values.stream()
             .filter(holder -> holder.unwrapKey()
                 .map(key -> !removeSet.contains(key.identifier()))
                 .orElse(true))
@@ -73,7 +73,7 @@ public final class RecipeIngredientHelper {
         Set<Identifier> seen = new LinkedHashSet<>();
         List<Holder<Item>> replaced = new ArrayList<>();
 
-        existing.items().forEach(holder -> {
+        existing.values.stream().forEach(holder -> {
             Identifier id = holder.unwrapKey()
                 .map(ResourceKey::identifier)
                 .orElse(null);
