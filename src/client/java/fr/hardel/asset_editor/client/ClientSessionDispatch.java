@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client;
 
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.memory.session.CatalogMemory;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
@@ -13,10 +14,12 @@ import javax.swing.SwingUtilities;
 public final class ClientSessionDispatch {
 
     private final SessionMemory sessionMemory;
+    private final CatalogMemory catalogMemory;
     private WorkspaceSyncGateway activeGateway;
 
-    public ClientSessionDispatch(SessionMemory sessionMemory) {
+    public ClientSessionDispatch(SessionMemory sessionMemory, CatalogMemory catalogMemory) {
         this.sessionMemory = sessionMemory;
+        this.catalogMemory = catalogMemory;
     }
 
     public void setGateway(WorkspaceSyncGateway gateway) {
@@ -41,7 +44,7 @@ public final class ClientSessionDispatch {
     }
 
     public void handleRecipeCatalogSync(RecipeCatalogSyncPayload payload) {
-        runSessionUpdate(() -> sessionMemory.updateRecipeCatalog(payload.entries()));
+        runSessionUpdate(() -> catalogMemory.updateCatalog("minecraft:recipe", payload.entries()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

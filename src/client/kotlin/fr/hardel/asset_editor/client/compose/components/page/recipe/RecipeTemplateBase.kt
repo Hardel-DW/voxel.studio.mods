@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +31,6 @@ fun RecipeTemplateBase(
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         modifier = modifier
             .fillMaxWidth()
-            .fillMaxHeight()
             .background(VoxelColors.Zinc900.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
             .border(1.dp, VoxelColors.Zinc700, RoundedCornerShape(8.dp))
             .padding(16.dp)

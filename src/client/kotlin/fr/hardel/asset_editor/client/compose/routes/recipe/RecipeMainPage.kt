@@ -1,15 +1,13 @@
 package fr.hardel.asset_editor.client.compose.routes.recipe
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,20 +15,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerButton
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeInventory
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSection
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeVisualModel
-import fr.hardel.asset_editor.client.compose.components.page.recipe.placeholderRecipeVisual
+import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeVisualModel
+import fr.hardel.asset_editor.client.compose.components.page.recipe.model.placeholderRecipeVisual
+import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 
+private enum class PaintMode { NONE, PAINTING, ERASING }
+
 @Composable
 fun RecipeMainPage(context: StudioContext) {
     val editor = rememberCurrentElementDestination(context, StudioConcept.RECIPE)
+    val entries = rememberRecipeEntries(context)
     val runtimeEntry = rememberRecipeEntry(context, editor?.elementId)
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
     var model by remember(editor?.elementId) { mutableStateOf(runtimeEntry?.visual ?: fallback) }
@@ -39,6 +44,15 @@ fun RecipeMainPage(context: StudioContext) {
     }
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
+    var paintMode by remember { mutableStateOf(PaintMode.NONE) }
+
+    val recipeCounts = remember(entries) {
+        val counts = mutableMapOf<String, Int>()
+        for (blockId in RecipeTreeData.getAllBlockIds(includeSpecial = true)) {
+            counts[blockId] = entries.count { RecipeTreeData.canBlockHandleRecipeType(blockId, it.type) }
+        }
+        counts
+    }
 
     LaunchedEffect(runtimeEntry?.id) {
         val next = runtimeEntry?.visual ?: fallback
@@ -48,23 +62,23 @@ fun RecipeMainPage(context: StudioContext) {
         search = ""
     }
 
-    // TSX: div.p-8.h-full.overflow-y-auto > div.grid.grid-cols-2.gap-8.items-start
-    BoxWithConstraints(
+    @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(32.dp)
+            .onPointerEvent(PointerEventType.Release) { paintMode = PaintMode.NONE }
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = Alignment.Top,
             modifier = Modifier
-                .fillMaxWidth()
-                .height((maxHeight - 200.dp).coerceAtLeast(520.dp))
+                .fillMaxSize()
         ) {
             RecipeSection(
                 model = model,
                 selection = selection,
-                selectedItemId = selectedItemId,
+                recipeCounts = recipeCounts,
                 onSelectionChange = { newSelection ->
                     val nextType = if (newSelection == "minecraft:barrier") {
                         RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
@@ -74,18 +88,30 @@ fun RecipeMainPage(context: StudioContext) {
                     selection = newSelection
                     model = placeholderRecipeVisual(nextType).copy(resultCount = model.resultCount)
                 },
-                onRecipeTypeChange = { newType ->
-                    model = placeholderRecipeVisual(newType).copy(resultCount = model.resultCount)
-                },
                 onResultCountChange = { value ->
                     model = model.copy(resultCount = value)
                 },
-                onSlotClick = { slot ->
-                    model = updateSlot(model, slot, selectedItemId)
+                onSlotPointerDown = { slot, button ->
+                    when (button) {
+                        PointerButton.Primary -> {
+                            model = applyItemToSlot(model, slot, selectedItemId)
+                            paintMode = PaintMode.PAINTING
+                        }
+                        PointerButton.Secondary -> {
+                            model = clearSlot(model, slot)
+                            paintMode = PaintMode.ERASING
+                        }
+                        else -> {}
+                    }
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                onSlotPointerEnter = { slot ->
+                    when (paintMode) {
+                        PaintMode.PAINTING -> model = applyItemToSlot(model, slot, selectedItemId)
+                        PaintMode.ERASING -> model = clearSlot(model, slot)
+                        PaintMode.NONE -> {}
+                    }
+                },
+                modifier = Modifier.weight(1f)
             )
 
             RecipeInventory(
@@ -93,7 +119,7 @@ fun RecipeMainPage(context: StudioContext) {
                 search = search,
                 onSearchChange = { search = it },
                 selectedItemId = selectedItemId,
-                onSelectItem = { itemId -> selectedItemId = itemId },
+                onSelectItem = { itemId -> selectedItemId = if (selectedItemId == itemId) null else itemId },
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
@@ -102,16 +128,15 @@ fun RecipeMainPage(context: StudioContext) {
     }
 }
 
-private fun updateSlot(
-    model: RecipeVisualModel,
-    slot: String,
-    selectedItemId: String?
-): RecipeVisualModel {
+private fun applyItemToSlot(model: RecipeVisualModel, slot: String, selectedItemId: String?): RecipeVisualModel {
+    if (selectedItemId == null) return model
     val nextSlots = LinkedHashMap(model.slots)
-    if (selectedItemId == null) {
-        nextSlots.remove(slot)
-    } else {
-        nextSlots[slot] = listOf(selectedItemId)
-    }
+    nextSlots[slot] = listOf(selectedItemId)
+    return model.copy(slots = nextSlots)
+}
+
+private fun clearSlot(model: RecipeVisualModel, slot: String): RecipeVisualModel {
+    val nextSlots = LinkedHashMap(model.slots)
+    nextSlots.remove(slot)
     return model.copy(slots = nextSlots)
 }

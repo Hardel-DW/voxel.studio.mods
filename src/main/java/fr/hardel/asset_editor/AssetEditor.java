@@ -14,6 +14,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
@@ -52,7 +53,7 @@ public class AssetEditor implements ModInitializer {
             PermissionManager.init(server);
             WorkspaceRepository.init(server);
             ServerPackManager.init(server);
-            snapshotServerRegistries(server, enchantmentBinding, recipeBinding);
+            snapshotServerRegistries(server);
         });
 
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
@@ -84,11 +85,7 @@ public class AssetEditor implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> StudioPermissionCommand.register(dispatcher));
     }
 
-    private static void snapshotServerRegistries(
-        MinecraftServer server,
-        RegistryWorkspaceBinding<Enchantment> enchantmentBinding,
-        RegistryWorkspaceBinding<Recipe<?>> recipeBinding
-    ) {
+    private static void snapshotServerRegistries(MinecraftServer server) {
         var repository = WorkspaceRepository.get();
         if (repository == null)
             return;
@@ -99,12 +96,18 @@ public class AssetEditor implements ModInitializer {
             .map(p -> p.open()).toList());
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
-            server.registryAccess().lookup(Registries.RECIPE).ifPresent(registry -> {
-                repository.snapshotBaseline(recipeBinding, vanillaResources, registry, server.registryAccess());
-            });
-            server.registryAccess().lookup(Registries.ENCHANTMENT).ifPresent(registry -> {
-                repository.snapshotBaseline(enchantmentBinding, vanillaResources, registry, server.registryAccess());
-            });
+            for (var binding : RegistryWorkspaceBindings.all())
+                snapshotBinding(server, repository, vanillaResources, binding);
         }
+    }
+
+    private static <T> void snapshotBinding(
+        MinecraftServer server,
+        WorkspaceRepository repository,
+        MultiPackResourceManager resources,
+        RegistryWorkspaceBinding<T> binding
+    ) {
+        server.registryAccess().lookup(binding.registryKey()).ifPresent(registry ->
+            repository.snapshotBaseline(binding, resources, registry, server.registryAccess()));
     }
 }

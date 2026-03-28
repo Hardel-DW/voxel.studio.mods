@@ -10,9 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,9 +35,12 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
+import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 
 private val ADVANCED_TYPES = linkedMapOf(
     "minecraft:crafting_shaped" to "recipe:crafting.crafting_shaped",
@@ -66,11 +72,13 @@ fun RecipeSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
-    val displayBlockId = if (RecipeTreeData.isBlockId(value)) value else RecipeTreeData.getBlockByRecipeType(value).blockId.toString()
-    val displayName = if (RecipeTreeData.isBlockId(value)) {
-        I18n.get(RecipeTreeData.getBlockConfig(value)?.nameKey ?: "recipe:block.all")
-    } else {
-        value
+    val displayBlockId =
+        if (RecipeTreeData.isBlockId(value)) value else RecipeTreeData.getBlockByRecipeType(value).blockId.toString()
+    val blockConfig = if (RecipeTreeData.isBlockId(value)) RecipeTreeData.getBlockConfig(value) else null
+    val displayName = when {
+        blockConfig?.special == true -> I18n.get("recipe:block.all")
+        blockConfig != null -> StudioText.resolve("block", blockConfig.blockId)
+        else -> value
     }
 
     Box(modifier = modifier) {
@@ -88,69 +96,78 @@ fun RecipeSelector(
         }
 
         if (expanded) {
-            // TSX BoxHoveredContent
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 72.dp)
-                    .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
-                    .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(12.dp))
+            Popup(
+                alignment = Alignment.TopEnd,
+                onDismissRequest = { expanded = false; advancedExpanded = false },
+                properties = PopupProperties(focusable = true)
             ) {
-                ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.1f)
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(16.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(top = 72.dp)
+                        .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
+                        .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(12.dp))
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(64.dp)
+                    ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.1f)
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = I18n.get("recipe:selector.title"),
-                                style = VoxelTypography.bold(18),
-                                color = Color.White
-                            )
-                            Text(
-                                text = displayName,
-                                style = VoxelTypography.regular(12),
-                                color = VoxelColors.Zinc400
-                            )
-                        }
-
-                        Identifier.tryParse(displayBlockId)?.let { ItemSprite(it, 48.dp) }
-                    }
-
-                    RecipeSelectorGrid(
-                        currentValue = value,
-                        recipeCounts = recipeCounts,
-                        selectMode = selectMode,
-                        onSelect = {
-                            onChange(it)
-                            expanded = false
-                        }
-                    )
-
-                    Button(
-                        onClick = { advancedExpanded = !advancedExpanded },
-                        variant = ButtonVariant.GHOST_BORDER,
-                        size = ButtonSize.SM,
-                        text = I18n.get("recipe:selector.advanced")
-                    )
-
-                    if (advancedExpanded) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            ADVANCED_TYPES.forEach { (type, key) ->
-                                AdvancedTypeRow(
-                                    label = I18n.get("$key.name"),
-                                    description = I18n.get("$key.description"),
-                                    onClick = {
-                                        onChange(type)
-                                        expanded = false
-                                        advancedExpanded = false
-                                    }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(64.dp)
+                        ) {
+                            Column {
+                                Text(
+                                    text = I18n.get("recipe:selector.title"),
+                                    style = VoxelTypography.bold(18),
+                                    color = Color.White
                                 )
+                                Text(
+                                    text = displayName,
+                                    style = VoxelTypography.regular(12),
+                                    color = VoxelColors.Zinc400
+                                )
+                            }
+
+                            Identifier.tryParse(displayBlockId)?.let { ItemSprite(it, 48.dp) }
+                        }
+
+                        RecipeSelectorGrid(
+                            currentValue = value,
+                            recipeCounts = recipeCounts,
+                            selectMode = selectMode,
+                            onSelect = {
+                                onChange(it)
+                                expanded = false
+                            }
+                        )
+
+                        Button(
+                            onClick = { advancedExpanded = !advancedExpanded },
+                            variant = ButtonVariant.GHOST_BORDER,
+                            size = ButtonSize.SM,
+                            text = I18n.get("recipe:selector.advanced")
+                        )
+
+                        if (advancedExpanded) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier
+                                    .heightIn(max = 300.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                ADVANCED_TYPES.forEach { (type, key) ->
+                                    AdvancedTypeRow(
+                                        label = I18n.get("$key.name"),
+                                        description = I18n.get("$key.description"),
+                                        onClick = {
+                                            onChange(type)
+                                            expanded = false
+                                            advancedExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

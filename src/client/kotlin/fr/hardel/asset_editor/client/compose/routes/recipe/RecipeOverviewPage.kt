@@ -6,13 +6,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +43,7 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg")
+private const val OVERVIEW_BATCH_SIZE = 16
 
 @Composable
 fun RecipeOverviewPage(context: StudioContext) {
@@ -42,27 +52,40 @@ fun RecipeOverviewPage(context: StudioContext) {
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
     val filtered = remember(entries, search, conceptUi.filterPath) {
         entries.filter { entry ->
-            if (search.isNotEmpty() && !entry.id.toString().lowercase(Locale.ROOT).contains(search)) {
+            if (search.isNotEmpty() && !entry.id.toString().lowercase(Locale.ROOT).contains(search))
                 return@filter false
-            }
 
             val filterPath = conceptUi.filterPath
-            if (filterPath.isBlank()) {
-                return@filter true
-            }
+            if (filterPath.isBlank()) return@filter true
 
             val parts = filterPath.split("/")
-            if (parts.size == 2) {
-                entry.type == parts[1]
-            } else {
-                RecipeTreeData.canBlockHandleRecipeType(filterPath, entry.type)
+            if (parts.size == 2) entry.type == parts[1]
+            else RecipeTreeData.canBlockHandleRecipeType(filterPath, entry.type)
+        }
+    }
+
+    var visibleCount by remember { mutableIntStateOf(OVERVIEW_BATCH_SIZE) }
+    LaunchedEffect(filtered) { visibleCount = OVERVIEW_BATCH_SIZE }
+
+    val visibleItems by remember(filtered, visibleCount) {
+        derivedStateOf { filtered.take(visibleCount) }
+    }
+    val hasMore = visibleCount < filtered.size
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(gridState) {
+        snapshotFlow {
+            val info = gridState.layoutInfo
+            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible to info.totalItemsCount
+        }.collect { (lastVisible, total) ->
+            if (total > 0 && lastVisible >= total - 5 && hasMore) {
+                visibleCount = (visibleCount + OVERVIEW_BATCH_SIZE).coerceAtMost(filtered.size)
             }
         }
     }
 
-    // TSX: div.flex.flex-col.size-full
     Column(modifier = Modifier.fillMaxSize()) {
-        // TSX: div.max-w-xl.sticky.top-0.z-30.px-8.py-4.bg-zinc-950/75.backdrop-blur-md.border-b
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -72,16 +95,15 @@ fun RecipeOverviewPage(context: StudioContext) {
             InputText(
                 value = conceptUi.search,
                 onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.RECIPE, value) },
-                placeholder = I18n.get("recipe:overview.search")
+                placeholder = I18n.get("recipe:overview.search"),
+                maxWidth = 576.dp
             )
         }
 
         if (filtered.isEmpty()) {
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                modifier = Modifier.weight(1f).fillMaxWidth()
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -109,9 +131,9 @@ fun RecipeOverviewPage(context: StudioContext) {
                 }
             }
         } else {
-            // TSX: div.grid.gap-4.grid-cols-[repeat(auto-fill,minmax(320px,1fr))]
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 320.dp),
+                state = gridState,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
@@ -119,15 +141,31 @@ fun RecipeOverviewPage(context: StudioContext) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(filtered, key = { it.id.toString() }) { entry ->
+                items(visibleItems, key = { it.id.toString() }) { entry ->
                     RecipeOverviewCard(
                         element = entry,
                         onConfigure = {
                             context.navigationMemory().openElement(
                                 StudioConcept.RECIPE.editor(entry.id.toString(), StudioEditorTab.MAIN)
                             )
-                        }
+                        },
+                        modifier = Modifier.height(340.dp)
                     )
+                }
+
+                if (hasMore) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxWidth().padding(16.dp)
+                        ) {
+                            Text(
+                                text = I18n.get("recipe:inventory.loading_more"),
+                                style = VoxelTypography.regular(12),
+                                color = VoxelColors.Zinc500
+                            )
+                        }
+                    }
                 }
             }
         }

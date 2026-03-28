@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -18,7 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.PointerButton
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -35,13 +37,13 @@ fun RecipeSlot(
     isEmpty: Boolean = false,
     isResult: Boolean = false,
     interactive: Boolean = false,
-    onClick: (() -> Unit)? = null
+    onPointerDown: ((PointerButton) -> Unit)? = null,
+    onPointerEnter: (() -> Unit)? = null
 ) {
     val interaction = remember(slotIndex, item, interactive) { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val displayId = item.firstOrNull()?.let(Identifier::tryParse)
 
-    // div.relative > button.size-12 with badge
     Box(contentAlignment = Alignment.Center) {
         Box(
             contentAlignment = Alignment.Center,
@@ -53,13 +55,17 @@ fun RecipeSlot(
                 .border(1.dp, if (hovered) VoxelColors.Zinc500 else VoxelColors.Zinc600, RoundedCornerShape(6.dp))
                 .hoverable(interaction)
                 .then(
-                    if (interactive || onClick != null) {
+                    if (interactive && (onPointerDown != null || onPointerEnter != null)) {
+                        @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
                         Modifier
                             .pointerHoverIcon(PointerIcon.Hand)
-                            .clickable(
-                                interactionSource = interaction,
-                                indication = null
-                            ) { onClick?.invoke() }
+                            .onPointerEvent(PointerEventType.Press) { event ->
+                                val button = event.button ?: return@onPointerEvent
+                                onPointerDown?.invoke(button)
+                            }
+                            .onPointerEvent(PointerEventType.Enter) {
+                                onPointerEnter?.invoke()
+                            }
                     } else {
                         Modifier
                     }

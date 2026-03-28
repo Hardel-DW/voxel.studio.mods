@@ -1,7 +1,9 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
+import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 object RecipeTreeBuilder {
@@ -19,6 +21,7 @@ object RecipeTreeBuilder {
             val matching = elements.filter { element -> typeStrings.contains(element.type) }
             val blockNode = TreeNodeModel()
             blockNode.count = matching.size
+            blockNode.label = StudioText.resolve("block", block.blockId)
 
             if (block.recipeTypes.size > 1) {
                 block.recipeTypes.forEach { recipeType ->
@@ -29,6 +32,7 @@ object RecipeTreeBuilder {
                     }
                     val subNode = TreeNodeModel()
                     subNode.count = subMatching.size
+                    subNode.label = I18n.get("recipe:crafting.${recipeType.path}.name")
                     subMatching.forEach { element -> subNode.identifiers += element.uniqueId }
                     blockNode.children[type] = subNode
                 }

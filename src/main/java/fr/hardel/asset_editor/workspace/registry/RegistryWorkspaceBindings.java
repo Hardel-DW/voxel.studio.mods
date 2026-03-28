@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.workspace.registry;
 
 import net.minecraft.resources.Identifier;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +23,10 @@ public final class RegistryWorkspaceBindings {
         if (registryId == null)
             return null;
         return (RegistryWorkspaceBinding<T>) BINDINGS.get(registryId.toString());
+    }
+
+    public static Collection<RegistryWorkspaceBinding<?>> all() {
+        return Collections.unmodifiableCollection(BINDINGS.values());
     }
 
     private RegistryWorkspaceBindings() {}

@@ -14,40 +14,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.AnimatedTabs
 import fr.hardel.asset_editor.client.compose.components.ui.Counter
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeVisualModel
 import net.minecraft.client.resources.language.I18n
-
-private val TAB_CONFIGS = mapOf(
-    "minecraft:crafting_table" to linkedMapOf(
-        "minecraft:crafting_shaped" to "recipe:tab.shaped",
-        "minecraft:crafting_shapeless" to "recipe:tab.shapeless",
-        "minecraft:crafting_transmute" to "recipe:tab.transmute"
-    ),
-    "minecraft:smithing_table" to linkedMapOf(
-        "minecraft:smithing_transform" to "recipe:tab.transform",
-        "minecraft:smithing_trim" to "recipe:tab.trim"
-    )
-)
 
 @Composable
 fun RecipeSection(
     model: RecipeVisualModel,
     selection: String,
-    selectedItemId: String?,
+    recipeCounts: Map<String, Int>,
     onSelectionChange: (String) -> Unit,
-    onRecipeTypeChange: (String) -> Unit,
     onResultCountChange: (Int) -> Unit,
-    onSlotClick: (String) -> Unit,
+    onSlotPointerDown: (String, PointerButton) -> Unit,
+    onSlotPointerEnter: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val currentBlock = RecipeTreeData.getBlockByRecipeType(model.type)
-
     Box(
         modifier = modifier
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
@@ -77,7 +63,7 @@ fun RecipeSection(
                 RecipeSelector(
                     value = selection,
                     onChange = onSelectionChange,
-                    recipeCounts = RecipeTreeData.getAllBlockIds(includeSpecial = true).associateWith { 0 },
+                    recipeCounts = recipeCounts,
                     selectMode = true
                 )
             }
@@ -88,8 +74,9 @@ fun RecipeSection(
             ) {
                 RecipeRenderer(
                     element = model,
-                    interactive = selectedItemId != null || model.slots.isNotEmpty(),
-                    onSlotClick = onSlotClick
+                    interactive = true,
+                    onSlotPointerDown = onSlotPointerDown,
+                    onSlotPointerEnter = onSlotPointerEnter
                 )
 
                 Box(
@@ -130,32 +117,6 @@ fun RecipeSection(
                             )
                         }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = I18n.get("recipe:section.recipe_type"),
-                                    style = VoxelTypography.semiBold(16),
-                                    color = VoxelColors.Zinc400
-                                )
-                                Text(
-                                    text = I18n.get("recipe:section.recipe_type_description"),
-                                    style = VoxelTypography.regular(12),
-                                    color = VoxelColors.Zinc500
-                                )
-                            }
-
-                            TAB_CONFIGS[currentBlock.blockId.toString()]?.let { tabs ->
-                                AnimatedTabs(
-                                    options = LinkedHashMap(tabs.mapValues { I18n.get(it.value) }),
-                                    selectedValue = model.type,
-                                    onValueChange = onRecipeTypeChange
-                                )
-                            }
-                        }
                     }
                 }
             }

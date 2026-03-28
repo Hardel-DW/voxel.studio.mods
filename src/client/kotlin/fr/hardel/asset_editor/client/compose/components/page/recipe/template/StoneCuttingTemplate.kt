@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.template
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTemplateBase
 
@@ -10,14 +11,22 @@ fun StoneCuttingTemplate(
     slots: Map<String, List<String>>,
     resultItemId: String,
     resultCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    interactive: Boolean = false,
+    onSlotPointerDown: ((String, PointerButton) -> Unit)? = null,
+    onSlotPointerEnter: ((String) -> Unit)? = null
 ) {
     RecipeTemplateBase(
         resultItemId = resultItemId,
         resultCount = resultCount,
         modifier = modifier
     ) {
-        // TSX: RecipeSlot item={slots["0"]}
-        RecipeSlot(item = slots["0"].orEmpty())
+        RecipeSlot(
+            slotIndex = "0",
+            item = slots["0"].orEmpty(),
+            interactive = interactive,
+            onPointerDown = onSlotPointerDown?.let { cb -> { button -> cb("0", button) } },
+            onPointerEnter = onSlotPointerEnter?.let { cb -> { cb("0") } }
+        )
     }
 }

@@ -11,14 +11,15 @@ import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.memory.debug.DebugMemory
 import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
+import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.client.memory.session.CatalogMemory
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
 import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
-import fr.hardel.asset_editor.store.CustomFields
 import fr.hardel.asset_editor.store.ElementEntry
-import fr.hardel.asset_editor.store.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
 import java.util.Optional
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
@@ -29,7 +30,6 @@ import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.TagKey
-import net.minecraft.world.item.crafting.Recipe
 
 class StudioContext(
     private val sessionMemory: SessionMemory,
@@ -100,6 +100,8 @@ class StudioContext(
     fun assetCache(): StudioAssetCache = assetCache
 
     fun prefetcher(): StudioPrefetcher = prefetcher
+
+    fun catalogMemory(): CatalogMemory = AssetEditorClient.catalogMemory()
 
     fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
         workspaceMemory.registries().allTypedElements(registryKey)
@@ -172,10 +174,11 @@ class StudioContext(
         workspaceMemory.dispose()
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun snapshotRegistries() {
-        snapshotClientRegistry(Registries.RECIPE) { CustomFields.EMPTY }
-        snapshotClientRegistry(Registries.ENCHANTMENT) { entry ->
-            EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags())
+        val connection = Minecraft.getInstance().connection ?: return
+        for (binding in RegistryWorkspaceBindings.all()) {
+            snapshotClientBinding(connection, binding as fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding<Any>)
         }
     }
 
@@ -184,17 +187,20 @@ class StudioContext(
         workspaceMemory.issues().clear()
         val pack = workspaceMemory.packSelection().selectedPack() ?: return
 
-        requestWorkspaceRefresh(pack.packId(), Registries.RECIPE)
-        requestWorkspaceRefresh(pack.packId(), Registries.ENCHANTMENT)
+        for (binding in RegistryWorkspaceBindings.all()) {
+            requestWorkspaceRefresh(pack.packId(), binding.registryKey())
+        }
     }
 
-    private fun <T : Any> snapshotClientRegistry(
-        registryKey: ResourceKey<Registry<T>>,
-        customInitializer: (ElementEntry<T>) -> CustomFields
+    private fun <T : Any> snapshotClientBinding(
+        connection: net.minecraft.client.multiplayer.ClientPacketListener,
+        binding: fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding<T>
     ) {
-        val connection = Minecraft.getInstance().connection ?: return
-        connection.registryAccess().lookup(registryKey).ifPresent { registry ->
-            workspaceMemory.registries().snapshotFromRegistry(registryKey, registry, customInitializer)
+        connection.registryAccess().lookup(binding.registryKey()).ifPresent { registry ->
+            workspaceMemory.registries().snapshotFromRegistry(
+                binding.registryKey(),
+                registry
+            ) { entry: ElementEntry<T> -> binding.initializeEntry(entry).custom() }
         }
     }
 

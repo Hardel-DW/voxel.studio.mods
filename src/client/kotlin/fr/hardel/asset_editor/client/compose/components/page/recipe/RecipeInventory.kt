@@ -2,39 +2,47 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
-import fr.hardel.asset_editor.client.compose.components.ui.Pagination
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
-import kotlin.math.floor
+
+private const val BATCH_SIZE = 60
 
 @Composable
 fun RecipeInventory(
@@ -52,15 +60,12 @@ fun RecipeInventory(
     }
     val filteredItems = remember(allItems, search) {
         val query = search.trim().lowercase()
-        if (query.isBlank()) {
-            allItems
-        } else {
-            allItems.filter { itemId -> itemId.toString().lowercase().contains(query) }
-        }
+        if (query.isBlank()) allItems
+        else allItems.filter { it.toString().lowercase().contains(query) }
     }
     val selectedIdentifier = remember(selectedItemId) { selectedItemId?.let(Identifier::tryParse) }
 
-    var currentPage by remember(context.sessionMemory().worldSessionKey()) { mutableIntStateOf(0) }
+    var visibleCount by remember { mutableIntStateOf(BATCH_SIZE) }
     var atlasVersion by remember { mutableIntStateOf(0) }
 
     DisposableEffect(Unit) {
@@ -68,8 +73,26 @@ fun RecipeInventory(
         onDispose(subscription::run)
     }
 
-    LaunchedEffect(search) {
-        currentPage = 0
+    LaunchedEffect(search) { visibleCount = BATCH_SIZE }
+
+    val visibleItems by remember(filteredItems, visibleCount) {
+        derivedStateOf { filteredItems.take(visibleCount) }
+    }
+    val hasMore = visibleCount < filteredItems.size
+    val atlasReady = remember(atlasVersion) { ItemAtlasGenerator.getAtlasImage() != null }
+
+    val gridState = rememberLazyGridState()
+
+    LaunchedEffect(gridState) {
+        snapshotFlow {
+            val info = gridState.layoutInfo
+            val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible to info.totalItemsCount
+        }.collect { (lastVisible, total) ->
+            if (total > 0 && lastVisible >= total - 10 && hasMore) {
+                visibleCount = (visibleCount + BATCH_SIZE).coerceAtMost(filteredItems.size)
+            }
+        }
     }
 
     Box(
@@ -80,12 +103,7 @@ fun RecipeInventory(
     ) {
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.12f)
 
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth()
-        ) {
-            // TSX: div.px-6.pt-6.shrink-0
+        Column(modifier = Modifier.fillMaxHeight().fillMaxWidth()) {
             Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -121,65 +139,63 @@ fun RecipeInventory(
                 )
             }
 
-            BoxWithConstraints(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 24.dp)
             ) {
-                val itemSize = 56.dp
-                val gap = 8.dp
-                val columns = remember(maxWidth) {
-                    computeGridCount(maxWidth, itemSize, gap, 6)
-                }
-                val rows = remember(maxHeight) {
-                    computeGridCount(maxHeight, itemSize, gap, 8)
-                }
-                val pageSize = (columns * rows).coerceAtLeast(1)
-                val totalPages = maxOf(1, (filteredItems.size + pageSize - 1) / pageSize)
-
-                LaunchedEffect(totalPages) {
-                    currentPage = currentPage.coerceAtMost(totalPages - 1)
-                }
-
-                val pageItems = remember(filteredItems, currentPage, pageSize) {
-                    val start = (currentPage * pageSize).coerceAtMost(filteredItems.size)
-                    filteredItems.subList(start, minOf(start + pageSize, filteredItems.size))
-                }
-                val atlasReady = remember(atlasVersion) { ItemAtlasGenerator.getAtlasImage() != null }
-
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.fillMaxHeight()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
+                when {
+                    filteredItems.isEmpty() -> InventoryStatus(I18n.get("recipe:inventory.empty"))
+                    else -> LazyVerticalGrid(
+                        columns = GridCells.FixedSize(56.dp),
+                        state = gridState,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        when {
-                            filteredItems.isEmpty() -> InventoryStatus(I18n.get("recipe:inventory.empty"))
-                            else -> ItemsSelector(
-                                items = pageItems,
-                                selectedItemId = selectedIdentifier,
-                                onSelectItem = { itemId -> onSelectItem(itemId.toString()) },
-                                modifier = Modifier.fillMaxWidth()
+                        items(visibleItems, key = { it.toString() }) { itemId ->
+                            ItemsSelector.ItemCell(
+                                itemId = itemId,
+                                selected = itemId == selectedIdentifier,
+                                onSelect = { onSelectItem(itemId.toString()) }
                             )
                         }
 
-                        if (!atlasReady && filteredItems.isNotEmpty()) {
-                            InventoryLoading(
-                                text = I18n.get("debug:render.loading"),
-                                modifier = Modifier.align(Alignment.BottomCenter)
-                            )
+                        if (hasMore) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxWidth().padding(8.dp)
+                                ) {
+                                    Text(
+                                        text = I18n.get("recipe:inventory.loading_more"),
+                                        style = VoxelTypography.regular(12),
+                                        color = VoxelColors.Zinc500
+                                    )
+                                }
+                            }
                         }
                     }
+                }
 
-                    Pagination(
-                        currentPage = currentPage,
-                        totalPages = totalPages,
-                        onPageChange = { page -> currentPage = page },
-                        modifier = Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally)
+                // Bottom fade gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .size(48.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f))
+                            )
+                        )
+                )
+
+                if (!atlasReady && filteredItems.isNotEmpty()) {
+                    InventoryLoading(
+                        text = I18n.get("debug:render.loading"),
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 56.dp)
                     )
                 }
             }
@@ -193,11 +209,7 @@ private fun InventoryStatus(text: String) {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxHeight().fillMaxWidth()
     ) {
-        Text(
-            text = text,
-            style = VoxelTypography.regular(14),
-            color = VoxelColors.Zinc400
-        )
+        Text(text = text, style = VoxelTypography.regular(14), color = VoxelColors.Zinc400)
     }
 }
 
@@ -210,18 +222,6 @@ private fun InventoryLoading(text: String, modifier: Modifier = Modifier) {
             .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
             .padding(vertical = 8.dp, horizontal = 12.dp)
     ) {
-        Text(
-            text = text,
-            style = VoxelTypography.regular(12),
-            color = VoxelColors.Zinc400
-        )
+        Text(text = text, style = VoxelTypography.regular(12), color = VoxelColors.Zinc400)
     }
-}
-
-private fun computeGridCount(available: Dp, cell: Dp, gap: Dp, fallback: Int): Int {
-    if (available == Dp.Infinity) {
-        return fallback
-    }
-    val count = floor(((available.value + gap.value) / (cell.value + gap.value)).toDouble()).toInt()
-    return count.coerceAtLeast(1)
 }
