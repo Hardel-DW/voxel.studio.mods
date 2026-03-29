@@ -130,6 +130,8 @@
     "debug:telemetry.window_focus_resync_kept_workspace": "Window focus resync kept the current workspace",
     "debug:telemetry.world_session_changed": "World session changed",
     "debug:telemetry.requested_workspace_refresh": "Requested workspace refresh for selected pack",
+    "debug:telemetry.optimistic_failed": "Optimistic projection failed",
+    "debug:telemetry.action_rejected": "Server rejected action",
     "changes:layout.title": "Changes",
     "supports:help.discord": "Need Help?",
     "supports:donate": "Make a donation",

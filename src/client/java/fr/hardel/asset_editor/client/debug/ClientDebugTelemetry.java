@@ -19,6 +19,19 @@ public final class ClientDebugTelemetry {
                 "targetId", targetId.toString(), "action", action.toString(), "actionId", actionId.toString()));
     }
 
+    public static void optimisticFailed(Identifier registryId, Identifier targetId, EditorAction action, String reason) {
+        logLevel(DebugLogMemory.Level.ERROR, DebugLogMemory.Category.ACTION,
+            I18n.get("debug:telemetry.optimistic_failed"),
+            Map.of("registryId", registryId.toString(), "targetId", targetId.toString(),
+                "action", action.toString(), "reason", reason));
+    }
+
+    public static void actionRejected(UUID actionId, String errorCode) {
+        logLevel(DebugLogMemory.Level.WARN, DebugLogMemory.Category.ACTION,
+            I18n.get("debug:telemetry.action_rejected"),
+            Map.of("actionId", actionId.toString(), "errorCode", errorCode));
+    }
+
     public static void sync(String message, Map<String, ?> data) {
         log(DebugLogMemory.Category.SYNC, message, data);
     }
@@ -28,8 +41,12 @@ public final class ClientDebugTelemetry {
     }
 
     private static void log(DebugLogMemory.Category category, String message, Map<String, ?> data) {
+        logLevel(DebugLogMemory.Level.INFO, category, message, data);
+    }
+
+    private static void logLevel(DebugLogMemory.Level level, DebugLogMemory.Category category, String message, Map<String, ?> data) {
         if (data == null) {
-            AssetEditorClient.debugMemory().logs().log(DebugLogMemory.Level.INFO, category, message);
+            AssetEditorClient.debugMemory().logs().log(level, category, message);
             return;
         }
 
@@ -43,7 +60,7 @@ public final class ClientDebugTelemetry {
                 normalized.put(entry.getKey(), text);
         }
 
-        AssetEditorClient.debugMemory().logs().log(DebugLogMemory.Level.INFO, category, message, normalized);
+        AssetEditorClient.debugMemory().logs().log(level, category, message, normalized);
     }
 
     private ClientDebugTelemetry() {}

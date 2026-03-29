@@ -128,6 +128,8 @@
     "debug:telemetry.window_focus_resync_kept_workspace": "Le resync au focus a conserve le workspace courant",
     "debug:telemetry.world_session_changed": "La session du monde a change",
     "debug:telemetry.requested_workspace_refresh": "Refresh du workspace demande pour le pack selectionne",
+    "debug:telemetry.optimistic_failed": "Projection optimiste echouee",
+    "debug:telemetry.action_rejected": "Action rejetee par le serveur",
     "supports:help.discord": "Besoin d'aide ?",
     "supports:title": "Soutenir Voxel",
     "supports:donate": "Faire un don",

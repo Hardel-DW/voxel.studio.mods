@@ -89,6 +89,7 @@ class EditorActionGateway(
         }
 
         restorePending(pending)
+        ClientDebugTelemetry.actionRejected(payload.actionId(), payload.errorCode() ?: "unknown")
         workspaceMemory.issues().pushError(payload.errorCode())
     }
 
@@ -128,6 +129,7 @@ class EditorActionGateway(
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
+            ClientDebugTelemetry.optimisticFailed(registry.identifier(), target, action, exception.message ?: "unknown")
         }
     }
 

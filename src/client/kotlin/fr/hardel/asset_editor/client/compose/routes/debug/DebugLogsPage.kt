@@ -43,6 +43,7 @@ private val TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:
 @Composable
 fun DebugLogsPage(context: StudioContext) {
     var currentPage by remember { mutableStateOf(0) }
+    var expandedIds by remember { mutableStateOf(emptySet<Long>()) }
     val flow = remember(context) { context.debugMemory().logs().asFlow() }
     val snapshot by flow.collectAsState(context.debugMemory().logs().snapshot())
     val entries = snapshot.entries
@@ -116,8 +117,8 @@ fun DebugLogsPage(context: StudioContext) {
             onPageChange = { page -> currentPage = page },
             placeholder = I18n.get("debug:logs.placeholder"),
             idExtractor = { entry -> entry.id() },
-            expandedIds = emptySet(),
-            onToggleExpand = null,
+            expandedIds = expandedIds,
+            onToggleExpand = { id -> expandedIds = if (id in expandedIds) expandedIds - id else expandedIds + id },
             expandContent = { entry ->
                 if (entry.data().isEmpty()) {
                     Text(
@@ -128,7 +129,7 @@ fun DebugLogsPage(context: StudioContext) {
                 } else {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         entry.data().forEach { (key, value) ->
                             Row(
