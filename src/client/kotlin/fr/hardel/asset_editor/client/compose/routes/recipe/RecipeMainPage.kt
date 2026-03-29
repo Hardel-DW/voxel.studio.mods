@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,10 +24,18 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.model.Recipe
 import fr.hardel.asset_editor.client.compose.components.page.recipe.model.placeholderRecipeVisual
 import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntry
+import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
+import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.Identifier
+import net.minecraft.world.item.crafting.ShapelessRecipe
 
 private enum class PaintMode { NONE, PAINTING, ERASING }
 
@@ -37,10 +44,16 @@ fun RecipeMainPage(context: StudioContext) {
     val editor = rememberCurrentElementDestination(context, StudioConcept.RECIPE)
     val entries = rememberRecipeEntries(context)
     val runtimeEntry = rememberRecipeEntry(context, editor?.elementId)
+    val entry = rememberCurrentRegistryEntry(context, Registries.RECIPE)
+    val dialogs = rememberRegistryDialogState()
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
-    var model by remember(editor?.elementId) { mutableStateOf(runtimeEntry?.visual ?: fallback) }
+
+    val model = runtimeEntry?.visual ?: fallback
+    var resultCountOverride by remember(editor?.elementId) { mutableStateOf<Int?>(null) }
+    val effectiveModel = resultCountOverride?.let { model.copy(resultCount = it) } ?: model
+
     var selection by remember(editor?.elementId) {
-        mutableStateOf(RecipeTreeData.getBlockByRecipeType((runtimeEntry?.visual ?: fallback).type).blockId.toString())
+        mutableStateOf(RecipeTreeData.getBlockByRecipeType(model.type).blockId.toString())
     }
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
@@ -54,12 +67,38 @@ fun RecipeMainPage(context: StudioContext) {
         counts
     }
 
-    LaunchedEffect(runtimeEntry?.id) {
-        val next = runtimeEntry?.visual ?: fallback
-        model = next
-        selection = RecipeTreeData.getBlockByRecipeType(next.type).blockId.toString()
-        selectedItemId = null
-        search = ""
+    fun dispatchAddItem(slot: String, itemId: String) {
+        val targetId = entry?.id() ?: return
+        val itemIdentifier = Identifier.tryParse(itemId) ?: return
+        val slotIndex = slot.toIntOrNull() ?: return
+
+        if (entry.data() is ShapelessRecipe) {
+            context.dispatchRegistryAction(
+                registry = Registries.RECIPE,
+                target = targetId,
+                action = RecipeEditorActions.AddShapelessIngredient(listOf(itemIdentifier)),
+                dialogs = dialogs
+            )
+        } else {
+            context.dispatchRegistryAction(
+                registry = Registries.RECIPE,
+                target = targetId,
+                action = RecipeEditorActions.AddIngredient(slotIndex, listOf(itemIdentifier), true),
+                dialogs = dialogs
+            )
+        }
+    }
+
+    fun dispatchClearSlot(slot: String) {
+        val targetId = entry?.id() ?: return
+        val slotIndex = slot.toIntOrNull() ?: return
+
+        context.dispatchRegistryAction(
+            registry = Registries.RECIPE,
+            target = targetId,
+            action = RecipeEditorActions.RemoveIngredient(slotIndex, emptyList()),
+            dialogs = dialogs
+        )
     }
 
     @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
@@ -76,7 +115,7 @@ fun RecipeMainPage(context: StudioContext) {
                 .fillMaxSize()
         ) {
             RecipeSection(
-                model = model,
+                model = effectiveModel,
                 selection = selection,
                 recipeCounts = recipeCounts,
                 onSelectionChange = { newSelection ->
@@ -85,20 +124,30 @@ fun RecipeMainPage(context: StudioContext) {
                     } else {
                         RecipeTreeData.getBlockConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
                     }
+
+                    if (nextType != model.type && entry != null) {
+                        context.dispatchRegistryAction(
+                            registry = Registries.RECIPE,
+                            target = entry.id(),
+                            action = RecipeEditorActions.ConvertRecipeType(
+                                Identifier.parse(nextType), true
+                            ),
+                            dialogs = dialogs
+                        )
+                    }
                     selection = newSelection
-                    model = placeholderRecipeVisual(nextType).copy(resultCount = model.resultCount)
                 },
                 onResultCountChange = { value ->
-                    model = model.copy(resultCount = value)
+                    resultCountOverride = value
                 },
                 onSlotPointerDown = { slot, button ->
                     when (button) {
                         PointerButton.Primary -> {
-                            model = applyItemToSlot(model, slot, selectedItemId)
+                            selectedItemId?.let { dispatchAddItem(slot, it) }
                             paintMode = PaintMode.PAINTING
                         }
                         PointerButton.Secondary -> {
-                            model = clearSlot(model, slot)
+                            dispatchClearSlot(slot)
                             paintMode = PaintMode.ERASING
                         }
                         else -> {}
@@ -106,8 +155,8 @@ fun RecipeMainPage(context: StudioContext) {
                 },
                 onSlotPointerEnter = { slot ->
                     when (paintMode) {
-                        PaintMode.PAINTING -> model = applyItemToSlot(model, slot, selectedItemId)
-                        PaintMode.ERASING -> model = clearSlot(model, slot)
+                        PaintMode.PAINTING -> selectedItemId?.let { dispatchAddItem(slot, it) }
+                        PaintMode.ERASING -> dispatchClearSlot(slot)
                         PaintMode.NONE -> {}
                     }
                 },
@@ -125,18 +174,7 @@ fun RecipeMainPage(context: StudioContext) {
                     .fillMaxHeight()
             )
         }
+
+        RegistryPageDialogs(context, dialogs)
     }
-}
-
-private fun applyItemToSlot(model: RecipeVisualModel, slot: String, selectedItemId: String?): RecipeVisualModel {
-    if (selectedItemId == null) return model
-    val nextSlots = LinkedHashMap(model.slots)
-    nextSlots[slot] = listOf(selectedItemId)
-    return model.copy(slots = nextSlots)
-}
-
-private fun clearSlot(model: RecipeVisualModel, slot: String): RecipeVisualModel {
-    val nextSlots = LinkedHashMap(model.slots)
-    nextSlots.remove(slot)
-    return model.copy(slots = nextSlots)
 }
