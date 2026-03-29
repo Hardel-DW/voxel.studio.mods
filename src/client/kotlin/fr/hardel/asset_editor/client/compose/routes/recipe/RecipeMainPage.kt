@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +24,6 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.model.Recipe
 import fr.hardel.asset_editor.client.compose.components.page.recipe.model.placeholderRecipeVisual
 import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntry
-import fr.hardel.asset_editor.client.compose.components.page.recipe.resolveRuntimeRecipeElement
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
@@ -56,12 +54,6 @@ fun RecipeMainPage(context: StudioContext) {
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
     var paintMode by remember { mutableStateOf(PaintMode.NONE) }
-
-    LaunchedEffect(editor?.elementId, workspaceEntry?.id(), context.sessionMemory().worldSessionKey()) {
-        if (editor?.elementId == null || workspaceEntry != null) return@LaunchedEffect
-        val runtimeElement = resolveRuntimeRecipeElement(editor.elementId) ?: return@LaunchedEffect
-        context.registryMemory().put(Registries.RECIPE, runtimeElement.id(), runtimeElement)
-    }
 
     val recipeCounts = remember(entries) {
         val counts = mutableMapOf<String, Int>()

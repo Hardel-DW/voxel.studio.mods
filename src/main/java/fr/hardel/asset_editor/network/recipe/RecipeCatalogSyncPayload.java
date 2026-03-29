@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.network.recipe;
 
 import fr.hardel.asset_editor.AssetEditor;
 import io.netty.buffer.ByteBuf;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -14,9 +16,15 @@ public record RecipeCatalogSyncPayload(List<Entry> entries) implements CustomPac
     public static final Type<RecipeCatalogSyncPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "recipe_catalog_sync"));
 
+    private static final StreamCodec<ByteBuf, Map<String, List<String>>> SLOTS_CODEC =
+        ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()));
+
     private static final StreamCodec<ByteBuf, Entry> ENTRY_CODEC = StreamCodec.composite(
         Identifier.STREAM_CODEC, Entry::id,
         ByteBufCodecs.STRING_UTF8, Entry::type,
+        SLOTS_CODEC, Entry::slots,
+        ByteBufCodecs.STRING_UTF8, Entry::resultItemId,
+        ByteBufCodecs.VAR_INT, Entry::resultCount,
         Entry::new
     );
 
@@ -28,6 +36,6 @@ public record RecipeCatalogSyncPayload(List<Entry> entries) implements CustomPac
         return TYPE;
     }
 
-    public record Entry(Identifier id, String type) {
+    public record Entry(Identifier id, String type, Map<String, List<String>> slots, String resultItemId, int resultCount) {
     }
 }

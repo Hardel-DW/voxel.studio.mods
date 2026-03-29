@@ -1,12 +1,11 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.model
 
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload
-import fr.hardel.asset_editor.store.CustomFields
 import fr.hardel.asset_editor.store.ElementEntry
-import net.minecraft.client.Minecraft
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.registries.Registries
+import net.minecraft.resources.Identifier
 import net.minecraft.world.item.crafting.Recipe
 
 fun loadWorkspaceRecipeEntries(
@@ -20,27 +19,21 @@ fun loadWorkspaceRecipeEntries(
         .sortedBy { it.id.toString() }
 }
 
-fun loadRuntimeRecipeEntries(minecraft: Minecraft): List<RecipeRuntimeEntry> {
-    val registries = minecraft.connection?.registryAccess() ?: return emptyList()
-    val registry = registries.lookup(Registries.RECIPE).orElse(null) ?: return emptyList()
-    val displayContext = createDisplayContext(registries)
-
-    return registry.listElements()
-        .toList()
-        .mapNotNull { holder ->
-            ElementEntry(holder.key().identifier(), holder.value(), emptySet(), CustomFields.EMPTY)
-                .toRuntimeEntry(displayContext)
-        }
-        .sortedBy { it.id.toString() }
-}
-
-fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry =
-    RecipeRuntimeEntry(
+fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry {
+    val resultCountEditable = Identifier.tryParse(type())?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
+    return RecipeRuntimeEntry(
         id = id(),
         type = type(),
         serializer = type(),
-        visual = placeholderRecipeVisual(type())
+        visual = RecipeVisualModel(
+            type = type(),
+            slots = slots(),
+            resultItemId = resultItemId(),
+            resultCount = resultCount(),
+            resultCountEditable = resultCountEditable
+        )
     )
+}
 
 private fun ElementEntry<Recipe<*>>.toRuntimeEntry(displayContext: net.minecraft.util.context.ContextMap?): RecipeRuntimeEntry? {
     val recipe = data()
