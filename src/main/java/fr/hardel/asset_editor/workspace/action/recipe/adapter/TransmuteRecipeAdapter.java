@@ -4,6 +4,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.TransmuteRecipe;
+import net.minecraft.world.item.crafting.TransmuteResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,5 +36,21 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
         Ingredient input = ingredients.size() > 0 ? ingredients.get(0).orElse(original.input) : original.input;
         Ingredient material = ingredients.size() > 1 ? ingredients.get(1).orElse(original.material) : original.material;
         return new TransmuteRecipe(original.group(), original.category(), input, material, original.result);
+    }
+
+    @Override
+    protected TransmuteRecipe doSetResultCount(TransmuteRecipe recipe, int count) {
+        return new TransmuteRecipe(
+            recipe.group(),
+            recipe.category(),
+            recipe.input,
+            recipe.material,
+            new TransmuteResult(recipe.result.item(), count, recipe.result.components())
+        );
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
     }
 }

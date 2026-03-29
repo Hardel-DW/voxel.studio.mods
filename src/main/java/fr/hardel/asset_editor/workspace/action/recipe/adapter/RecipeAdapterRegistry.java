@@ -68,6 +68,19 @@ public final class RecipeAdapterRegistry {
         return targetAdapter.convertFrom(source, preserveIngredients);
     }
 
+    public static @Nullable Recipe<?> setResultCount(Recipe<?> recipe, int count) {
+        return get(recipe).setResultCount(recipe, count);
+    }
+
+    public static boolean supportsResultCount(Recipe<?> recipe) {
+        return get(recipe).supportsResultCount();
+    }
+
+    public static boolean supportsResultCount(Identifier serializerId) {
+        RecipeAdapter<?> adapter = getBySerializer(serializerId);
+        return adapter != null && adapter.supportsResultCount();
+    }
+
     private RecipeAdapterRegistry() {
     }
 }

@@ -62,6 +62,10 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
             .register(
                 RecipeEditorActions.CONVERT_RECIPE_TYPE,
                 MutationActionHandler.of(RecipeMutationHandler::applyConvertRecipeType)
+            )
+            .register(
+                RecipeEditorActions.SET_RESULT_COUNT,
+                MutationActionHandler.of(RecipeMutationHandler::applySetResultCount)
             );
     }
 
@@ -166,5 +170,16 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
 
         if (converted == null) return entry;
         return entry.withData(converted);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetResultCount(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetResultCount action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        int count = Math.max(1, Math.min(64, action.count()));
+        Recipe<?> updated = helper.setResultCount(entry.data(), count);
+
+        if (updated == null) return entry;
+        return entry.withData(updated);
     }
 }

@@ -1,8 +1,10 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.model
 
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.resources.Identifier
 import net.minecraft.util.context.ContextMap
 import net.minecraft.world.item.crafting.Recipe
 import net.minecraft.world.item.crafting.display.FurnaceRecipeDisplay
@@ -35,7 +37,8 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
             type = serializerId,
             slots = mapOf("0" to resolveSlotOptions(display.ingredient(), displayContext)).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
-            resultCount = resolveResultCount(display.result(), displayContext)
+            resultCount = resolveResultCount(display.result(), displayContext),
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
         )
         is SmithingRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
@@ -45,50 +48,29 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
                 "2" to resolveSlotOptions(display.addition(), displayContext)
             ).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
-            resultCount = resolveResultCount(display.result(), displayContext)
+            resultCount = resolveResultCount(display.result(), displayContext),
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
         )
         is StonecutterRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
             slots = mapOf("0" to resolveSlotOptions(display.input(), displayContext)).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
-            resultCount = resolveResultCount(display.result(), displayContext)
+            resultCount = resolveResultCount(display.result(), displayContext),
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
         )
         else -> placeholderRecipeVisual(serializerId)
     }
 }
 
 fun placeholderRecipeVisual(type: String): RecipeVisualModel {
-    return when (RecipeTreeData.getBlockByRecipeType(type).templateKind) {
-        RecipeTreeData.RecipeTemplateKind.SMITHING -> RecipeVisualModel(
-            type = type,
-            slots = linkedMapOf(
-                "0" to listOf("minecraft:netherite_upgrade_smithing_template"),
-                "1" to listOf("minecraft:diamond_sword"),
-                "2" to listOf("minecraft:netherite_ingot")
-            ),
-            resultItemId = "minecraft:netherite_sword"
-        )
-        RecipeTreeData.RecipeTemplateKind.STONECUTTING -> RecipeVisualModel(
-            type = type,
-            slots = mapOf("0" to listOf("minecraft:stone")),
-            resultItemId = "minecraft:stone_bricks"
-        )
-        RecipeTreeData.RecipeTemplateKind.SMELTING -> RecipeVisualModel(
-            type = type,
-            slots = mapOf("0" to listOf("minecraft:iron_ore")),
-            resultItemId = "minecraft:iron_ingot"
-        )
-        RecipeTreeData.RecipeTemplateKind.CRAFTING -> RecipeVisualModel(
-            type = type,
-            slots = linkedMapOf(
-                "0" to listOf("minecraft:oak_planks"),
-                "1" to listOf("minecraft:oak_planks"),
-                "3" to listOf("minecraft:stick"),
-                "4" to listOf("minecraft:stick")
-            ),
-            resultItemId = "minecraft:wooden_sword"
-        )
-    }
+    val fallbackResult = RecipeTreeData.getBlockByRecipeType(type).blockId.toString()
+    val resultCountEditable = Identifier.tryParse(type)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
+    return RecipeVisualModel(
+        type = type,
+        slots = emptyMap(),
+        resultItemId = fallbackResult,
+        resultCountEditable = resultCountEditable
+    )
 }
 
 private fun buildIndexedSlotModel(
@@ -107,7 +89,8 @@ private fun buildIndexedSlotModel(
         }
         .toMap(),
     resultItemId = resolveFirstItemId(result, displayContext) ?: fallbackResult,
-    resultCount = resolveResultCount(result, displayContext)
+    resultCount = resolveResultCount(result, displayContext),
+    resultCountEditable = Identifier.tryParse(serializerId)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
 )
 
 private fun resolveSlotOptions(slot: SlotDisplay, displayContext: ContextMap): List<String> =

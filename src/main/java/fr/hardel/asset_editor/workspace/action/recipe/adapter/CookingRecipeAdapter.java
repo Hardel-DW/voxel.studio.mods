@@ -44,6 +44,19 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     }
 
     @Override
+    protected T doSetResultCount(T recipe, int count) {
+        return factory.create(
+            recipe.group(), recipe.category(), recipe.input(),
+            recipe.result().copyWithCount(count), recipe.experience(), recipe.cookingTime()
+        );
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
+    }
+
+    @Override
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         if (!(source instanceof AbstractCookingRecipe cooking)) return null;
 

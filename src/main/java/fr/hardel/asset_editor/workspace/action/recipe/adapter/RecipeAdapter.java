@@ -39,6 +39,14 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return doRebuild(recipeType.cast(recipe), ingredients);
     }
 
+    public final @Nullable Recipe<?> setResultCount(Recipe<?> recipe, int count) {
+        return doSetResultCount(recipeType.cast(recipe), count);
+    }
+
+    public boolean supportsResultCount() {
+        return false;
+    }
+
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         return null;
     }
@@ -46,4 +54,8 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
     protected abstract List<Optional<Ingredient>> doExtractIngredients(T recipe);
     protected abstract ItemStack doExtractResult(T recipe);
     protected abstract T doRebuild(T original, List<Optional<Ingredient>> ingredients);
+
+    protected @Nullable T doSetResultCount(T recipe, int count) {
+        return null;
+    }
 }

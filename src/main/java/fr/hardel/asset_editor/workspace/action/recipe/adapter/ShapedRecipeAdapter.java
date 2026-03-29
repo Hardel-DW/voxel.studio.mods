@@ -46,6 +46,31 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     }
 
     @Override
+    protected ShapedRecipe doSetResultCount(ShapedRecipe recipe, int count) {
+        int width = recipe.getWidth();
+        int height = recipe.getHeight();
+        List<Optional<Ingredient>> ingredients = new ArrayList<>(recipe.getIngredients());
+        while (ingredients.size() < width * height) {
+            ingredients.add(Optional.empty());
+        }
+
+        BoundingBox box = computeBoundingBox(ingredients, width, height);
+        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, width, box);
+        return new ShapedRecipe(
+            recipe.group(),
+            recipe.category(),
+            new ShapedRecipePattern(box.width(), box.height(), shrunk, Optional.empty()),
+            recipe.result.copyWithCount(count),
+            recipe.showNotification()
+        );
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
+    }
+
+    @Override
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         if (!(source instanceof CraftingRecipe)) return null;
 

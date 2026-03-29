@@ -32,6 +32,7 @@ fun RecipeSection(
     onResultCountChange: (Int) -> Unit,
     onSlotPointerDown: (String, PointerButton) -> Unit,
     onSlotPointerEnter: (String) -> Unit,
+    resultCountEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -113,7 +114,8 @@ fun RecipeSection(
                                 onValueChange = onResultCountChange,
                                 min = 1,
                                 max = 64,
-                                step = 1
+                                step = 1,
+                                enabled = resultCountEnabled
                             )
                         }
 

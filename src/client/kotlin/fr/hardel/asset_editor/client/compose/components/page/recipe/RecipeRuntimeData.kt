@@ -10,9 +10,13 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.model.toRunt
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload
+import fr.hardel.asset_editor.store.CustomFields
+import fr.hardel.asset_editor.store.ElementEntry
 import net.minecraft.client.Minecraft
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+import net.minecraft.world.item.crafting.Recipe
+import java.util.LinkedHashMap
 
 @Composable
 fun rememberRecipeEntries(context: StudioContext): List<RecipeRuntimeEntry> {
@@ -21,9 +25,9 @@ fun rememberRecipeEntries(context: StudioContext): List<RecipeRuntimeEntry> {
     val connection = Minecraft.getInstance().connection
     val runtimeEntries = rememberRuntimeRecipeEntries(context)
     return remember(workspaceEntries, recipeCatalog, runtimeEntries, connection, context.sessionMemory().worldSessionKey()) {
-        loadWorkspaceRecipeEntries(workspaceEntries, connection?.registryAccess())
-            .ifEmpty { runtimeEntries }
-            .ifEmpty { recipeCatalog.map(RecipeCatalogSyncPayload.Entry::toRuntimeEntry) }
+        val workspaceRuntimeEntries = loadWorkspaceRecipeEntries(workspaceEntries, connection?.registryAccess())
+        val baseEntries = runtimeEntries.ifEmpty { recipeCatalog.map(RecipeCatalogSyncPayload.Entry::toRuntimeEntry) }
+        mergeRecipeEntries(baseEntries, workspaceRuntimeEntries)
     }
 }
 
@@ -40,8 +44,25 @@ fun rememberRecipeEntry(context: StudioContext, elementId: String?): RecipeRunti
 private fun rememberRuntimeRecipeEntries(context: StudioContext): List<RecipeRuntimeEntry> {
     val minecraft = Minecraft.getInstance()
     val connection = minecraft.connection
-    val integratedServer = minecraft.singleplayerServer
-    return remember(connection, integratedServer, context.sessionMemory().worldSessionKey()) {
+    return remember(connection, context.sessionMemory().worldSessionKey()) {
         loadRuntimeRecipeEntries(minecraft)
     }
+}
+
+fun resolveRuntimeRecipeElement(elementId: String?): ElementEntry<Recipe<*>>? {
+    val parsed = elementId?.let(Identifier::tryParse) ?: return null
+    val minecraft = Minecraft.getInstance()
+    val registry = minecraft.connection?.registryAccess()?.lookup(Registries.RECIPE)?.orElse(null) ?: return null
+    val holder = registry.listElements().toList().firstOrNull { reference -> reference.key().identifier() == parsed } ?: return null
+    return ElementEntry(parsed, holder.value(), emptySet(), CustomFields.EMPTY)
+}
+
+private fun mergeRecipeEntries(
+    baseEntries: List<RecipeRuntimeEntry>,
+    workspaceEntries: List<RecipeRuntimeEntry>
+): List<RecipeRuntimeEntry> {
+    val merged = LinkedHashMap<Identifier, RecipeRuntimeEntry>(baseEntries.size + workspaceEntries.size)
+    baseEntries.forEach { entry -> merged[entry.id] = entry }
+    workspaceEntries.forEach { entry -> merged[entry.id] = entry }
+    return merged.values.toList()
 }

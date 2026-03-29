@@ -34,4 +34,14 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
             : ingredients.getFirst().orElse(original.input());
         return new StonecutterRecipe(original.group(), input, original.result().copy());
     }
+
+    @Override
+    protected StonecutterRecipe doSetResultCount(StonecutterRecipe recipe, int count) {
+        return new StonecutterRecipe(recipe.group(), recipe.input(), recipe.result().copyWithCount(count));
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
+    }
 }

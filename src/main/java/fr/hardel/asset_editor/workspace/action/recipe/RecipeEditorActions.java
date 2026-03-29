@@ -75,6 +75,15 @@ public final class RecipeEditorActions {
         )
     );
 
+    public static final EditorActionType<SetResultCount> SET_RESULT_COUNT = new EditorActionType<>(
+        id("set_result_count"),
+        SetResultCount.class,
+        StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, SetResultCount::count,
+            SetResultCount::new
+        )
+    );
+
     public record AddIngredient(int slot, List<Identifier> items, boolean replace) implements EditorAction {
         @Override
         public EditorActionType<AddIngredient> type() {
@@ -117,6 +126,13 @@ public final class RecipeEditorActions {
         }
     }
 
+    public record SetResultCount(int count) implements EditorAction {
+        @Override
+        public EditorActionType<SetResultCount> type() {
+            return SET_RESULT_COUNT;
+        }
+    }
+
     public static void register() {
         EditorActionRegistry.register(ADD_INGREDIENT);
         EditorActionRegistry.register(ADD_SHAPELESS_INGREDIENT);
@@ -124,6 +140,7 @@ public final class RecipeEditorActions {
         EditorActionRegistry.register(REMOVE_ITEM_EVERYWHERE);
         EditorActionRegistry.register(REPLACE_ITEM_EVERYWHERE);
         EditorActionRegistry.register(CONVERT_RECIPE_TYPE);
+        EditorActionRegistry.register(SET_RESULT_COUNT);
     }
 
     private static Identifier id(String path) {

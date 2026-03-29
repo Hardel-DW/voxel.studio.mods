@@ -39,6 +39,16 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
     }
 
     @Override
+    protected ShapelessRecipe doSetResultCount(ShapelessRecipe recipe, int count) {
+        return new ShapelessRecipe(recipe.group(), recipe.category(), recipe.result.copyWithCount(count), recipe.ingredients);
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
+    }
+
+    @Override
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         if (!(source instanceof CraftingRecipe)) return null;
 

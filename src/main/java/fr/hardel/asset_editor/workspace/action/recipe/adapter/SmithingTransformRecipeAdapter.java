@@ -4,6 +4,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.SmithingTransformRecipe;
+import net.minecraft.world.item.crafting.TransmuteResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,5 +38,20 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
         Ingredient base = ingredients.size() > 1 ? ingredients.get(1).orElse(original.baseIngredient()) : original.baseIngredient();
         Optional<Ingredient> addition = ingredients.size() > 2 ? ingredients.get(2) : original.additionIngredient();
         return new SmithingTransformRecipe(template, base, addition, original.result);
+    }
+
+    @Override
+    protected SmithingTransformRecipe doSetResultCount(SmithingTransformRecipe recipe, int count) {
+        return new SmithingTransformRecipe(
+            recipe.templateIngredient(),
+            recipe.baseIngredient(),
+            recipe.additionIngredient(),
+            new TransmuteResult(recipe.result.item(), count, recipe.result.components())
+        );
+    }
+
+    @Override
+    public boolean supportsResultCount() {
+        return true;
     }
 }

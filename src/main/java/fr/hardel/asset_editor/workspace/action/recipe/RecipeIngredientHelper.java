@@ -113,4 +113,8 @@ public final class RecipeIngredientHelper {
     public @Nullable Recipe<?> convertRecipeType(Recipe<?> recipe, Identifier targetSerializer, boolean preserveIngredients) {
         return RecipeAdapterRegistry.convert(recipe, targetSerializer, preserveIngredients);
     }
+
+    public @Nullable Recipe<?> setResultCount(Recipe<?> recipe, int count) {
+        return RecipeAdapterRegistry.setResultCount(recipe, count);
+    }
 }
