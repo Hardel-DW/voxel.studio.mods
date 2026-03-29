@@ -162,7 +162,7 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.ConvertRecipeType action, RegistryMutationContext context
     ) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
-        Recipe<?> converted = helper.convertCraftingType(entry.data(), action.newSerializer(), action.preserveIngredients());
+        Recipe<?> converted = helper.convertRecipeType(entry.data(), action.newSerializer(), action.preserveIngredients());
 
         if (converted == null) return entry;
         return entry.withData(converted);

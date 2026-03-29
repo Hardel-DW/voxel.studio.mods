@@ -1,0 +1,73 @@
+package fr.hardel.asset_editor.workspace.action.recipe.adapter;
+
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class RecipeAdapterRegistry {
+
+    private static final Map<Class<?>, RecipeAdapter<?>> BY_CLASS = new ConcurrentHashMap<>();
+    private static final Map<Identifier, RecipeAdapter<?>> BY_SERIALIZER = new ConcurrentHashMap<>();
+
+    public static void register(RecipeAdapter<?> adapter) {
+        Class<?> type = adapter.recipeType();
+        if (BY_CLASS.containsKey(type)) {
+            throw new IllegalStateException("Adapter already registered for " + type.getSimpleName());
+        }
+        BY_CLASS.put(type, adapter);
+        BY_SERIALIZER.put(adapter.serializerId(), adapter);
+    }
+
+    public static RecipeAdapter<?> get(Recipe<?> recipe) {
+        Class<?> type = recipe.getClass();
+        while (type != null && Recipe.class.isAssignableFrom(type)) {
+            RecipeAdapter<?> adapter = BY_CLASS.get(type);
+            if (adapter != null) {
+                return adapter;
+            }
+            type = type.getSuperclass();
+        }
+        throw new UnsupportedOperationException("No adapter registered for recipe type: " + recipe.getClass().getSimpleName());
+    }
+
+    public static @Nullable RecipeAdapter<?> getBySerializer(Identifier serializerId) {
+        return BY_SERIALIZER.get(serializerId);
+    }
+
+    public static boolean hasAdapter(Recipe<?> recipe) {
+        Class<?> type = recipe.getClass();
+        while (type != null && Recipe.class.isAssignableFrom(type)) {
+            if (BY_CLASS.containsKey(type)) return true;
+            type = type.getSuperclass();
+        }
+        return false;
+    }
+
+    public static List<Optional<Ingredient>> extractIngredients(Recipe<?> recipe) {
+        return get(recipe).extractIngredients(recipe);
+    }
+
+    public static ItemStack extractResult(Recipe<?> recipe) {
+        return get(recipe).extractResult(recipe);
+    }
+
+    public static Recipe<?> rebuild(Recipe<?> recipe, List<Optional<Ingredient>> ingredients) {
+        return get(recipe).rebuild(recipe, ingredients);
+    }
+
+    public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {
+        RecipeAdapter<?> targetAdapter = getBySerializer(targetSerializer);
+        if (targetAdapter == null) return null;
+        return targetAdapter.convertFrom(source, preserveIngredients);
+    }
+
+    private RecipeAdapterRegistry() {
+    }
+}

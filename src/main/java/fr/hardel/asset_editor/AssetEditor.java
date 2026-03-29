@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.event.SeverStartedEvent;
 import fr.hardel.asset_editor.event.ServerStoppedEvent;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.workspace.action.EditorActionRegistries;
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
 import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistries;
 import fr.hardel.asset_editor.workspace.registry.WorkspaceBindings;
 import net.fabricmc.api.ModInitializer;
@@ -19,6 +20,7 @@ public class AssetEditor implements ModInitializer {
     @Override
     public void onInitialize() {
         EditorActionRegistries.register();
+        RecipeAdapterRegistries.register();
         MutationHandlerRegistries.register();
         WorkspaceBindings.register();
         AssetEditorNetworking.register();
