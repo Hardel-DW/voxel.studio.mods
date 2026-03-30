@@ -28,11 +28,11 @@ public final class RegistryReader {
 
     public <T> Map<Identifier, ElementEntry<T>> readBaseline(RegistryWorkspaceBinding<T> binding,
         ResourceManager resourceManager,
-        Registry<T> registry,
+        @org.jspecify.annotations.Nullable Registry<T> registry,
         HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         Map<Identifier, T> elements = loadElements(binding, resourceManager, ops);
-        Map<Identifier, Set<Identifier>> tagsByElement = loadTags(binding, resourceManager, registry);
+        Map<Identifier, Set<Identifier>> tagsByElement = registry != null ? loadTags(binding, resourceManager, registry) : Map.of();
         Map<Identifier, ElementEntry<T>> result = new LinkedHashMap<>();
 
         for (var entry : elements.entrySet()) {

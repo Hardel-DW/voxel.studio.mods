@@ -43,7 +43,7 @@ public final class WorkspaceRepository {
 
     public <T> void snapshotBaseline(RegistryWorkspaceBinding<T> binding,
         ResourceManager resourceManager,
-        Registry<T> registry,
+        @org.jspecify.annotations.Nullable Registry<T> registry,
         HolderLookup.Provider registries) {
         baselines.put(binding.registryName(), baselineMap(registryReader.readBaseline(binding, resourceManager, registry, registries)));
         workspaces.values().forEach(perRegistry -> perRegistry.remove(binding.registryName()));

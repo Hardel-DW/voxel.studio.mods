@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
 import fr.hardel.asset_editor.client.memory.ClientPackInfo
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload
+import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload
@@ -69,11 +70,14 @@ class EditorActionGateway(
 
     fun requestPackWorkspace(registry: ResourceKey<*>) {
         val pack = workspaceMemory.packSelection().selectedPack()
-        if (pack == null || pack.packId().isBlank()) {
-            return
-        }
-
+        if (pack == null || pack.packId().isBlank()) return
         ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), registry.identifier()))
+    }
+
+    fun requestElementSeed(registry: ResourceKey<*>, elementId: Identifier) {
+        val pack = workspaceMemory.packSelection().selectedPack()
+        if (pack == null || pack.packId().isBlank()) return
+        ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), registry.identifier(), elementId))
     }
 
     override fun handleWorkspaceSync(payload: WorkspaceSyncPayload) {

@@ -35,8 +35,8 @@ public final class WorkspaceBaselineSnapshots {
         MultiPackResourceManager resources,
         RegistryWorkspaceBinding<T> binding
     ) {
-        server.registryAccess().lookup(binding.registryKey()).ifPresent(registry ->
-            repository.snapshotBaseline(binding, resources, registry, server.registryAccess()));
+        var registry = server.registryAccess().lookup(binding.registryKey()).orElse(null);
+        repository.snapshotBaseline(binding, resources, registry, server.registryAccess());
     }
 
     private WorkspaceBaselineSnapshots() {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,6 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
-import net.minecraft.world.item.crafting.ShapelessRecipe
 
 private enum class PaintMode { NONE, PAINTING, ERASING }
 
@@ -55,6 +55,12 @@ fun RecipeMainPage(context: StudioContext) {
     var search by remember(editor?.elementId) { mutableStateOf("") }
     var paintMode by remember { mutableStateOf(PaintMode.NONE) }
 
+    LaunchedEffect(editor?.elementId, workspaceEntry, context.sessionMemory().worldSessionKey()) {
+        if (editor?.elementId == null || workspaceEntry != null) return@LaunchedEffect
+        val elementId = Identifier.tryParse(editor.elementId) ?: return@LaunchedEffect
+        context.gateway.requestElementSeed(Registries.RECIPE, elementId)
+    }
+
     val recipeCounts = remember(entries) {
         val counts = mutableMapOf<String, Int>()
         for (blockId in RecipeTreeData.getAllBlockIds(includeSpecial = true)) {
@@ -64,12 +70,12 @@ fun RecipeMainPage(context: StudioContext) {
     }
 
     fun dispatchAddItem(slot: String, itemId: String) {
-        val editableEntry = workspaceEntry ?: return
+        if (workspaceEntry == null) return
         val editableTargetId = targetId ?: return
         val itemIdentifier = Identifier.tryParse(itemId) ?: return
         val slotIndex = slot.toIntOrNull() ?: return
 
-        if (editableEntry.data() is ShapelessRecipe) {
+        if (model.type == "minecraft:crafting_shapeless") {
             context.dispatchRegistryAction(
                 registry = Registries.RECIPE,
                 target = editableTargetId,

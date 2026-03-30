@@ -8,12 +8,16 @@ import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import fr.hardel.asset_editor.store.ServerPackService;
+import fr.hardel.asset_editor.workspace.service.ResolvedWorkspaceAccess;
 import fr.hardel.asset_editor.workspace.service.WorkspaceAccessResolver;
 import fr.hardel.asset_editor.workspace.service.WorkspaceBroadcastService;
 import fr.hardel.asset_editor.workspace.service.WorkspaceMutationService;
@@ -50,6 +54,9 @@ public final class AssetEditorNetworking {
 
         PayloadTypeRegistry.playC2S().register(PackCreatePayload.TYPE, PackCreatePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PackCreatePayload.TYPE, AssetEditorNetworking::handlePackCreate);
+
+        PayloadTypeRegistry.playC2S().register(ElementSeedRequestPayload.TYPE, ElementSeedRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ElementSeedRequestPayload.TYPE, AssetEditorNetworking::handleElementSeedRequest);
     }
 
     public static void sendPermissions(ServerPlayer player, StudioPermissions permissions) {
@@ -106,6 +113,25 @@ public final class AssetEditorNetworking {
             sendMutationResult(player, payload.actionId(), success.packId(), true, "", success.snapshot());
             WORKSPACE_BROADCAST.broadcastMutation(server, player, success.packId(), success.snapshot());
         });
+    }
+
+    private static void handleElementSeedRequest(ElementSeedRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            WorkspaceAccessResolver.Resolution resolution = WORKSPACE_ACCESS.resolveEditable(
+                context.player(), context.server(), payload.packId(), payload.registryId());
+            if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success success)) return;
+
+            sendElementSeed(context.player(), success.access().binding(), success.access(), payload.elementId());
+        });
+    }
+
+    private static <T> void sendElementSeed(ServerPlayer player, RegistryWorkspaceBinding<T> binding,
+        ResolvedWorkspaceAccess access, net.minecraft.resources.Identifier elementId) {
+        ElementEntry<T> entry = access.repository().get(access.packId(), binding, access.packRoot(), access.registries(), elementId);
+        if (entry == null) return;
+
+        WorkspaceElementSnapshot snapshot = binding.toSnapshot(entry, access.registries());
+        ServerPlayNetworking.send(player, WorkspaceSyncPayload.remoteSync(access.packId(), snapshot));
     }
 
     private AssetEditorNetworking() {}
