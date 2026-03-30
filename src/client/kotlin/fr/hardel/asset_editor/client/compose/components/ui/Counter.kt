@@ -60,16 +60,21 @@ fun Counter(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val hoverActive = enabled && isHovered
 
     val animatedWidth by animateDpAsState(
-        targetValue = if (isHovered) WIDTH_HOVER else WIDTH_DEFAULT,
+        targetValue = if (hoverActive) WIDTH_HOVER else WIDTH_DEFAULT,
         animationSpec = tween(ANIMATION_MS)
     )
     val arrowAlpha by animateFloatAsState(
-        targetValue = if (isHovered) 1f else 0f,
+        targetValue = if (hoverActive) 1f else 0f,
         animationSpec = tween(ANIMATION_MS)
     )
-    val borderColor = if (isHovered) Color.White else Color.White.copy(alpha = 0.2f)
+    val borderColor = when {
+        !enabled -> Color.White.copy(alpha = 0.12f)
+        hoverActive -> Color.White
+        else -> Color.White.copy(alpha = 0.2f)
+    }
 
     var isEditing by remember { mutableStateOf(false) }
     var editText by remember { mutableStateOf("") }
@@ -81,9 +86,10 @@ fun Counter(
         modifier = modifier
             .width(animatedWidth)
             .height(HEIGHT)
+            .alpha(if (enabled) 1f else 0.55f)
             .clip(RoundedCornerShape(24.dp))
             .border(2.dp, borderColor, RoundedCornerShape(24.dp))
-            .hoverable(interactionSource)
+            .then(if (enabled) Modifier.hoverable(interactionSource) else Modifier)
     ) {
         Box(
             modifier = Modifier
@@ -92,7 +98,7 @@ fun Counter(
                 .width(12.dp)
                 .height(12.dp)
                 .alpha(arrowAlpha)
-                .pointerHoverIcon(PointerIcon.Hand)
+                .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
@@ -134,7 +140,7 @@ fun Counter(
                 style = VoxelTypography.bold(20),
                 color = Color.White,
                 modifier = Modifier
-                    .pointerHoverIcon(PointerIcon.Text)
+                    .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Text) else Modifier)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -154,7 +160,7 @@ fun Counter(
                 .width(12.dp)
                 .height(12.dp)
                 .alpha(arrowAlpha)
-                .pointerHoverIcon(PointerIcon.Hand)
+                .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null

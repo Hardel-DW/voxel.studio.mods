@@ -7,7 +7,8 @@ data class RecipeVisualModel(
     val slots: Map<String, List<String>>,
     val resultItemId: String,
     val resultCount: Int = 1,
-    val resultCountEditable: Boolean = true
+    val resultCountEditable: Boolean = true,
+    val resultCountMax: Int = 64
 )
 
 data class RecipeRuntimeEntry(

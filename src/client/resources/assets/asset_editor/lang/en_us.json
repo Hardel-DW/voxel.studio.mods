@@ -173,6 +173,7 @@
     "recipe:section.description": "Configure your recipe",
     "recipe:section.result_count": "Result count",
     "recipe:section.result_count_description": "The number of items which will be produced by the recipe",
+    "recipe:section.result_count_locked": "This item is limited to a single copy, the count cannot be changed",
     "recipe:section.recipe_type": "Recipe type",
     "recipe:section.recipe_type_description": "The type of recipe which will be used to craft the item",
     "recipe:tab.shaped": "Shaped",

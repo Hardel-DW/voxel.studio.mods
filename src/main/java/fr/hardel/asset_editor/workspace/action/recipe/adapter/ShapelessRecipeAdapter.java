@@ -49,6 +49,11 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
     }
 
     @Override
+    public boolean supportsConversionTarget() {
+        return true;
+    }
+
+    @Override
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         if (!(source instanceof CraftingRecipe)) return null;
 

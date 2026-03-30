@@ -21,6 +21,11 @@ fun loadWorkspaceRecipeEntries(
 
 fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry {
     val resultCountEditable = Identifier.tryParse(type())?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
+    val resultCountMax = Identifier.tryParse(resultItemId())
+        ?.let(BuiltInRegistries.ITEM::getOptional)
+        ?.map { it.defaultInstance.maxStackSize }
+        ?.orElse(64)
+        ?: 64
     return RecipeRuntimeEntry(
         id = id(),
         type = type(),
@@ -30,7 +35,8 @@ fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry {
             slots = slots(),
             resultItemId = resultItemId(),
             resultCount = resultCount(),
-            resultCountEditable = resultCountEditable
+            resultCountEditable = resultCountEditable,
+            resultCountMax = resultCountMax
         )
     )
 }

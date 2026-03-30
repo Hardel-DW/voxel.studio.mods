@@ -42,8 +42,7 @@ public final class WorkspaceMutationService {
     private <T> MutationResult mutateTyped(
         RegistryWorkspaceBinding<T> binding,
         ResolvedWorkspaceAccess access,
-        WorkspaceMutationRequestPayload payload
-    ) {
+        WorkspaceMutationRequestPayload payload) {
         ElementEntry<T> entry = access.repository().get(access.packId(), binding, access.packRoot(), access.registries(), payload.targetId());
         if (entry == null)
             return new MutationResult.Failure("error:element_not_found");
@@ -52,6 +51,7 @@ public final class WorkspaceMutationService {
         RegistryMutationHandler<T> mutationHandler = MutationHandlerRegistry.get(binding.registryKey());
         if (mutationHandler == null)
             mutationHandler = RegistryMutationHandler.unsupported();
+
         ElementEntry<T> updated;
         try {
             mutationHandler.beforeApply(payload.action(), context);
@@ -61,9 +61,17 @@ public final class WorkspaceMutationService {
             return new MutationResult.Failure("error:invalid_action");
         }
 
+        WorkspaceElementSnapshot snapshot;
+        try {
+            snapshot = binding.toSnapshot(updated, access.registries());
+        } catch (Exception e) {
+            LOGGER.warn("Mutation rejected for {}: {}", payload.targetId(), e.getMessage());
+            return new MutationResult.Failure("error:invalid_action");
+        }
+
         access.repository().put(access.packId(), binding, access.packRoot(), access.registries(), payload.targetId(), updated);
         access.repository().flushDirty(access.packRoot(), access.packId(), binding, access.registries());
-        return new MutationResult.Success(access.packId(), binding.toSnapshot(updated, access.registries()));
+        return new MutationResult.Success(access.packId(), snapshot);
     }
 
     public sealed interface MutationResult permits MutationResult.Success, MutationResult.Failure {

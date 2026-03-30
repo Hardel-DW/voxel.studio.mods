@@ -50,7 +50,7 @@ fun RecipeMainPage(context: StudioContext) {
 
     val model = runtimeEntry?.visual ?: fallback
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
-    val selection = RecipeTreeData.getBlockByRecipeType(model.type).blockId.toString()
+    val selection = model.type
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
     var paintMode by remember { mutableStateOf(PaintMode.NONE) }
@@ -125,6 +125,8 @@ fun RecipeMainPage(context: StudioContext) {
                 onSelectionChange = { newSelection ->
                     val nextType = if (newSelection == "minecraft:barrier") {
                         RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
+                    } else if (!RecipeTreeData.isBlockId(newSelection)) {
+                        newSelection
                     } else {
                         RecipeTreeData.getBlockConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
                     }
@@ -169,7 +171,7 @@ fun RecipeMainPage(context: StudioContext) {
                         PaintMode.NONE -> {}
                     }
                 },
-                resultCountEnabled = model.resultCountEditable,
+                resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,
                 modifier = Modifier.weight(1f)
             )
 

@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.registry;
 
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter;
+import fr.hardel.asset_editor.store.adapter.RecipeFlushAdapter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.crafting.Recipe;
@@ -11,7 +12,7 @@ public final class WorkspaceBindings {
         RegistryWorkspaceBindings.register(new RegistryWorkspaceBinding<>(
             Registries.RECIPE,
             Recipe.CODEC,
-            null,
+            RecipeFlushAdapter.INSTANCE,
             null));
 
         RegistryWorkspaceBindings.register(new RegistryWorkspaceBinding<>(

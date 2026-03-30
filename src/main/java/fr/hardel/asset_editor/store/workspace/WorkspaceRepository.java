@@ -71,7 +71,12 @@ public final class WorkspaceRepository {
         if (workspace.dirty().isEmpty())
             return;
 
-        RegistryDiffPlan<T> plan = diffPlanner.plan(packRoot, binding, workspace);
+        RegistryDiffPlan<T> plan = diffPlanner.plan(
+            packRoot,
+            binding,
+            workspace,
+            registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE)
+        );
         if (!plan.isEmpty())
             diskWriter.write(plan, binding.codec(), registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE));
         workspace.clearDirty();

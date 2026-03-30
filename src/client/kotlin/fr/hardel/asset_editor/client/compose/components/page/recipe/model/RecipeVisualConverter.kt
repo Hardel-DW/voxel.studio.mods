@@ -38,7 +38,8 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
             slots = mapOf("0" to resolveSlotOptions(display.ingredient(), displayContext)).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
             resultCount = resolveResultCount(display.result(), displayContext),
-            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
+            resultCountMax = resolveResultMaxCount(display.result(), displayContext)
         )
         is SmithingRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
@@ -49,14 +50,16 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
             ).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
             resultCount = resolveResultCount(display.result(), displayContext),
-            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
+            resultCountMax = resolveResultMaxCount(display.result(), displayContext)
         )
         is StonecutterRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
             slots = mapOf("0" to resolveSlotOptions(display.input(), displayContext)).filterValues { it.isNotEmpty() },
             resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
             resultCount = resolveResultCount(display.result(), displayContext),
-            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this)
+            resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
+            resultCountMax = resolveResultMaxCount(display.result(), displayContext)
         )
         else -> placeholderRecipeVisual(serializerId)
     }
@@ -90,7 +93,8 @@ private fun buildIndexedSlotModel(
         .toMap(),
     resultItemId = resolveFirstItemId(result, displayContext) ?: fallbackResult,
     resultCount = resolveResultCount(result, displayContext),
-    resultCountEditable = Identifier.tryParse(serializerId)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
+    resultCountEditable = Identifier.tryParse(serializerId)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false,
+    resultCountMax = resolveResultMaxCount(result, displayContext)
 )
 
 private fun resolveSlotOptions(slot: SlotDisplay, displayContext: ContextMap): List<String> =
@@ -104,3 +108,6 @@ private fun resolveFirstItemId(slot: SlotDisplay, displayContext: ContextMap): S
 
 private fun resolveResultCount(slot: SlotDisplay, displayContext: ContextMap): Int =
     slot.resolveForFirstStack(displayContext).count.takeIf { it > 0 } ?: 1
+
+private fun resolveResultMaxCount(slot: SlotDisplay, displayContext: ContextMap): Int =
+    slot.resolveForFirstStack(displayContext).maxStackSize.takeIf { it > 0 } ?: 64

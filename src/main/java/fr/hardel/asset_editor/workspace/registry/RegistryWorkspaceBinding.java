@@ -23,13 +23,7 @@ public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, 
     }
 
     public WorkspaceElementSnapshot toSnapshot(ElementEntry<T> entry, HolderLookup.Provider registries) {
-        var ops = registries.createSerializationContext(JsonOps.INSTANCE);
-        String dataJson = codec.encodeStart(ops, entry.data())
-            .result()
-            .map(JsonElement::toString)
-            .orElse("{}");
-
-        return new WorkspaceElementSnapshot(registryKey.identifier(), entry.id(), dataJson, entry.tags(), entry.custom());
+        return new WorkspaceElementSnapshot(registryKey.identifier(), entry.id(), encode(entry, registries), entry.tags(), entry.custom());
     }
 
     public ElementEntry<T> fromSnapshot(WorkspaceElementSnapshot snapshot, HolderLookup.Provider registries) {
@@ -41,6 +35,14 @@ public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, 
 
     public ElementEntry<T> initializeEntry(ElementEntry<T> entry) {
         return entry.withCustom(customInitializer.apply(entry));
+    }
+
+    public String encode(ElementEntry<T> entry, HolderLookup.Provider registries) {
+        var ops = registries.createSerializationContext(JsonOps.INSTANCE);
+        return codec.encodeStart(ops, entry.data())
+            .result()
+            .map(JsonElement::toString)
+            .orElseThrow(() -> new IllegalArgumentException("Failed to encode workspace snapshot for " + entry.id()));
     }
 
     public String registryName() {

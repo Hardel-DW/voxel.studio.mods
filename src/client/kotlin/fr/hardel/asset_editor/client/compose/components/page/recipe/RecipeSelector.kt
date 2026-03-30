@@ -37,6 +37,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import androidx.compose.ui.window.Popup
@@ -62,6 +63,9 @@ private val ADVANCED_TYPES = linkedMapOf(
     "minecraft:crafting_special_bookcloning" to "recipe:crafting.crafting_special_bookcloning"
 )
 
+private fun recipeTypeLabel(type: String): String =
+    ADVANCED_TYPES[type]?.let { key -> I18n.get("$key.name") } ?: type
+
 @Composable
 fun RecipeSelector(
     value: String,
@@ -78,7 +82,7 @@ fun RecipeSelector(
     val displayName = when {
         blockConfig?.special == true -> I18n.get("recipe:block.all")
         blockConfig != null -> StudioText.resolve("block", blockConfig.blockId)
-        else -> value
+        else -> recipeTypeLabel(value)
     }
 
     Box(modifier = modifier) {
@@ -184,6 +188,12 @@ private fun RecipeSelectorGrid(
     selectMode: Boolean,
     onSelect: (String) -> Unit
 ) {
+    val currentBlockId = if (RecipeTreeData.isBlockId(currentValue)) {
+        currentValue
+    } else {
+        RecipeTreeData.getBlockByRecipeType(currentValue).blockId.toString()
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         RecipeTreeData.getAllBlockIds(includeSpecial = true).chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -192,7 +202,7 @@ private fun RecipeSelectorGrid(
                     val hovered by interaction.collectIsHoveredAsState()
                     val count = recipeCounts[blockId] ?: 0
                     val enabled = selectMode || count > 0
-                    val active = currentValue == blockId
+                    val active = currentBlockId == blockId
 
                     Box(
                         contentAlignment = Alignment.Center,
@@ -255,11 +265,7 @@ private fun RecipeSelectorGrid(
 }
 
 @Composable
-private fun AdvancedTypeRow(
-    label: String,
-    description: String,
-    onClick: () -> Unit
-) {
+private fun AdvancedTypeRow(label: String, description: String, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
@@ -268,7 +274,7 @@ private fun AdvancedTypeRow(
         modifier = Modifier
             .background(
                 color = if (hovered) VoxelColors.Zinc900.copy(alpha = 0.6f) else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
+                RoundedCornerShape(8.dp)
             )
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)

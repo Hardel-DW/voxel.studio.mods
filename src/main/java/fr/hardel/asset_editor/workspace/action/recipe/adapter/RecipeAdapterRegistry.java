@@ -81,6 +81,11 @@ public final class RecipeAdapterRegistry {
         return adapter != null && adapter.supportsResultCount();
     }
 
+    public static boolean supportsConversionTarget(Identifier serializerId) {
+        RecipeAdapter<?> adapter = getBySerializer(serializerId);
+        return adapter != null && adapter.supportsConversionTarget();
+    }
+
     private RecipeAdapterRegistry() {
     }
 }

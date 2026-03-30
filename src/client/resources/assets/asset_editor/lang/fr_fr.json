@@ -171,6 +171,7 @@
     "recipe:section.description": "Configurez votre recette",
     "recipe:section.result_count": "Nombre de resultats",
     "recipe:section.result_count_description": "Le nombre d'objets qui seront produits par la recette",
+    "recipe:section.result_count_locked": "Cet item est limite a 1 exemplaire, le count ne peut pas etre modifie",
     "recipe:section.recipe_type": "Type de recette",
     "recipe:section.recipe_type_description": "Le type de recette qui sera utilise pour fabriquer l'objet",
     "recipe:tab.shaped": "Avec Motif",

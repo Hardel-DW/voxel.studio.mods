@@ -102,8 +102,13 @@ fun RecipeSection(
                                     style = VoxelTypography.semiBold(16),
                                     color = VoxelColors.Zinc400
                                 )
+                                val descriptionKey = if (!resultCountEnabled && model.resultCountMax == 1) {
+                                    "recipe:section.result_count_locked"
+                                } else {
+                                    "recipe:section.result_count_description"
+                                }
                                 Text(
-                                    text = I18n.get("recipe:section.result_count_description"),
+                                    text = I18n.get(descriptionKey),
                                     style = VoxelTypography.regular(12),
                                     color = VoxelColors.Zinc500
                                 )
@@ -113,7 +118,7 @@ fun RecipeSection(
                                 value = model.resultCount,
                                 onValueChange = onResultCountChange,
                                 min = 1,
-                                max = 64,
+                                max = model.resultCountMax,
                                 step = 1,
                                 enabled = resultCountEnabled
                             )

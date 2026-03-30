@@ -57,6 +57,11 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     }
 
     @Override
+    public boolean supportsConversionTarget() {
+        return true;
+    }
+
+    @Override
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         if (!(source instanceof AbstractCookingRecipe cooking)) return null;
 

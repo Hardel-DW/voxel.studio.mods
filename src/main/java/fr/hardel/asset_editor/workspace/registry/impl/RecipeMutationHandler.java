@@ -176,7 +176,8 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetResultCount action, RegistryMutationContext context
     ) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
-        int count = Math.max(1, Math.min(64, action.count()));
+        int maxCount = Math.max(1, helper.extractResult(entry.data()).getMaxStackSize());
+        int count = Math.max(1, Math.min(maxCount, action.count()));
         Recipe<?> updated = helper.setResultCount(entry.data(), count);
 
         if (updated == null) return entry;

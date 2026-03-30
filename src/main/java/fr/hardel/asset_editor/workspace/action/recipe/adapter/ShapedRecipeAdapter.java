@@ -6,12 +6,15 @@ import net.minecraft.world.item.crafting.*;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     private static final Identifier SERIALIZER_ID = Identifier.withDefaultNamespace("crafting_shaped");
+    private static final char[] SYMBOLS = "ABCDEFGHI".toCharArray();
 
     public ShapedRecipeAdapter() {
         super(ShapedRecipe.class, SERIALIZER_ID);
@@ -19,7 +22,21 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     protected List<Optional<Ingredient>> doExtractIngredients(ShapedRecipe recipe) {
-        return new ArrayList<>(recipe.getIngredients());
+        List<Optional<Ingredient>> expanded = new ArrayList<>(9);
+        for (int i = 0; i < 9; i++) {
+            expanded.add(Optional.empty());
+        }
+
+        List<Optional<Ingredient>> packed = recipe.getIngredients();
+        int width = recipe.getWidth();
+        int height = recipe.getHeight();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                expanded.set(y * 3 + x, packed.get(y * width + x));
+            }
+        }
+
+        return expanded;
     }
 
     @Override
@@ -29,37 +46,26 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     protected ShapedRecipe doRebuild(ShapedRecipe original, List<Optional<Ingredient>> ingredients) {
-        int originalWidth = original.getWidth();
-        int originalHeight = original.getHeight();
-        int totalSlots = originalWidth * originalHeight;
-
-        List<Optional<Ingredient>> padded = new ArrayList<>(ingredients);
-        while (padded.size() < totalSlots) {
+        List<Optional<Ingredient>> padded = new ArrayList<>(ingredients.subList(0, Math.min(ingredients.size(), 9)));
+        while (padded.size() < 9) {
             padded.add(Optional.empty());
         }
 
-        BoundingBox box = computeBoundingBox(padded, originalWidth, originalHeight);
-        List<Optional<Ingredient>> shrunk = extractRegion(padded, originalWidth, box);
-
-        ShapedRecipePattern pattern = new ShapedRecipePattern(box.width(), box.height(), shrunk, Optional.empty());
+        BoundingBox box = computeBoundingBox(padded, 3, 3);
+        List<Optional<Ingredient>> shrunk = extractRegion(padded, 3, box);
+        ShapedRecipePattern pattern = packPattern(shrunk, box.width());
         return new ShapedRecipe(original.group(), original.category(), pattern, original.result.copy(), original.showNotification());
     }
 
     @Override
     protected ShapedRecipe doSetResultCount(ShapedRecipe recipe, int count) {
-        int width = recipe.getWidth();
-        int height = recipe.getHeight();
-        List<Optional<Ingredient>> ingredients = new ArrayList<>(recipe.getIngredients());
-        while (ingredients.size() < width * height) {
-            ingredients.add(Optional.empty());
-        }
-
-        BoundingBox box = computeBoundingBox(ingredients, width, height);
-        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, width, box);
+        List<Optional<Ingredient>> ingredients = doExtractIngredients(recipe);
+        BoundingBox box = computeBoundingBox(ingredients, 3, 3);
+        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, 3, box);
         return new ShapedRecipe(
             recipe.group(),
             recipe.category(),
-            new ShapedRecipePattern(box.width(), box.height(), shrunk, Optional.empty()),
+            packPattern(shrunk, box.width()),
             recipe.result.copyWithCount(count),
             recipe.showNotification()
         );
@@ -67,6 +73,11 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     public boolean supportsResultCount() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsConversionTarget() {
         return true;
     }
 
@@ -87,9 +98,44 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
         BoundingBox box = computeBoundingBox(grid, 3, 3);
         List<Optional<Ingredient>> shrunk = extractRegion(grid, 3, box);
-
-        ShapedRecipePattern pattern = new ShapedRecipePattern(box.width(), box.height(), shrunk, Optional.empty());
+        ShapedRecipePattern pattern = packPattern(shrunk, box.width());
         return new ShapedRecipe(source.group(), CraftingBookCategory.MISC, pattern, result, true);
+    }
+
+    private static ShapedRecipePattern packPattern(List<Optional<Ingredient>> ingredients, int width) {
+        if (ingredients.isEmpty() || ingredients.stream().noneMatch(Optional::isPresent))
+            throw new IllegalArgumentException("Shaped recipes require at least one ingredient");
+
+        Map<Character, Ingredient> key = new LinkedHashMap<>();
+        List<String> rows = new ArrayList<>();
+        StringBuilder row = new StringBuilder(width);
+        int symbolIndex = 0;
+
+        for (int i = 0; i < ingredients.size(); i++) {
+            Optional<Ingredient> ingredient = ingredients.get(i);
+            if (ingredient.isPresent()) {
+                Character existing = null;
+                for (Map.Entry<Character, Ingredient> entry : key.entrySet()) {
+                    if (entry.getValue().equals(ingredient.get())) {
+                        existing = entry.getKey();
+                        break;
+                    }
+                }
+
+                char symbol = existing != null ? existing : SYMBOLS[symbolIndex++];
+                key.putIfAbsent(symbol, ingredient.get());
+                row.append(symbol);
+            } else {
+                row.append(ShapedRecipePattern.EMPTY_SLOT);
+            }
+
+            if ((i + 1) % width == 0) {
+                rows.add(row.toString());
+                row = new StringBuilder(width);
+            }
+        }
+
+        return ShapedRecipePattern.of(key, rows);
     }
 
     private record BoundingBox(int minX, int minY, int width, int height) {}

@@ -3,6 +3,9 @@ package fr.hardel.asset_editor.store.workspace;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.adapter.FlushAdapter;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DynamicOps;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagEntry;
@@ -20,10 +23,10 @@ public final class DiffPlanner {
 
     private static final RegistryDiffPlan<?> EMPTY_PLAN = new RegistryDiffPlan<>(List.of(), List.of(), List.of(), List.of());
 
-    public <T> RegistryDiffPlan<T> plan(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace) {
+    public <T> RegistryDiffPlan<T> plan(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
         if (workspace.dirty().isEmpty())
             return emptyPlan();
-        return new Planner<>(packRoot, binding, workspace).plan();
+        return new Planner<>(packRoot, binding, workspace, ops).plan();
     }
 
     @SuppressWarnings("unchecked")
@@ -35,6 +38,8 @@ public final class DiffPlanner {
         private final Path packRoot;
         private final String registryDir;
         private final FlushAdapter<T> adapter;
+        private final Codec<T> codec;
+        private final DynamicOps<JsonElement> ops;
         private final Set<Identifier> dirtyTags;
         private final Map<Identifier, ElementEntry<T>> referenceEntries;
         private final Map<Identifier, ElementEntry<T>> currentEntries;
@@ -45,10 +50,12 @@ public final class DiffPlanner {
         private final ArrayList<RegistryDiffPlan.TagWrite> tagWrites = new ArrayList<>();
         private final ArrayList<Path> tagDeletes = new ArrayList<>();
 
-        private Planner(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace) {
+        private Planner(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
             this.packRoot = packRoot;
             this.registryDir = binding.registryKey().identifier().getPath();
             this.adapter = binding.adapter() == null ? FlushAdapter.identity() : binding.adapter();
+            this.codec = binding.codec();
+            this.ops = ops;
             this.dirtyTags = workspace.dirtyTags();
             this.referenceEntries = workspace.referenceEntries();
             this.currentEntries = workspace.currentEntries();
@@ -136,7 +143,18 @@ public final class DiffPlanner {
         }
 
         private boolean sameData(ElementEntry<T> referenceEntry, ElementEntry<T> currentEntry) {
-            return referenceEntry != null && Objects.equals(referenceEntry.data(), currentEntry.data());
+            if (referenceEntry == null)
+                return false;
+            if (Objects.equals(referenceEntry.data(), currentEntry.data()))
+                return true;
+
+            JsonElement referenceJson = encode(referenceEntry.data());
+            JsonElement currentJson = encode(currentEntry.data());
+            return referenceJson != null && referenceJson.equals(currentJson);
+        }
+
+        private JsonElement encode(T value) {
+            return codec.encodeStart(ops, value).result().orElse(null);
         }
 
         private Set<Identifier> members(Map<Identifier, Set<Identifier>> memberships, Identifier tagId) {

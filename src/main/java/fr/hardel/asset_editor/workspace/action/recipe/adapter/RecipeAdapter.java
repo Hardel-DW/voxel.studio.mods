@@ -47,6 +47,10 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return false;
     }
 
+    public boolean supportsConversionTarget() {
+        return false;
+    }
+
     public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
         return null;
     }
