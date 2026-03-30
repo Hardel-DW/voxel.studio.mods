@@ -24,12 +24,17 @@ fun SmeltingTemplate(
     modifier: Modifier = Modifier,
     interactive: Boolean = false,
     onSlotPointerDown: ((String, PointerButton) -> Unit)? = null,
-    onSlotPointerEnter: ((String) -> Unit)? = null
+    onSlotPointerEnter: ((String) -> Unit)? = null,
+    onResultPointerDown: ((PointerButton) -> Unit)? = null,
+    onResultPointerEnter: (() -> Unit)? = null
 ) {
     RecipeTemplateBase(
         resultItemId = resultItemId,
         resultCount = resultCount,
-        modifier = modifier
+        modifier = modifier,
+        interactiveResult = interactive,
+        onResultPointerDown = onResultPointerDown,
+        onResultPointerEnter = onResultPointerEnter
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             RecipeSlot(

@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 
@@ -21,6 +23,23 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     protected List<Optional<Ingredient>> doExtractIngredients(ShapedRecipe recipe) {
+        return expandIngredients(recipe);
+    }
+
+    public static ShapedRecipe copyOf(
+        ShapedRecipe recipe,
+        String group,
+        CraftingBookCategory category,
+        ItemStack result,
+        boolean showNotification
+    ) {
+        List<Optional<Ingredient>> ingredients = expandIngredients(recipe);
+        BoundingBox box = computeBoundingBox(ingredients, 3, 3);
+        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, 3, box);
+        return new ShapedRecipe(group, category, packPattern(shrunk, box.width()), result, showNotification);
+    }
+
+    private static List<Optional<Ingredient>> expandIngredients(ShapedRecipe recipe) {
         List<Optional<Ingredient>> expanded = new ArrayList<>(9);
         for (int i = 0; i < 9; i++) {
             expanded.add(Optional.empty());
@@ -71,8 +90,49 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     }
 
     @Override
+    protected ShapedRecipe doSetResultItem(ShapedRecipe recipe, Holder<Item> item) {
+        return copyOf(
+            recipe,
+            recipe.group(),
+            recipe.category(),
+            replaceResultStack(item, recipe.result.getCount(), recipe.result.getComponentsPatch()),
+            recipe.showNotification()
+        );
+    }
+
+    @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public boolean supportsGroup() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsCraftingCategory() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsShowNotification() {
+        return true;
+    }
+
+    @Override
+    protected ShapedRecipe doSetGroup(ShapedRecipe recipe, String group) {
+        return copyOf(recipe, group, recipe.category(), recipe.result.copy(), recipe.showNotification());
+    }
+
+    @Override
+    protected ShapedRecipe doSetCraftingCategory(ShapedRecipe recipe, CraftingBookCategory category) {
+        return copyOf(recipe, recipe.group(), category, recipe.result.copy(), recipe.showNotification());
+    }
+
+    @Override
+    protected ShapedRecipe doSetShowNotification(ShapedRecipe recipe, boolean value) {
+        return copyOf(recipe, recipe.group(), recipe.category(), recipe.result.copy(), value);
     }
 
     @Override

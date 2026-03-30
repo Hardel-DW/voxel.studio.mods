@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 
@@ -43,8 +45,38 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
     }
 
     @Override
+    protected ShapelessRecipe doSetResultItem(ShapelessRecipe recipe, Holder<Item> item) {
+        return new ShapelessRecipe(
+            recipe.group(),
+            recipe.category(),
+            replaceResultStack(item, recipe.result.getCount(), recipe.result.getComponentsPatch()),
+            recipe.ingredients
+        );
+    }
+
+    @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public boolean supportsGroup() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsCraftingCategory() {
+        return true;
+    }
+
+    @Override
+    protected ShapelessRecipe doSetGroup(ShapelessRecipe recipe, String group) {
+        return new ShapelessRecipe(group, recipe.category(), recipe.result.copy(), recipe.ingredients);
+    }
+
+    @Override
+    protected ShapelessRecipe doSetCraftingCategory(ShapelessRecipe recipe, CraftingBookCategory category) {
+        return new ShapelessRecipe(recipe.group(), category, recipe.result.copy(), recipe.ingredients);
     }
 
     @Override

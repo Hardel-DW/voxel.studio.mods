@@ -1,7 +1,11 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jspecify.annotations.Nullable;
@@ -79,6 +83,34 @@ public final class RecipeAdapterRegistry {
         return get(recipe).setResultCount(recipe, count);
     }
 
+    public static @Nullable Recipe<?> setResultItem(Recipe<?> recipe, Holder<Item> item) {
+        return get(recipe).setResultItem(recipe, item);
+    }
+
+    public static @Nullable Recipe<?> setGroup(Recipe<?> recipe, String group) {
+        return get(recipe).setGroup(recipe, group);
+    }
+
+    public static @Nullable Recipe<?> setCraftingCategory(Recipe<?> recipe, CraftingBookCategory category) {
+        return get(recipe).setCraftingCategory(recipe, category);
+    }
+
+    public static @Nullable Recipe<?> setCookingCategory(Recipe<?> recipe, CookingBookCategory category) {
+        return get(recipe).setCookingCategory(recipe, category);
+    }
+
+    public static @Nullable Recipe<?> setCookingExperience(Recipe<?> recipe, float experience) {
+        return get(recipe).setCookingExperience(recipe, experience);
+    }
+
+    public static @Nullable Recipe<?> setCookingTime(Recipe<?> recipe, int cookingTime) {
+        return get(recipe).setCookingTime(recipe, cookingTime);
+    }
+
+    public static @Nullable Recipe<?> setShowNotification(Recipe<?> recipe, boolean value) {
+        return get(recipe).setShowNotification(recipe, value);
+    }
+
     public static boolean supportsResultCount(Recipe<?> recipe) {
         return get(recipe).supportsResultCount();
     }
@@ -86,6 +118,39 @@ public final class RecipeAdapterRegistry {
     public static boolean supportsResultCount(Identifier serializerId) {
         RecipeAdapter<?> adapter = getBySerializer(serializerId);
         return adapter != null && adapter.supportsResultCount();
+    }
+
+    public static boolean supportsResultItem(Recipe<?> recipe) {
+        return get(recipe).supportsResultItem();
+    }
+
+    public static boolean supportsResultItem(Identifier serializerId) {
+        RecipeAdapter<?> adapter = getBySerializer(serializerId);
+        return adapter != null && adapter.supportsResultItem();
+    }
+
+    public static boolean supportsGroup(Recipe<?> recipe) {
+        return get(recipe).supportsGroup();
+    }
+
+    public static boolean supportsCraftingCategory(Recipe<?> recipe) {
+        return get(recipe).supportsCraftingCategory();
+    }
+
+    public static boolean supportsCookingCategory(Recipe<?> recipe) {
+        return get(recipe).supportsCookingCategory();
+    }
+
+    public static boolean supportsCookingExperience(Recipe<?> recipe) {
+        return get(recipe).supportsCookingExperience();
+    }
+
+    public static boolean supportsCookingTime(Recipe<?> recipe) {
+        return get(recipe).supportsCookingTime();
+    }
+
+    public static boolean supportsShowNotification(Recipe<?> recipe) {
+        return get(recipe).supportsShowNotification();
     }
 
     public static boolean supportsConversion(Identifier serializerId) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import net.minecraft.resources.Identifier
@@ -23,6 +24,9 @@ fun RecipeTemplateBase(
     resultItemId: String,
     resultCount: Int,
     modifier: Modifier = Modifier,
+    interactiveResult: Boolean = false,
+    onResultPointerDown: ((PointerButton) -> Unit)? = null,
+    onResultPointerEnter: (() -> Unit)? = null,
     child: @Composable () -> Unit
 ) {
     Row(
@@ -51,7 +55,10 @@ fun RecipeTemplateBase(
         _root_ide_package_.fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot(
             item = listOf(resultItemId),
             count = resultCount,
-            isResult = true
+            isResult = true,
+            interactive = interactiveResult,
+            onPointerDown = onResultPointerDown,
+            onPointerEnter = onResultPointerEnter
         )
     }
 }

@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -53,8 +55,39 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     }
 
     @Override
+    protected TransmuteRecipe doSetResultItem(TransmuteRecipe recipe, Holder<Item> item) {
+        return new TransmuteRecipe(
+            recipe.group(),
+            recipe.category(),
+            recipe.input,
+            recipe.material,
+            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components())
+        );
+    }
+
+    @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public boolean supportsGroup() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsCraftingCategory() {
+        return true;
+    }
+
+    @Override
+    protected TransmuteRecipe doSetGroup(TransmuteRecipe recipe, String group) {
+        return new TransmuteRecipe(group, recipe.category(), recipe.input, recipe.material, recipe.result);
+    }
+
+    @Override
+    protected TransmuteRecipe doSetCraftingCategory(TransmuteRecipe recipe, CraftingBookCategory category) {
+        return new TransmuteRecipe(recipe.group(), category, recipe.input, recipe.material, recipe.result);
     }
 
     @Override

@@ -16,7 +16,9 @@ fun RecipeRenderer(
     modifier: Modifier = Modifier,
     interactive: Boolean = false,
     onSlotPointerDown: ((String, PointerButton) -> Unit)? = null,
-    onSlotPointerEnter: ((String) -> Unit)? = null
+    onSlotPointerEnter: ((String) -> Unit)? = null,
+    onResultPointerDown: ((PointerButton) -> Unit)? = null,
+    onResultPointerEnter: (() -> Unit)? = null
 ) {
     when (RecipeTreeData.getTemplateKind(element.type)) {
         RecipeTreeData.RecipeTemplateKind.SMELTING -> SmeltingTemplate(
@@ -26,6 +28,8 @@ fun RecipeRenderer(
             interactive = interactive,
             onSlotPointerDown = onSlotPointerDown,
             onSlotPointerEnter = onSlotPointerEnter,
+            onResultPointerDown = onResultPointerDown,
+            onResultPointerEnter = onResultPointerEnter,
             modifier = modifier
         )
         RecipeTreeData.RecipeTemplateKind.STONECUTTING -> StoneCuttingTemplate(
@@ -35,6 +39,8 @@ fun RecipeRenderer(
             interactive = interactive,
             onSlotPointerDown = onSlotPointerDown,
             onSlotPointerEnter = onSlotPointerEnter,
+            onResultPointerDown = onResultPointerDown,
+            onResultPointerEnter = onResultPointerEnter,
             modifier = modifier
         )
         RecipeTreeData.RecipeTemplateKind.SMITHING -> SmithingTemplate(
@@ -44,6 +50,8 @@ fun RecipeRenderer(
             interactive = interactive,
             onSlotPointerDown = onSlotPointerDown,
             onSlotPointerEnter = onSlotPointerEnter,
+            onResultPointerDown = onResultPointerDown,
+            onResultPointerEnter = onResultPointerEnter,
             modifier = modifier
         )
         RecipeTreeData.RecipeTemplateKind.CRAFTING -> CraftingTemplate(
@@ -53,6 +61,8 @@ fun RecipeRenderer(
             interactive = interactive,
             onSlotPointerDown = onSlotPointerDown,
             onSlotPointerEnter = onSlotPointerEnter,
+            onResultPointerDown = onResultPointerDown,
+            onResultPointerEnter = onResultPointerEnter,
             modifier = modifier
         )
     }

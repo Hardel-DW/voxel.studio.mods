@@ -56,7 +56,12 @@ fun Counter(
     max: Int,
     step: Int,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    displayValue: String = value.toString(),
+    editValue: String = displayValue,
+    sanitizeInput: (String) -> String = { input -> input.filter(Char::isDigit) },
+    parseInput: (String) -> Int? = String::toIntOrNull,
+    keyboardType: KeyboardType = KeyboardType.Number
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
@@ -114,13 +119,13 @@ fun Counter(
         if (isEditing) {
             BasicTextField(
                 value = editText,
-                onValueChange = { editText = it.filter { c -> c.isDigit() } },
+                onValueChange = { editText = sanitizeInput(it) },
                 textStyle = VoxelTypography.bold(20).copy(color = Color.White, textAlign = TextAlign.Center),
                 cursorBrush = SolidColor(Color.White),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-                    val parsed = editText.toIntOrNull()
+                    val parsed = parseInput(editText)
                     if (parsed != null) onValueChange(parsed.coerceIn(min, max))
                     isEditing = false
                     focusManager.clearFocus()
@@ -129,14 +134,14 @@ fun Counter(
                     .width(60.dp)
                     .focusRequester(focusRequester)
                     .onFocusChanged { if (!it.isFocused && isEditing) {
-                        val parsed = editText.toIntOrNull()
+                        val parsed = parseInput(editText)
                         if (parsed != null) onValueChange(parsed.coerceIn(min, max))
                         isEditing = false
                     }}
             )
         } else {
             Text(
-                text = value.toString(),
+                text = displayValue,
                 style = VoxelTypography.bold(20),
                 color = Color.White,
                 modifier = Modifier
@@ -146,7 +151,7 @@ fun Counter(
                         indication = null
                     ) {
                         if (enabled) {
-                            editText = value.toString()
+                            editText = editValue
                             isEditing = true
                         }
                     }

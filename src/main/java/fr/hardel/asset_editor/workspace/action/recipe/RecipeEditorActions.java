@@ -84,6 +84,60 @@ public final class RecipeEditorActions {
         )
     );
 
+    public static final EditorActionType<SetResultItem> SET_RESULT_ITEM = new EditorActionType<>(
+        id("set_result_item"),
+        SetResultItem.class,
+        StreamCodec.composite(
+            Identifier.STREAM_CODEC, SetResultItem::itemId,
+            SetResultItem::new
+        )
+    );
+
+    public static final EditorActionType<SetGroup> SET_GROUP = new EditorActionType<>(
+        id("set_group"),
+        SetGroup.class,
+        StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SetGroup::group,
+            SetGroup::new
+        )
+    );
+
+    public static final EditorActionType<SetCategory> SET_CATEGORY = new EditorActionType<>(
+        id("set_category"),
+        SetCategory.class,
+        StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, SetCategory::category,
+            SetCategory::new
+        )
+    );
+
+    public static final EditorActionType<SetCookingExperience> SET_COOKING_EXPERIENCE = new EditorActionType<>(
+        id("set_cooking_experience"),
+        SetCookingExperience.class,
+        StreamCodec.composite(
+            ByteBufCodecs.FLOAT, SetCookingExperience::experience,
+            SetCookingExperience::new
+        )
+    );
+
+    public static final EditorActionType<SetCookingTime> SET_COOKING_TIME = new EditorActionType<>(
+        id("set_cooking_time"),
+        SetCookingTime.class,
+        StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, SetCookingTime::time,
+            SetCookingTime::new
+        )
+    );
+
+    public static final EditorActionType<SetShowNotification> SET_SHOW_NOTIFICATION = new EditorActionType<>(
+        id("set_show_notification"),
+        SetShowNotification.class,
+        StreamCodec.composite(
+            ByteBufCodecs.BOOL, SetShowNotification::value,
+            SetShowNotification::new
+        )
+    );
+
     public record AddIngredient(int slot, List<Identifier> items, boolean replace) implements EditorAction {
         @Override
         public EditorActionType<AddIngredient> type() {
@@ -133,6 +187,48 @@ public final class RecipeEditorActions {
         }
     }
 
+    public record SetResultItem(Identifier itemId) implements EditorAction {
+        @Override
+        public EditorActionType<SetResultItem> type() {
+            return SET_RESULT_ITEM;
+        }
+    }
+
+    public record SetGroup(String group) implements EditorAction {
+        @Override
+        public EditorActionType<SetGroup> type() {
+            return SET_GROUP;
+        }
+    }
+
+    public record SetCategory(String category) implements EditorAction {
+        @Override
+        public EditorActionType<SetCategory> type() {
+            return SET_CATEGORY;
+        }
+    }
+
+    public record SetCookingExperience(float experience) implements EditorAction {
+        @Override
+        public EditorActionType<SetCookingExperience> type() {
+            return SET_COOKING_EXPERIENCE;
+        }
+    }
+
+    public record SetCookingTime(int time) implements EditorAction {
+        @Override
+        public EditorActionType<SetCookingTime> type() {
+            return SET_COOKING_TIME;
+        }
+    }
+
+    public record SetShowNotification(boolean value) implements EditorAction {
+        @Override
+        public EditorActionType<SetShowNotification> type() {
+            return SET_SHOW_NOTIFICATION;
+        }
+    }
+
     public static void register() {
         EditorActionRegistry.register(ADD_INGREDIENT);
         EditorActionRegistry.register(ADD_SHAPELESS_INGREDIENT);
@@ -141,6 +237,12 @@ public final class RecipeEditorActions {
         EditorActionRegistry.register(REPLACE_ITEM_EVERYWHERE);
         EditorActionRegistry.register(CONVERT_RECIPE_TYPE);
         EditorActionRegistry.register(SET_RESULT_COUNT);
+        EditorActionRegistry.register(SET_RESULT_ITEM);
+        EditorActionRegistry.register(SET_GROUP);
+        EditorActionRegistry.register(SET_CATEGORY);
+        EditorActionRegistry.register(SET_COOKING_EXPERIENCE);
+        EditorActionRegistry.register(SET_COOKING_TIME);
+        EditorActionRegistry.register(SET_SHOW_NOTIFICATION);
     }
 
     private static Identifier id(String path) {

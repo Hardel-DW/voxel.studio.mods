@@ -52,6 +52,11 @@ public final class SmithingTrimRecipeAdapter extends RecipeAdapter<SmithingTrimR
     }
 
     @Override
+    public boolean supportsResultItem() {
+        return false;
+    }
+
+    @Override
     public @Nullable Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
         return null;
     }

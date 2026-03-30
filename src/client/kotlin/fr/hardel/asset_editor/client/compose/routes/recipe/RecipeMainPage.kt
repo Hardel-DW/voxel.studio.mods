@@ -33,6 +33,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestinati
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
@@ -46,6 +47,8 @@ fun RecipeMainPage(context: StudioContext) {
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
 
     val model = runtimeEntry?.visual ?: fallback
+    val recipe = workspaceEntry?.data
+    val resultItemEditable = recipe?.let(RecipeAdapterRegistry::supportsResultItem) == true
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
@@ -67,6 +70,7 @@ fun RecipeMainPage(context: StudioContext) {
 
     val editorState = RecipeEditorState(
         model = model,
+        recipe = recipe,
         selection = model.type,
         recipeCounts = recipeCounts,
         selectedItemId = selectedItemId,
@@ -96,6 +100,16 @@ fun RecipeMainPage(context: StudioContext) {
                 registry = Registries.RECIPE,
                 target = targetId,
                 action = RecipeEditorActions.SetResultCount(value),
+                dialogs = dialogs
+            )
+        },
+        onResultItemChange = {
+            val itemId = selectedItemId?.let(Identifier::tryParse) ?: return@RecipeEditorState
+            if (targetId == null || workspaceEntry == null || !resultItemEditable) return@RecipeEditorState
+            context.dispatchRegistryAction(
+                registry = Registries.RECIPE,
+                target = targetId,
+                action = RecipeEditorActions.SetResultItem(itemId),
                 dialogs = dialogs
             )
         },

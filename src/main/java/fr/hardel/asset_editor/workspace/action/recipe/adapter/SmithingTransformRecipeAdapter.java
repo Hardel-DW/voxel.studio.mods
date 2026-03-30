@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -49,6 +51,16 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
             recipe.baseIngredient(),
             recipe.additionIngredient(),
             new TransmuteResult(recipe.result.item(), count, recipe.result.components())
+        );
+    }
+
+    @Override
+    protected SmithingTransformRecipe doSetResultItem(SmithingTransformRecipe recipe, Holder<Item> item) {
+        return new SmithingTransformRecipe(
+            recipe.templateIngredient(),
+            recipe.baseIngredient(),
+            recipe.additionIngredient(),
+            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components())
         );
     }
 

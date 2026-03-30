@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -43,8 +45,27 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     }
 
     @Override
+    protected StonecutterRecipe doSetResultItem(StonecutterRecipe recipe, Holder<Item> item) {
+        return new StonecutterRecipe(
+            recipe.group(),
+            recipe.input(),
+            replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch())
+        );
+    }
+
+    @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public boolean supportsGroup() {
+        return true;
+    }
+
+    @Override
+    protected StonecutterRecipe doSetGroup(StonecutterRecipe recipe, String group) {
+        return new StonecutterRecipe(group, recipe.input(), recipe.result().copy());
     }
 
     @Override

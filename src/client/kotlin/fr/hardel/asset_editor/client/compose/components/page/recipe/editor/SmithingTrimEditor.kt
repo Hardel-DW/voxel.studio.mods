@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotAddAction
@@ -30,6 +31,16 @@ fun SmithingTrimEditor(state: RecipeEditorState, modifier: Modifier = Modifier) 
                     PaintMode.PAINTING -> slotAddAction(slot, state.selectedItemId)?.let(state.onAction)
                     PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
                     PaintMode.NONE -> {}
+                }
+            },
+            onResultPointerDown = { button ->
+                if (button == PointerButton.Primary) {
+                    state.onResultItemChange()
+                }
+            },
+            onResultPointerEnter = {
+                if (state.paintMode == PaintMode.PAINTING) {
+                    state.onResultItemChange()
                 }
             }
         )

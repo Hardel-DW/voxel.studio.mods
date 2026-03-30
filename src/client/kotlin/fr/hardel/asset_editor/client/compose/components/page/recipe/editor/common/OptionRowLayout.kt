@@ -11,26 +11,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.Counter
-import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun RecipeCounter(
+fun OptionRowLayout(
     title: String,
     description: String,
-    value: Int,
-    max: Int,
-    enabled: Boolean,
-    onValueChange: (Int) -> Unit,
-    min: Int = 1,
-    step: Int = 1
+    modifier: Modifier = Modifier,
+    control: @Composable () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = title,
                 style = VoxelTypography.semiBold(16),
@@ -43,13 +40,6 @@ fun RecipeCounter(
             )
         }
 
-        Counter(
-            value = value,
-            onValueChange = onValueChange,
-            min = min,
-            max = max,
-            step = step,
-            enabled = enabled
-        )
+        control()
     }
 }

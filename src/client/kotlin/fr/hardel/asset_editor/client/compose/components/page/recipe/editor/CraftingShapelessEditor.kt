@@ -3,17 +3,24 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.CounterOptionRow
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCategoryOption
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.ResultCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
 import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import net.minecraft.world.item.crafting.CraftingBookCategory
+import net.minecraft.world.item.crafting.ShapelessRecipe
 
 @Composable
 fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
+    val recipe = state.recipe as? ShapelessRecipe
+
     fun addShapeless() {
         val itemId = state.selectedItemId ?: return
         val itemIdentifier = Identifier.tryParse(itemId) ?: return
@@ -44,16 +51,51 @@ fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modif
                     PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
                     PaintMode.NONE -> {}
                 }
+            },
+            onResultPointerDown = { button ->
+                if (button == PointerButton.Primary) {
+                    state.onResultItemChange()
+                }
+            },
+            onResultPointerEnter = {
+                if (state.paintMode == PaintMode.PAINTING) {
+                    state.onResultItemChange()
+                }
             }
         )
 
-        EditorCard {
-            ResultCountOption(
-                value = state.model.resultCount,
-                max = state.model.resultCountMax,
-                enabled = state.resultCountEnabled,
-                onValueChange = state.onResultCountChange
-            )
+        if (state.model.resultCountEditable) {
+            EditorCard {
+                CounterOptionRow(
+                    title = I18n.get("recipe:section.result_count"),
+                    description = if (!state.resultCountEnabled && state.model.resultCountMax == 1) {
+                        I18n.get("recipe:section.result_count_locked")
+                    } else {
+                        I18n.get("recipe:section.result_count_description")
+                    },
+                    value = state.model.resultCount,
+                    max = state.model.resultCountMax,
+                    enabled = state.resultCountEnabled,
+                    onValueChange = state.onResultCountChange
+                )
+            }
+        }
+
+        recipe?.let {
+            EditorCard {
+                RecipeGroupOption(
+                    value = it.group(),
+                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetGroup(value)) }
+                )
+            }
+
+            EditorCard {
+                RecipeCategoryOption(
+                    value = it.category().serializedName,
+                    options = CraftingBookCategory.entries.map { category -> category.serializedName },
+                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCategory(value)) }
+                )
+            }
         }
     }
 }

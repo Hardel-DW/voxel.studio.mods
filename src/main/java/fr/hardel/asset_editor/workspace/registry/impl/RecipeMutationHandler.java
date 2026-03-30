@@ -12,10 +12,14 @@ import fr.hardel.asset_editor.workspace.registry.RegistryMutationHandler;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,6 +70,30 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
             .register(
                 RecipeEditorActions.SET_RESULT_COUNT,
                 MutationActionHandler.of(RecipeMutationHandler::applySetResultCount)
+            )
+            .register(
+                RecipeEditorActions.SET_RESULT_ITEM,
+                MutationActionHandler.of(RecipeMutationHandler::applySetResultItem)
+            )
+            .register(
+                RecipeEditorActions.SET_GROUP,
+                MutationActionHandler.of(RecipeMutationHandler::applySetGroup)
+            )
+            .register(
+                RecipeEditorActions.SET_CATEGORY,
+                MutationActionHandler.of(RecipeMutationHandler::applySetCategory)
+            )
+            .register(
+                RecipeEditorActions.SET_COOKING_EXPERIENCE,
+                MutationActionHandler.of(RecipeMutationHandler::applySetCookingExperience)
+            )
+            .register(
+                RecipeEditorActions.SET_COOKING_TIME,
+                MutationActionHandler.of(RecipeMutationHandler::applySetCookingTime)
+            )
+            .register(
+                RecipeEditorActions.SET_SHOW_NOTIFICATION,
+                MutationActionHandler.of(RecipeMutationHandler::applySetShowNotification)
             );
     }
 
@@ -182,5 +210,93 @@ public final class RecipeMutationHandler implements RegistryMutationHandler<Reci
 
         if (updated == null) return entry;
         return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetResultItem(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetResultItem action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = helper.setResultItem(entry.data(), action.itemId());
+
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetGroup(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetGroup action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = helper.setGroup(entry.data(), action.group().trim());
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetCategory(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetCategory action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = null;
+
+        Optional<CraftingBookCategory> craftingCategory = parseCraftingCategory(action.category());
+        if (craftingCategory.isPresent()) {
+            updated = helper.setCraftingCategory(entry.data(), craftingCategory.get());
+        }
+
+        if (updated == null) {
+            Optional<CookingBookCategory> cookingCategory = parseCookingCategory(action.category());
+            if (cookingCategory.isPresent()) {
+                updated = helper.setCookingCategory(entry.data(), cookingCategory.get());
+            }
+        }
+
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetCookingExperience(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetCookingExperience action, RegistryMutationContext context
+    ) {
+        if (!Float.isFinite(action.experience())) return entry;
+
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = helper.setCookingExperience(entry.data(), Math.max(0.0F, action.experience()));
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetCookingTime(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetCookingTime action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = helper.setCookingTime(entry.data(), sanitizeCookingTime(entry.data(), action.time()));
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static ElementEntry<Recipe<?>> applySetShowNotification(
+        ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetShowNotification action, RegistryMutationContext context
+    ) {
+        RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
+        Recipe<?> updated = helper.setShowNotification(entry.data(), action.value());
+        if (updated == null) return entry;
+        return entry.withData(updated);
+    }
+
+    private static Optional<CraftingBookCategory> parseCraftingCategory(String category) {
+        return Arrays.stream(CraftingBookCategory.values())
+            .filter(value -> value.getSerializedName().equals(category))
+            .findFirst();
+    }
+
+    private static Optional<CookingBookCategory> parseCookingCategory(String category) {
+        return Arrays.stream(CookingBookCategory.values())
+            .filter(value -> value.getSerializedName().equals(category))
+            .findFirst();
+    }
+
+    private static int sanitizeCookingTime(Recipe<?> recipe, int time) {
+        int min = 1;
+        int max = recipe instanceof CampfireCookingRecipe ? Integer.MAX_VALUE : Short.MAX_VALUE;
+        return Math.max(min, Math.min(time, max));
     }
 }
