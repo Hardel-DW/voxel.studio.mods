@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTemplateBase
+import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateBase
 
 @Composable
 fun CraftingTemplate(

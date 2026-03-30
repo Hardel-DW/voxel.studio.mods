@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe
+package fr.hardel.asset_editor.client.compose.components.page.recipe.template
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,7 +25,6 @@ fun RecipeTemplateBase(
     modifier: Modifier = Modifier,
     child: @Composable () -> Unit
 ) {
-    // TSX: div.flex.items-center.justify-center.gap-4.p-4.border.border-zinc-700.rounded-lg.bg-zinc-900/50.h-full
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
@@ -37,12 +36,11 @@ fun RecipeTemplateBase(
     ) {
         child()
 
-        // TSX: div.size-12.flex.items-center.justify-center > img.size-8.pixelated
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(48.dp)
         ) {
-            RecipeGuiAsset(
+            _root_ide_package_.fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset(
                 location = PROGRESS_LOCATION,
                 width = 24,
                 height = 16,
@@ -50,7 +48,7 @@ fun RecipeTemplateBase(
             )
         }
 
-        RecipeSlot(
+        _root_ide_package_.fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot(
             item = listOf(resultItemId),
             count = resultCount,
             isResult = true

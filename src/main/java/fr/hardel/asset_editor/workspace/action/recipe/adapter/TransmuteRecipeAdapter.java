@@ -3,13 +3,11 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.TransmuteRecipe;
 import net.minecraft.world.item.crafting.TransmuteResult;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,27 +58,20 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     }
 
     @Override
-    public boolean supportsConversionTarget() {
-        return true;
-    }
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        Ingredient input = ingredients.stream()
+            .flatMap(Optional::stream)
+            .findFirst()
+            .orElse(Ingredient.of(Items.STONE));
 
-    @Override
-    public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
-        if (!(source instanceof CraftingRecipe)) return null;
-
-        List<Ingredient> ingredients = preserveIngredients
-            ? RecipeAdapterRegistry.extractIngredients(source).stream().flatMap(Optional::stream).toList()
-            : List.of();
-
-        Ingredient input = ingredients.isEmpty() ? Ingredient.of(Items.STONE) : ingredients.getFirst();
-        Ingredient material = ingredients.size() > 1 ? ingredients.get(1) : input;
-        ItemStack result = RecipeAdapterRegistry.extractResult(source);
+        Ingredient material = ingredients.stream()
+            .flatMap(Optional::stream)
+            .skip(1)
+            .findFirst()
+            .orElse(input);
 
         return new TransmuteRecipe(
-            source.group(),
-            CraftingBookCategory.MISC,
-            input,
-            material,
+            "", CraftingBookCategory.MISC, input, material,
             new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())
         );
     }

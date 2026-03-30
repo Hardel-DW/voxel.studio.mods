@@ -11,7 +11,7 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTemplateBase
+import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateBase
 import net.minecraft.resources.Identifier
 
 private val BURN_PROGRESS_LOCATION = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/gui/burn_progres.png")

@@ -1,11 +1,8 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.AssetEditorClient
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeRuntimeEntry
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.loadWorkspaceRecipeEntries
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.toRuntimeEntry
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload

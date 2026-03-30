@@ -4,7 +4,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,20 +56,12 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     }
 
     @Override
-    public boolean supportsConversionTarget() {
-        return true;
-    }
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        Ingredient input = ingredients.stream()
+            .flatMap(Optional::stream)
+            .findFirst()
+            .orElse(Ingredient.of(Items.STONE));
 
-    @Override
-    public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
-        if (!(source instanceof AbstractCookingRecipe cooking)) return null;
-
-        Ingredient input = preserveIngredients ? cooking.input() : Ingredient.of(Items.STONE);
-        ItemStack result = RecipeAdapterRegistry.extractResult(source);
-
-        return factory.create(
-            source.group(), CookingBookCategory.MISC, input,
-            result, cooking.experience(), defaultCookingTime
-        );
+        return factory.create("", CookingBookCategory.MISC, input, result, 0f, defaultCookingTime);
     }
 }

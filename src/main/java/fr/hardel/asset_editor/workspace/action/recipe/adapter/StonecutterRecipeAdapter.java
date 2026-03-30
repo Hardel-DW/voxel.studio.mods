@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.StonecutterRecipe;
 
 import java.util.ArrayList;
@@ -43,5 +45,15 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        Ingredient input = ingredients.stream()
+            .flatMap(Optional::stream)
+            .findFirst()
+            .orElse(Ingredient.of(Items.STONE));
+
+        return new StonecutterRecipe("", input, result);
     }
 }

@@ -64,8 +64,15 @@ public final class RecipeAdapterRegistry {
 
     public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {
         RecipeAdapter<?> targetAdapter = getBySerializer(targetSerializer);
-        if (targetAdapter == null) return null;
-        return targetAdapter.convertFrom(source, preserveIngredients);
+        if (targetAdapter == null || !hasAdapter(source)) return null;
+
+        RecipeAdapter<?> sourceAdapter = get(source);
+        List<Optional<Ingredient>> ingredients = preserveIngredients
+            ? sourceAdapter.extractIngredients(source)
+            : List.of();
+        ItemStack result = sourceAdapter.extractResult(source);
+
+        return targetAdapter.buildFromGeneric(ingredients, result);
     }
 
     public static @Nullable Recipe<?> setResultCount(Recipe<?> recipe, int count) {
@@ -81,9 +88,8 @@ public final class RecipeAdapterRegistry {
         return adapter != null && adapter.supportsResultCount();
     }
 
-    public static boolean supportsConversionTarget(Identifier serializerId) {
-        RecipeAdapter<?> adapter = getBySerializer(serializerId);
-        return adapter != null && adapter.supportsConversionTarget();
+    public static boolean supportsConversion(Identifier serializerId) {
+        return getBySerializer(serializerId) != null;
     }
 
     private RecipeAdapterRegistry() {

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.model
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry

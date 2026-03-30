@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,23 +48,12 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
     }
 
     @Override
-    public boolean supportsConversionTarget() {
-        return true;
-    }
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        List<Ingredient> compacted = ingredients.stream()
+            .flatMap(Optional::stream)
+            .limit(9)
+            .toList();
 
-    @Override
-    public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
-        if (!(source instanceof CraftingRecipe)) return null;
-
-        List<Ingredient> ingredients = preserveIngredients
-            ? RecipeAdapterRegistry.extractIngredients(source).stream().flatMap(Optional::stream).toList()
-            : List.of();
-
-        List<Ingredient> capped = ingredients.isEmpty()
-            ? List.of()
-            : ingredients.subList(0, Math.min(ingredients.size(), 9));
-
-        ItemStack result = RecipeAdapterRegistry.extractResult(source);
-        return new ShapelessRecipe(source.group(), CraftingBookCategory.MISC, result, capped);
+        return new ShapelessRecipe("", CraftingBookCategory.MISC, result, compacted);
     }
 }

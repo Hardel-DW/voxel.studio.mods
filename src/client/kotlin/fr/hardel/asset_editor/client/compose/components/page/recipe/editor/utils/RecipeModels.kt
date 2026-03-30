@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.model
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
 import net.minecraft.resources.Identifier
 

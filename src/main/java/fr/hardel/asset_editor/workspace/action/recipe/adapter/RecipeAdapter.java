@@ -47,13 +47,7 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return false;
     }
 
-    public boolean supportsConversionTarget() {
-        return false;
-    }
-
-    public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
-        return null;
-    }
+    public abstract @Nullable Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result);
 
     protected abstract List<Optional<Ingredient>> doExtractIngredients(T recipe);
     protected abstract ItemStack doExtractResult(T recipe);

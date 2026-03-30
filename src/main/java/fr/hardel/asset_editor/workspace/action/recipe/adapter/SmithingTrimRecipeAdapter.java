@@ -2,8 +2,11 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.SmithingTrimRecipe;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,5 +49,10 @@ public final class SmithingTrimRecipeAdapter extends RecipeAdapter<SmithingTrimR
             : original.additionIngredient().orElseThrow();
 
         return new SmithingTrimRecipe(template, base, addition, original.pattern);
+    }
+
+    @Override
+    public @Nullable Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        return null;
     }
 }

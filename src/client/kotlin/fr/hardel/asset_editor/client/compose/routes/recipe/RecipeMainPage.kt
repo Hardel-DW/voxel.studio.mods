@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
@@ -15,16 +14,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeInventory
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSection
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeVisualModel
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.placeholderRecipeVisual
-import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntries
-import fr.hardel.asset_editor.client.compose.components.page.recipe.rememberRecipeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.PaintMode
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorDispatch
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.placeholderRecipeVisual
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
@@ -37,8 +36,6 @@ import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
-private enum class PaintMode { NONE, PAINTING, ERASING }
-
 @Composable
 fun RecipeMainPage(context: StudioContext) {
     val editor = rememberCurrentElementDestination(context, StudioConcept.RECIPE)
@@ -50,7 +47,6 @@ fun RecipeMainPage(context: StudioContext) {
 
     val model = runtimeEntry?.visual ?: fallback
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
-    val selection = model.type
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
     var paintMode by remember { mutableStateOf(PaintMode.NONE) }
@@ -69,41 +65,56 @@ fun RecipeMainPage(context: StudioContext) {
         counts
     }
 
-    fun dispatchAddItem(slot: String, itemId: String) {
-        if (workspaceEntry == null) return
-        val editableTargetId = targetId ?: return
-        val itemIdentifier = Identifier.tryParse(itemId) ?: return
-        val slotIndex = slot.toIntOrNull() ?: return
+    val editorState = RecipeEditorState(
+        model = model,
+        selection = model.type,
+        recipeCounts = recipeCounts,
+        selectedItemId = selectedItemId,
+        paintMode = paintMode,
+        resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,
+        onSelectionChange = { newSelection ->
+            val nextType = if (newSelection == "minecraft:barrier") {
+                RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
+            } else if (!RecipeTreeData.isBlockId(newSelection)) {
+                newSelection
+            } else {
+                RecipeTreeData.getBlockConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
+            }
 
-        if (model.type == "minecraft:crafting_shapeless") {
+            if (nextType != model.type && targetId != null && workspaceEntry != null) {
+                context.dispatchRegistryAction(
+                    registry = Registries.RECIPE,
+                    target = targetId,
+                    action = RecipeEditorActions.ConvertRecipeType(Identifier.parse(nextType), true),
+                    dialogs = dialogs
+                )
+            }
+        },
+        onResultCountChange = { value ->
+            if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeEditorState
             context.dispatchRegistryAction(
                 registry = Registries.RECIPE,
-                target = editableTargetId,
-                action = RecipeEditorActions.AddShapelessIngredient(listOf(itemIdentifier)),
+                target = targetId,
+                action = RecipeEditorActions.SetResultCount(value),
                 dialogs = dialogs
             )
-        } else {
+        },
+        onAction = { action ->
+            if (targetId == null || workspaceEntry == null) return@RecipeEditorState
+            if (action is RecipeEditorActions.AddIngredient ||
+                action is RecipeEditorActions.AddShapelessIngredient) {
+                paintMode = PaintMode.PAINTING
+            } else if (action is RecipeEditorActions.RemoveIngredient) {
+                paintMode = PaintMode.ERASING
+            }
             context.dispatchRegistryAction(
                 registry = Registries.RECIPE,
-                target = editableTargetId,
-                action = RecipeEditorActions.AddIngredient(slotIndex, listOf(itemIdentifier), true),
+                target = targetId,
+                action = action,
                 dialogs = dialogs
             )
         }
-    }
-
-    fun dispatchClearSlot(slot: String) {
-        val editableTargetId = targetId ?: return
-        if (workspaceEntry == null) return
-        val slotIndex = slot.toIntOrNull() ?: return
-
-        context.dispatchRegistryAction(
-            registry = Registries.RECIPE,
-            target = editableTargetId,
-            action = RecipeEditorActions.RemoveIngredient(slotIndex, emptyList()),
-            dialogs = dialogs
-        )
-    }
+    )
 
     @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
     Box(
@@ -115,63 +126,10 @@ fun RecipeMainPage(context: StudioContext) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(32.dp),
             verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-            RecipeSection(
-                model = model,
-                selection = selection,
-                recipeCounts = recipeCounts,
-                onSelectionChange = { newSelection ->
-                    val nextType = if (newSelection == "minecraft:barrier") {
-                        RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
-                    } else if (!RecipeTreeData.isBlockId(newSelection)) {
-                        newSelection
-                    } else {
-                        RecipeTreeData.getBlockConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
-                    }
-
-                    if (nextType != model.type && targetId != null && workspaceEntry != null) {
-                        context.dispatchRegistryAction(
-                            registry = Registries.RECIPE,
-                            target = targetId,
-                            action = RecipeEditorActions.ConvertRecipeType(
-                                Identifier.parse(nextType), true
-                            ),
-                            dialogs = dialogs
-                        )
-                    }
-                },
-                onResultCountChange = { value ->
-                    if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeSection
-                    context.dispatchRegistryAction(
-                        registry = Registries.RECIPE,
-                        target = targetId,
-                        action = RecipeEditorActions.SetResultCount(value),
-                        dialogs = dialogs
-                    )
-                },
-                onSlotPointerDown = { slot, button ->
-                    when (button) {
-                        PointerButton.Primary -> {
-                            selectedItemId?.let { dispatchAddItem(slot, it) }
-                            paintMode = PaintMode.PAINTING
-                        }
-                        PointerButton.Secondary -> {
-                            dispatchClearSlot(slot)
-                            paintMode = PaintMode.ERASING
-                        }
-                        else -> {}
-                    }
-                },
-                onSlotPointerEnter = { slot ->
-                    when (paintMode) {
-                        PaintMode.PAINTING -> selectedItemId?.let { dispatchAddItem(slot, it) }
-                        PaintMode.ERASING -> dispatchClearSlot(slot)
-                        PaintMode.NONE -> {}
-                    }
-                },
-                resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,
+            RecipeEditorDispatch(
+                state = editorState,
                 modifier = Modifier.weight(1f)
             )
 

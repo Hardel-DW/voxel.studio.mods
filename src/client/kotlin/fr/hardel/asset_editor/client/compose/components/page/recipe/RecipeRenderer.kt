@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeVisualModel
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeVisualModel
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmeltingTemplate
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmithingTemplate

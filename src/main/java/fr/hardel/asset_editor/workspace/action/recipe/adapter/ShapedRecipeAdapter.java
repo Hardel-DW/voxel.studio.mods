@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -77,29 +76,16 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     }
 
     @Override
-    public boolean supportsConversionTarget() {
-        return true;
-    }
-
-    @Override
-    public @Nullable Recipe<?> convertFrom(Recipe<?> source, boolean preserveIngredients) {
-        if (!(source instanceof CraftingRecipe)) return null;
-
-        List<Ingredient> ingredients = preserveIngredients
-            ? RecipeAdapterRegistry.extractIngredients(source).stream().flatMap(Optional::stream).toList()
-            : List.of();
-
-        ItemStack result = RecipeAdapterRegistry.extractResult(source);
-
-        List<Optional<Ingredient>> grid = new ArrayList<>();
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        List<Optional<Ingredient>> grid = new ArrayList<>(9);
         for (int i = 0; i < 9; i++) {
-            grid.add(i < ingredients.size() ? Optional.of(ingredients.get(i)) : Optional.empty());
+            grid.add(i < ingredients.size() ? ingredients.get(i) : Optional.empty());
         }
 
         BoundingBox box = computeBoundingBox(grid, 3, 3);
         List<Optional<Ingredient>> shrunk = extractRegion(grid, 3, box);
         ShapedRecipePattern pattern = packPattern(shrunk, box.width());
-        return new ShapedRecipe(source.group(), CraftingBookCategory.MISC, pattern, result, true);
+        return new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result, true);
     }
 
     private static ShapedRecipePattern packPattern(List<Optional<Ingredient>> ingredients, int width) {

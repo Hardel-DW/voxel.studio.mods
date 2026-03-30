@@ -35,7 +35,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
-import fr.hardel.asset_editor.client.compose.components.page.recipe.model.RecipeRuntimeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeRuntimeEntry
 import net.minecraft.client.resources.language.I18n
 
 @Composable

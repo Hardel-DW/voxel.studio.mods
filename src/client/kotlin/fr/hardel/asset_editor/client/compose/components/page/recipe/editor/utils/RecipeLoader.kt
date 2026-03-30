@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.model
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload
 import fr.hardel.asset_editor.store.ElementEntry
@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegis
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
+import net.minecraft.util.context.ContextMap
 import net.minecraft.world.item.crafting.Recipe
 
 fun loadWorkspaceRecipeEntries(
@@ -41,7 +42,7 @@ fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry {
     )
 }
 
-private fun ElementEntry<Recipe<*>>.toRuntimeEntry(displayContext: net.minecraft.util.context.ContextMap?): RecipeRuntimeEntry? {
+private fun ElementEntry<Recipe<*>>.toRuntimeEntry(displayContext: ContextMap?): RecipeRuntimeEntry? {
     val recipe = data()
     val serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.serializer) ?: return null
     val serializer = serializerId.toString()

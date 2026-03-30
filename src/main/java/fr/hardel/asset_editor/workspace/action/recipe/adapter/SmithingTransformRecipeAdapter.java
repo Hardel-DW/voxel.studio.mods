@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.minecraft.world.item.crafting.TransmuteResult;
 
@@ -53,5 +55,19 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
     @Override
     public boolean supportsResultCount() {
         return true;
+    }
+
+    @Override
+    public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
+        Optional<Ingredient> template = ingredients.size() > 0 ? ingredients.get(0) : Optional.empty();
+        Ingredient base = ingredients.size() > 1
+            ? ingredients.get(1).orElse(Ingredient.of(Items.STONE))
+            : Ingredient.of(Items.STONE);
+        Optional<Ingredient> addition = ingredients.size() > 2 ? ingredients.get(2) : Optional.empty();
+
+        return new SmithingTransformRecipe(
+            template, base, addition,
+            new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())
+        );
     }
 }
