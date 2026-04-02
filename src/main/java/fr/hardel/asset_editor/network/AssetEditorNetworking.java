@@ -8,15 +8,15 @@ import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.studio.CompendiumEnchantmentSyncPayload;
+import fr.hardel.asset_editor.network.studio.CompendiumItemTagSyncPayload;
 import fr.hardel.asset_editor.network.studio.RecipeEntrySyncPayload;
-import fr.hardel.asset_editor.network.studio.SuggestedExclusiveSyncPayload;
-import fr.hardel.asset_editor.network.studio.SuggestedItemTagSyncPayload;
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.studio.CompendiumTagLoader;
 import fr.hardel.asset_editor.studio.RecipeEntryLoader;
-import fr.hardel.asset_editor.studio.SuggestedTagLoader;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import fr.hardel.asset_editor.permission.StudioPermissions;
@@ -63,8 +63,8 @@ public final class AssetEditorNetworking {
         PayloadTypeRegistry.playC2S().register(ElementSeedRequestPayload.TYPE, ElementSeedRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ElementSeedRequestPayload.TYPE, AssetEditorNetworking::handleElementSeedRequest);
 
-        PayloadTypeRegistry.playS2C().register(SuggestedItemTagSyncPayload.TYPE, SuggestedItemTagSyncPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(SuggestedExclusiveSyncPayload.TYPE, SuggestedExclusiveSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CompendiumItemTagSyncPayload.TYPE, CompendiumItemTagSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(CompendiumEnchantmentSyncPayload.TYPE, CompendiumEnchantmentSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(RecipeEntrySyncPayload.TYPE, RecipeEntrySyncPayload.CODEC);
     }
 
@@ -93,14 +93,14 @@ public final class AssetEditorNetworking {
     }
 
     public static void sendStudioConfig(ServerPlayer player) {
-        ServerPlayNetworking.send(player, new SuggestedItemTagSyncPayload(SuggestedTagLoader.itemGroups()));
-        ServerPlayNetworking.send(player, new SuggestedExclusiveSyncPayload(SuggestedTagLoader.enchantmentGroups()));
+        ServerPlayNetworking.send(player, new CompendiumItemTagSyncPayload(CompendiumTagLoader.itemGroups()));
+        ServerPlayNetworking.send(player, new CompendiumEnchantmentSyncPayload(CompendiumTagLoader.enchantmentGroups()));
         ServerPlayNetworking.send(player, new RecipeEntrySyncPayload(RecipeEntryLoader.entries()));
     }
 
     public static void broadcastStudioConfig(MinecraftServer server) {
-        SuggestedItemTagSyncPayload itemPayload = new SuggestedItemTagSyncPayload(SuggestedTagLoader.itemGroups());
-        SuggestedExclusiveSyncPayload exclusivePayload = new SuggestedExclusiveSyncPayload(SuggestedTagLoader.enchantmentGroups());
+        CompendiumItemTagSyncPayload itemPayload = new CompendiumItemTagSyncPayload(CompendiumTagLoader.itemGroups());
+        CompendiumEnchantmentSyncPayload exclusivePayload = new CompendiumEnchantmentSyncPayload(CompendiumTagLoader.enchantmentGroups());
         RecipeEntrySyncPayload recipePayload = new RecipeEntrySyncPayload(RecipeEntryLoader.entries());
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             ServerPlayNetworking.send(player, itemPayload);

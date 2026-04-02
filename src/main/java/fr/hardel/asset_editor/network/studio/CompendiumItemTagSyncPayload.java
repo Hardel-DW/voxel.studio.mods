@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.network.studio;
 
 import fr.hardel.asset_editor.AssetEditor;
-import fr.hardel.asset_editor.studio.SuggestedTagGroup;
+import fr.hardel.asset_editor.studio.CompendiumTagGroup;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -11,15 +11,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public record SuggestedItemTagSyncPayload(List<SuggestedTagGroup> groups) implements CustomPacketPayload {
+public record CompendiumItemTagSyncPayload(List<CompendiumTagGroup> groups) implements CustomPacketPayload {
 
-    public static final Type<SuggestedItemTagSyncPayload> TYPE = new Type<>(
-        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "suggested_item_tag_sync"));
+    public static final Type<CompendiumItemTagSyncPayload> TYPE = new Type<>(
+        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "compendium_item_tag_sync"));
 
-    public static final StreamCodec<ByteBuf, SuggestedItemTagSyncPayload> CODEC =
-        SuggestedTagGroup.STREAM_CODEC
+    public static final StreamCodec<ByteBuf, CompendiumItemTagSyncPayload> CODEC =
+        CompendiumTagGroup.STREAM_CODEC
             .apply(ByteBufCodecs.list())
-            .map(SuggestedItemTagSyncPayload::new, SuggestedItemTagSyncPayload::groups);
+            .map(CompendiumItemTagSyncPayload::new, CompendiumItemTagSyncPayload::groups);
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {

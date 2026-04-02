@@ -8,9 +8,9 @@ import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.studio.CompendiumEnchantmentSyncPayload;
+import fr.hardel.asset_editor.network.studio.CompendiumItemTagSyncPayload;
 import fr.hardel.asset_editor.network.studio.RecipeEntrySyncPayload;
-import fr.hardel.asset_editor.network.studio.SuggestedExclusiveSyncPayload;
-import fr.hardel.asset_editor.network.studio.SuggestedItemTagSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 
 import javax.swing.SwingUtilities;
@@ -53,12 +53,12 @@ public final class ClientSessionDispatch {
         runSessionUpdate(() -> catalogMemory.updateCatalog("minecraft:recipe", payload.entries()));
     }
 
-    public void handleSuggestedItemTagSync(SuggestedItemTagSyncPayload payload) {
-        runSessionUpdate(() -> studioConfigMemory.updateSuggestedItemGroups(payload.groups()));
+    public void handleCompendiumItemTagSync(CompendiumItemTagSyncPayload payload) {
+        runSessionUpdate(() -> studioConfigMemory.updateCompendiumItemGroups(payload.groups()));
     }
 
-    public void handleSuggestedExclusiveSync(SuggestedExclusiveSyncPayload payload) {
-        runSessionUpdate(() -> studioConfigMemory.updateSuggestedEnchantmentGroups(payload.groups()));
+    public void handleCompendiumEnchantmentSync(CompendiumEnchantmentSyncPayload payload) {
+        runSessionUpdate(() -> studioConfigMemory.updateCompendiumEnchantmentGroups(payload.groups()));
     }
 
     public void handleRecipeEntrySync(RecipeEntrySyncPayload payload) {

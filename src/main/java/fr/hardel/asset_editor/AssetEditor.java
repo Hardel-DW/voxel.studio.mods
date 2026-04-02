@@ -6,8 +6,8 @@ import fr.hardel.asset_editor.event.PlayerJoinEvent;
 import fr.hardel.asset_editor.event.SeverStartedEvent;
 import fr.hardel.asset_editor.event.ServerStoppedEvent;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
+import fr.hardel.asset_editor.studio.CompendiumTagLoader;
 import fr.hardel.asset_editor.studio.RecipeEntryLoader;
-import fr.hardel.asset_editor.studio.SuggestedTagLoader;
 import fr.hardel.asset_editor.workspace.action.EditorActionRegistries;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
 import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistries;
@@ -30,8 +30,8 @@ public class AssetEditor implements ModInitializer {
         WorkspaceBindings.register();
         AssetEditorNetworking.register();
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
-            Identifier.fromNamespaceAndPath(MOD_ID, "studio_suggested_tags"),
-            new SuggestedTagLoader());
+            Identifier.fromNamespaceAndPath(MOD_ID, "studio_compendium_tags"),
+            new CompendiumTagLoader());
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
             Identifier.fromNamespaceAndPath(MOD_ID, "studio_recipe_entries"),
             new RecipeEntryLoader());

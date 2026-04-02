@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.lib.data
 
 import fr.hardel.asset_editor.client.AssetEditorClient
-import fr.hardel.asset_editor.studio.SuggestedTagEntry
+import fr.hardel.asset_editor.studio.CompendiumTagEntry
 import fr.hardel.asset_editor.tag.TagSeed
 import net.minecraft.resources.Identifier
 
@@ -14,7 +14,7 @@ object EnchantmentTreeData {
             .itemEntriesFor(ENCHANTABLE_GROUP)
             .map { entry -> ItemTagConfig(entry.id(), toSeed(entry)) }
 
-    private fun toSeed(entry: SuggestedTagEntry): TagSeed? {
+    private fun toSeed(entry: CompendiumTagEntry): TagSeed? {
         if (!entry.hasDefaults()) return null
         return TagSeed.fromValueLiterals(entry.defaults())
     }

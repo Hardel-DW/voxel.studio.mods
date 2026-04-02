@@ -3,9 +3,9 @@ package fr.hardel.asset_editor.client.memory.session;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
+import fr.hardel.asset_editor.studio.CompendiumTagEntry;
+import fr.hardel.asset_editor.studio.CompendiumTagGroup;
 import fr.hardel.asset_editor.studio.RecipeEntryDefinition;
-import fr.hardel.asset_editor.studio.SuggestedTagEntry;
-import fr.hardel.asset_editor.studio.SuggestedTagGroup;
 import net.minecraft.resources.Identifier;
 
 import java.util.List;
@@ -13,13 +13,13 @@ import java.util.List;
 public final class StudioConfigMemory implements ReadableMemory<StudioConfigMemory.Snapshot> {
 
     public record Snapshot(
-        List<SuggestedTagGroup> suggestedItemGroups,
-        List<SuggestedTagGroup> suggestedEnchantmentGroups,
+        List<CompendiumTagGroup> compendiumItemGroups,
+        List<CompendiumTagGroup> compendiumEnchantmentGroups,
         List<RecipeEntryDefinition> recipeEntries
     ) {
         public Snapshot {
-            suggestedItemGroups = List.copyOf(suggestedItemGroups == null ? List.of() : suggestedItemGroups);
-            suggestedEnchantmentGroups = List.copyOf(suggestedEnchantmentGroups == null ? List.of() : suggestedEnchantmentGroups);
+            compendiumItemGroups = List.copyOf(compendiumItemGroups == null ? List.of() : compendiumItemGroups);
+            compendiumEnchantmentGroups = List.copyOf(compendiumEnchantmentGroups == null ? List.of() : compendiumEnchantmentGroups);
             recipeEntries = List.copyOf(recipeEntries == null ? List.of() : recipeEntries);
         }
 
@@ -27,16 +27,16 @@ public final class StudioConfigMemory implements ReadableMemory<StudioConfigMemo
             return new Snapshot(List.of(), List.of(), List.of());
         }
 
-        public List<SuggestedTagEntry> itemEntriesFor(Identifier groupId) {
-            return entriesFor(suggestedItemGroups, groupId);
+        public List<CompendiumTagEntry> itemEntriesFor(Identifier groupId) {
+            return entriesFor(compendiumItemGroups, groupId);
         }
 
-        public List<SuggestedTagEntry> enchantmentEntriesFor(Identifier groupId) {
-            return entriesFor(suggestedEnchantmentGroups, groupId);
+        public List<CompendiumTagEntry> enchantmentEntriesFor(Identifier groupId) {
+            return entriesFor(compendiumEnchantmentGroups, groupId);
         }
 
-        private static List<SuggestedTagEntry> entriesFor(List<SuggestedTagGroup> groups, Identifier groupId) {
-            for (SuggestedTagGroup group : groups) {
+        private static List<CompendiumTagEntry> entriesFor(List<CompendiumTagGroup> groups, Identifier groupId) {
+            for (CompendiumTagGroup group : groups) {
                 if (group.id().equals(groupId))
                     return group.entries();
             }
@@ -56,16 +56,16 @@ public final class StudioConfigMemory implements ReadableMemory<StudioConfigMemo
         return memory.subscribe(listener);
     }
 
-    public void updateSuggestedItemGroups(List<SuggestedTagGroup> groups) {
-        memory.update(state -> new Snapshot(groups, state.suggestedEnchantmentGroups(), state.recipeEntries()));
+    public void updateCompendiumItemGroups(List<CompendiumTagGroup> groups) {
+        memory.update(state -> new Snapshot(groups, state.compendiumEnchantmentGroups(), state.recipeEntries()));
     }
 
-    public void updateSuggestedEnchantmentGroups(List<SuggestedTagGroup> groups) {
-        memory.update(state -> new Snapshot(state.suggestedItemGroups(), groups, state.recipeEntries()));
+    public void updateCompendiumEnchantmentGroups(List<CompendiumTagGroup> groups) {
+        memory.update(state -> new Snapshot(state.compendiumItemGroups(), groups, state.recipeEntries()));
     }
 
     public void updateRecipeEntries(List<RecipeEntryDefinition> entries) {
-        memory.update(state -> new Snapshot(state.suggestedItemGroups(), state.suggestedEnchantmentGroups(), entries));
+        memory.update(state -> new Snapshot(state.compendiumItemGroups(), state.compendiumEnchantmentGroups(), entries));
     }
 
     public void clear() {

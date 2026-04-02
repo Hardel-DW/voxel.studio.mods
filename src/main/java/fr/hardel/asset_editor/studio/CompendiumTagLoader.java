@@ -21,21 +21,21 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public final class SuggestedTagLoader implements PreparableReloadListener {
+public final class CompendiumTagLoader implements PreparableReloadListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SuggestedTagLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompendiumTagLoader.class);
 
-    private static final FileToIdConverter ITEM_LISTER = FileToIdConverter.json("studio/suggested/item");
-    private static final FileToIdConverter ENCHANTMENT_LISTER = FileToIdConverter.json("studio/suggested/enchantment");
+    private static final FileToIdConverter ITEM_LISTER = FileToIdConverter.json("studio/compendium/item");
+    private static final FileToIdConverter ENCHANTMENT_LISTER = FileToIdConverter.json("studio/compendium/enchantment");
 
-    private static volatile List<SuggestedTagGroup> itemGroups = List.of();
-    private static volatile List<SuggestedTagGroup> enchantmentGroups = List.of();
+    private static volatile List<CompendiumTagGroup> itemGroups = List.of();
+    private static volatile List<CompendiumTagGroup> enchantmentGroups = List.of();
 
-    public static List<SuggestedTagGroup> itemGroups() {
+    public static List<CompendiumTagGroup> itemGroups() {
         return itemGroups;
     }
 
-    public static List<SuggestedTagGroup> enchantmentGroups() {
+    public static List<CompendiumTagGroup> enchantmentGroups() {
         return enchantmentGroups;
     }
 
@@ -48,50 +48,50 @@ public final class SuggestedTagLoader implements PreparableReloadListener {
     }
 
     private PreparedData prepare(ResourceManager manager) {
-        List<SuggestedTagGroup> items = loadMerged(manager, ITEM_LISTER);
-        List<SuggestedTagGroup> enchantments = loadMerged(manager, ENCHANTMENT_LISTER);
+        List<CompendiumTagGroup> items = loadMerged(manager, ITEM_LISTER);
+        List<CompendiumTagGroup> enchantments = loadMerged(manager, ENCHANTMENT_LISTER);
         return new PreparedData(items, enchantments);
     }
 
     private void apply(PreparedData data) {
         itemGroups = data.itemGroups();
         enchantmentGroups = data.enchantmentGroups();
-        LOGGER.info("Loaded {} suggested item groups, {} suggested enchantment groups", itemGroups.size(), enchantmentGroups.size());
+        LOGGER.info("Loaded {} compendium item groups, {} compendium enchantment groups", itemGroups.size(), enchantmentGroups.size());
     }
 
-    private List<SuggestedTagGroup> loadMerged(ResourceManager manager, FileToIdConverter lister) {
-        List<SuggestedTagGroup> result = new ArrayList<>();
+    private List<CompendiumTagGroup> loadMerged(ResourceManager manager, FileToIdConverter lister) {
+        List<CompendiumTagGroup> result = new ArrayList<>();
 
         for (Map.Entry<Identifier, List<Resource>> entry : lister.listMatchingResourceStacks(manager).entrySet()) {
             Identifier location = entry.getKey();
             Identifier groupId = lister.fileToId(location);
-            List<SuggestedTagEntry> accumulated = new ArrayList<>();
+            List<CompendiumTagEntry> accumulated = new ArrayList<>();
 
             for (Resource resource : entry.getValue()) {
                 try (Reader reader = resource.openAsReader()) {
                     JsonElement element = StrictJsonParser.parse(reader);
-                    SuggestedTagFile file = SuggestedTagFile.CODEC.parse(new Dynamic<>(JsonOps.INSTANCE, element)).getOrThrow();
+                    CompendiumTagFile file = CompendiumTagFile.CODEC.parse(new Dynamic<>(JsonOps.INSTANCE, element)).getOrThrow();
                     if (file.replace()) {
                         accumulated.clear();
                     }
                     accumulated.addAll(file.values());
                 } catch (Exception e) {
-                    LOGGER.error("Failed to load suggested tags from {} in pack {}", location, resource.sourcePackId(), e);
+                    LOGGER.error("Failed to load compendium tags from {} in pack {}", location, resource.sourcePackId(), e);
                 }
             }
 
-            result.add(new SuggestedTagGroup(groupId, List.copyOf(accumulated)));
+            result.add(new CompendiumTagGroup(groupId, List.copyOf(accumulated)));
         }
 
         return List.copyOf(result);
     }
 
-    private record PreparedData(List<SuggestedTagGroup> itemGroups, List<SuggestedTagGroup> enchantmentGroups) {}
+    private record PreparedData(List<CompendiumTagGroup> itemGroups, List<CompendiumTagGroup> enchantmentGroups) {}
 
-    private record SuggestedTagFile(List<SuggestedTagEntry> values, boolean replace) {
-        static final Codec<SuggestedTagFile> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            SuggestedTagEntry.CODEC.listOf().fieldOf("values").forGetter(SuggestedTagFile::values),
-            Codec.BOOL.optionalFieldOf("replace", false).forGetter(SuggestedTagFile::replace)
-        ).apply(instance, SuggestedTagFile::new));
+    private record CompendiumTagFile(List<CompendiumTagEntry> values, boolean replace) {
+        static final Codec<CompendiumTagFile> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            CompendiumTagEntry.CODEC.listOf().fieldOf("values").forGetter(CompendiumTagFile::values),
+            Codec.BOOL.optionalFieldOf("replace", false).forGetter(CompendiumTagFile::replace)
+        ).apply(instance, CompendiumTagFile::new));
     }
 }
