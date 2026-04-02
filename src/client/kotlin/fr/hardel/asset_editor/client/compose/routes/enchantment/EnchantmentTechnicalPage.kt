@@ -21,6 +21,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.components.ui.SwitchCard
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
@@ -157,4 +158,11 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
     }
 
     RegistryPageDialogs(context, dialogs)
+}
+
+class EnchantmentTechnicalTabPage : BaseStudioEditorTabPage("enchantment", "technical") {
+    @Composable
+    override fun Render(context: StudioContext) {
+        EnchantmentTechnicalPage(context)
+    }
 }

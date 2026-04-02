@@ -37,12 +37,11 @@ import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentViewMatchers
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
@@ -58,7 +57,8 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 fun EnchantmentOverviewPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
-    val conceptUi = rememberConceptUi(context, StudioConcept.ENCHANTMENT)
+    val concept = StudioConcepts.requireByRegistryKey(Registries.ENCHANTMENT)
+    val conceptUi = rememberConceptUi(context, concept)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
     val filterPath = conceptUi.filterPath.trim().lowercase(Locale.ROOT)
     val sidebarView = conceptUi.sidebarView
@@ -77,7 +77,7 @@ fun EnchantmentOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.ENCHANTMENT, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(concept, value) },
                 placeholder = I18n.get("enchantment:overview.search"),
                 maxWidth = 576.dp
             )
@@ -140,6 +140,7 @@ private fun OverviewRow(
     entry: ElementEntry<Enchantment>,
     dialogs: RegistryDialogState
 ) {
+    val concept = StudioConcepts.requireByRegistryKey(Registries.ENCHANTMENT)
     val enabled = !EnchantmentFlushAdapter.isSoftDeleted(entry)
     val itemId = remember(entry) {
         EnchantmentFlushAdapter.previewItemId(entry.data()) { tag -> context.resolveTag(Registries.ITEM, tag) }
@@ -148,7 +149,7 @@ private fun OverviewRow(
     val hovered by interaction.collectIsHoveredAsState()
     val openEntry = {
         context.navigationMemory().openElement(
-            StudioConcept.ENCHANTMENT.editor(entry.id().toString(), StudioEditorTab.MAIN)
+            concept.editor(entry.id().toString(), concept.defaultEditorTab)
         )
     }
 

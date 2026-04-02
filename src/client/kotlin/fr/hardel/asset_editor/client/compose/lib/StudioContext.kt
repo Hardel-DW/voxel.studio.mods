@@ -7,6 +7,8 @@ import fr.hardel.asset_editor.client.compose.lib.assets.DefaultStudioPrefetcher
 import fr.hardel.asset_editor.client.compose.lib.assets.StudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.assets.StudioPrefetcher
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.memory.debug.DebugMemory
@@ -54,7 +56,9 @@ class StudioContext(
         fun handlePermissions(permissions: fr.hardel.asset_editor.permission.StudioPermissions) {
             navigationMemory.revalidate(permissions)
             if (navigationMemory.snapshot().current is NoPermissionDestination) {
-                StudioConcept.firstAccessible(permissions)?.let { concept ->
+                StudioConcepts.firstAccessible(permissions)
+                    ?.takeIf(StudioRenderRegistry::hasLayout)
+                    ?.let { concept ->
                     navigationMemory.navigate(concept.overview())
                 }
             }

@@ -26,8 +26,9 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
@@ -39,7 +40,7 @@ import net.minecraft.resources.Identifier
 
 @Composable
 fun RecipeMainPage(context: StudioContext) {
-    val editor = rememberCurrentElementDestination(context, StudioConcept.RECIPE)
+    val editor = rememberCurrentElementDestination(context, StudioConcepts.requireByRegistryKey(Registries.RECIPE))
     val entries = rememberRecipeEntries(context)
     val runtimeEntry = rememberRecipeEntry(context, editor?.elementId)
     val workspaceEntry = rememberCurrentRegistryEntry(context, Registries.RECIPE)
@@ -160,5 +161,12 @@ fun RecipeMainPage(context: StudioContext) {
         }
 
         RegistryPageDialogs(context, dialogs)
+    }
+}
+
+class RecipeMainTabPage : BaseStudioEditorTabPage("recipe", "main") {
+    @Composable
+    override fun Render(context: StudioContext) {
+        RecipeMainPage(context)
     }
 }

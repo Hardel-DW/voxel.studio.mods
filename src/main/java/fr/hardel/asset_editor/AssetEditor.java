@@ -8,6 +8,7 @@ import fr.hardel.asset_editor.event.ServerStoppedEvent;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.studio.CompendiumTagLoader;
 import fr.hardel.asset_editor.studio.RecipeEntryLoader;
+import fr.hardel.asset_editor.studio.StudioRegistries;
 import fr.hardel.asset_editor.workspace.action.EditorActionRegistries;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
 import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistries;
@@ -24,6 +25,7 @@ public class AssetEditor implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        StudioRegistries.register();
         EditorActionRegistries.register();
         RecipeAdapterRegistries.register();
         MutationHandlerRegistries.register();

@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
+import net.minecraft.core.registries.Registries;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -95,7 +96,7 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
     }
 
     private ConceptUiSnapshot defaultSnapshot(StudioConcept concept) {
-        if (concept == StudioConcept.ENCHANTMENT)
+        if (concept.getRegistryKey().equals(Registries.ENCHANTMENT))
             return new ConceptUiSnapshot("", "", StudioSidebarView.SLOTS, Set.of());
 
         return new ConceptUiSnapshot();

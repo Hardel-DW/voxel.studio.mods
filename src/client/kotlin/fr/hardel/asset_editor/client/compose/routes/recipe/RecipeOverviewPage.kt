@@ -35,11 +35,11 @@ import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
 private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg")
@@ -47,7 +47,8 @@ private const val OVERVIEW_BATCH_SIZE = 16
 
 @Composable
 fun RecipeOverviewPage(context: StudioContext) {
-    val conceptUi = rememberConceptUi(context, StudioConcept.RECIPE)
+    val concept = StudioConcepts.requireByRegistryKey(Registries.RECIPE)
+    val conceptUi = rememberConceptUi(context, concept)
     val entries = rememberRecipeEntries(context)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
     val filtered = remember(entries, search, conceptUi.filterPath) {
@@ -94,7 +95,7 @@ fun RecipeOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiMemory().updateSearch(StudioConcept.RECIPE, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(concept, value) },
                 placeholder = I18n.get("recipe:overview.search"),
                 maxWidth = 576.dp
             )
@@ -146,7 +147,7 @@ fun RecipeOverviewPage(context: StudioContext) {
                         element = entry,
                         onConfigure = {
                             context.navigationMemory().openElement(
-                                StudioConcept.RECIPE.editor(entry.id.toString(), StudioEditorTab.MAIN)
+                                concept.editor(entry.id.toString(), concept.defaultEditorTab)
                             )
                         },
                         modifier = Modifier.height(340.dp)

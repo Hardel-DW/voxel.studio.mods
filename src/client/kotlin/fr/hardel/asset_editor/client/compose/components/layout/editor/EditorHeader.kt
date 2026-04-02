@@ -162,11 +162,11 @@ fun EditorHeader(
                     ) {
                         concept.tabs.forEach { tab ->
                             EditorHeaderTabItem(
-                                label = I18n.get(tab.translationKey),
-                                active = tab.tab == editorDestination.tab,
+                                label = I18n.get(concept.tabTranslationKey(tab)),
+                                active = tab == editorDestination.tab,
                                 onClick = {
                                     context.navigationMemory().replaceCurrentTab(
-                                        editorDestination.copy(tab = tab.tab)
+                                        editorDestination.copy(tab = tab)
                                     )
                                 }
                             )

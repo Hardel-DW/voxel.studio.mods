@@ -1,0 +1,8 @@
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentMainTabPage
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentFindTabPage
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlotsTabPage
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentItemsTabPage
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentExclusiveTabPage
+fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalTabPage
+fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainTabPage
+fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainTabPage

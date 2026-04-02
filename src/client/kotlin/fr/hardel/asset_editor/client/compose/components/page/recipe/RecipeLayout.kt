@@ -7,21 +7,22 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLay
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioConceptRenderer
+import fr.hardel.asset_editor.client.compose.lib.data.StudioEditorTabPages
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
-import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeOverviewPage
 import kotlinx.collections.immutable.toImmutableSet
+import net.minecraft.core.registries.Registries
 
 @Composable
 fun RecipeLayout(context: StudioContext) {
-    val concept = StudioConcept.RECIPE
+    val concept = StudioConcepts.requireByRegistryKey(Registries.RECIPE)
     val conceptUi = rememberConceptUi(context, concept)
     val entries = rememberRecipeEntries(context)
     val currentEditor = rememberCurrentElementDestination(context, concept)
@@ -46,7 +47,7 @@ fun RecipeLayout(context: StudioContext) {
             context.navigationMemory().navigate(concept.overview())
         },
         onSelectElement = { elementId ->
-            context.navigationMemory().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
+            context.navigationMemory().openElement(concept.editor(elementId, concept.defaultEditorTab))
         },
         onToggleExpanded = { path, expanded ->
             context.uiMemory().setTreeExpanded(concept, path, expanded)
@@ -64,11 +65,21 @@ fun RecipeLayout(context: StudioContext) {
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> RecipeOverviewPage(context)
-                    is ElementEditorDestination -> RecipeMainPage(context)
+                    is ElementEditorDestination -> if (!StudioEditorTabPages.Render(context, destination)) EmptyPage()
                     else -> EmptyPage()
                 }
             },
             sidebarExtras = emptyList()
         )
     )
+}
+
+class RecipeStudioConceptRenderer : BaseStudioConceptRenderer(
+    conceptPath = "recipe",
+    shouldPrefetchAtlas = true
+) {
+    @Composable
+    override fun Render(context: StudioContext) {
+        RecipeLayout(context)
+    }
 }

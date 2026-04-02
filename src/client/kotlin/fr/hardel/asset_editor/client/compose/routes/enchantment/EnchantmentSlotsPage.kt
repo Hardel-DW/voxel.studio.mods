@@ -20,6 +20,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
@@ -28,6 +29,7 @@ import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
+import net.minecraft.resources.Identifier
 
 @Composable
 fun EnchantmentSlotsPage(context: StudioContext) {
@@ -94,4 +96,11 @@ fun EnchantmentSlotsPage(context: StudioContext) {
     }
 
     RegistryPageDialogs(context, dialogs)
+}
+
+class EnchantmentSlotsTabPage : BaseStudioEditorTabPage("enchantment", "slots") {
+    @Composable
+    override fun Render(context: StudioContext) {
+        EnchantmentSlotsPage(context)
+    }
 }

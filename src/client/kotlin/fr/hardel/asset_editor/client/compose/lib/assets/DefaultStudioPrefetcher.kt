@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib.assets
 
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
@@ -19,7 +20,7 @@ class DefaultStudioPrefetcher(
                 is ConceptChangesDestination -> prefetchConcept(destination.concept)
                 is ElementEditorDestination -> {
                     prefetchConcept(destination.concept)
-                    if (destination.concept == StudioConcept.ENCHANTMENT || destination.concept == StudioConcept.RECIPE) {
+                    if (StudioRenderRegistry.shouldPrefetchAtlas(destination.concept)) {
                         ItemAtlasGenerator.getAtlasImage()
                     }
                 }
@@ -31,7 +32,7 @@ class DefaultStudioPrefetcher(
 
     private fun prefetchConcept(concept: StudioConcept) {
         assetCache.bitmap(concept.icon)
-        if (concept == StudioConcept.ENCHANTMENT || concept == StudioConcept.RECIPE) {
+        if (StudioRenderRegistry.shouldPrefetchAtlas(concept)) {
             ItemAtlasGenerator.getAtlasImage()
         }
     }

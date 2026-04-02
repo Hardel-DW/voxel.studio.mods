@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.memory.navigation;
 
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept;
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
@@ -195,11 +196,11 @@ public final class NavigationMemory implements ReadableMemory<NavigationMemory.S
         if (destination instanceof ConceptChangesDestination changesDestination)
             return changesDestination.getConcept().overview();
 
-        StudioConcept concept = StudioConcept.firstAccessible(permissionSupplier.get());
+        StudioConcept concept = StudioConcepts.firstAccessible(permissionSupplier.get());
         return concept != null ? concept.overview() : NoPermissionDestination.INSTANCE;
     }
 
     private String tabIdOf(ElementEditorDestination destination) {
-        return destination.getConcept().name() + ":" + destination.getElementId();
+        return destination.getConcept().getId() + ":" + destination.getElementId();
     }
 }

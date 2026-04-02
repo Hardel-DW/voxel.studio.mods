@@ -11,9 +11,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTree
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
-import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
@@ -22,21 +22,16 @@ import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
-import fr.hardel.asset_editor.client.navigation.StudioEditorTab
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentExclusivePage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentFindPage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentItemsPage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentMainPage
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioConceptRenderer
+import fr.hardel.asset_editor.client.compose.lib.data.StudioEditorTabPages
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlotsPage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalPage
 import kotlinx.collections.immutable.toImmutableSet
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
 @Composable
 fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
-    val concept = StudioConcept.ENCHANTMENT
+    val concept = StudioConcepts.requireByRegistryKey(Registries.ENCHANTMENT)
     val conceptUi = rememberConceptUi(context, concept)
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val sidebarView = conceptUi.sidebarView
@@ -76,7 +71,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                 context.navigationMemory().navigate(concept.overview())
             },
             onSelectElement = { elementId ->
-                context.navigationMemory().openElement(concept.editor(elementId, StudioEditorTab.MAIN))
+                context.navigationMemory().openElement(concept.editor(elementId, concept.defaultEditorTab))
             },
             onToggleExpanded = { path, expanded ->
                 context.uiMemory().setTreeExpanded(concept, path, expanded)
@@ -96,15 +91,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                 when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)
                     is ConceptSimulationDestination -> EmptyPage()
-                    is ElementEditorDestination -> when (destination.tab) {
-                        StudioEditorTab.MAIN -> EnchantmentMainPage(context)
-                        StudioEditorTab.FIND -> EnchantmentFindPage(context)
-                        StudioEditorTab.SLOTS -> EnchantmentSlotsPage(context)
-                        StudioEditorTab.ITEMS -> EnchantmentItemsPage(context)
-                        StudioEditorTab.EXCLUSIVE -> EnchantmentExclusivePage(context)
-                        StudioEditorTab.TECHNICAL -> EnchantmentTechnicalPage(context)
-                        else -> EmptyPage()
-                    }
+                    is ElementEditorDestination -> if (!StudioEditorTabPages.Render(context, destination)) EmptyPage()
 
                     else -> EmptyPage()
                 }
@@ -143,4 +130,15 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
         ),
         modifier = modifier
     )
+}
+
+class EnchantmentStudioConceptRenderer : BaseStudioConceptRenderer(
+    conceptPath = "enchantment",
+    supportsSimulation = true,
+    shouldPrefetchAtlas = true
+) {
+    @Composable
+    override fun Render(context: StudioContext) {
+        EnchantmentLayout(context)
+    }
 }

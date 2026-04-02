@@ -31,6 +31,8 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
+import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
@@ -67,9 +69,13 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .height(64.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable {
-                    val overview = StudioConcept.firstAccessible(permissions)?.overview()
-                        ?: StudioConcept.ENCHANTMENT.overview()
-                    context.navigationMemory().navigate(overview)
+                    val overview = StudioConcepts.firstAccessible(permissions)
+                        ?.takeIf(StudioRenderRegistry::hasLayout)
+                        ?.overview()
+                        ?: StudioRenderRegistry.firstSupportedConcept()?.overview()
+                    if (overview != null) {
+                        context.navigationMemory().navigate(overview)
+                    }
                 }
         ) {
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
@@ -85,8 +91,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .padding(top = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            StudioConcept.entries
-                .filter { it != StudioConcept.STRUCTURE }
+            StudioRenderRegistry.supportedConcepts()
                 .filter { !permissions.isNone }
                 .forEach { concept ->
                     ConceptButton(

@@ -5,11 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesLayout
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentLayout
-import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableLayout
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeLayout
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
@@ -30,28 +27,21 @@ fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
             is DebugDestination -> DebugLayout(context)
             is ConceptChangesDestination -> ChangesLayout()
             is ConceptOverviewDestination -> {
-                when (destination.concept) {
-                    StudioConcept.ENCHANTMENT -> EnchantmentLayout(context)
-                    StudioConcept.LOOT_TABLE -> LootTableLayout(context)
-                    StudioConcept.RECIPE -> RecipeLayout(context)
-                    else -> NoPermissionPage()
-                }
+                if (StudioRenderRegistry.hasLayout(destination.concept)) {
+                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                } else NoPermissionPage()
             }
 
             is ConceptSimulationDestination -> {
-                when (destination.concept) {
-                    StudioConcept.ENCHANTMENT -> EnchantmentLayout(context)
-                    else -> NoPermissionPage()
-                }
+                if (StudioRenderRegistry.supportsSimulation(destination.concept)) {
+                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                } else NoPermissionPage()
             }
 
             is ElementEditorDestination -> {
-                when (destination.concept) {
-                    StudioConcept.ENCHANTMENT -> EnchantmentLayout(context)
-                    StudioConcept.LOOT_TABLE -> LootTableLayout(context)
-                    StudioConcept.RECIPE -> RecipeLayout(context)
-                    else -> NoPermissionPage()
-                }
+                if (StudioRenderRegistry.hasLayout(destination.concept)) {
+                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                } else NoPermissionPage()
             }
         }
     }

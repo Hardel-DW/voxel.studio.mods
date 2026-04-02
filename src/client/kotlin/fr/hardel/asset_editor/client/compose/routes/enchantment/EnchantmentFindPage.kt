@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
@@ -81,4 +82,11 @@ fun EnchantmentFindPage(context: StudioContext) {
     }
 
     RegistryPageDialogs(context, dialogs)
+}
+
+class EnchantmentFindTabPage : BaseStudioEditorTabPage("enchantment", "find") {
+    @Composable
+    override fun Render(context: StudioContext) {
+        EnchantmentFindPage(context)
+    }
 }

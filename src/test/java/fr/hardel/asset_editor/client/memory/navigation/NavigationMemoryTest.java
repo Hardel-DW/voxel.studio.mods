@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.navigation.ElementEditorDestination;
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination;
 import fr.hardel.asset_editor.client.navigation.StudioEditorTab;
 import fr.hardel.asset_editor.permission.StudioPermissions;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,9 +18,9 @@ class NavigationMemoryTest {
     void revalidateClearsTabsWhenCurrentDestinationBecomesForbidden() {
         NavigationMemory memory = new NavigationMemory(() -> StudioPermissions.ADMIN);
         ElementEditorDestination destination = new ElementEditorDestination(
-            StudioConcept.ENCHANTMENT,
+            new StudioConcept(Identifier.fromNamespaceAndPath("asset_editor", "enchantment")),
             "minecraft:sharpness",
-            StudioEditorTab.MAIN
+            new StudioEditorTab(Identifier.fromNamespaceAndPath("asset_editor", "main"))
         );
 
         memory.openElement(destination);
