@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.loot_table
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeUtils
-import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
+import net.minecraft.resources.Identifier
 
 object LootTableTreeBuilder {
 
@@ -11,8 +11,7 @@ object LootTableTreeBuilder {
         root.count = elementIds.size
 
         elementIds.forEach { elementId ->
-            val parsed = StudioElementId.parse(elementId) ?: return@forEach
-            val identifier = parsed.identifier
+            val identifier = Identifier.tryParse(elementId) ?: return@forEach
             val parts = identifier.path.split("/")
 
             var current = ensureFolder(root, identifier.namespace)

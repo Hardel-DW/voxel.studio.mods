@@ -35,7 +35,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
@@ -268,8 +267,8 @@ private fun resolveTitle(
         return I18n.get(context.studioTitleKey(conceptId))
     }
 
-    val parsed = StudioElementId.parse(id) ?: return id
-    return StudioText.resolve(conceptRegistryKey, parsed.identifier)
+    val identifier = Identifier.tryParse(id) ?: return id
+    return StudioText.resolve(conceptRegistryKey, identifier)
 }
 
 private fun resolveColorKey(
@@ -295,16 +294,16 @@ private fun buildBreadcrumbSegments(
     }
 
     val id = treeState.selectedElementId ?: return emptyList()
-    val parsed = StudioElementId.parse(id) ?: return listOf(id)
-    val resourceParts = parsed.resourcePath().split("/")
+    val identifier = Identifier.tryParse(id) ?: return listOf(id)
+    val resourceParts = identifier.path.split("/")
 
     return buildList {
-        add(parsed.namespace())
+        add(identifier.namespace)
         resourceParts.forEachIndexed { index, part ->
             val segmentId = if (index == resourceParts.lastIndex) {
-                parsed.identifier
+                identifier
             } else {
-                Identifier.fromNamespaceAndPath(parsed.namespace(), part)
+                Identifier.fromNamespaceAndPath(identifier.namespace, part)
             }
             add(StudioText.resolve(conceptRegistryKey, segmentId))
         }

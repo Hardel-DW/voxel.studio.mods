@@ -37,7 +37,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
@@ -117,9 +116,9 @@ private fun StudioEditorTabItem(
     val closeHovered by closeInteraction.collectIsHoveredAsState()
     val conceptId = tab.destination.conceptId
     val conceptRegistryKey = context.studioRegistryKey(conceptId)
-    val parsed = StudioElementId.parse(tab.destination.elementId)
-    val label = if (parsed != null) {
-        StudioText.resolve(conceptRegistryKey, parsed.identifier)
+    val identifier = Identifier.tryParse(tab.destination.elementId)
+    val label = if (identifier != null) {
+        StudioText.resolve(conceptRegistryKey, identifier)
     } else {
         tab.destination.elementId
     }
