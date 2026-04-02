@@ -37,34 +37,16 @@ import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
-import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
-private val ADVANCED_TYPES = linkedMapOf(
-    "minecraft:crafting_shaped" to "recipe:crafting.crafting_shaped",
-    "minecraft:crafting_shapeless" to "recipe:crafting.crafting_shapeless",
-    "minecraft:crafting_transmute" to "recipe:crafting.crafting_transmute",
-    "minecraft:smithing_transform" to "recipe:crafting.smithing_transform",
-    "minecraft:smithing_trim" to "recipe:crafting.smithing_trim",
-    "minecraft:crafting_special_repairitem" to "recipe:crafting.crafting_special_repairitem",
-    "minecraft:crafting_special_mapcloning" to "recipe:crafting.crafting_special_mapcloning",
-    "minecraft:crafting_special_mapextending" to "recipe:crafting.crafting_special_mapextending",
-    "minecraft:crafting_special_shielddecoration" to "recipe:crafting.crafting_special_shielddecoration",
-    "minecraft:crafting_decorated_pot" to "recipe:crafting.crafting_decorated_pot",
-    "minecraft:crafting_special_firework_rocket" to "recipe:crafting.crafting_special_firework_rocket",
-    "minecraft:crafting_special_firework_star" to "recipe:crafting.crafting_special_firework_star",
-    "minecraft:crafting_special_firework_star_fade" to "recipe:crafting.crafting_special_firework_star_fade",
-    "minecraft:crafting_special_tippedarrow" to "recipe:crafting.crafting_special_tippedarrow",
-    "minecraft:crafting_special_armordye" to "recipe:crafting.crafting_special_armordye",
-    "minecraft:crafting_special_bannerduplicate" to "recipe:crafting.crafting_special_bannerduplicate",
-    "minecraft:crafting_special_bookcloning" to "recipe:crafting.crafting_special_bookcloning"
-)
-
 private fun recipeTypeLabel(type: String): String =
-    ADVANCED_TYPES[type]?.let { key -> I18n.get("$key.name") } ?: type
+    recipeTranslationBase(type)?.let { base -> I18n.get("$base.name") } ?: type
+
+private fun recipeTranslationBase(type: String): String? =
+    Identifier.tryParse(type)?.let { "recipe:crafting.${it.path}" }
 
 @Composable
 fun RecipeSelector(
@@ -155,16 +137,18 @@ fun RecipeSelector(
                         )
 
                         if (advancedExpanded) {
+                            val advancedTypes = RecipeTreeData.getAdvancedRecipeTypes()
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier
                                     .heightIn(max = 300.dp)
                                     .verticalScroll(rememberScrollState())
                             ) {
-                                ADVANCED_TYPES.forEach { (type, key) ->
+                                advancedTypes.forEach { type ->
+                                    val translationBase = recipeTranslationBase(type) ?: return@forEach
                                     AdvancedTypeRow(
-                                        label = I18n.get("$key.name"),
-                                        description = I18n.get("$key.description"),
+                                        label = I18n.get("$translationBase.name"),
+                                        description = I18n.get("$translationBase.description"),
                                         onClick = {
                                             onChange(type)
                                             expanded = false

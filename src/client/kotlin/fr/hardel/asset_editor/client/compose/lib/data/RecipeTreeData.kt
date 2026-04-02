@@ -66,7 +66,8 @@ object RecipeTreeData {
                 Identifier.fromNamespaceAndPath("minecraft", "crafting_transmute")
             ),
             false,
-            RecipeTemplateKind.CRAFTING
+            RecipeTemplateKind.CRAFTING,
+            showRecipeTypesInAdvanced = true
         ),
         RecipeBlockConfig(
             Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
@@ -75,7 +76,8 @@ object RecipeTreeData {
                 Identifier.fromNamespaceAndPath("minecraft", "smithing_trim")
             ),
             false,
-            RecipeTemplateKind.SMITHING
+            RecipeTemplateKind.SMITHING,
+            showRecipeTypesInAdvanced = true
         )
     )
 
@@ -83,7 +85,8 @@ object RecipeTreeData {
         val blockId: Identifier,
         val recipeTypes: List<Identifier>,
         val special: Boolean,
-        val templateKind: RecipeTemplateKind
+        val templateKind: RecipeTemplateKind,
+        val showRecipeTypesInAdvanced: Boolean = false
     ) {
         fun icon(): Identifier =
             blockId.withPath("textures/studio/block/${blockId.path}.png")
@@ -109,6 +112,12 @@ object RecipeTreeData {
     @JvmStatic
     fun getAllRecipeTypes(): List<String> =
         RECIPE_BLOCKS.filter { !it.special }.flatMap { it.recipeTypes.map(Identifier::toString) }
+
+    @JvmStatic
+    fun getAdvancedRecipeTypes(): List<String> =
+        RECIPE_BLOCKS
+            .filter { it.showRecipeTypesInAdvanced }
+            .flatMap { it.recipeTypes.map(Identifier::toString) }
 
     @JvmStatic
     fun isBlockId(id: String): Boolean =
