@@ -33,7 +33,6 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeRuntimeEntry
 import net.minecraft.client.resources.language.I18n
@@ -46,7 +45,7 @@ fun RecipeOverviewCard(
 ) {
     val interaction = remember(element.id) { MutableInteractionSource() }
     val borderColor = VoxelColors.Zinc900
-    val blockConfig = RecipeTreeData.getBlockByRecipeType(element.type)
+    val entryConfig = RecipeTreeData.getEntryByRecipeType(element.type)
 
     // TSX: bg-black/35 border-t-2 border-l-2 border-zinc-900 rounded-xl
     Box(
@@ -74,11 +73,11 @@ fun RecipeOverviewCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
             ) {
-                ItemSprite(blockConfig.blockId, 32.dp, Modifier.size(32.dp))
+                ItemSprite(entryConfig.assetId, 32.dp, Modifier.size(32.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = StudioText.resolve("block", blockConfig.blockId),
+                        text = I18n.get(entryConfig.translationKey),
                         style = VoxelTypography.semiBold(14),
                         color = Color.White,
                         maxLines = 1,

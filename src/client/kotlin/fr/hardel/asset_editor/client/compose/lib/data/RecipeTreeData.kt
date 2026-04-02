@@ -9,45 +9,59 @@ object RecipeTreeData {
     }
 
     @JvmField
-    val RECIPE_BLOCKS = listOf(
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "barrier"),
+    val RECIPE_ENTRIES = listOf(
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "barrier"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "barrier"),
+            translationKey = "recipe:block.all",
             listOf(),
             true,
             RecipeTemplateKind.CRAFTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "campfire"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "campfire"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "campfire"),
+            translationKey = "block.minecraft.campfire",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "campfire_cooking")),
             false,
             RecipeTemplateKind.SMELTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "furnace"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "furnace"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "furnace"),
+            translationKey = "block.minecraft.furnace",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "smelting")),
             false,
             RecipeTemplateKind.SMELTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
+            translationKey = "block.minecraft.blast_furnace",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "blasting")),
             false,
             RecipeTemplateKind.SMELTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "smoker"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "smoker"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "smoker"),
+            translationKey = "block.minecraft.smoker",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "smoking")),
             false,
             RecipeTemplateKind.SMELTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
+            translationKey = "block.minecraft.stonecutter",
             listOf(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")),
             false,
             RecipeTemplateKind.STONECUTTING
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
+            translationKey = "block.minecraft.crafting_table",
             listOf(
                 Identifier.fromNamespaceAndPath("minecraft", "crafting_shapeless"),
                 Identifier.fromNamespaceAndPath("minecraft", "crafting_shaped"),
@@ -69,8 +83,10 @@ object RecipeTreeData {
             RecipeTemplateKind.CRAFTING,
             showRecipeTypesInAdvanced = true
         ),
-        RecipeBlockConfig(
-            Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
+        RecipeEntryConfig(
+            entryId = Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
+            assetId = Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
+            translationKey = "block.minecraft.smithing_table",
             listOf(
                 Identifier.fromNamespaceAndPath("minecraft", "smithing_transform"),
                 Identifier.fromNamespaceAndPath("minecraft", "smithing_trim")
@@ -81,49 +97,51 @@ object RecipeTreeData {
         )
     )
 
-    class RecipeBlockConfig(
-        val blockId: Identifier,
+    class RecipeEntryConfig(
+        val entryId: Identifier,
+        val assetId: Identifier,
+        val translationKey: String,
         val recipeTypes: List<Identifier>,
         val special: Boolean,
         val templateKind: RecipeTemplateKind,
         val showRecipeTypesInAdvanced: Boolean = false
     ) {
-        fun icon(): Identifier =
-            blockId.withPath("textures/studio/block/${blockId.path}.png")
+        fun folderIcon(): Identifier =
+            assetId.withPath("textures/studio/block/${assetId.path}.png")
     }
 
     @JvmStatic
-    fun getBlockConfig(id: String): RecipeBlockConfig? =
-        RECIPE_BLOCKS.firstOrNull { it.blockId.toString() == id }
+    fun getEntryConfig(id: String): RecipeEntryConfig? =
+        RECIPE_ENTRIES.firstOrNull { it.entryId.toString() == id }
 
     @JvmStatic
-    fun getBlockByRecipeType(type: String): RecipeBlockConfig =
-        RECIPE_BLOCKS.firstOrNull { block -> block.recipeTypes.any { it.toString() == type } }
-            ?: RECIPE_BLOCKS.first()
+    fun getEntryByRecipeType(type: String): RecipeEntryConfig =
+        RECIPE_ENTRIES.firstOrNull { entry -> entry.recipeTypes.any { it.toString() == type } }
+            ?: RECIPE_ENTRIES.first()
 
     @JvmStatic
     fun getTemplateKind(type: String): RecipeTemplateKind =
-        getBlockByRecipeType(type).templateKind
+        getEntryByRecipeType(type).templateKind
 
     @JvmStatic
-    fun getAllBlockIds(includeSpecial: Boolean = true): List<String> =
-        RECIPE_BLOCKS.filter { includeSpecial || !it.special }.map { it.blockId.toString() }
+    fun getAllEntryIds(includeSpecial: Boolean = true): List<String> =
+        RECIPE_ENTRIES.filter { includeSpecial || !it.special }.map { it.entryId.toString() }
 
     @JvmStatic
     fun getAllRecipeTypes(): List<String> =
-        RECIPE_BLOCKS.filter { !it.special }.flatMap { it.recipeTypes.map(Identifier::toString) }
+        RECIPE_ENTRIES.filter { !it.special }.flatMap { it.recipeTypes.map(Identifier::toString) }
 
     @JvmStatic
     fun getAdvancedRecipeTypes(): List<String> =
-        RECIPE_BLOCKS
+        RECIPE_ENTRIES
             .filter { it.showRecipeTypesInAdvanced }
             .flatMap { it.recipeTypes.map(Identifier::toString) }
 
     @JvmStatic
-    fun isBlockId(id: String): Boolean =
-        RECIPE_BLOCKS.any { it.blockId.toString() == id }
+    fun isEntryId(id: String): Boolean =
+        RECIPE_ENTRIES.any { it.entryId.toString() == id }
 
     @JvmStatic
-    fun canBlockHandleRecipeType(id: String, type: String): Boolean =
-        id == "minecraft:barrier" || (getBlockConfig(id)?.recipeTypes?.any { type.contains(it.toString()) } == true)
+    fun canEntryHandleRecipeType(id: String, type: String): Boolean =
+        id == "minecraft:barrier" || (getEntryConfig(id)?.recipeTypes?.any { type.contains(it.toString()) } == true)
 }

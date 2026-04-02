@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.memory.ui;
 
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept;
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView;
-import fr.hardel.asset_editor.client.compose.lib.data.StudioViewMode;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
@@ -43,19 +42,15 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
     }
 
     public void updateSearch(StudioConcept concept, String value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(value, current.filterPath(), current.viewMode(), current.sidebarView(), current.expandedTreePaths()));
+        updateConcept(concept, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.expandedTreePaths()));
     }
 
     public void updateFilterPath(StudioConcept concept, String value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), value, current.viewMode(), current.sidebarView(), current.expandedTreePaths()));
-    }
-
-    public void updateViewMode(StudioConcept concept, StudioViewMode value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), current.filterPath(), value, current.sidebarView(), current.expandedTreePaths()));
+        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.expandedTreePaths()));
     }
 
     public void updateSidebarView(StudioConcept concept, StudioSidebarView value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), "", current.viewMode(), value, Set.of()));
+        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), "", value, Set.of()));
     }
 
     public void setTreeExpanded(StudioConcept concept, String path, boolean expanded) {
@@ -67,7 +62,7 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
                 next.remove(path);
             }
 
-            return new ConceptUiSnapshot(current.search(), current.filterPath(), current.viewMode(), current.sidebarView(), next);
+            return new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), next);
         });
     }
 
@@ -101,7 +96,7 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
 
     private ConceptUiSnapshot defaultSnapshot(StudioConcept concept) {
         if (concept == StudioConcept.ENCHANTMENT)
-            return new ConceptUiSnapshot("", "", StudioViewMode.LIST, StudioSidebarView.SLOTS, Set.of());
+            return new ConceptUiSnapshot("", "", StudioSidebarView.SLOTS, Set.of());
 
         return new ConceptUiSnapshot();
     }

@@ -35,7 +35,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -58,12 +57,11 @@ fun RecipeSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var advancedExpanded by remember { mutableStateOf(false) }
-    val displayBlockId =
-        if (RecipeTreeData.isBlockId(value)) value else RecipeTreeData.getBlockByRecipeType(value).blockId.toString()
-    val blockConfig = if (RecipeTreeData.isBlockId(value)) RecipeTreeData.getBlockConfig(value) else null
+    val displayEntryId =
+        if (RecipeTreeData.isEntryId(value)) value else RecipeTreeData.getEntryByRecipeType(value).entryId.toString()
+    val entryConfig = if (RecipeTreeData.isEntryId(value)) RecipeTreeData.getEntryConfig(value) else null
     val displayName = when {
-        blockConfig?.special == true -> I18n.get("recipe:block.all")
-        blockConfig != null -> StudioText.resolve("block", blockConfig.blockId)
+        entryConfig != null -> I18n.get(entryConfig.translationKey)
         else -> recipeTypeLabel(value)
     }
 
@@ -78,7 +76,7 @@ fun RecipeSelector(
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable { expanded = !expanded }
         ) {
-            Identifier.tryParse(displayBlockId)?.let { ItemSprite(it, 36.dp) }
+            Identifier.tryParse(displayEntryId)?.let { ItemSprite(it, 36.dp) }
         }
 
         if (expanded) {
@@ -116,7 +114,7 @@ fun RecipeSelector(
                                 )
                             }
 
-                            Identifier.tryParse(displayBlockId)?.let { ItemSprite(it, 48.dp) }
+                            Identifier.tryParse(displayEntryId)?.let { ItemSprite(it, 48.dp) }
                         }
 
                         RecipeSelectorGrid(
@@ -172,21 +170,21 @@ private fun RecipeSelectorGrid(
     selectMode: Boolean,
     onSelect: (String) -> Unit
 ) {
-    val currentBlockId = if (RecipeTreeData.isBlockId(currentValue)) {
+    val currentEntryId = if (RecipeTreeData.isEntryId(currentValue)) {
         currentValue
     } else {
-        RecipeTreeData.getBlockByRecipeType(currentValue).blockId.toString()
+        RecipeTreeData.getEntryByRecipeType(currentValue).entryId.toString()
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        RecipeTreeData.getAllBlockIds(includeSpecial = true).chunked(3).forEach { row ->
+        RecipeTreeData.getAllEntryIds(includeSpecial = true).chunked(3).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { blockId ->
-                    val interaction = remember(blockId) { MutableInteractionSource() }
+                row.forEach { entryId ->
+                    val interaction = remember(entryId) { MutableInteractionSource() }
                     val hovered by interaction.collectIsHoveredAsState()
-                    val count = recipeCounts[blockId] ?: 0
+                    val count = recipeCounts[entryId] ?: 0
                     val enabled = selectMode || count > 0
-                    val active = currentBlockId == blockId
+                    val active = currentEntryId == entryId
 
                     Box(
                         contentAlignment = Alignment.Center,
@@ -217,13 +215,13 @@ private fun RecipeSelectorGrid(
                                         .clickable(
                                             interactionSource = interaction,
                                             indication = null
-                                        ) { onSelect(blockId) }
+                                        ) { onSelect(entryId) }
                                 } else {
                                     Modifier
                                 }
                             )
                     ) {
-                        Identifier.tryParse(blockId)?.let { ItemSprite(it, 32.dp) }
+                        Identifier.tryParse(entryId)?.let { ItemSprite(it, 32.dp) }
 
                         if (!selectMode || count > 0) {
                             Box(

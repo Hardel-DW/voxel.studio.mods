@@ -24,7 +24,7 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
     if (displayContext == null) return placeholderRecipeVisual(serializerId)
 
     val display = display().firstOrNull() ?: return placeholderRecipeVisual(serializerId)
-    val fallbackResult = RecipeTreeData.getBlockByRecipeType(serializerId).blockId.toString()
+    val fallbackResult = RecipeTreeData.getEntryByRecipeType(serializerId).assetId.toString()
 
     return when (display) {
         is ShapedCraftingRecipeDisplay -> buildIndexedSlotModel(
@@ -66,7 +66,7 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
 }
 
 fun placeholderRecipeVisual(type: String): RecipeVisualModel {
-    val fallbackResult = RecipeTreeData.getBlockByRecipeType(type).blockId.toString()
+    val fallbackResult = RecipeTreeData.getEntryByRecipeType(type).assetId.toString()
     val resultCountEditable = Identifier.tryParse(type)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
     return RecipeVisualModel(
         type = type,

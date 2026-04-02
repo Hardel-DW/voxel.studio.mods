@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import net.minecraft.resources.Identifier
 
 private val PROGRESS_LOCATION = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/gui/progress.png")
@@ -44,7 +46,7 @@ fun RecipeTemplateBase(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(48.dp)
         ) {
-            _root_ide_package_.fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset(
+            RecipeGuiAsset(
                 location = PROGRESS_LOCATION,
                 width = 24,
                 height = 16,
@@ -52,7 +54,7 @@ fun RecipeTemplateBase(
             )
         }
 
-        _root_ide_package_.fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot(
+        RecipeSlot(
             item = listOf(resultItemId),
             count = resultCount,
             isResult = true,

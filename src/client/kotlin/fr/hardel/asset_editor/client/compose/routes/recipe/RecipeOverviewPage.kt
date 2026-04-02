@@ -60,7 +60,7 @@ fun RecipeOverviewPage(context: StudioContext) {
 
             val parts = filterPath.split("/")
             if (parts.size == 2) entry.type == parts[1]
-            else RecipeTreeData.canBlockHandleRecipeType(filterPath, entry.type)
+            else RecipeTreeData.canEntryHandleRecipeType(filterPath, entry.type)
         }
     }
 

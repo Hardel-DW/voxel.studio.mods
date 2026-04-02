@@ -62,8 +62,8 @@ fun RecipeMainPage(context: StudioContext) {
 
     val recipeCounts = remember(entries) {
         val counts = mutableMapOf<String, Int>()
-        for (blockId in RecipeTreeData.getAllBlockIds(includeSpecial = true)) {
-            counts[blockId] = entries.count { RecipeTreeData.canBlockHandleRecipeType(blockId, it.type) }
+        for (entryId in RecipeTreeData.getAllEntryIds(includeSpecial = true)) {
+            counts[entryId] = entries.count { RecipeTreeData.canEntryHandleRecipeType(entryId, it.type) }
         }
         counts
     }
@@ -79,10 +79,10 @@ fun RecipeMainPage(context: StudioContext) {
         onSelectionChange = { newSelection ->
             val nextType = if (newSelection == "minecraft:barrier") {
                 RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
-            } else if (!RecipeTreeData.isBlockId(newSelection)) {
+            } else if (!RecipeTreeData.isEntryId(newSelection)) {
                 newSelection
             } else {
-                RecipeTreeData.getBlockConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
+                RecipeTreeData.getEntryConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
             }
 
             if (nextType != model.type && targetId != null && workspaceEntry != null) {
