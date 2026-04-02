@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.lib.data
 
+import fr.hardel.asset_editor.client.AssetEditorClient
 import net.minecraft.resources.Identifier
 
 data class ExclusiveSetGroup(val tagId: Identifier) {
@@ -12,15 +13,11 @@ data class ExclusiveSetGroup(val tagId: Identifier) {
     fun value(): String = "#$tagId"
 
     companion object {
-        @JvmField
-        val ALL = listOf(
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/armor")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/bow")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/crossbow")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/damage")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/riptide")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/mining")),
-            ExclusiveSetGroup(Identifier.fromNamespaceAndPath("minecraft", "exclusive_set/boots"))
-        )
+        private val EXCLUSIVE_GROUP = Identifier.fromNamespaceAndPath("asset_editor", "exclusive")
+
+        val ALL: List<ExclusiveSetGroup>
+            get() = AssetEditorClient.studioConfigMemory().snapshot()
+                .enchantmentEntriesFor(EXCLUSIVE_GROUP)
+                .map { entry -> ExclusiveSetGroup(entry.id()) }
     }
 }

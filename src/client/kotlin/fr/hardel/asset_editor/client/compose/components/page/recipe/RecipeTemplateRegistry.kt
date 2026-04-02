@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.template.Cra
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmeltingTemplate
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmithingTemplate
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.StoneCuttingTemplate
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import net.minecraft.resources.Identifier
 
 typealias RecipeTemplateRenderer = @Composable (
     element: RecipeVisualModel,
@@ -22,10 +22,10 @@ typealias RecipeTemplateRenderer = @Composable (
 
 object RecipeTemplateRegistry {
 
-    private val templates = linkedMapOf<RecipeTreeData.RecipeTemplateKind, RecipeTemplateRenderer>()
+    private val templates = linkedMapOf<Identifier, RecipeTemplateRenderer>()
 
     init {
-        register(RecipeTreeData.RecipeTemplateKind.CRAFTING) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(Identifier.fromNamespaceAndPath("minecraft", "crafting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             CraftingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -38,7 +38,7 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(RecipeTreeData.RecipeTemplateKind.SMELTING) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(Identifier.fromNamespaceAndPath("minecraft", "smelting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             SmeltingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -51,7 +51,7 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(RecipeTreeData.RecipeTemplateKind.SMITHING) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(Identifier.fromNamespaceAndPath("minecraft", "smithing")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             SmithingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -64,7 +64,7 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(RecipeTreeData.RecipeTemplateKind.STONECUTTING) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             StoneCuttingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -79,7 +79,7 @@ object RecipeTemplateRegistry {
         }
     }
 
-    fun register(kind: RecipeTreeData.RecipeTemplateKind, renderer: RecipeTemplateRenderer) {
+    fun register(kind: Identifier, renderer: RecipeTemplateRenderer) {
         require(templates.putIfAbsent(kind, renderer) == null) {
             "Recipe template already registered for $kind"
         }
@@ -87,7 +87,7 @@ object RecipeTemplateRegistry {
 
     @Composable
     fun Render(
-        kind: RecipeTreeData.RecipeTemplateKind,
+        kind: Identifier,
         element: RecipeVisualModel,
         modifier: Modifier = Modifier,
         interactive: Boolean = false,

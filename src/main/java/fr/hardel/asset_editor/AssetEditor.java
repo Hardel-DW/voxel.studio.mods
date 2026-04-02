@@ -6,11 +6,16 @@ import fr.hardel.asset_editor.event.PlayerJoinEvent;
 import fr.hardel.asset_editor.event.SeverStartedEvent;
 import fr.hardel.asset_editor.event.ServerStoppedEvent;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
+import fr.hardel.asset_editor.studio.RecipeEntryLoader;
+import fr.hardel.asset_editor.studio.SuggestedTagLoader;
 import fr.hardel.asset_editor.workspace.action.EditorActionRegistries;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
 import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistries;
 import fr.hardel.asset_editor.workspace.registry.WorkspaceBindings;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
 
 public class AssetEditor implements ModInitializer {
 
@@ -24,6 +29,12 @@ public class AssetEditor implements ModInitializer {
         MutationHandlerRegistries.register();
         WorkspaceBindings.register();
         AssetEditorNetworking.register();
+        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
+            Identifier.fromNamespaceAndPath(MOD_ID, "studio_suggested_tags"),
+            new SuggestedTagLoader());
+        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
+            Identifier.fromNamespaceAndPath(MOD_ID, "studio_recipe_entries"),
+            new RecipeEntryLoader());
         SeverStartedEvent.register();
         ServerStoppedEvent.register();
         PlayerJoinEvent.register();

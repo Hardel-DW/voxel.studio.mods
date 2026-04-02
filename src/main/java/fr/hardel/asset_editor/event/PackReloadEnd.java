@@ -14,6 +14,7 @@ public final class PackReloadEnd {
                 return;
 
             AssetEditorNetworking.broadcastRecipeCatalog(server);
+            AssetEditorNetworking.broadcastStudioConfig(server);
             PACK_SERVICE.listPacks().ifPresent(packs -> AssetEditorNetworking.broadcastPackList(server, packs));
         });
     }

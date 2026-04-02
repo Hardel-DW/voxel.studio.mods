@@ -1,101 +1,26 @@
 package fr.hardel.asset_editor.client.compose.lib.data
 
+import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.studio.RecipeEntryDefinition
 import net.minecraft.resources.Identifier
 
 object RecipeTreeData {
 
-    enum class RecipeTemplateKind {
-        CRAFTING, SMELTING, SMITHING, STONECUTTING
-    }
+    val RECIPE_ENTRIES: List<RecipeEntryConfig>
+        get() = AssetEditorClient.studioConfigMemory().snapshot().recipeEntries().map { def -> toConfig(def) }
 
-    @JvmField
-    val RECIPE_ENTRIES = listOf(
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "barrier"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "barrier"),
-            translationKey = "recipe:block.all",
-            listOf(),
-            true,
-            RecipeTemplateKind.CRAFTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "campfire"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "campfire"),
-            translationKey = "block.minecraft.campfire",
-            listOf(Identifier.fromNamespaceAndPath("minecraft", "campfire_cooking")),
-            false,
-            RecipeTemplateKind.SMELTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "furnace"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "furnace"),
-            translationKey = "block.minecraft.furnace",
-            listOf(Identifier.fromNamespaceAndPath("minecraft", "smelting")),
-            false,
-            RecipeTemplateKind.SMELTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "blast_furnace"),
-            translationKey = "block.minecraft.blast_furnace",
-            listOf(Identifier.fromNamespaceAndPath("minecraft", "blasting")),
-            false,
-            RecipeTemplateKind.SMELTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "smoker"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "smoker"),
-            translationKey = "block.minecraft.smoker",
-            listOf(Identifier.fromNamespaceAndPath("minecraft", "smoking")),
-            false,
-            RecipeTemplateKind.SMELTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "stonecutter"),
-            translationKey = "block.minecraft.stonecutter",
-            listOf(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")),
-            false,
-            RecipeTemplateKind.STONECUTTING
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "crafting_table"),
-            translationKey = "block.minecraft.crafting_table",
-            listOf(
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_shapeless"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_shaped"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_decorated_pot"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_armordye"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_bannerduplicate"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_bookcloning"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_rocket"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_star"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_firework_star_fade"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_mapcloning"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_mapextending"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_repairitem"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_shielddecoration"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_special_tippedarrow"),
-                Identifier.fromNamespaceAndPath("minecraft", "crafting_transmute")
-            ),
-            false,
-            RecipeTemplateKind.CRAFTING,
-            showRecipeTypesInAdvanced = true
-        ),
-        RecipeEntryConfig(
-            entryId = Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
-            assetId = Identifier.fromNamespaceAndPath("minecraft", "smithing_table"),
-            translationKey = "block.minecraft.smithing_table",
-            listOf(
-                Identifier.fromNamespaceAndPath("minecraft", "smithing_transform"),
-                Identifier.fromNamespaceAndPath("minecraft", "smithing_trim")
-            ),
-            false,
-            RecipeTemplateKind.SMITHING,
-            showRecipeTypesInAdvanced = true
+    private fun toConfig(def: RecipeEntryDefinition): RecipeEntryConfig {
+        val translationKey = "block.${def.entryId().getNamespace()}.${def.entryId().getPath()}"
+        return RecipeEntryConfig(
+            entryId = def.entryId(),
+            assetId = def.entryId(),
+            translationKey = translationKey,
+            recipeTypes = def.recipeTypes(),
+            special = def.special(),
+            templateKind = def.templateKind(),
+            showRecipeTypesInAdvanced = def.showRecipeTypesInAdvanced()
         )
-    )
+    }
 
     class RecipeEntryConfig(
         val entryId: Identifier,
@@ -103,7 +28,7 @@ object RecipeTreeData {
         val translationKey: String,
         val recipeTypes: List<Identifier>,
         val special: Boolean,
-        val templateKind: RecipeTemplateKind,
+        val templateKind: Identifier,
         val showRecipeTypesInAdvanced: Boolean = false
     ) {
         fun folderIcon(): Identifier =
@@ -120,7 +45,7 @@ object RecipeTreeData {
             ?: RECIPE_ENTRIES.first()
 
     @JvmStatic
-    fun getTemplateKind(type: String): RecipeTemplateKind =
+    fun getTemplateKind(type: String): Identifier =
         getEntryByRecipeType(type).templateKind
 
     @JvmStatic

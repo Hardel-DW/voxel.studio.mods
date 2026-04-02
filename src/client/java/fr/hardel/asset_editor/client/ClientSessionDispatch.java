@@ -3,10 +3,14 @@ package fr.hardel.asset_editor.client;
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.memory.session.CatalogMemory;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
+import fr.hardel.asset_editor.client.memory.session.StudioConfigMemory;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.studio.RecipeEntrySyncPayload;
+import fr.hardel.asset_editor.network.studio.SuggestedExclusiveSyncPayload;
+import fr.hardel.asset_editor.network.studio.SuggestedItemTagSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 
 import javax.swing.SwingUtilities;
@@ -15,11 +19,13 @@ public final class ClientSessionDispatch {
 
     private final SessionMemory sessionMemory;
     private final CatalogMemory catalogMemory;
+    private final StudioConfigMemory studioConfigMemory;
     private WorkspaceSyncGateway activeGateway;
 
-    public ClientSessionDispatch(SessionMemory sessionMemory, CatalogMemory catalogMemory) {
+    public ClientSessionDispatch(SessionMemory sessionMemory, CatalogMemory catalogMemory, StudioConfigMemory studioConfigMemory) {
         this.sessionMemory = sessionMemory;
         this.catalogMemory = catalogMemory;
+        this.studioConfigMemory = studioConfigMemory;
     }
 
     public void setGateway(WorkspaceSyncGateway gateway) {
@@ -45,6 +51,18 @@ public final class ClientSessionDispatch {
 
     public void handleRecipeCatalogSync(RecipeCatalogSyncPayload payload) {
         runSessionUpdate(() -> catalogMemory.updateCatalog("minecraft:recipe", payload.entries()));
+    }
+
+    public void handleSuggestedItemTagSync(SuggestedItemTagSyncPayload payload) {
+        runSessionUpdate(() -> studioConfigMemory.updateSuggestedItemGroups(payload.groups()));
+    }
+
+    public void handleSuggestedExclusiveSync(SuggestedExclusiveSyncPayload payload) {
+        runSessionUpdate(() -> studioConfigMemory.updateSuggestedEnchantmentGroups(payload.groups()));
+    }
+
+    public void handleRecipeEntrySync(RecipeEntrySyncPayload payload) {
+        runSessionUpdate(() -> studioConfigMemory.updateRecipeEntries(payload.entries()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

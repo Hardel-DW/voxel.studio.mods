@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.memory.debug.DebugMemory;
 import fr.hardel.asset_editor.client.memory.session.CatalogMemory;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
+import fr.hardel.asset_editor.client.memory.session.StudioConfigMemory;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import net.fabricmc.api.ClientModInitializer;
@@ -29,8 +30,9 @@ public class AssetEditorClient implements ClientModInitializer {
     public static final String BUILD_VERSION = "26.0.1-RC";
     private static final SessionMemory SESSION_MEMORY = new SessionMemory();
     private static final CatalogMemory CATALOG_MEMORY = new CatalogMemory();
+    private static final StudioConfigMemory STUDIO_CONFIG_MEMORY = new StudioConfigMemory();
     private static final DebugMemory DEBUG_MEMORY = new DebugMemory();
-    private static final ClientSessionDispatch SESSION_DISPATCH = new ClientSessionDispatch(SESSION_MEMORY, CATALOG_MEMORY);
+    private static final ClientSessionDispatch SESSION_DISPATCH = new ClientSessionDispatch(SESSION_MEMORY, CATALOG_MEMORY, STUDIO_CONFIG_MEMORY);
 
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"));
@@ -44,6 +46,10 @@ public class AssetEditorClient implements ClientModInitializer {
 
     public static CatalogMemory catalogMemory() {
         return CATALOG_MEMORY;
+    }
+
+    public static StudioConfigMemory studioConfigMemory() {
+        return STUDIO_CONFIG_MEMORY;
     }
 
     public static DebugMemory debugMemory() {
@@ -63,6 +69,7 @@ public class AssetEditorClient implements ClientModInitializer {
             if (this.hadWorld && !hasWorld) {
                 SESSION_MEMORY.clear();
                 CATALOG_MEMORY.clear();
+                STUDIO_CONFIG_MEMORY.clear();
                 DEBUG_MEMORY.resetForWorldClose();
                 VoxelStudioWindow.notifyWorldClosed();
             }

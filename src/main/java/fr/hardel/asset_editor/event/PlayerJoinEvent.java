@@ -18,6 +18,7 @@ public final class PlayerJoinEvent {
                 }
 
                 AssetEditorNetworking.sendRecipeCatalog(handler.getPlayer(), server);
+                AssetEditorNetworking.sendStudioConfig(handler.getPlayer());
                 PACK_SERVICE.listPacks()
                     .ifPresent(packs -> AssetEditorNetworking.sendPackList(handler.getPlayer(), packs));
             });
