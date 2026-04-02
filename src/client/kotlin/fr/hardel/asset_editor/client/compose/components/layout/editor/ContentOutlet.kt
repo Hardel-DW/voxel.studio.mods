@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesLayout
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
@@ -15,6 +14,7 @@ import fr.hardel.asset_editor.client.navigation.DebugDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
 import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 
 @Composable
 fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
@@ -27,20 +27,20 @@ fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {
             is DebugDestination -> DebugLayout(context)
             is ConceptChangesDestination -> ChangesLayout()
             is ConceptOverviewDestination -> {
-                if (StudioRenderRegistry.hasLayout(destination.concept)) {
-                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                if (StudioUiRegistry.hasLayout(destination.conceptId)) {
+                    StudioUiRegistry.renderLayout(context, destination.conceptId)
                 } else NoPermissionPage()
             }
 
             is ConceptSimulationDestination -> {
-                if (StudioRenderRegistry.supportsSimulation(destination.concept)) {
-                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                if (StudioUiRegistry.supportsSimulation(destination.conceptId)) {
+                    StudioUiRegistry.renderLayout(context, destination.conceptId)
                 } else NoPermissionPage()
             }
 
             is ElementEditorDestination -> {
-                if (StudioRenderRegistry.hasLayout(destination.concept)) {
-                    StudioRenderRegistry.RenderConceptLayout(context, destination.concept)
+                if (StudioUiRegistry.hasLayout(destination.conceptId)) {
+                    StudioUiRegistry.renderLayout(context, destination.conceptId)
                 } else NoPermissionPage()
             }
         }

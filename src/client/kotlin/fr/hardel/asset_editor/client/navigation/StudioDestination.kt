@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.navigation
 
 import androidx.compose.runtime.Immutable
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
+import net.minecraft.resources.Identifier
 
 @Immutable
 sealed interface StudioDestination
@@ -14,22 +14,22 @@ data object DebugDestination : StudioDestination
 
 @Immutable
 data class ConceptOverviewDestination(
-    val concept: StudioConcept
+    val conceptId: Identifier
 ) : StudioDestination
 
 @Immutable
 data class ConceptChangesDestination(
-    val concept: StudioConcept
+    val conceptId: Identifier
 ) : StudioDestination
 
 @Immutable
 data class ConceptSimulationDestination(
-    val concept: StudioConcept
+    val conceptId: Identifier
 ) : StudioDestination
 
 @Immutable
 data class ElementEditorDestination(
-    val concept: StudioConcept,
+    val conceptId: Identifier,
     val elementId: String,
-    val tab: StudioEditorTab
+    val tabId: Identifier
 ) : StudioDestination

@@ -1,16 +1,16 @@
 package fr.hardel.asset_editor.client.compose.components.page.loot_table
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
-import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioConceptRenderer
-import fr.hardel.asset_editor.client.compose.lib.data.StudioEditorTabPages
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
+import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
@@ -20,57 +20,53 @@ import kotlinx.collections.immutable.toImmutableSet
 
 @Composable
 fun LootTableLayout(context: StudioContext) {
-    val concept = StudioConcepts.requireByRegistryKey(Registries.LOOT_TABLE)
-    val conceptUi = rememberConceptUi(context, concept)
-    val currentEditor = rememberCurrentElementDestination(context, concept)
+    val conceptId = context.studioConceptId(Registries.LOOT_TABLE) ?: return
+    val conceptUi = rememberConceptUi(context, conceptId)
+    val currentEditor = rememberCurrentElementDestination(context, conceptId)
+    val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
+    val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
     val treeState = buildConceptTreeState(
-        concept = concept,
+        conceptId = conceptId,
         tree = LootTableTreeBuilder.build(emptyList()),
         filterPath = conceptUi.filterPath,
         selectedElementId = currentEditor?.elementId,
         expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
-        elementIcon = concept.icon,
+        elementIcon = conceptIcon,
         folderIcons = emptyMap(),
         disableAutoExpand = false,
         onSelectAll = {
-            context.uiMemory().updateFilterPath(concept, "")
-            context.navigationMemory().navigate(concept.overview())
+            context.uiMemory().updateFilterPath(conceptId, "")
+            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
         },
         onSelectFolder = { path ->
-            context.uiMemory().updateFilterPath(concept, path)
-            context.navigationMemory().navigate(concept.overview())
+            context.uiMemory().updateFilterPath(conceptId, path)
+            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
         },
         onSelectElement = { elementId ->
-            context.navigationMemory().openElement(concept.editor(elementId, concept.defaultEditorTab))
+            context.navigationMemory().openElement(ElementEditorDestination(conceptId, elementId, defaultEditorTab))
         },
         onToggleExpanded = { path, expanded ->
-            context.uiMemory().setTreeExpanded(concept, path, expanded)
+            context.uiMemory().setTreeExpanded(conceptId, path, expanded)
         },
-        onNavigateChanges = { context.navigationMemory().navigate(concept.changes()) }
+        onNavigateChanges = { context.navigationMemory().navigate(ConceptChangesDestination(conceptId)) }
     )
 
     ConceptLayout(
         context = context,
         config = ConceptLayoutConfig(
-            concept = concept,
-            icon = concept.icon,
+            conceptId = conceptId,
+            registryKey = Registries.LOOT_TABLE,
+            icon = conceptIcon,
             sidebarTitleKey = "loot:overview.title",
             treeState = treeState,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> LootTableOverviewPage(context)
-                    is ElementEditorDestination -> if (!StudioEditorTabPages.Render(context, destination)) EmptyPage()
+                    is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
                     else -> EmptyPage()
                 }
             },
             sidebarExtras = emptyList()
         )
     )
-}
-
-class LootTableStudioConceptRenderer : BaseStudioConceptRenderer("loot_table") {
-    @Composable
-    override fun Render(context: StudioContext) {
-        LootTableLayout(context)
-    }
 }

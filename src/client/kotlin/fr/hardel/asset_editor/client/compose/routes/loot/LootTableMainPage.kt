@@ -8,8 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import net.minecraft.client.resources.language.I18n
 
 @Composable
@@ -23,12 +21,5 @@ fun LootTableMainPage() {
             style = VoxelTypography.semiBold(24),
             color = VoxelColors.Zinc400
         )
-    }
-}
-
-class LootTableMainTabPage : BaseStudioEditorTabPage("loot_table", "main") {
-    @Composable
-    override fun Render(context: StudioContext) {
-        LootTableMainPage()
     }
 }

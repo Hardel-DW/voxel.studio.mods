@@ -12,20 +12,22 @@ import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
+import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
 
 typealias SidebarExtra = @Composable () -> Unit
 typealias DestinationPageFactory = @Composable (StudioDestination) -> Unit
 
 class ConceptLayoutConfig(
-    val concept: StudioConcept,
+    val conceptId: Identifier,
+    val registryKey: ResourceKey<out Registry<*>>,
     val icon: Identifier,
     val sidebarTitleKey: String,
     val treeState: ConceptTreeState,
@@ -41,8 +43,8 @@ fun ConceptLayout(
     modifier: Modifier = Modifier
 ) {
     val destination = rememberCurrentDestination(context)
-    val destinationConcept = destination.conceptOrNull()
-    if (destinationConcept != config.concept) {
+    val destinationConceptId = destination.conceptIdOrNull()
+    if (destinationConceptId != config.conceptId) {
         return
     }
 
@@ -75,7 +77,8 @@ fun ConceptLayout(
             EditorHeader(
                 context = context,
                 treeState = config.treeState,
-                concept = config.concept,
+                conceptId = config.conceptId,
+                conceptRegistryKey = config.registryKey,
                 actions = config.headerActions
             )
 
@@ -84,11 +87,11 @@ fun ConceptLayout(
     }
 }
 
-private fun StudioDestination.conceptOrNull(): StudioConcept? =
+private fun StudioDestination.conceptIdOrNull(): Identifier? =
     when (this) {
-        is ConceptOverviewDestination -> concept
-        is ConceptChangesDestination -> concept
-        is ConceptSimulationDestination -> concept
-        is ElementEditorDestination -> concept
+        is ConceptOverviewDestination -> conceptId
+        is ConceptChangesDestination -> conceptId
+        is ConceptSimulationDestination -> conceptId
+        is ElementEditorDestination -> conceptId
         else -> null
     }

@@ -25,6 +25,8 @@ import net.minecraft.world.level.storage.LevelResource;
 import org.jspecify.annotations.NonNull;
 import org.lwjgl.glfw.GLFW;
 
+import static fr.hardel.asset_editor.client.compose.StudioRoutesKt.registerStudioRoutes;
+
 public class AssetEditorClient implements ClientModInitializer {
 
     public static final String BUILD_VERSION = "26.0.1-RC";
@@ -63,6 +65,7 @@ public class AssetEditorClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientPreferences.load();
+        registerStudioRoutes();
         VoxelStudioWindow.initializeRuntime();
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             boolean hasWorld = client.level != null && client.getConnection() != null;

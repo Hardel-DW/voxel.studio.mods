@@ -21,7 +21,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
@@ -120,11 +119,4 @@ fun EnchantmentItemsPage(context: StudioContext) {
     }
 
     RegistryPageDialogs(context, dialogs)
-}
-
-class EnchantmentItemsTabPage : BaseStudioEditorTabPage("enchantment", "items") {
-    @Composable
-    override fun Render(context: StudioContext) {
-        EnchantmentItemsPage(context)
-    }
 }

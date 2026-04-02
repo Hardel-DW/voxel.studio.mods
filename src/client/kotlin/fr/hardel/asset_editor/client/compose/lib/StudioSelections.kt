@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.compose.lib
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
 import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
@@ -56,21 +55,21 @@ fun rememberSelectedPack(context: StudioContext): ClientPackInfo? {
 @Composable
 fun rememberConceptUi(
     context: StudioContext,
-    concept: StudioConcept
+    conceptId: Identifier
 ): ConceptUiSnapshot {
-    return rememberMemoryValue(context.uiMemory(), concept) { snapshot ->
-        snapshot.concepts[concept] ?: context.uiMemory().conceptSnapshot(concept)
+    return rememberMemoryValue(context.uiMemory(), conceptId) { snapshot ->
+        snapshot.concepts[conceptId] ?: context.uiMemory().conceptSnapshot(conceptId)
     }
 }
 
 @Composable
 fun rememberCurrentElementDestination(
     context: StudioContext,
-    concept: StudioConcept? = null
+    conceptId: Identifier? = null
 ): ElementEditorDestination? {
     val destination = rememberCurrentDestination(context)
     val editor = destination as? ElementEditorDestination
-    return if (editor != null && (concept == null || editor.concept == concept)) editor else null
+    return if (editor != null && (conceptId == null || editor.conceptId == conceptId)) editor else null
 }
 
 @Composable

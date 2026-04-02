@@ -35,33 +35,36 @@ import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import net.minecraft.core.Registry
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
 
 @Composable
 fun EditorHeader(
     context: StudioContext,
     treeState: ConceptTreeState,
-    concept: StudioConcept,
+    conceptId: Identifier,
+    conceptRegistryKey: ResourceKey<out Registry<*>>,
     modifier: Modifier = Modifier,
     actions: @Composable (() -> Unit)? = null
 ) {
     val destination = rememberCurrentDestination(context)
-    val editorDestination = rememberCurrentElementDestination(context, concept)
+    val editorDestination = rememberCurrentElementDestination(context, conceptId)
     val isOverview = destination is ConceptOverviewDestination
     val segments = remember(destination, treeState.filterPath, treeState.selectedElementId, treeState.tree) {
-        buildBreadcrumbSegments(treeState, concept, destination)
+        buildBreadcrumbSegments(treeState, conceptId, conceptRegistryKey, destination)
     }
     val title = remember(destination, segments, treeState.selectedElementId) {
-        resolveTitle(treeState, concept, segments, destination)
+        resolveTitle(context, treeState, conceptId, conceptRegistryKey, segments, destination)
     }
-    val color = ColorUtils.accentColor(resolveColorKey(treeState, concept, destination))
+    val color = ColorUtils.accentColor(resolveColorKey(context, treeState, conceptId, destination))
+    val tabs = remember(conceptId) { context.studioEditorTabs(conceptId) }
 
     // header: relative shrink-0 overflow-hidden border-b border-zinc-800/50 bg-zinc-900/50
     Column(
@@ -120,10 +123,10 @@ fun EditorHeader(
                         modifier = Modifier.weight(1f)
                     ) {
                         EditorBreadcrumb(
-                            rootLabel = I18n.get(concept.titleKey),
+                            rootLabel = I18n.get(context.studioTitleKey(conceptId)),
                             segments = segments,
                             showBack = !isOverview,
-                            onBack = { context.navigationMemory().navigate(concept.overview()) }
+                            onBack = { context.navigationMemory().navigate(ConceptOverviewDestination(conceptId)) }
                         )
 
                         Text(
@@ -151,7 +154,7 @@ fun EditorHeader(
                     }
                 }
 
-                if (editorDestination != null && concept.tabs.size > 1) {
+                if (editorDestination != null && tabs.size > 1) {
                     // nav: flex items-center gap-1 mt-6 -mb-2
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -160,13 +163,13 @@ fun EditorHeader(
                             .padding(top = 24.dp)
                             .offset(y = 8.dp)
                     ) {
-                        concept.tabs.forEach { tab ->
+                        tabs.forEach { tabId ->
                             EditorHeaderTabItem(
-                                label = I18n.get(concept.tabTranslationKey(tab)),
-                                active = tab == editorDestination.tab,
+                                label = I18n.get(context.studioTabTitleKey(conceptId, tabId)),
+                                active = tabId == editorDestination.tabId,
                                 onClick = {
                                     context.navigationMemory().replaceCurrentTab(
-                                        editorDestination.copy(tab = tab)
+                                        editorDestination.copy(tabId = tabId)
                                     )
                                 }
                             )
@@ -249,8 +252,10 @@ private fun HeaderGrid(modifier: Modifier = Modifier) {
 }
 
 private fun resolveTitle(
+    context: StudioContext,
     treeState: ConceptTreeState,
-    concept: StudioConcept,
+    conceptId: Identifier,
+    conceptRegistryKey: ResourceKey<out Registry<*>>,
     segments: List<String>,
     destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): String {
@@ -260,27 +265,29 @@ private fun resolveTitle(
 
     val id = treeState.selectedElementId
     if (id.isNullOrBlank()) {
-        return I18n.get(concept.titleKey)
+        return I18n.get(context.studioTitleKey(conceptId))
     }
 
     val parsed = StudioElementId.parse(id) ?: return id
-    return StudioText.resolve(concept.registryKey, parsed.identifier)
+    return StudioText.resolve(conceptRegistryKey, parsed.identifier)
 }
 
 private fun resolveColorKey(
+    context: StudioContext,
     treeState: ConceptTreeState,
-    concept: StudioConcept,
+    conceptId: Identifier,
     destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): String {
     if (destination is ConceptOverviewDestination) {
         return treeState.filterPath.ifBlank { "all" }
     }
-    return treeState.selectedElementId ?: concept.registry()
+    return treeState.selectedElementId ?: context.studioRegistryPath(conceptId)
 }
 
 private fun buildBreadcrumbSegments(
     treeState: ConceptTreeState,
-    concept: StudioConcept,
+    conceptId: Identifier,
+    conceptRegistryKey: ResourceKey<out Registry<*>>,
     destination: fr.hardel.asset_editor.client.navigation.StudioDestination
 ): List<String> {
     if (destination is ConceptOverviewDestination) {
@@ -299,7 +306,7 @@ private fun buildBreadcrumbSegments(
             } else {
                 Identifier.fromNamespaceAndPath(parsed.namespace(), part)
             }
-            add(StudioText.resolve(concept.registryKey, segmentId))
+            add(StudioText.resolve(conceptRegistryKey, segmentId))
         }
     }
 }

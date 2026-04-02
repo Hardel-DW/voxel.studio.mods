@@ -6,9 +6,6 @@ import fr.hardel.asset_editor.client.compose.lib.assets.DefaultStudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.assets.DefaultStudioPrefetcher
 import fr.hardel.asset_editor.client.compose.lib.assets.StudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.assets.StudioPrefetcher
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.memory.debug.DebugMemory
@@ -21,6 +18,8 @@ import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
 import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
 import fr.hardel.asset_editor.store.ElementEntry
+import fr.hardel.asset_editor.studio.StudioRegistryResolver
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
 import java.util.Optional
 import net.minecraft.client.Minecraft
@@ -56,10 +55,10 @@ class StudioContext(
         fun handlePermissions(permissions: fr.hardel.asset_editor.permission.StudioPermissions) {
             navigationMemory.revalidate(permissions)
             if (navigationMemory.snapshot().current is NoPermissionDestination) {
-                StudioConcepts.firstAccessible(permissions)
-                    ?.takeIf(StudioRenderRegistry::hasLayout)
-                    ?.let { concept ->
-                    navigationMemory.navigate(concept.overview())
+                if (!permissions.isNone) {
+                    StudioUiRegistry.firstSupportedConceptId()?.let { conceptId ->
+                        navigationMemory.navigate(fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination(conceptId))
+                    }
                 }
             }
         }
@@ -143,6 +142,40 @@ class StudioContext(
             .lookup(registryKey)
             .flatMap { registry -> registry.get(ResourceKey.create(registryKey, id)) }
     }
+
+    fun registryAccess() = Minecraft.getInstance().connection?.registryAccess()
+
+    fun requireRegistryAccess() = registryAccess() ?: error("Missing client registry access")
+
+    fun studioConceptIds(): List<Identifier> = registryAccess()?.let(StudioRegistryResolver::conceptIds) ?: emptyList()
+
+    fun studioConceptDefinition(conceptId: Identifier) = registryAccess()?.let { StudioRegistryResolver.conceptDefinition(it, conceptId) }
+
+    fun requireStudioConceptDefinition(conceptId: Identifier) = StudioRegistryResolver.requireConceptDefinition(requireRegistryAccess(), conceptId)
+
+    fun studioConceptId(registryKey: ResourceKey<out Registry<*>>) =
+        registryAccess()?.let { StudioRegistryResolver.conceptId(it, registryKey) }
+
+    fun studioDefaultEditorTab(conceptId: Identifier) =
+        StudioRegistryResolver.defaultEditorTab(requireRegistryAccess(), conceptId)
+
+    fun studioEditorTabs(conceptId: Identifier) =
+        StudioRegistryResolver.editorTabs(requireRegistryAccess(), conceptId)
+
+    fun studioRegistryKey(conceptId: Identifier) =
+        StudioRegistryResolver.registryKey(requireRegistryAccess(), conceptId)
+
+    fun studioRegistryPath(conceptId: Identifier) =
+        StudioRegistryResolver.registryPath(requireRegistryAccess(), conceptId)
+
+    fun studioTitleKey(conceptId: Identifier) =
+        StudioRegistryResolver.titleKey(requireRegistryAccess(), conceptId)
+
+    fun studioTabTitleKey(conceptId: Identifier, tabId: Identifier) =
+        StudioRegistryResolver.tabTitleKey(requireRegistryAccess(), conceptId, tabId)
+
+    fun studioIcon(conceptId: Identifier) =
+        StudioRegistryResolver.icon(requireRegistryAccess(), conceptId)
 
     fun resyncWorldSession() {
         val nextKey = sessionMemory.worldSessionKey()

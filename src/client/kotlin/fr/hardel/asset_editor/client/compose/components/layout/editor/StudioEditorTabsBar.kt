@@ -37,10 +37,10 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import fr.hardel.asset_editor.client.compose.lib.data.StudioElementId
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
+import fr.hardel.asset_editor.studio.StudioRegistryResolver
 import fr.hardel.asset_editor.client.navigation.StudioTabEntry
 import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
@@ -115,10 +115,11 @@ private fun StudioEditorTabItem(
     val itemHovered by itemInteraction.collectIsHoveredAsState()
     val closeInteraction = remember { MutableInteractionSource() }
     val closeHovered by closeInteraction.collectIsHoveredAsState()
-    val concept = tab.destination.concept
+    val conceptId = tab.destination.conceptId
+    val conceptRegistryKey = context.studioRegistryKey(conceptId)
     val parsed = StudioElementId.parse(tab.destination.elementId)
     val label = if (parsed != null) {
-        StudioText.resolve(concept.registryKey, parsed.identifier)
+        StudioText.resolve(conceptRegistryKey, parsed.identifier)
     } else {
         tab.destination.elementId
     }
@@ -149,7 +150,7 @@ private fun StudioEditorTabItem(
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         ResourceImageIcon(
-            location = concept.icon,
+            location = context.studioIcon(conceptId),
             size = 16.dp,
             modifier = Modifier.alpha(if (active) 1f else 0.85f)
         )

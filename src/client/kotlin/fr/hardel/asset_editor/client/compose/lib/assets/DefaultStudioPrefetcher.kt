@@ -1,12 +1,14 @@
 package fr.hardel.asset_editor.client.compose.lib.assets
 
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
+import net.minecraft.client.Minecraft
+import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.studio.StudioRegistryResolver
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 import java.util.concurrent.CompletableFuture
 
 class DefaultStudioPrefetcher(
@@ -16,11 +18,11 @@ class DefaultStudioPrefetcher(
     override fun prefetch(destination: StudioDestination) {
         CompletableFuture.runAsync {
             when (destination) {
-                is ConceptOverviewDestination -> prefetchConcept(destination.concept)
-                is ConceptChangesDestination -> prefetchConcept(destination.concept)
+                is ConceptOverviewDestination -> prefetchConcept(destination.conceptId)
+                is ConceptChangesDestination -> prefetchConcept(destination.conceptId)
                 is ElementEditorDestination -> {
-                    prefetchConcept(destination.concept)
-                    if (StudioRenderRegistry.shouldPrefetchAtlas(destination.concept)) {
+                    prefetchConcept(destination.conceptId)
+                    if (StudioUiRegistry.shouldPrefetchAtlas(destination.conceptId)) {
                         ItemAtlasGenerator.getAtlasImage()
                     }
                 }
@@ -30,9 +32,10 @@ class DefaultStudioPrefetcher(
         }
     }
 
-    private fun prefetchConcept(concept: StudioConcept) {
-        assetCache.bitmap(concept.icon)
-        if (StudioRenderRegistry.shouldPrefetchAtlas(concept)) {
+    private fun prefetchConcept(conceptId: Identifier) {
+        val registries = Minecraft.getInstance().connection?.registryAccess() ?: return
+        assetCache.bitmap(StudioRegistryResolver.icon(registries, conceptId))
+        if (StudioUiRegistry.shouldPrefetchAtlas(conceptId)) {
             ItemAtlasGenerator.getAtlasImage()
         }
     }

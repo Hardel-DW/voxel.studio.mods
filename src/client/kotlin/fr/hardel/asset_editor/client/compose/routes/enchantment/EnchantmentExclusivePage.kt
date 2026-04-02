@@ -13,12 +13,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveGroupSection
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveSingleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioEditorTabPage
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
@@ -107,11 +107,4 @@ fun EnchantmentExclusivePage(context: StudioContext) {
     }
 
     RegistryPageDialogs(context, dialogs)
-}
-
-class EnchantmentExclusiveTabPage : BaseStudioEditorTabPage("enchantment", "exclusive") {
-    @Composable
-    override fun Render(context: StudioContext) {
-        EnchantmentExclusivePage(context)
-    }
 }

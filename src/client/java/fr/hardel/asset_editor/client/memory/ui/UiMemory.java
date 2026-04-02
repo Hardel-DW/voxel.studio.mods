@@ -1,11 +1,11 @@
 package fr.hardel.asset_editor.client.memory.ui;
 
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept;
+import fr.hardel.asset_editor.studio.StudioUiRegistry;
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
 
-    public record Snapshot(Map<StudioConcept, ConceptUiSnapshot> concepts) {
+    public record Snapshot(Map<Identifier, ConceptUiSnapshot> concepts) {
 
         public Snapshot {
             concepts = Map.copyOf(concepts == null ? Map.of() : concepts);
@@ -38,24 +38,24 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
         return memory.subscribe(listener);
     }
 
-    public ConceptUiSnapshot conceptSnapshot(StudioConcept concept) {
-        return snapshot().concepts().getOrDefault(concept, defaultSnapshot(concept));
+    public ConceptUiSnapshot conceptSnapshot(Identifier conceptId) {
+        return snapshot().concepts().getOrDefault(conceptId, defaultSnapshot(conceptId));
     }
 
-    public void updateSearch(StudioConcept concept, String value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.expandedTreePaths()));
+    public void updateSearch(Identifier conceptId, String value) {
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.expandedTreePaths()));
     }
 
-    public void updateFilterPath(StudioConcept concept, String value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.expandedTreePaths()));
+    public void updateFilterPath(Identifier conceptId, String value) {
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.expandedTreePaths()));
     }
 
-    public void updateSidebarView(StudioConcept concept, StudioSidebarView value) {
-        updateConcept(concept, current -> new ConceptUiSnapshot(current.search(), "", value, Set.of()));
+    public void updateSidebarView(Identifier conceptId, StudioSidebarView value) {
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), "", value, Set.of()));
     }
 
-    public void setTreeExpanded(StudioConcept concept, String path, boolean expanded) {
-        updateConcept(concept, current -> {
+    public void setTreeExpanded(Identifier conceptId, String path, boolean expanded) {
+        updateConcept(conceptId, current -> {
             LinkedHashSet<String> next = new LinkedHashSet<>(current.expandedTreePaths());
             if (expanded) {
                 next.add(path);
@@ -67,13 +67,13 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
         });
     }
 
-    public void resetConcept(StudioConcept concept) {
+    public void resetConcept(Identifier conceptId) {
         memory.update(state -> {
-            if (!state.concepts().containsKey(concept))
+            if (!state.concepts().containsKey(conceptId))
                 return state;
 
-            LinkedHashMap<StudioConcept, ConceptUiSnapshot> next = new LinkedHashMap<>(state.concepts());
-            next.remove(concept);
+            LinkedHashMap<Identifier, ConceptUiSnapshot> next = new LinkedHashMap<>(state.concepts());
+            next.remove(conceptId);
             return new Snapshot(next);
         });
     }
@@ -82,23 +82,20 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
         memory.setSnapshot(Snapshot.empty());
     }
 
-    private void updateConcept(StudioConcept concept, Function<ConceptUiSnapshot, ConceptUiSnapshot> updater) {
+    private void updateConcept(Identifier conceptId, Function<ConceptUiSnapshot, ConceptUiSnapshot> updater) {
         memory.update(state -> {
-            ConceptUiSnapshot current = state.concepts().getOrDefault(concept, defaultSnapshot(concept));
+            ConceptUiSnapshot current = state.concepts().getOrDefault(conceptId, defaultSnapshot(conceptId));
             ConceptUiSnapshot next = updater.apply(current);
             if (next.equals(current))
                 return state;
 
-            LinkedHashMap<StudioConcept, ConceptUiSnapshot> concepts = new LinkedHashMap<>(state.concepts());
-            concepts.put(concept, next);
+            LinkedHashMap<Identifier, ConceptUiSnapshot> concepts = new LinkedHashMap<>(state.concepts());
+            concepts.put(conceptId, next);
             return new Snapshot(concepts);
         });
     }
 
-    private ConceptUiSnapshot defaultSnapshot(StudioConcept concept) {
-        if (concept.getRegistryKey().equals(Registries.ENCHANTMENT))
-            return new ConceptUiSnapshot("", "", StudioSidebarView.SLOTS, Set.of());
-
-        return new ConceptUiSnapshot();
+    private ConceptUiSnapshot defaultSnapshot(Identifier conceptId) {
+        return StudioUiRegistry.defaultSnapshot(conceptId);
     }
 }

@@ -15,15 +15,14 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
 @Composable
 fun LootTableOverviewPage(context: StudioContext) {
-    val concept = StudioConcepts.requireByRegistryKey(Registries.LOOT_TABLE)
-    val conceptUi = rememberConceptUi(context, concept)
+    val conceptId = context.studioConceptId(Registries.LOOT_TABLE) ?: return
+    val conceptUi = rememberConceptUi(context, conceptId)
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -33,7 +32,7 @@ fun LootTableOverviewPage(context: StudioContext) {
         ) {
             InputText(
                 value = conceptUi.search,
-                onValueChange = { value -> context.uiMemory().updateSearch(concept, value) },
+                onValueChange = { value -> context.uiMemory().updateSearch(conceptId, value) },
                 placeholder = I18n.get("loot:overview.search")
             )
         }

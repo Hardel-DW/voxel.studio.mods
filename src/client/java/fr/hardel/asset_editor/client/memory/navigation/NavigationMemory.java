@@ -1,17 +1,18 @@
 package fr.hardel.asset_editor.client.memory.navigation;
 
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination;
+import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination;
 import fr.hardel.asset_editor.client.navigation.DebugDestination;
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination;
 import fr.hardel.asset_editor.client.navigation.NoPermissionDestination;
 import fr.hardel.asset_editor.client.navigation.StudioDestination;
 import fr.hardel.asset_editor.client.navigation.StudioTabEntry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
+import fr.hardel.asset_editor.studio.StudioUiRegistry;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -191,16 +192,19 @@ public final class NavigationMemory implements ReadableMemory<NavigationMemory.S
 
     private StudioDestination overviewFallback(StudioDestination destination) {
         if (destination instanceof ElementEditorDestination editorDestination)
-            return editorDestination.getConcept().overview();
+            return new ConceptOverviewDestination(editorDestination.getConceptId());
 
         if (destination instanceof ConceptChangesDestination changesDestination)
-            return changesDestination.getConcept().overview();
+            return new ConceptOverviewDestination(changesDestination.getConceptId());
 
-        StudioConcept concept = StudioConcepts.firstAccessible(permissionSupplier.get());
-        return concept != null ? concept.overview() : NoPermissionDestination.INSTANCE;
+        if (permissionSupplier.get().isNone())
+            return NoPermissionDestination.INSTANCE;
+
+        Identifier conceptId = StudioUiRegistry.firstSupportedConceptId();
+        return conceptId != null ? new ConceptOverviewDestination(conceptId) : NoPermissionDestination.INSTANCE;
     }
 
     private String tabIdOf(ElementEditorDestination destination) {
-        return destination.getConcept().getId() + ":" + destination.getElementId();
+        return destination.getConceptId() + ":" + destination.getElementId();
     }
 }

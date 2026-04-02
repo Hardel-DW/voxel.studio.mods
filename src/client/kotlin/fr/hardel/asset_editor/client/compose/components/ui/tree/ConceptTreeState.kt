@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.tree
 
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableList
@@ -32,7 +31,7 @@ data class TreeRowState(
 )
 
 data class ConceptTreeState(
-    val concept: StudioConcept,
+    val conceptId: Identifier,
     val tree: TreeNodeModel?,
     val rows: ImmutableList<TreeRowState>,
     val rootCount: Int,
@@ -49,7 +48,7 @@ data class ConceptTreeState(
 }
 
 fun buildConceptTreeState(
-    concept: StudioConcept,
+    conceptId: Identifier,
     tree: TreeNodeModel?,
     filterPath: String,
     selectedElementId: String?,
@@ -79,7 +78,7 @@ fun buildConceptTreeState(
     }
 
     return ConceptTreeState(
-        concept = concept,
+        conceptId = conceptId,
         tree = tree,
         rows = rows.toImmutableList(),
         rootCount = tree?.count ?: 0,

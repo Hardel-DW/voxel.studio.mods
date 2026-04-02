@@ -12,8 +12,8 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLay
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
 import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
@@ -22,8 +22,6 @@ import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import fr.hardel.asset_editor.client.navigation.StudioDestination
-import fr.hardel.asset_editor.client.compose.lib.data.BaseStudioConceptRenderer
-import fr.hardel.asset_editor.client.compose.lib.data.StudioEditorTabPages
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
 import kotlinx.collections.immutable.toImmutableSet
 import net.minecraft.client.resources.language.I18n
@@ -31,8 +29,8 @@ import net.minecraft.core.registries.Registries
 
 @Composable
 fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
-    val concept = StudioConcepts.requireByRegistryKey(Registries.ENCHANTMENT)
-    val conceptUi = rememberConceptUi(context, concept)
+    val conceptId = context.studioConceptId(Registries.ENCHANTMENT) ?: return
+    val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val sidebarView = conceptUi.sidebarView
     val tree = remember(entries, sidebarView) { EnchantmentTreeBuilder.build(entries, sidebarView) }
@@ -44,7 +42,9 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
         }
     }
 
-    val currentEditor = rememberCurrentElementDestination(context, concept)
+    val currentEditor = rememberCurrentElementDestination(context, conceptId)
+    val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
+    val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val treeState = remember(
         tree,
         folderIcons,
@@ -54,44 +54,45 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
         sidebarView
     ) {
         buildConceptTreeState(
-            concept = concept,
+            conceptId = conceptId,
             tree = tree,
             filterPath = conceptUi.filterPath,
             selectedElementId = currentEditor?.elementId,
             expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
-            elementIcon = concept.icon,
+            elementIcon = conceptIcon,
             folderIcons = folderIcons,
             disableAutoExpand = sidebarView == StudioSidebarView.SLOTS,
             onSelectAll = {
-                context.uiMemory().updateFilterPath(concept, "")
-                context.navigationMemory().navigate(concept.overview())
+                context.uiMemory().updateFilterPath(conceptId, "")
+                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
             },
             onSelectFolder = { path ->
-                context.uiMemory().updateFilterPath(concept, path)
-                context.navigationMemory().navigate(concept.overview())
+                context.uiMemory().updateFilterPath(conceptId, path)
+                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
             },
             onSelectElement = { elementId ->
-                context.navigationMemory().openElement(concept.editor(elementId, concept.defaultEditorTab))
+                context.navigationMemory().openElement(ElementEditorDestination(conceptId, elementId, defaultEditorTab))
             },
             onToggleExpanded = { path, expanded ->
-                context.uiMemory().setTreeExpanded(concept, path, expanded)
+                context.uiMemory().setTreeExpanded(conceptId, path, expanded)
             },
-            onNavigateChanges = { context.navigationMemory().navigate(concept.changes()) }
+            onNavigateChanges = { context.navigationMemory().navigate(fr.hardel.asset_editor.client.navigation.ConceptChangesDestination(conceptId)) }
         )
     }
 
     ConceptLayout(
         context = context,
         config = ConceptLayoutConfig(
-            concept = concept,
-            icon = concept.icon,
+            conceptId = conceptId,
+            registryKey = Registries.ENCHANTMENT,
+            icon = conceptIcon,
             sidebarTitleKey = "enchantment:overview.title",
             treeState = treeState,
             pageFactory = { destination: StudioDestination ->
                 when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)
                     is ConceptSimulationDestination -> EmptyPage()
-                    is ElementEditorDestination -> if (!StudioEditorTabPages.Render(context, destination)) EmptyPage()
+                    is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
 
                     else -> EmptyPage()
                 }
@@ -101,7 +102,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                     text = I18n.get("enchantment:simulation"),
                     onClick = {
                         context.navigationMemory().navigate(
-                            ConceptSimulationDestination(concept)
+                            ConceptSimulationDestination(conceptId)
                         )
                     }
                 )
@@ -116,7 +117,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                     selectedValue = conceptUi.sidebarView.name.lowercase(),
                     onValueChange = { value ->
                         context.uiMemory().updateSidebarView(
-                            concept,
+                            conceptId,
                             when (value) {
                                 "items" -> StudioSidebarView.ITEMS
                                 "exclusive" -> StudioSidebarView.EXCLUSIVE
@@ -130,15 +131,4 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
         ),
         modifier = modifier
     )
-}
-
-class EnchantmentStudioConceptRenderer : BaseStudioConceptRenderer(
-    conceptPath = "enchantment",
-    supportsSimulation = true,
-    shouldPrefetchAtlas = true
-) {
-    @Composable
-    override fun Render(context: StudioContext) {
-        EnchantmentLayout(context)
-    }
 }

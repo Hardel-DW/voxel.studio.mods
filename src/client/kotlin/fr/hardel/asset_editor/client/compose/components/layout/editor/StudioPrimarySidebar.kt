@@ -30,15 +30,13 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept
-import fr.hardel.asset_editor.client.compose.lib.data.StudioConcepts
-import fr.hardel.asset_editor.client.compose.lib.data.StudioRenderRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
 import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
 import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.navigation.DebugDestination
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.studio.StudioUiRegistry
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
@@ -49,9 +47,9 @@ private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, 
 fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) {
     val permissions = rememberPermissions(context)
     val currentConcept = when (val destination = rememberCurrentDestination(context)) {
-        is ConceptOverviewDestination -> destination.concept
-        is ConceptChangesDestination -> destination.concept
-        is ElementEditorDestination -> destination.concept
+        is ConceptOverviewDestination -> destination.conceptId
+        is ConceptChangesDestination -> destination.conceptId
+        is ElementEditorDestination -> destination.conceptId
         else -> null
     }
 
@@ -69,12 +67,10 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .height(64.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable {
-                    val overview = StudioConcepts.firstAccessible(permissions)
-                        ?.takeIf(StudioRenderRegistry::hasLayout)
-                        ?.overview()
-                        ?: StudioRenderRegistry.firstSupportedConcept()?.overview()
-                    if (overview != null) {
-                        context.navigationMemory().navigate(overview)
+                    if (!permissions.isNone) {
+                        StudioUiRegistry.firstSupportedConceptId()?.let { conceptId ->
+                            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
+                        }
                     }
                 }
         ) {
@@ -91,15 +87,16 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 .padding(top = 16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            StudioRenderRegistry.supportedConcepts()
+            StudioUiRegistry.supportedConceptIds()
                 .filter { !permissions.isNone }
-                .forEach { concept ->
+                .forEach { conceptId ->
                     ConceptButton(
-                        concept = concept,
-                        active = currentConcept == concept,
+                        context = context,
+                        conceptId = conceptId,
+                        active = currentConcept == conceptId,
                         onClick = {
-                            context.uiMemory().updateFilterPath(concept, "")
-                            context.navigationMemory().navigate(concept.overview())
+                            context.uiMemory().updateFilterPath(conceptId, "")
+                            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
                         }
                     )
                 }
@@ -119,7 +116,8 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
 
 @Composable
 private fun ConceptButton(
-    concept: StudioConcept,
+    context: StudioContext,
+    conceptId: Identifier,
     active: Boolean,
     onClick: () -> Unit
 ) {
@@ -142,7 +140,7 @@ private fun ConceptButton(
             .then(if (!active) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
             .clickable(onClick = onClick)
     ) {
-        ResourceImageIcon(concept.icon, 24.dp, modifier = Modifier.alpha(if (active) 1f else 0.8f))
+        ResourceImageIcon(context.studioIcon(conceptId), 24.dp, modifier = Modifier.alpha(if (active) 1f else 0.8f))
     }
 }
 
