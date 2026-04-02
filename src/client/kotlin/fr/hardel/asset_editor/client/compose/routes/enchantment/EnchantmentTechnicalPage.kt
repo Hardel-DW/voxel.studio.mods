@@ -26,7 +26,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions

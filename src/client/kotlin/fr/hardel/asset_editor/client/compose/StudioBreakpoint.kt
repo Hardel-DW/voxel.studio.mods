@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.lib.data
+package fr.hardel.asset_editor.client.compose
 
 enum class StudioBreakpoint(val px: Double) {
     SM(640.0),

@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 

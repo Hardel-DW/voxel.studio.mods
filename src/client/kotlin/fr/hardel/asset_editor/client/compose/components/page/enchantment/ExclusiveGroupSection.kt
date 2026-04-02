@@ -15,7 +15,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.data.ExclusiveSetGroup
-import fr.hardel.asset_editor.client.compose.lib.data.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList
 import java.util.LinkedHashMap
