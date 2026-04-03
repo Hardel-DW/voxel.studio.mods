@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client
 
+import fr.hardel.asset_editor.client.compose.lib.selectAsFlow
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory
 import fr.hardel.asset_editor.client.memory.core.Subscription

@@ -36,7 +36,7 @@ import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.DebugDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
-import fr.hardel.asset_editor.studio.StudioUiRegistry
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")

@@ -11,7 +11,7 @@ import fr.hardel.asset_editor.client.compose.lib.NoPermissionDestination;
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination;
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry;
 import fr.hardel.asset_editor.permission.StudioPermissions;
-import fr.hardel.asset_editor.studio.StudioUiRegistry;
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;

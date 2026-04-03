@@ -18,7 +18,6 @@ import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
 import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
-import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
 import java.util.Optional
 import net.minecraft.client.Minecraft

@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory
-import fr.hardel.asset_editor.client.selectAsFlow
 
 @Composable
 fun <S, T> rememberMemoryValue(

@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.memory.ui;
 
-import fr.hardel.asset_editor.studio.StudioUiRegistry;
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry;
 import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;

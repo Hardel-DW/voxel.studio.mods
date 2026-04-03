@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose
 
 import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentLayout
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableLayout
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeLayout
@@ -14,7 +15,6 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechn
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
 import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
-import fr.hardel.asset_editor.studio.StudioUiRegistry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 

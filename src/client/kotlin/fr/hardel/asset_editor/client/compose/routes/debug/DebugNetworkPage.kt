@@ -34,7 +34,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.Dropdown
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.asFlow
+import fr.hardel.asset_editor.client.compose.lib.asFlow
 import fr.hardel.asset_editor.client.memory.debug.NetworkTraceMemory
 import java.time.Instant
 import java.time.ZoneId

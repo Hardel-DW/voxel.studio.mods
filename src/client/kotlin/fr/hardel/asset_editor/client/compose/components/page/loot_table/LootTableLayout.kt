@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLay
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.studio.StudioUiRegistry
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage

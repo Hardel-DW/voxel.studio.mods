@@ -8,7 +8,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
-import fr.hardel.asset_editor.studio.StudioUiRegistry
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import java.util.concurrent.CompletableFuture
 
 class DefaultStudioPrefetcher(

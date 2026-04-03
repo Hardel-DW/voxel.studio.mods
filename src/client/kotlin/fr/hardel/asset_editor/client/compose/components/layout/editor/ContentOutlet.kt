@@ -14,7 +14,7 @@ import fr.hardel.asset_editor.client.compose.lib.DebugDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.NoPermissionDestination
 import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
-import fr.hardel.asset_editor.studio.StudioUiRegistry
+import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 
 @Composable
 fun ContentOutlet(context: StudioContext, modifier: Modifier = Modifier) {

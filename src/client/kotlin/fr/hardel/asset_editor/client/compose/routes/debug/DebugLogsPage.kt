@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.asFlow
+import fr.hardel.asset_editor.client.compose.lib.asFlow
 import fr.hardel.asset_editor.client.memory.debug.DebugLogMemory
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
