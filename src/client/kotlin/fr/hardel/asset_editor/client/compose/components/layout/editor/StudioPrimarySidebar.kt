@@ -32,10 +32,10 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
-import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.DebugDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.DebugDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.studio.StudioUiRegistry
 import net.minecraft.resources.Identifier
 

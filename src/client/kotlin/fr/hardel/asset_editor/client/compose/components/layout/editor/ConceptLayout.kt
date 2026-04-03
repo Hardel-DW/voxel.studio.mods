@@ -13,11 +13,11 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
-import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.StudioDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey

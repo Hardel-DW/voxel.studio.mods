@@ -16,7 +16,6 @@ import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
 import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
-import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
 import fr.hardel.asset_editor.studio.StudioUiRegistry
@@ -27,7 +26,6 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.Holder
 import net.minecraft.core.HolderSet
 import net.minecraft.core.Registry
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.TagKey
@@ -57,7 +55,7 @@ class StudioContext(
             if (navigationMemory.snapshot().current is NoPermissionDestination) {
                 if (!permissions.isNone) {
                     StudioUiRegistry.firstSupportedConceptId()?.let { conceptId ->
-                        navigationMemory.navigate(fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination(conceptId))
+                        navigationMemory.navigate(ConceptOverviewDestination(conceptId))
                     }
                 }
             }

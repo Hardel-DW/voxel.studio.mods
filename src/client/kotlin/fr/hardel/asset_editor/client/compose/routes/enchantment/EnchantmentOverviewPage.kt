@@ -41,7 +41,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions

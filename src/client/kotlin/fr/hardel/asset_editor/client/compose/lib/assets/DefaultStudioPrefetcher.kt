@@ -1,10 +1,10 @@
 package fr.hardel.asset_editor.client.compose.lib.assets
 
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
-import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.StudioDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import fr.hardel.asset_editor.studio.StudioRegistryResolver

@@ -6,9 +6,6 @@ import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
 import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.ClientPackInfo
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.StudioDestination
-import fr.hardel.asset_editor.client.navigation.StudioTabEntry
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.store.ElementEntry
 import net.minecraft.core.Registry

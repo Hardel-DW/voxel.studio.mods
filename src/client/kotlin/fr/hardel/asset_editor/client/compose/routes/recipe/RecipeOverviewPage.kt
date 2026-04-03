@@ -36,7 +36,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries

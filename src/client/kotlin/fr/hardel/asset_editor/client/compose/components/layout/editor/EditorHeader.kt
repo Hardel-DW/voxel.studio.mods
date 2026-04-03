@@ -38,7 +38,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.core.Registry
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -256,7 +257,7 @@ private fun resolveTitle(
     conceptId: Identifier,
     conceptRegistryKey: ResourceKey<out Registry<*>>,
     segments: List<String>,
-    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
+    destination: StudioDestination
 ): String {
     if (destination is ConceptOverviewDestination) {
         return segments.lastOrNull() ?: I18n.get("generic:all")
@@ -275,7 +276,7 @@ private fun resolveColorKey(
     context: StudioContext,
     treeState: ConceptTreeState,
     conceptId: Identifier,
-    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
+    destination: StudioDestination
 ): String {
     if (destination is ConceptOverviewDestination) {
         return treeState.filterPath.ifBlank { "all" }
@@ -287,7 +288,7 @@ private fun buildBreadcrumbSegments(
     treeState: ConceptTreeState,
     conceptId: Identifier,
     conceptRegistryKey: ResourceKey<out Registry<*>>,
-    destination: fr.hardel.asset_editor.client.navigation.StudioDestination
+    destination: StudioDestination
 ): List<String> {
     if (destination is ConceptOverviewDestination) {
         return resolveFilterPathLabels(treeState)

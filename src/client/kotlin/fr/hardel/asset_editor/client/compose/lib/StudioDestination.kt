@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.navigation
+package fr.hardel.asset_editor.client.compose.lib
 
 import androidx.compose.runtime.Immutable
 import net.minecraft.resources.Identifier

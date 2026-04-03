@@ -7,12 +7,12 @@ import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesLayout
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
-import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
-import fr.hardel.asset_editor.client.navigation.DebugDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.NoPermissionDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination
+import fr.hardel.asset_editor.client.compose.lib.DebugDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.NoPermissionDestination
 import fr.hardel.asset_editor.client.compose.routes.debug.DebugLayout
 import fr.hardel.asset_editor.studio.StudioUiRegistry
 

@@ -10,10 +10,10 @@ import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
-import fr.hardel.asset_editor.client.navigation.ConceptChangesDestination
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.StudioDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.core.registries.Registries
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableOverviewPage
 import kotlinx.collections.immutable.toImmutableSet

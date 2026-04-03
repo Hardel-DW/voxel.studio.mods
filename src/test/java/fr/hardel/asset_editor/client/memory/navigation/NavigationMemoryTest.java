@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.client.memory.navigation;
 
 import fr.hardel.asset_editor.client.compose.lib.data.StudioConcept;
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination;
-import fr.hardel.asset_editor.client.navigation.NoPermissionDestination;
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination;
+import fr.hardel.asset_editor.client.compose.lib.NoPermissionDestination;
 import fr.hardel.asset_editor.client.navigation.StudioEditorTab;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.minecraft.resources.Identifier;

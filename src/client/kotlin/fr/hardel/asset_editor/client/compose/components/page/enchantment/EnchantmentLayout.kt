@@ -11,17 +11,17 @@ import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTree
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
+import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.studio.StudioUiRegistry
-import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
-import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView
+import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
-import fr.hardel.asset_editor.client.navigation.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
-import fr.hardel.asset_editor.client.navigation.StudioDestination
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
 import kotlinx.collections.immutable.toImmutableSet
 import net.minecraft.client.resources.language.I18n
@@ -76,7 +76,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             onToggleExpanded = { path, expanded ->
                 context.uiMemory().setTreeExpanded(conceptId, path, expanded)
             },
-            onNavigateChanges = { context.navigationMemory().navigate(fr.hardel.asset_editor.client.navigation.ConceptChangesDestination(conceptId)) }
+            onNavigateChanges = { context.navigationMemory().navigate(ConceptChangesDestination(conceptId)) }
         )
     }
 
