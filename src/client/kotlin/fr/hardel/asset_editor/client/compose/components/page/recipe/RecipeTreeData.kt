@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.lib.data
+package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import fr.hardel.asset_editor.client.AssetEditorClient
 import fr.hardel.asset_editor.studio.RecipeEntryDefinition
@@ -10,7 +10,7 @@ object RecipeTreeData {
         get() = AssetEditorClient.studioConfigMemory().snapshot().recipeEntries().map { def -> toConfig(def) }
 
     private fun toConfig(def: RecipeEntryDefinition): RecipeEntryConfig {
-        val translationKey = "block.${def.entryId().getNamespace()}.${def.entryId().getPath()}"
+        val translationKey = "block.${def.entryId().namespace}.${def.entryId().path}"
         return RecipeEntryConfig(
             entryId = def.entryId(),
             assetId = def.entryId(),

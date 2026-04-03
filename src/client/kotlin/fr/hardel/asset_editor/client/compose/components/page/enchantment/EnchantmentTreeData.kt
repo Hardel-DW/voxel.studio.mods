@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.lib.data
+package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import fr.hardel.asset_editor.client.AssetEditorClient
 import fr.hardel.asset_editor.studio.CompendiumTagEntry
@@ -23,4 +23,8 @@ object EnchantmentTreeData {
         fun key(): String = tagId.path
         fun icon(): Identifier = tagId.withPath("textures/studio/item/${tagId.path}.png")
     }
+}
+
+enum class StudioSidebarView {
+    SLOTS, ITEMS, EXCLUSIVE
 }

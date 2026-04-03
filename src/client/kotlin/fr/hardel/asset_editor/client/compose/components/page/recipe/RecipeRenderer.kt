@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeVisualModel
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 
 @Composable
 fun RecipeRenderer(

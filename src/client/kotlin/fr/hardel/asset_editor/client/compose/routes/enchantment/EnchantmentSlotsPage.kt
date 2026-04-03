@@ -24,7 +24,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.compose.lib.data.SlotConfigs
+import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
@@ -50,17 +50,17 @@ fun EnchantmentSlotsPage(context: StudioContext) {
         Section(I18n.get("enchantment:section.slots.description")) {
             SlotConfigs.GROUPS.forEach { group ->
                 ResponsiveGrid(
-                    items = group.mapNotNull { slotId -> SlotConfigs.BY_ID[slotId] }.map { config ->
+                    items = group.map { slotId ->
                         {
                             Card(
-                                imageId = config.image(),
-                                title = I18n.get("slot:${config.id}"),
-                                active = config.slots.any { slot -> activeSlots.contains(slot) },
+                                imageId = SlotConfigs.slotImage(slotId),
+                                title = I18n.get("slot:$slotId"),
+                                active = activeSlots.any { slot -> SlotConfigs.expandsTo(slot, slotId) },
                                 onActiveChange = {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.ToggleSlot(config.id),
+                                        action = EnchantmentEditorActions.ToggleSlot(slotId),
                                         dialogs = dialogs
                                     )
                                 }

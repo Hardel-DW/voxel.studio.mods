@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 

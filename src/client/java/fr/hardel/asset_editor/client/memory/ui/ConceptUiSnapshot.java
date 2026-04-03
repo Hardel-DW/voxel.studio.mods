@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.memory.ui;
 
-import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView;
 
 import java.util.Set;
 

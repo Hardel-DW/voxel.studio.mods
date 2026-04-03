@@ -2,10 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentTreeData
-import fr.hardel.asset_editor.client.compose.lib.data.EnchantmentViewMatchers
-import fr.hardel.asset_editor.client.compose.lib.data.SlotConfigs
-import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
+import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
 import fr.hardel.asset_editor.store.ElementEntry
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
@@ -32,7 +29,7 @@ object EnchantmentTreeBuilder {
 
     fun slotFolderIcons(): Map<String, Identifier> =
         LinkedHashMap<String, Identifier>().apply {
-            SlotConfigs.ALL.forEach { config -> put(config.id, config.image()) }
+            SlotConfigs.PHYSICAL.forEach { id -> put(id, SlotConfigs.slotImage(id)) }
         }
 
     fun itemFolderIcons(): Map<String, Identifier> =
@@ -41,16 +38,16 @@ object EnchantmentTreeBuilder {
         }
 
     private fun buildBySlots(root: TreeNodeModel, enchantments: List<ElementEntry<Enchantment>>) {
-        SlotConfigs.ALL.forEach { config ->
-            val matching = enchantments.filter { entry -> EnchantmentViewMatchers.matchesSlot(entry, config.id) }
+        SlotConfigs.PHYSICAL.forEach { slotId ->
+            val matching = enchantments.filter { entry -> EnchantmentViewMatchers.matchesSlot(entry, slotId) }
             if (matching.isEmpty()) {
                 return@forEach
             }
 
             val category = createCategoryNode(matching)
-            category.icon = config.image()
-            category.label = I18n.get("slot:${config.id}")
-            root.children[config.id] = category
+            category.icon = SlotConfigs.slotImage(slotId)
+            category.label = I18n.get("slot:$slotId")
+            root.children[slotId] = category
         }
     }
 

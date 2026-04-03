@@ -1,6 +1,7 @@
-package fr.hardel.asset_editor.client.compose.lib.data
+package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
-import fr.hardel.asset_editor.client.compose.lib.data.SlotConfigs.SlotConfig
+import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
+import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView
 import fr.hardel.asset_editor.store.ElementEntry
 import net.minecraft.world.item.enchantment.Enchantment
 import java.util.Locale
@@ -36,9 +37,8 @@ object EnchantmentViewMatchers {
 
     @JvmStatic
     fun matchesSlot(entry: ElementEntry<Enchantment>, category: String): Boolean {
-        val config: SlotConfig = SlotConfigs.BY_ID[category] ?: return false
-        return entry.data().definition().slots().stream()
-            .anyMatch { group -> config.slots.contains(group.getSerializedName()) }
+        return entry.data().definition().slots()
+            .any { group -> SlotConfigs.expandsTo(group.serializedName, category) }
     }
 
     @JvmStatic

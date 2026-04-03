@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.client.AssetEditorClient
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Category
@@ -13,15 +14,22 @@ import fr.hardel.asset_editor.client.compose.components.ui.LayoutSpec
 import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
-import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.client.compose.lib.data.ExclusiveSetGroup
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+
+private val EXCLUSIVE_GROUP = Identifier.fromNamespaceAndPath("asset_editor", "exclusive")
+
+private data class ExclusiveSetGroup(val tagId: Identifier) {
+
+    fun image(): Identifier =
+        tagId.withPath("textures/studio/enchantment/${tagId.path}.png")
+}
 
 @Composable
 fun ExclusiveGroupSection(
@@ -34,6 +42,9 @@ fun ExclusiveGroupSection(
     val allEntries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val membersByTag = remember(allEntries) { tagMembers(allEntries) }
     val customTags = remember(allEntries) { EnchantmentFlushAdapter.customExclusiveTags(allEntries) }
+    val vanillaGroups = AssetEditorClient.studioConfigMemory().snapshot()
+        .enchantmentEntriesFor(EXCLUSIVE_GROUP)
+        .map { entry -> ExclusiveSetGroup(entry.id()) }
     val labelResolver: (String) -> String = { value ->
         if (value.isBlank()) {
             ""
@@ -51,7 +62,7 @@ fun ExclusiveGroupSection(
 
     Category(I18n.get("enchantment.exclusive:vanilla")) {
         ResponsiveGrid(
-            items = ExclusiveSetGroup.ALL.map { group ->
+            items = vanillaGroups.map { group ->
                 {
                     EnchantmentTags(
                         title = StudioText.resolve("enchantment_tag", group.tagId),

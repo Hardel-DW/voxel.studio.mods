@@ -34,7 +34,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.navigation.ElementEditorDestination
 import java.util.Locale

@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.memory.ui;
 
 import fr.hardel.asset_editor.studio.StudioUiRegistry;
-import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView;
+import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;

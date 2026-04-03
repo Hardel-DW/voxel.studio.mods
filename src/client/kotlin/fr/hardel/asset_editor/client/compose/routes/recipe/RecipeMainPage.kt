@@ -27,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry

@@ -14,7 +14,7 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActi
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.studio.StudioUiRegistry
 import fr.hardel.asset_editor.client.navigation.ConceptSimulationDestination
-import fr.hardel.asset_editor.client.compose.lib.data.StudioSidebarView
+import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries

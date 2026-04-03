@@ -35,7 +35,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.lib.data.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import androidx.compose.ui.window.Popup
