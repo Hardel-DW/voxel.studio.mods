@@ -82,7 +82,7 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
         }
     }
 
-    void resetState() {
+    public void resetState() {
         synchronized (this) {
             idGenerator.set(0L);
             entries.clear();

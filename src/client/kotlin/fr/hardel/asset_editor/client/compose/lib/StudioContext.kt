@@ -126,25 +126,25 @@ class StudioContext(
     fun studioConceptId(registryKey: ResourceKey<out Registry<*>>) =
         registryAccess()?.let { StudioRegistryResolver.conceptId(it, registryKey) }
 
-    fun studioDefaultEditorTab(conceptId: Identifier): Identifier? =
+    fun studioDefaultEditorTab(conceptId: Identifier): Identifier =
         StudioRegistryResolver.defaultEditorTab(requireRegistryAccess(), conceptId)
 
-    fun studioEditorTabs(conceptId: Identifier): List<Identifier?>? =
+    fun studioEditorTabs(conceptId: Identifier): List<Identifier> =
         StudioRegistryResolver.editorTabs(requireRegistryAccess(), conceptId)
 
-    fun studioRegistryKey(conceptId: Identifier): ResourceKey<out Registry<*>?>? =
+    fun studioRegistryKey(conceptId: Identifier): ResourceKey<out Registry<*>> =
         StudioRegistryResolver.registryKey(requireRegistryAccess(), conceptId)
 
-    fun studioRegistryPath(conceptId: Identifier): String? =
+    fun studioRegistryPath(conceptId: Identifier): String =
         StudioRegistryResolver.registryPath(requireRegistryAccess(), conceptId)
 
-    fun studioTitleKey(conceptId: Identifier): String? =
+    fun studioTitleKey(conceptId: Identifier): String =
         StudioRegistryResolver.titleKey(requireRegistryAccess(), conceptId)
 
-    fun studioTabTitleKey(conceptId: Identifier, tabId: Identifier): String? =
+    fun studioTabTitleKey(conceptId: Identifier, tabId: Identifier): String =
         StudioRegistryResolver.tabTitleKey(requireRegistryAccess(), conceptId, tabId)
 
-    fun studioIcon(conceptId: Identifier): Identifier? =
+    fun studioIcon(conceptId: Identifier): Identifier =
         StudioRegistryResolver.icon(requireRegistryAccess(), conceptId)
 
     fun resyncWorldSession() {

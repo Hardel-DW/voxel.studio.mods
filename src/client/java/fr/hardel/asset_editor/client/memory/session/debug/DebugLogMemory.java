@@ -78,7 +78,7 @@ public final class DebugLogMemory implements ReadableMemory<DebugLogMemory.Snaps
         memory.setSnapshot(Snapshot.empty());
     }
 
-    void resetState() {
+    public void resetState() {
         idGenerator.set(0L);
         clear();
     }
