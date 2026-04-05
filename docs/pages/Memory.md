@@ -4,11 +4,13 @@ Memory Name and what it contains
 
 **ElementEditorDestination**: contains `concept`, `elementId` and `tab`, with `tab` in MAIN | FIND | SLOTS | ITEMS | EXCLUSIVE | TECHNICAL | POOLS.
 
+## Session-scoped (created/destroyed with world connection)
+
 **SessionMemory**: Contains `permissions` (ADMIN | CONTRIBUTOR | NONE), `availablePacks`, `worldSessionKey`, `permissionsReceived` and `packListReceived`.
 
 **PackSelectionMemory**: Contains `selectedPack`
 
-**WorkspaceMemory**: Contains `worldSessionKey` and `pendingActionCount`.
+## Persistent (lives for client lifetime)
 
 **IssueMemory**: Contains `warnings` and `errors`, two lists of String.
 

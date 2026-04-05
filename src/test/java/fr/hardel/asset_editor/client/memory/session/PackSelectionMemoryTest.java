@@ -1,6 +1,4 @@
-package fr.hardel.asset_editor.client.memory.workspace;
-
-import fr.hardel.asset_editor.client.memory.session.SessionMemory;
+package fr.hardel.asset_editor.client.memory.session;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +24,7 @@ class PackSelectionMemoryTest {
         assertNotNull(memory.selectedPack());
         assertEquals("file/pack_a", memory.selectedPack().packId());
 
-        memory.selectPack(memory.availablePacks().get(1));
+        memory.selectPack(sessionMemory.availablePacks().get(1));
         assertEquals("file/pack_b", preferredPackId.get());
 
         sessionMemory.updatePacks(List.of(

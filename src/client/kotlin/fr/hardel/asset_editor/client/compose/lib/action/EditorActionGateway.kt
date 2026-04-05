@@ -3,9 +3,10 @@ package fr.hardel.asset_editor.client.compose.lib.action
 import fr.hardel.asset_editor.client.WorkspaceSyncGateway
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
-import fr.hardel.asset_editor.client.memory.workspace.PendingClientAction
-import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
-import fr.hardel.asset_editor.client.memory.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
+import fr.hardel.asset_editor.client.memory.session.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.PackSelectionMemory
+import fr.hardel.asset_editor.client.memory.session.RegistryMemory
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload
@@ -30,8 +31,28 @@ import org.slf4j.LoggerFactory
 
 class EditorActionGateway(
     private val sessionMemory: SessionMemory,
-    private val workspaceMemory: WorkspaceMemory
+    private val packSelection: PackSelectionMemory,
+    private val registryMemory: RegistryMemory,
+    private val issues: IssueMemory
 ) : WorkspaceSyncGateway {
+
+    private val pendingActions = LinkedHashMap<UUID, PendingClientAction<*>>()
+
+    fun pendingActionCount(): Int = pendingActions.size
+
+    fun pendingActionsSnapshot(): List<PendingClientAction<*>> = pendingActions.values.toList()
+
+    fun clearPendingActions() {
+        pendingActions.clear()
+    }
+
+    private fun trackPendingAction(actionId: UUID, action: PendingClientAction<*>) {
+        pendingActions[actionId] = action
+    }
+
+    private fun removePendingAction(actionId: UUID): PendingClientAction<*>? {
+        return pendingActions.remove(actionId)
+    }
 
     fun <T : Any> dispatch(
         registry: ResourceKey<Registry<T>>,
@@ -43,14 +64,14 @@ class EditorActionGateway(
             return check
         }
 
-        val pack = workspaceMemory.packSelection().selectedPack()
+        val pack = packSelection.selectedPack()
             ?: return EditorActionResult.packRequired()
         val resolvedTarget = target ?: return EditorActionResult.error("error:workspace_sync_pending")
-        val entry = workspaceMemory.registries().get(registry, resolvedTarget)
+        val entry = registryMemory.get(registry, resolvedTarget)
             ?: return EditorActionResult.error("error:workspace_sync_pending")
 
         val actionId = UUID.randomUUID()
-        workspaceMemory.trackPendingAction(
+        trackPendingAction(
             actionId,
             PendingClientAction(actionId, pack.packId(), registry, resolvedTarget, entry)
         )
@@ -69,13 +90,13 @@ class EditorActionGateway(
     }
 
     fun requestPackWorkspace(registry: ResourceKey<*>) {
-        val pack = workspaceMemory.packSelection().selectedPack()
+        val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
         ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), registry.identifier()))
     }
 
     fun requestElementSeed(registry: ResourceKey<*>, elementId: Identifier) {
-        val pack = workspaceMemory.packSelection().selectedPack()
+        val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
         ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), registry.identifier(), elementId))
     }
@@ -86,7 +107,7 @@ class EditorActionGateway(
             return
         }
 
-        val pending = workspaceMemory.removePendingAction(payload.actionId()) ?: return
+        val pending = removePendingAction(payload.actionId()) ?: return
         if (payload.accepted()) {
             payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it) }
             return
@@ -94,7 +115,7 @@ class EditorActionGateway(
 
         restorePending(pending)
         ClientDebugTelemetry.actionRejected(payload.actionId(), payload.errorCode() ?: "unknown")
-        workspaceMemory.issues().pushError(payload.errorCode())
+        issues.pushError(payload.errorCode())
     }
 
     override fun handlePackWorkspaceSync(
@@ -102,7 +123,7 @@ class EditorActionGateway(
         registryId: Identifier,
         snapshots: List<WorkspaceElementSnapshot>
     ) {
-        val selectedPack = workspaceMemory.packSelection().selectedPack()
+        val selectedPack = packSelection.selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
             return
         }
@@ -129,7 +150,7 @@ class EditorActionGateway(
                 RegistryMutationContexts.client(registries)
             )
             if (projected != null && !Objects.equals(projected, entry)) {
-                workspaceMemory.registries().put(registry, target, projected)
+                registryMemory.put(registry, target, projected)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
@@ -138,21 +159,16 @@ class EditorActionGateway(
     }
 
     private fun restorePending(pending: PendingClientAction<*>) {
-        val selectedPack = workspaceMemory.packSelection().selectedPack()
+        val selectedPack = packSelection.selectedPack()
         if (selectedPack == null || selectedPack.packId() != pending.packId()) {
             return
         }
 
-        @Suppress("UNCHECKED_CAST")
-        restorePendingTyped(pending as PendingClientAction<Any>)
-    }
-
-    private fun <T : Any> restorePendingTyped(pending: PendingClientAction<T>) {
-        workspaceMemory.registries().put(pending.registry(), pending.target(), pending.previousSnapshot())
+        pending.restoreInto(registryMemory)
     }
 
     private fun applySnapshotIfCurrentPack(packId: String, snapshot: WorkspaceElementSnapshot) {
-        val selectedPack = workspaceMemory.packSelection().selectedPack()
+        val selectedPack = packSelection.selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
             return
         }
@@ -168,7 +184,7 @@ class EditorActionGateway(
         registries: HolderLookup.Provider
     ) {
         val entries = snapshots.map { binding.fromSnapshot(it, registries) }
-        workspaceMemory.registries().replaceAll(binding.registryKey(), entries)
+        registryMemory.replaceAll(binding.registryKey(), entries)
     }
 
     private fun <T : Any> applySnapshot(
@@ -177,7 +193,7 @@ class EditorActionGateway(
         registries: HolderLookup.Provider
     ) {
         val entry = binding.fromSnapshot(snapshot, registries)
-        workspaceMemory.registries().put(binding.registryKey(), snapshot.targetId(), entry)
+        registryMemory.put(binding.registryKey(), snapshot.targetId(), entry)
     }
 
     private fun clientRegistries(): HolderLookup.Provider? {
@@ -190,7 +206,7 @@ class EditorActionGateway(
             return EditorActionResult.error("error:workspace_sync_pending")
         }
 
-        val pack: ClientPackInfo = workspaceMemory.packSelection().selectedPack()
+        val pack: ClientPackInfo = packSelection.selectedPack()
             ?: return EditorActionResult.packRequired()
         if (!pack.writable()) {
             return EditorActionResult.rejected("error:pack_readonly")

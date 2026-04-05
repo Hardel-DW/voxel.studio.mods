@@ -10,6 +10,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberServerData
+import fr.hardel.asset_editor.client.memory.session.StudioDataSlots
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
@@ -24,10 +26,11 @@ fun RecipeLayout(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.RECIPE) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRecipeEntries(context)
+    val recipeEntryDefs = rememberServerData(StudioDataSlots.RECIPE_ENTRIES)
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
-    val tree = remember(entries) {
+    val tree = remember(entries, recipeEntryDefs) {
         RecipeTreeBuilder.build(entries.map { RecipeTreeBuilder.RecipeEntry(it.id.toString(), it.type) })
     }
     val treeState = buildConceptTreeState(

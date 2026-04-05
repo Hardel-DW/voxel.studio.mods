@@ -20,6 +20,8 @@ import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.components.ui.FileInput
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.network.ClientPayloadSender
+import fr.hardel.asset_editor.network.pack.PackCreatePayload
 import java.io.File
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -61,7 +63,7 @@ object PackCreateDialog {
                             else -> null
                         }
                         if (errorMessage == null) {
-                            context.packSelectionMemory().createPack(nextName, nextNamespace)
+                            ClientPayloadSender.send(PackCreatePayload(nextName, nextNamespace))
                             onDismiss()
                         }
                     },

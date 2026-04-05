@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.workspace;
+package fr.hardel.asset_editor.client.memory.session;
 
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;

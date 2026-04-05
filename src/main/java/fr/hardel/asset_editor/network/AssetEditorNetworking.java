@@ -94,13 +94,6 @@ public final class AssetEditorNetworking {
             ServerPlayNetworking.send(player, payload);
     }
 
-    public static void sendAllServerData(ServerPlayer player, MinecraftServer server) {
-        sendServerData(player, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
-        sendServerData(player, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
-        sendServerData(player, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
-        sendServerData(player, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
-    }
-
     public static void broadcastAllServerData(MinecraftServer server) {
         broadcastServerData(server, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
         broadcastServerData(server, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());

@@ -3,12 +3,8 @@ package fr.hardel.asset_editor.client.memory.session;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
-import fr.hardel.asset_editor.client.memory.ClientPackInfo;
-import fr.hardel.asset_editor.client.network.ClientPayloadSender;
-import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
-import net.minecraft.client.Minecraft;
 
 import java.util.List;
 
@@ -71,10 +67,6 @@ public final class SessionMemory implements ReadableMemory<SessionMemory.Snapsho
     public void updatePacks(List<PackEntry> entries) {
         List<ClientPackInfo> packs = entries == null ? List.of() : entries.stream().map(ClientPackInfo::from).toList();
         memory.update(state -> new Snapshot(state.permissions(), packs, state.worldSessionKey(), state.permissionsReceived(), true));
-    }
-
-    public void createPack(String name, String namespace) {
-        Minecraft.getInstance().execute(() -> ClientPayloadSender.send(new PackCreatePayload(name, namespace)));
     }
 
     public void clear() {

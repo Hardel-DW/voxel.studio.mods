@@ -52,4 +52,15 @@ public record RegistryWorkspaceBinding<T>(ResourceKey<Registry<T>> registryKey, 
     public Identifier registryId() {
         return registryKey.identifier();
     }
+
+    public void snapshotFromAccess(net.minecraft.core.RegistryAccess registryAccess, RegistrySnapshotConsumer consumer) {
+        registryAccess.lookup(registryKey).ifPresent(registry ->
+            consumer.accept(registryKey, registry, entry -> customInitializer.apply(entry))
+        );
+    }
+
+    @FunctionalInterface
+    public interface RegistrySnapshotConsumer {
+        <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry, Function<ElementEntry<T>, CustomFields> customInitializer);
+    }
 }

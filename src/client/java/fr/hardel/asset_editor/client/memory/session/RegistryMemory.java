@@ -1,10 +1,11 @@
-package fr.hardel.asset_editor.client.memory.workspace;
+package fr.hardel.asset_editor.client.memory.session;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -109,7 +110,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     public synchronized Map<String, Integer> entryCountsSnapshot() {
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
         registrySlots.forEach((registry, slot) -> {
-            int size = slot.snapshotRaw().size();
+            int size = slot.snapshot().size();
             if (size > 0) {
                 counts.put(registry, size);
             }
@@ -120,6 +121,16 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     public synchronized void clearAll() {
         registrySlots.values().forEach(RegistrySlot::clear);
         memory.setSnapshot(Snapshot.empty());
+    }
+
+    public RegistryWorkspaceBinding.RegistrySnapshotConsumer asSnapshotConsumer() {
+        return new RegistryWorkspaceBinding.RegistrySnapshotConsumer() {
+            @Override
+            public <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
+                java.util.function.Function<ElementEntry<T>, CustomFields> customInitializer) {
+                snapshotFromRegistry(registryKey, registry, customInitializer);
+            }
+        };
     }
 
     static String registryName(ResourceKey<?> key) {
@@ -137,13 +148,18 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
             return Snapshot.empty();
 
         LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> registries = new LinkedHashMap<>();
-        registrySlots.forEach((name, slot) -> registries.put(name, slot.snapshotRaw()));
+        registrySlots.forEach((name, slot) -> registries.put(name, slot.wildcardSnapshot()));
         return new Snapshot(registries);
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized <T> RegistrySlot<T> slot(ResourceKey<Registry<T>> registry) {
-        return (RegistrySlot<T>) registrySlots.computeIfAbsent(registryName(registry), ignored -> new RegistrySlot<>());
+        String name = registryName(registry);
+        if (!registrySlots.containsKey(name)) {
+            var slot = new RegistrySlot<T>();
+            registrySlots.put(name, slot);
+            return slot;
+        }
+        return TypeSafeSlotMap.narrow(registrySlots.get(name));
     }
 
     private static <T> Map<Identifier, ElementEntry<T>> immutableEntries(Map<Identifier, ElementEntry<T>> entries) {
@@ -152,6 +168,19 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
 
         LinkedHashMap<Identifier, ElementEntry<T>> copy = new LinkedHashMap<>(entries);
         return Collections.unmodifiableMap(copy);
+    }
+
+    /**
+     * Type-safe heterogeneous container cast (Effective Java, Item 33).
+     * The cast is safe because slots are only ever created and accessed via methods
+     * that receive {@code ResourceKey<Registry<T>>}, guaranteeing type consistency
+     * between the key and the slot content.
+     */
+    private static final class TypeSafeSlotMap {
+        @SuppressWarnings("unchecked")
+        static <T> RegistrySlot<T> narrow(RegistrySlot<?> slot) {
+            return (RegistrySlot<T>) slot;
+        }
     }
 
     private static final class RegistrySlot<T> {
@@ -166,9 +195,10 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
             return memory.snapshot();
         }
 
-        @SuppressWarnings("unchecked")
-        private Map<Identifier, ElementEntry<?>> snapshotRaw() {
-            return (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) memory.snapshot();
+        private Map<Identifier, ElementEntry<?>> wildcardSnapshot() {
+            LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>();
+            memory.snapshot().forEach(result::put);
+            return Collections.unmodifiableMap(result);
         }
 
         private void publish(Map<Identifier, ElementEntry<T>> nextEntries) {

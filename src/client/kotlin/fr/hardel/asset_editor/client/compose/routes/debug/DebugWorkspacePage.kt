@@ -35,12 +35,10 @@ fun DebugWorkspacePage(context: StudioContext) {
     val uiSnapshot = rememberUiSnapshot(context)
     val sessionFlow = remember(context) { context.sessionMemory().asFlow() }
     val sessionSnapshot by sessionFlow.collectAsState(context.sessionMemory().snapshot())
-    val workspaceFlow = remember(context) { context.workspaceMemory().asFlow() }
-    val workspaceSnapshot by workspaceFlow.collectAsState(context.workspaceMemory().snapshot())
     val registryFlow = remember(context) { context.registryMemory().asFlow() }
     val registryState by registryFlow.collectAsState(context.registryMemory().snapshot())
-    val issuesFlow = remember(context) { context.workspaceMemory().issues().asFlow() }
-    val issuesSnapshot by issuesFlow.collectAsState(context.workspaceMemory().issues().snapshot())
+    val issuesFlow = remember(context) { context.issueMemory().asFlow() }
+    val issuesSnapshot by issuesFlow.collectAsState(context.issueMemory().snapshot())
     val packFlow = remember(context) { context.packSelectionMemory().asFlow() }
     val packSnapshot by packFlow.collectAsState(context.packSelectionMemory().snapshot())
     val registrySnapshot = remember(registryState) { context.registryMemory().entryCountsSnapshot() }
@@ -50,7 +48,7 @@ fun DebugWorkspacePage(context: StudioContext) {
             destination = destination.toString(),
             selectedPack = selectedPack?.packId() ?: "none",
             currentElement = currentEditor?.elementId ?: "none",
-            pendingActions = workspaceSnapshot.pendingActionCount,
+            pendingActions = context.gateway.pendingActionCount(),
             openTabs = navigationSnapshot.tabs.size,
             registries = registrySnapshot.size,
             totalEntries = registrySnapshot.values.sum()

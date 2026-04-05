@@ -1,10 +1,8 @@
-package fr.hardel.asset_editor.client.memory.workspace;
+package fr.hardel.asset_editor.client.memory.session;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
-import fr.hardel.asset_editor.client.memory.session.SessionMemory;
-import fr.hardel.asset_editor.client.memory.ClientPackInfo;
 
 import java.util.List;
 import java.util.Objects;
@@ -40,10 +38,6 @@ public final class PackSelectionMemory implements ReadableMemory<PackSelectionMe
         return memory.subscribe(listener);
     }
 
-    public List<ClientPackInfo> availablePacks() {
-        return sessionMemory.availablePacks();
-    }
-
     public ClientPackInfo selectedPack() {
         return snapshot().selectedPack();
     }
@@ -56,10 +50,6 @@ public final class PackSelectionMemory implements ReadableMemory<PackSelectionMe
 
     public void clearSelection() {
         memory.setSnapshot(new Snapshot(null));
-    }
-
-    public void createPack(String name, String namespace) {
-        sessionMemory.createPack(name, namespace);
     }
 
     public void dispose() {

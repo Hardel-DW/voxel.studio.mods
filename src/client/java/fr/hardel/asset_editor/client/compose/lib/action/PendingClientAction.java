@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.workspace;
+package fr.hardel.asset_editor.client.compose.lib.action;
 
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Registry;
@@ -12,5 +12,9 @@ public record PendingClientAction<T>(UUID actionId, String packId, ResourceKey<R
 
     public PendingClientAction {
         packId = packId == null ? "" : packId;
+    }
+
+    public void restoreInto(fr.hardel.asset_editor.client.memory.session.RegistryMemory memory) {
+        memory.put(registry, target, previousSnapshot);
     }
 }

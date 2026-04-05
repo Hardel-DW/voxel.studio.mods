@@ -13,8 +13,10 @@ import fr.hardel.asset_editor.client.memory.ui.NavigationMemory
 
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
-import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
-import fr.hardel.asset_editor.client.memory.workspace.WorkspaceMemory
+import fr.hardel.asset_editor.client.ClientPreferences
+import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
+import fr.hardel.asset_editor.client.memory.session.PackSelectionMemory
+import fr.hardel.asset_editor.client.memory.session.RegistryMemory
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
@@ -34,17 +36,19 @@ class StudioContext(
     private val dispatch: ClientSessionDispatch
 ) {
 
-    private val workspaceMemory = WorkspaceMemory(sessionMemory)
+    private val packSelection = PackSelectionMemory(sessionMemory, ClientPreferences::lastPackId, ClientPreferences::setLastPackId)
+    private val issues = IssueMemory()
+    private val registries = RegistryMemory()
     private val subscriptions = mutableListOf<Subscription>()
     private val navigationMemory = NavigationMemory(sessionMemory::permissions)
     private val uiMemory = UiMemory()
     private val assetCache = DefaultStudioAssetCache()
     private val prefetcher = DefaultStudioPrefetcher(assetCache)
+    private var lastWorldSessionKey = sessionMemory.worldSessionKey()
 
-    val gateway = EditorActionGateway(sessionMemory, workspaceMemory)
+    val gateway = EditorActionGateway(sessionMemory, packSelection, registries, issues)
 
     init {
-        workspaceMemory.setWorldSessionKey(sessionMemory.worldSessionKey())
         snapshotRegistries()
 
         var lastPermissions = sessionMemory.permissions()
@@ -68,9 +72,9 @@ class StudioContext(
         }
         handlePermissions(lastPermissions)
 
-        var lastSelectedPackId = workspaceMemory.packSelection().selectedPack()?.packId()
-        subscriptions += workspaceMemory.packSelection().subscribe {
-            val selectedPackId = workspaceMemory.packSelection().selectedPack()?.packId()
+        var lastSelectedPackId = packSelection.selectedPack()?.packId()
+        subscriptions += packSelection.subscribe {
+            val selectedPackId = packSelection.selectedPack()?.packId()
             if (selectedPackId == lastSelectedPackId) {
                 return@subscribe
             }
@@ -84,11 +88,11 @@ class StudioContext(
 
     fun sessionMemory(): SessionMemory = sessionMemory
 
-    fun workspaceMemory(): WorkspaceMemory = workspaceMemory
+    fun packSelectionMemory(): PackSelectionMemory = packSelection
 
-    fun packSelectionMemory() = workspaceMemory.packSelection()
+    fun issueMemory(): IssueMemory = issues
 
-    fun registryMemory(): RegistryMemory = workspaceMemory.registries()
+    fun registryMemory(): RegistryMemory = registries
 
     fun navigationMemory(): NavigationMemory = navigationMemory
 
@@ -101,7 +105,7 @@ class StudioContext(
     fun prefetcher(): StudioPrefetcher = prefetcher
 
     fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
-        workspaceMemory.registries().allTypedElements(registryKey)
+        registries.allTypedElements(registryKey)
 
     fun <T : Any> entryById(
         registryKey: ResourceKey<Registry<T>>,
@@ -111,7 +115,7 @@ class StudioContext(
             return null
         }
         val identifier = Identifier.tryParse(elementId) ?: return null
-        return workspaceMemory.registries().get(registryKey, identifier)
+        return registries.get(registryKey, identifier)
     }
 
     fun <T : Any> registryElements(registryKey: ResourceKey<Registry<T>>): List<Holder.Reference<T>> {
@@ -173,25 +177,32 @@ class StudioContext(
 
     fun resyncWorldSession() {
         val nextKey = sessionMemory.worldSessionKey()
-        if (workspaceMemory.worldSessionKey() == nextKey) {
+        if (lastWorldSessionKey == nextKey) {
             return
         }
 
         ClientDebugTelemetry.lifecycle(
             I18n.get("debug:telemetry.world_session_changed"),
             mapOf(
-                "previousWorldSessionKey" to workspaceMemory.worldSessionKey(),
+                "previousWorldSessionKey" to lastWorldSessionKey,
                 "nextWorldSessionKey" to nextKey
             )
         )
 
-        workspaceMemory.setWorldSessionKey(nextKey)
-        workspaceMemory.resetForWorldSync()
+        lastWorldSessionKey = nextKey
+        registries.clearAll()
+        packSelection.clearSelection()
+        issues.clear()
+        gateway.clearPendingActions()
         snapshotRegistries()
     }
 
     fun resetForWorldClose() {
-        workspaceMemory.resetForWorldClose()
+        lastWorldSessionKey = ""
+        registries.clearAll()
+        packSelection.clearSelection()
+        issues.clear()
+        gateway.clearPendingActions()
         uiMemory.reset()
         navigationMemory.reset()
         assetCache.invalidateAll()
@@ -202,36 +213,23 @@ class StudioContext(
         subscriptions.forEach(Subscription::unsubscribe)
         assetCache.invalidateAll()
         dispatch.clearGateway(gateway)
-        workspaceMemory.dispose()
+        packSelection.dispose()
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun snapshotRegistries() {
         val connection = Minecraft.getInstance().connection ?: return
         for (binding in RegistryWorkspaceBindings.all()) {
-            snapshotClientBinding(connection, binding as fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding<Any>)
+            binding.snapshotFromAccess(connection.registryAccess(), registries.asSnapshotConsumer())
         }
     }
 
     private fun refreshSelectedPackWorkspace() {
-        workspaceMemory.clearPendingActions()
-        workspaceMemory.issues().clear()
-        val pack = workspaceMemory.packSelection().selectedPack() ?: return
+        gateway.clearPendingActions()
+        issues.clear()
+        val pack = packSelection.selectedPack() ?: return
 
         for (binding in RegistryWorkspaceBindings.all()) {
             requestWorkspaceRefresh(pack.packId(), binding.registryKey())
-        }
-    }
-
-    private fun <T : Any> snapshotClientBinding(
-        connection: net.minecraft.client.multiplayer.ClientPacketListener,
-        binding: fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding<T>
-    ) {
-        connection.registryAccess().lookup(binding.registryKey()).ifPresent { registry ->
-            workspaceMemory.registries().snapshotFromRegistry(
-                binding.registryKey(),
-                registry
-            ) { entry: ElementEntry<T> -> binding.initializeEntry(entry).custom() }
         }
     }
 
