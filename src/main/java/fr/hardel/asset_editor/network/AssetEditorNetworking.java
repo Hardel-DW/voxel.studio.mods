@@ -1,16 +1,16 @@
 package fr.hardel.asset_editor.network;
 
+import fr.hardel.asset_editor.network.data.ServerDataKey;
+import fr.hardel.asset_editor.network.data.ServerDataRequestPayload;
+import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
+import fr.hardel.asset_editor.network.data.StudioDataKeys;
 import fr.hardel.asset_editor.network.pack.PackCreatePayload;
 import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
-import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload;
 import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
-import fr.hardel.asset_editor.network.studio.CompendiumEnchantmentSyncPayload;
-import fr.hardel.asset_editor.network.studio.CompendiumItemTagSyncPayload;
-import fr.hardel.asset_editor.network.studio.RecipeEntrySyncPayload;
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
@@ -43,17 +43,20 @@ public final class AssetEditorNetworking {
     private static final ServerPackService PACK_SERVICE = new ServerPackService();
 
     public static void register() {
+        StudioDataKeys.init();
+
         PayloadTypeRegistry.playS2C().register(PermissionSyncPayload.TYPE, PermissionSyncPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(RecipeCatalogSyncPayload.TYPE, RecipeCatalogSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(WorkspaceSyncPayload.TYPE, WorkspaceSyncPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(PackWorkspaceSyncPayload.TYPE, PackWorkspaceSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PackListSyncPayload.TYPE, PackListSyncPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(ServerDataSyncPayload.TYPE, ServerDataSyncPayload.CODEC);
 
         PayloadTypeRegistry.playC2S().register(WorkspaceMutationRequestPayload.TYPE, WorkspaceMutationRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(WorkspaceMutationRequestPayload.TYPE, AssetEditorNetworking::handleWorkspaceMutation);
 
-        PayloadTypeRegistry.playS2C().register(PackListSyncPayload.TYPE, PackListSyncPayload.CODEC);
         PayloadTypeRegistry.playC2S().register(PackListRequestPayload.TYPE, PackListRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PackListRequestPayload.TYPE, AssetEditorNetworking::handlePackListRequest);
+
         PayloadTypeRegistry.playC2S().register(PackWorkspaceRequestPayload.TYPE, PackWorkspaceRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(PackWorkspaceRequestPayload.TYPE, AssetEditorNetworking::handlePackWorkspaceRequest);
 
@@ -63,9 +66,8 @@ public final class AssetEditorNetworking {
         PayloadTypeRegistry.playC2S().register(ElementSeedRequestPayload.TYPE, ElementSeedRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ElementSeedRequestPayload.TYPE, AssetEditorNetworking::handleElementSeedRequest);
 
-        PayloadTypeRegistry.playS2C().register(CompendiumItemTagSyncPayload.TYPE, CompendiumItemTagSyncPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(CompendiumEnchantmentSyncPayload.TYPE, CompendiumEnchantmentSyncPayload.CODEC);
-        PayloadTypeRegistry.playS2C().register(RecipeEntrySyncPayload.TYPE, RecipeEntrySyncPayload.CODEC);
+        PayloadTypeRegistry.playC2S().register(ServerDataRequestPayload.TYPE, ServerDataRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ServerDataRequestPayload.TYPE, AssetEditorNetworking::handleServerDataRequest);
     }
 
     public static void sendPermissions(ServerPlayer player, StudioPermissions permissions) {
@@ -76,37 +78,34 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
-    public static void sendRecipeCatalog(ServerPlayer player, MinecraftServer server) {
-        ServerPlayNetworking.send(player, RecipeCatalogBuilder.build(server));
-    }
-
     public static void broadcastPackList(MinecraftServer server, java.util.List<ServerPackManager.PackEntry> packs) {
         PackListSyncPayload payload = new PackListSyncPayload(packs);
         for (ServerPlayer player : server.getPlayerList().getPlayers())
             ServerPlayNetworking.send(player, payload);
     }
 
-    public static void broadcastRecipeCatalog(MinecraftServer server) {
-        RecipeCatalogSyncPayload payload = RecipeCatalogBuilder.build(server);
+    public static <T> void sendServerData(ServerPlayer player, ServerDataKey<T> key, java.util.List<T> data) {
+        ServerPlayNetworking.send(player, ServerDataSyncPayload.create(key, data));
+    }
+
+    public static <T> void broadcastServerData(MinecraftServer server, ServerDataKey<T> key, java.util.List<T> data) {
+        ServerDataSyncPayload payload = ServerDataSyncPayload.create(key, data);
         for (ServerPlayer player : server.getPlayerList().getPlayers())
             ServerPlayNetworking.send(player, payload);
     }
 
-    public static void sendStudioConfig(ServerPlayer player) {
-        ServerPlayNetworking.send(player, new CompendiumItemTagSyncPayload(CompendiumTagLoader.itemGroups()));
-        ServerPlayNetworking.send(player, new CompendiumEnchantmentSyncPayload(CompendiumTagLoader.enchantmentGroups()));
-        ServerPlayNetworking.send(player, new RecipeEntrySyncPayload(RecipeEntryLoader.entries()));
+    public static void sendAllServerData(ServerPlayer player, MinecraftServer server) {
+        sendServerData(player, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
+        sendServerData(player, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
+        sendServerData(player, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
+        sendServerData(player, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
     }
 
-    public static void broadcastStudioConfig(MinecraftServer server) {
-        CompendiumItemTagSyncPayload itemPayload = new CompendiumItemTagSyncPayload(CompendiumTagLoader.itemGroups());
-        CompendiumEnchantmentSyncPayload exclusivePayload = new CompendiumEnchantmentSyncPayload(CompendiumTagLoader.enchantmentGroups());
-        RecipeEntrySyncPayload recipePayload = new RecipeEntrySyncPayload(RecipeEntryLoader.entries());
-        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            ServerPlayNetworking.send(player, itemPayload);
-            ServerPlayNetworking.send(player, exclusivePayload);
-            ServerPlayNetworking.send(player, recipePayload);
-        }
+    public static void broadcastAllServerData(MinecraftServer server) {
+        broadcastServerData(server, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
+        broadcastServerData(server, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
+        broadcastServerData(server, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
+        broadcastServerData(server, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
     }
 
     private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) {
@@ -158,6 +157,21 @@ public final class AssetEditorNetworking {
 
         WorkspaceElementSnapshot snapshot = binding.toSnapshot(entry, access.registries());
         ServerPlayNetworking.send(player, WorkspaceSyncPayload.remoteSync(access.packId(), snapshot));
+    }
+
+    private static void handleServerDataRequest(ServerDataRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key()));
+    }
+
+    private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key) {
+        if (key.equals(StudioDataKeys.RECIPE_CATALOG.id()))
+            sendServerData(player, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
+        else if (key.equals(StudioDataKeys.COMPENDIUM_ITEMS.id()))
+            sendServerData(player, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
+        else if (key.equals(StudioDataKeys.COMPENDIUM_ENCHANTMENTS.id()))
+            sendServerData(player, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
+        else if (key.equals(StudioDataKeys.RECIPE_ENTRIES.id()))
+            sendServerData(player, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
     }
 
     private AssetEditorNetworking() {}

@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory
+import fr.hardel.asset_editor.client.memory.session.ServerDataStore
 
 @Composable
 fun <S, T> rememberMemoryValue(
@@ -16,4 +17,10 @@ fun <S, T> rememberMemoryValue(
     val flow = remember(memory, *keys) { memory.selectAsFlow(selector) }
     val value by flow.collectAsState(initial)
     return value
+}
+
+@Composable
+fun <T> rememberServerData(slot: ServerDataStore.DataSlot<T>): List<T> {
+    remember(slot) { ServerDataStore.requestIfAbsent(slot.key()); true }
+    return rememberMemoryValue(slot.memory()) { it }
 }

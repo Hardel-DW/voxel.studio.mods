@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentLayout
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableLayout
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeLayout
-import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView
+import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentExclusivePage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentFindPage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentItemsPage

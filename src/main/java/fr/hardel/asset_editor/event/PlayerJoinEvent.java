@@ -17,8 +17,7 @@ public final class PlayerJoinEvent {
                     permissionManager.syncToPlayer(handler.getPlayer());
                 }
 
-                AssetEditorNetworking.sendRecipeCatalog(handler.getPlayer(), server);
-                AssetEditorNetworking.sendStudioConfig(handler.getPlayer());
+                AssetEditorNetworking.sendAllServerData(handler.getPlayer(), server);
                 PACK_SERVICE.listPacks()
                     .ifPresent(packs -> AssetEditorNetworking.sendPackList(handler.getPlayer(), packs));
             });

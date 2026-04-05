@@ -23,17 +23,15 @@ import java.util.Objects;
 
 public final class RecipeCatalogBuilder {
 
-    public static RecipeCatalogSyncPayload build(MinecraftServer server) {
+    public static List<RecipeCatalogEntry> build(MinecraftServer server) {
         ContextMap displayContext = createDisplayContext(server.registryAccess());
-        return new RecipeCatalogSyncPayload(
-            server.getRecipeManager().getRecipes().stream()
-                .map(holder -> toEntry(holder, displayContext))
-                .filter(Objects::nonNull)
-                .toList()
-        );
+        return server.getRecipeManager().getRecipes().stream()
+            .map(holder -> toEntry(holder, displayContext))
+            .filter(Objects::nonNull)
+            .toList();
     }
 
-    private static RecipeCatalogSyncPayload.Entry toEntry(RecipeHolder<?> holder, ContextMap displayContext) {
+    private static RecipeCatalogEntry toEntry(RecipeHolder<?> holder, ContextMap displayContext) {
         var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(holder.value().getSerializer());
         if (serializerId == null) return null;
 
@@ -42,7 +40,7 @@ public final class RecipeCatalogBuilder {
         List<? extends RecipeDisplay> displays = recipe.display();
 
         if (displays.isEmpty()) {
-            return new RecipeCatalogSyncPayload.Entry(holder.id().identifier(), type, Map.of(), "minecraft:air", 1);
+            return new RecipeCatalogEntry(holder.id().identifier(), type, Map.of(), "minecraft:air", 1);
         }
 
         RecipeDisplay display = displays.getFirst();
@@ -50,7 +48,7 @@ public final class RecipeCatalogBuilder {
         String resultItemId = resolveResultItemId(display.result(), displayContext);
         int resultCount = resolveResultCount(display.result(), displayContext);
 
-        return new RecipeCatalogSyncPayload.Entry(holder.id().identifier(), type, slots, resultItemId, resultCount);
+        return new RecipeCatalogEntry(holder.id().identifier(), type, slots, resultItemId, resultCount);
     }
 
     private static Map<String, List<String>> resolveSlots(RecipeDisplay display, ContextMap context) {

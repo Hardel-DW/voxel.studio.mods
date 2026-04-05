@@ -5,7 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.client.memory.session.StudioDataSlots
+import fr.hardel.asset_editor.studio.CompendiumTagGroup
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Category
@@ -42,8 +43,7 @@ fun ExclusiveGroupSection(
     val allEntries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val membersByTag = remember(allEntries) { tagMembers(allEntries) }
     val customTags = remember(allEntries) { EnchantmentFlushAdapter.customExclusiveTags(allEntries) }
-    val vanillaGroups = AssetEditorClient.studioConfigMemory().snapshot()
-        .enchantmentEntriesFor(EXCLUSIVE_GROUP)
+    val vanillaGroups = CompendiumTagGroup.findEntries(StudioDataSlots.COMPENDIUM_ENCHANTMENTS.memory().snapshot(), EXCLUSIVE_GROUP)
         .map { entry -> ExclusiveSetGroup(entry.id()) }
     val labelResolver: (String) -> String = { value ->
         if (value.isBlank()) {

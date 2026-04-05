@@ -1,7 +1,8 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
-import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.client.memory.session.StudioDataSlots
 import fr.hardel.asset_editor.studio.CompendiumTagEntry
+import fr.hardel.asset_editor.studio.CompendiumTagGroup
 import fr.hardel.asset_editor.tag.TagSeed
 import net.minecraft.resources.Identifier
 
@@ -10,8 +11,7 @@ object EnchantmentTreeData {
     private val ENCHANTABLE_GROUP = Identifier.fromNamespaceAndPath("asset_editor", "enchantable")
 
     val ITEM_TAGS: List<ItemTagConfig>
-        get() = AssetEditorClient.studioConfigMemory().snapshot()
-            .itemEntriesFor(ENCHANTABLE_GROUP)
+        get() = CompendiumTagGroup.findEntries(StudioDataSlots.COMPENDIUM_ITEMS.memory().snapshot(), ENCHANTABLE_GROUP)
             .map { entry -> ItemTagConfig(entry.id(), toSeed(entry)) }
 
     private fun toSeed(entry: CompendiumTagEntry): TagSeed? {

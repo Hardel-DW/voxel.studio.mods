@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
-import fr.hardel.asset_editor.client.compose.lib.StudioSidebarView
+import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView
 import fr.hardel.asset_editor.store.ElementEntry
 import net.minecraft.world.item.enchantment.Enchantment
 import java.util.Locale

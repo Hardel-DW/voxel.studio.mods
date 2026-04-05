@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.navigation;
+package fr.hardel.asset_editor.client.memory.ui;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;

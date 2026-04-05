@@ -9,9 +9,8 @@ import fr.hardel.asset_editor.client.compose.lib.assets.StudioPrefetcher
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.memory.debug.DebugMemory
-import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
-import fr.hardel.asset_editor.client.AssetEditorClient
-import fr.hardel.asset_editor.client.memory.session.CatalogMemory
+import fr.hardel.asset_editor.client.memory.ui.NavigationMemory
+
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.workspace.RegistryMemory
@@ -100,8 +99,6 @@ class StudioContext(
     fun assetCache(): StudioAssetCache = assetCache
 
     fun prefetcher(): StudioPrefetcher = prefetcher
-
-    fun catalogMemory(): CatalogMemory = AssetEditorClient.catalogMemory()
 
     fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
         workspaceMemory.registries().allTypedElements(registryKey)

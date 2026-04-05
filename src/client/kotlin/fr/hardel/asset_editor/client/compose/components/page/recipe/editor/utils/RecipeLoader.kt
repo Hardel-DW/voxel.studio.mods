@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
-import fr.hardel.asset_editor.network.recipe.RecipeCatalogSyncPayload
+import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.HolderLookup
@@ -20,7 +20,7 @@ fun loadWorkspaceRecipeEntries(
         .sortedBy { it.id.toString() }
 }
 
-fun RecipeCatalogSyncPayload.Entry.toRuntimeEntry(): RecipeRuntimeEntry {
+fun RecipeCatalogEntry.toRuntimeEntry(): RecipeRuntimeEntry {
     val resultCountEditable = Identifier.tryParse(type())?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
     val resultCountMax = Identifier.tryParse(resultItemId())
         ?.let(BuiltInRegistries.ITEM::getOptional)

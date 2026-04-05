@@ -13,8 +13,7 @@ public final class PackReloadEnd {
             if (!success)
                 return;
 
-            AssetEditorNetworking.broadcastRecipeCatalog(server);
-            AssetEditorNetworking.broadcastStudioConfig(server);
+            AssetEditorNetworking.broadcastAllServerData(server);
             PACK_SERVICE.listPacks().ifPresent(packs -> AssetEditorNetworking.broadcastPackList(server, packs));
         });
     }

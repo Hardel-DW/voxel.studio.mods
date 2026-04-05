@@ -18,4 +18,12 @@ public record CompendiumTagGroup(Identifier id, List<CompendiumTagEntry> entries
     public CompendiumTagGroup {
         entries = List.copyOf(entries == null ? List.of() : entries);
     }
+
+    public static List<CompendiumTagEntry> findEntries(List<CompendiumTagGroup> groups, Identifier groupId) {
+        for (CompendiumTagGroup group : groups) {
+            if (group.id().equals(groupId))
+                return group.entries();
+        }
+        return List.of();
+    }
 }

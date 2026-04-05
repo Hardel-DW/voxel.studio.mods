@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import fr.hardel.asset_editor.client.memory.navigation.NavigationMemory
+import fr.hardel.asset_editor.client.memory.ui.NavigationMemory
 import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.ClientPackInfo

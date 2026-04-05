@@ -1,13 +1,13 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
-import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.client.memory.session.StudioDataSlots
 import fr.hardel.asset_editor.studio.RecipeEntryDefinition
 import net.minecraft.resources.Identifier
 
 object RecipeTreeData {
 
     val RECIPE_ENTRIES: List<RecipeEntryConfig>
-        get() = AssetEditorClient.studioConfigMemory().snapshot().recipeEntries().map { def -> toConfig(def) }
+        get() = StudioDataSlots.RECIPE_ENTRIES.memory().snapshot().map { def -> toConfig(def) }
 
     private fun toConfig(def: RecipeEntryDefinition): RecipeEntryConfig {
         val translationKey = "block.${def.entryId().namespace}.${def.entryId().path}"
