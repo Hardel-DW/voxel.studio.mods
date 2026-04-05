@@ -11,25 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
-import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
-import fr.hardel.asset_editor.client.compose.components.ui.Card
-import fr.hardel.asset_editor.client.compose.components.ui.LayoutSpec
-import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
-import fr.hardel.asset_editor.client.compose.components.ui.Section
-import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
-import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
-import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
-import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
-import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.components.ui.*
+import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
-import net.minecraft.resources.Identifier
 
 @Composable
 fun EnchantmentSlotsPage(context: StudioContext) {
@@ -37,7 +26,7 @@ fun EnchantmentSlotsPage(context: StudioContext) {
     val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
 
     val activeSlots = remember(entry) {
-        entry.data().definition().slots().map { it.getSerializedName() }.toSet()
+        entry.data().definition().slots().map { it.serializedName }.toSet()
     }
 
     Column(

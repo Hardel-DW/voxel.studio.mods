@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.session;
+package fr.hardel.asset_editor.client.memory.session.server;
 
 import fr.hardel.asset_editor.network.data.StudioDataKeys;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
@@ -19,7 +19,7 @@ public final class StudioDataSlots {
     public static final ServerDataStore.DataSlot<RecipeEntryDefinition> RECIPE_ENTRIES =
         ServerDataStore.register(StudioDataKeys.RECIPE_ENTRIES);
 
-    public static void init() {
+    public static void register() {
         // Force class loading to register all slots
     }
 

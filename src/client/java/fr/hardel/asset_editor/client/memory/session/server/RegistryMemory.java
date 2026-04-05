@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.session;
+package fr.hardel.asset_editor.client.memory.session.server;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
@@ -124,13 +124,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     }
 
     public RegistryWorkspaceBinding.RegistrySnapshotConsumer asSnapshotConsumer() {
-        return new RegistryWorkspaceBinding.RegistrySnapshotConsumer() {
-            @Override
-            public <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-                java.util.function.Function<ElementEntry<T>, CustomFields> customInitializer) {
-                snapshotFromRegistry(registryKey, registry, customInitializer);
-            }
-        };
+        return this::snapshotFromRegistry;
     }
 
     static String registryName(ResourceKey<?> key) {
@@ -196,8 +190,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         }
 
         private Map<Identifier, ElementEntry<?>> wildcardSnapshot() {
-            LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>();
-            memory.snapshot().forEach(result::put);
+            LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>(memory.snapshot());
             return Collections.unmodifiableMap(result);
         }
 

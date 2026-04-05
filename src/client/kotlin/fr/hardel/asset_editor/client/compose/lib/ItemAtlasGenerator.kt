@@ -52,10 +52,6 @@ object ItemAtlasGenerator {
     }
 
     @JvmStatic
-    fun isReady(): Boolean =
-        ItemAtlasRenderer.isReady()
-
-    @JvmStatic
     fun subscribe(listener: Runnable): Runnable {
         listeners.add(listener)
         return Runnable { listeners.remove(listener) }

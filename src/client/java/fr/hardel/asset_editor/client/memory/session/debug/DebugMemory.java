@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.debug;
+package fr.hardel.asset_editor.client.memory.session.debug;
 
 public final class DebugMemory {
 

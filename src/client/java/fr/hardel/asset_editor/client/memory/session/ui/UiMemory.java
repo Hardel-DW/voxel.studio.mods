@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.ui;
+package fr.hardel.asset_editor.client.memory.session.ui;
 
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry;
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView;
@@ -64,17 +64,6 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
             }
 
             return new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), next);
-        });
-    }
-
-    public void resetConcept(Identifier conceptId) {
-        memory.update(state -> {
-            if (!state.concepts().containsKey(conceptId))
-                return state;
-
-            LinkedHashMap<Identifier, ConceptUiSnapshot> next = new LinkedHashMap<>(state.concepts());
-            next.remove(conceptId);
-            return new Snapshot(next);
         });
     }
 

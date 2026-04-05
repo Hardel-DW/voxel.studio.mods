@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.memory.session;
 
+import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.core.Registry;

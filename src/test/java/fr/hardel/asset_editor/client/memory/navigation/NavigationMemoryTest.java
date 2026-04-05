@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.memory.navigation;
 
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination;
 import fr.hardel.asset_editor.client.compose.lib.NoPermissionDestination;
-import fr.hardel.asset_editor.client.memory.ui.NavigationMemory;
+import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;

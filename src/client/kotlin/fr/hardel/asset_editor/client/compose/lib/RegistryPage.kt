@@ -62,10 +62,6 @@ fun <T : Any> rememberCurrentRegistryEntry(
     return rememberCurrentEntry(context, registry, destination)
 }
 
-@Composable
-fun StudioContext.hasWritablePack(): Boolean =
-    rememberSelectedPack(this)?.writable() == true
-
 fun <T : Any> StudioContext.dispatchRegistryAction(
     registry: ResourceKey<Registry<T>>,
     target: Identifier?,

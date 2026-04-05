@@ -1,23 +1,13 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -26,13 +16,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +26,6 @@ import fr.hardel.asset_editor.client.compose.lib.highlight.Highlight
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightPalette
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRange
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
-import java.util.ArrayList
 
 private val CODE_BLOCK_SHAPE = RoundedCornerShape(10.dp)
 private val DEFAULT_TEXT_STYLE = TextStyle(
@@ -97,9 +81,6 @@ class CodeBlockState {
         renderVersion++
     }
 }
-
-@Composable
-fun rememberCodeBlockState(): CodeBlockState = remember { CodeBlockState() }
 
 @Composable
 fun CodeBlock(

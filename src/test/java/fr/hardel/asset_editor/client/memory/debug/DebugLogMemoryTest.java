@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.memory.debug;
 
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

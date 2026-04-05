@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.session;
+package fr.hardel.asset_editor.client.memory.session.ui;
 
 import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
 

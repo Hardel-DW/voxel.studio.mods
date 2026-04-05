@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.debug;
 
-import fr.hardel.asset_editor.client.AssetEditorClient;
-import fr.hardel.asset_editor.client.memory.debug.DebugLogMemory;
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
@@ -46,7 +46,7 @@ public final class ClientDebugTelemetry {
 
     private static void logLevel(DebugLogMemory.Level level, DebugLogMemory.Category category, String message, Map<String, ?> data) {
         if (data == null) {
-            AssetEditorClient.debugMemory().logs().log(level, category, message);
+            ClientMemoryHolder.debug().logs().log(level, category, message);
             return;
         }
 
@@ -60,7 +60,7 @@ public final class ClientDebugTelemetry {
                 normalized.put(entry.getKey(), text);
         }
 
-        AssetEditorClient.debugMemory().logs().log(level, category, message, normalized);
+        ClientMemoryHolder.debug().logs().log(level, category, message, normalized);
     }
 
     private ClientDebugTelemetry() {}

@@ -8,16 +8,16 @@ import fr.hardel.asset_editor.client.compose.lib.assets.StudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.assets.StudioPrefetcher
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.core.Subscription
-import fr.hardel.asset_editor.client.memory.debug.DebugMemory
-import fr.hardel.asset_editor.client.memory.ui.NavigationMemory
+import fr.hardel.asset_editor.client.memory.session.debug.DebugMemory
+import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory
 
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
-import fr.hardel.asset_editor.client.memory.ui.UiMemory
+import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
 import fr.hardel.asset_editor.client.ClientPreferences
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
-import fr.hardel.asset_editor.client.memory.session.PackSelectionMemory
-import fr.hardel.asset_editor.client.memory.session.RegistryMemory
-import fr.hardel.asset_editor.store.ElementEntry
+import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
+import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
+import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.studio.StudioRegistryResolver
 import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
 import java.util.Optional
@@ -52,7 +52,7 @@ class StudioContext(
         snapshotRegistries()
 
         var lastPermissions = sessionMemory.permissions()
-        fun handlePermissions(permissions: fr.hardel.asset_editor.permission.StudioPermissions) {
+        fun handlePermissions(permissions: StudioPermissions) {
             navigationMemory.revalidate(permissions)
             if (navigationMemory.snapshot().current is NoPermissionDestination) {
                 if (!permissions.isNone) {
@@ -104,28 +104,6 @@ class StudioContext(
 
     fun prefetcher(): StudioPrefetcher = prefetcher
 
-    fun <T : Any> allTypedEntries(registryKey: ResourceKey<Registry<T>>): List<ElementEntry<T>> =
-        registries.allTypedElements(registryKey)
-
-    fun <T : Any> entryById(
-        registryKey: ResourceKey<Registry<T>>,
-        elementId: String?
-    ): ElementEntry<T>? {
-        if (elementId.isNullOrBlank()) {
-            return null
-        }
-        val identifier = Identifier.tryParse(elementId) ?: return null
-        return registries.get(registryKey, identifier)
-    }
-
-    fun <T : Any> registryElements(registryKey: ResourceKey<Registry<T>>): List<Holder.Reference<T>> {
-        val connection = Minecraft.getInstance().connection ?: return emptyList()
-        return connection.registryAccess()
-            .lookup(registryKey)
-            .map { registry -> registry.listElements().toList() }
-            .orElse(emptyList())
-    }
-
     fun <T : Any> resolveTag(registryKey: ResourceKey<Registry<T>>, tagKey: TagKey<T>): Optional<HolderSet<T>> {
         val connection = Minecraft.getInstance().connection ?: return Optional.empty()
         return connection.registryAccess()
@@ -145,34 +123,28 @@ class StudioContext(
 
     fun requireRegistryAccess() = registryAccess() ?: error("Missing client registry access")
 
-    fun studioConceptIds(): List<Identifier> = registryAccess()?.let(StudioRegistryResolver::conceptIds) ?: emptyList()
-
-    fun studioConceptDefinition(conceptId: Identifier) = registryAccess()?.let { StudioRegistryResolver.conceptDefinition(it, conceptId) }
-
-    fun requireStudioConceptDefinition(conceptId: Identifier) = StudioRegistryResolver.requireConceptDefinition(requireRegistryAccess(), conceptId)
-
     fun studioConceptId(registryKey: ResourceKey<out Registry<*>>) =
         registryAccess()?.let { StudioRegistryResolver.conceptId(it, registryKey) }
 
-    fun studioDefaultEditorTab(conceptId: Identifier) =
+    fun studioDefaultEditorTab(conceptId: Identifier): Identifier? =
         StudioRegistryResolver.defaultEditorTab(requireRegistryAccess(), conceptId)
 
-    fun studioEditorTabs(conceptId: Identifier) =
+    fun studioEditorTabs(conceptId: Identifier): List<Identifier?>? =
         StudioRegistryResolver.editorTabs(requireRegistryAccess(), conceptId)
 
-    fun studioRegistryKey(conceptId: Identifier) =
+    fun studioRegistryKey(conceptId: Identifier): ResourceKey<out Registry<*>?>? =
         StudioRegistryResolver.registryKey(requireRegistryAccess(), conceptId)
 
-    fun studioRegistryPath(conceptId: Identifier) =
+    fun studioRegistryPath(conceptId: Identifier): String? =
         StudioRegistryResolver.registryPath(requireRegistryAccess(), conceptId)
 
-    fun studioTitleKey(conceptId: Identifier) =
+    fun studioTitleKey(conceptId: Identifier): String? =
         StudioRegistryResolver.titleKey(requireRegistryAccess(), conceptId)
 
-    fun studioTabTitleKey(conceptId: Identifier, tabId: Identifier) =
+    fun studioTabTitleKey(conceptId: Identifier, tabId: Identifier): String? =
         StudioRegistryResolver.tabTitleKey(requireRegistryAccess(), conceptId, tabId)
 
-    fun studioIcon(conceptId: Identifier) =
+    fun studioIcon(conceptId: Identifier): Identifier? =
         StudioRegistryResolver.icon(requireRegistryAccess(), conceptId)
 
     fun resyncWorldSession() {

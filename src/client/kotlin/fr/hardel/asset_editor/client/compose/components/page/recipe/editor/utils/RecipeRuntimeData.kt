@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
-import fr.hardel.asset_editor.client.memory.session.StudioDataSlots
+import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
 import net.minecraft.client.Minecraft
 import net.minecraft.core.registries.Registries

@@ -5,18 +5,12 @@ import java.util.IdentityHashMap
 import java.util.LinkedHashSet
 import java.util.Objects
 
-class Highlight() {
+class Highlight {
 
     private val ranges = LinkedHashSet<HighlightRange>()
     private val containingRegistries = IdentityHashMap<HighlightRegistry, Int>()
     private var priority = 0
     private var type = "highlight"
-
-    constructor(vararg initialRanges: HighlightRange) : this() {
-        for (initialRange in initialRanges) {
-            add(initialRange)
-        }
-    }
 
     fun add(start: Int, end: Int): Highlight =
         add(HighlightRange(start, end))
@@ -27,18 +21,6 @@ class Highlight() {
             scheduleRepaintInContainingRegistries()
         }
         return this
-    }
-
-    fun delete(start: Int, end: Int): Boolean =
-        delete(HighlightRange(start, end))
-
-    fun delete(range: HighlightRange): Boolean {
-        Objects.requireNonNull(range, "range")
-        val removed = ranges.remove(range)
-        if (removed) {
-            scheduleRepaintInContainingRegistries()
-        }
-        return removed
     }
 
     fun clear() {
@@ -55,17 +37,7 @@ class Highlight() {
 
     fun priority(): Int = priority
 
-    fun setPriority(priority: Int) {
-        this.priority = priority
-        scheduleRepaintInContainingRegistries()
-    }
-
     fun type(): String = type
-
-    fun setType(type: String) {
-        this.type = Objects.requireNonNull(type, "type")
-        scheduleRepaintInContainingRegistries()
-    }
 
     fun ranges(): List<HighlightRange> = ranges.toList()
 

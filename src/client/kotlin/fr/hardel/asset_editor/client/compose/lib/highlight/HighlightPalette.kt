@@ -21,14 +21,6 @@ class HighlightPalette {
 
     fun contains(name: String): Boolean = styles.containsKey(name)
 
-    fun delete(name: String): Boolean {
-        val removed = styles.remove(name) != null
-        if (removed) {
-            notifyListeners()
-        }
-        return removed
-    }
-
     fun clear() {
         if (styles.isEmpty()) {
             return
@@ -41,10 +33,6 @@ class HighlightPalette {
 
     fun addListener(listener: Runnable) {
         listeners += listener
-    }
-
-    fun removeListener(listener: Runnable) {
-        listeners -= listener
     }
 
     private fun notifyListeners() {

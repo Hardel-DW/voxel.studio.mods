@@ -33,29 +33,13 @@ public final class IssueMemory implements ReadableMemory<IssueMemory.Snapshot> {
         return memory.subscribe(listener);
     }
 
-    public List<String> warnings() {
-        return snapshot().warnings();
-    }
-
-    public List<String> errors() {
-        return snapshot().errors();
-    }
-
-    public void replaceWarnings(List<String> nextWarnings) {
-        memory.update(state -> new Snapshot(nextWarnings, state.errors()));
-    }
-
-    public void replaceErrors(List<String> nextErrors) {
-        memory.update(state -> new Snapshot(state.warnings(), nextErrors));
-    }
-
     public void pushError(String error) {
         if (error == null || error.isBlank())
             return;
         memory.update(state -> {
             ArrayList<String> next = new ArrayList<>(state.errors());
             next.remove(error);
-            next.add(0, error);
+            next.addFirst(error);
             return new Snapshot(state.warnings(), next);
         });
     }

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.memory.session;
 
+import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
@@ -11,7 +12,7 @@ import java.util.List;
 public final class SessionMemory implements ReadableMemory<SessionMemory.Snapshot> {
 
     public record Snapshot(StudioPermissions permissions, List<ClientPackInfo> availablePacks, String worldSessionKey,
-        boolean permissionsReceived, boolean packListReceived) {
+                           boolean permissionsReceived, boolean packListReceived) {
 
         public Snapshot {
             permissions = permissions == null ? StudioPermissions.NONE : permissions;
@@ -50,10 +51,6 @@ public final class SessionMemory implements ReadableMemory<SessionMemory.Snapsho
 
     public boolean hasReceivedPermissions() {
         return snapshot().permissionsReceived();
-    }
-
-    public boolean hasReceivedPackList() {
-        return snapshot().packListReceived();
     }
 
     public void setWorldSessionKey(String key) {

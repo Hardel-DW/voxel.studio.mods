@@ -6,10 +6,6 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.toImmutableList
 import net.minecraft.resources.Identifier
 
-private val DEFAULT_ELEMENT_ICON = Identifier.fromNamespaceAndPath(
-    AssetEditor.MOD_ID,
-    "textures/features/item/bundle_open.png"
-)
 private val DEFAULT_FOLDER_ICON = Identifier.fromNamespaceAndPath(
     AssetEditor.MOD_ID,
     "icons/folder.svg"

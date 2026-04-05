@@ -24,7 +24,7 @@ fun ItemSprite(
     var version by remember(itemId) { mutableIntStateOf(0) }
 
     DisposableEffect(itemId) {
-        val subscription = ItemAtlasGenerator.subscribe(Runnable { version++ })
+        val subscription = ItemAtlasGenerator.subscribe { version++ }
         onDispose(subscription::run)
     }
 

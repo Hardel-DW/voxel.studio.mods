@@ -9,8 +9,6 @@ data class EditorActionResult(val status: Status, val message: String?) {
         ERROR
     }
 
-    fun isApplied(): Boolean = status == Status.APPLIED
-
     companion object {
         @JvmStatic
         fun applied(): EditorActionResult = EditorActionResult(Status.APPLIED, null)

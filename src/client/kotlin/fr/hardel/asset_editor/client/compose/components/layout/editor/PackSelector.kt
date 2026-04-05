@@ -44,7 +44,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberAvailablePacks
 import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
-import fr.hardel.asset_editor.client.memory.session.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
 import kotlin.math.roundToInt
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier

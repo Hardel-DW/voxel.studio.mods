@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.session;
+package fr.hardel.asset_editor.client.memory.session.server;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;

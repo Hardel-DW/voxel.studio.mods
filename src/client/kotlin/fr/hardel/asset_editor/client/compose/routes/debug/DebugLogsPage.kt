@@ -28,7 +28,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.asFlow
-import fr.hardel.asset_editor.client.memory.debug.DebugLogMemory
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.time.Instant

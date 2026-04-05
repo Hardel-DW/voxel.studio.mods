@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.debug;
+package fr.hardel.asset_editor.client.memory.session.debug;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
@@ -66,7 +66,7 @@ public final class DebugLogMemory implements ReadableMemory<DebugLogMemory.Snaps
     public void log(Level level, Category category, String message, Map<String, String> data) {
         memory.update(state -> {
             ArrayList<Entry> next = new ArrayList<>(state.entries());
-            next.add(0, new Entry(idGenerator.incrementAndGet(), System.currentTimeMillis(), level, category, message, normalizeData(data)));
+            next.addFirst(new Entry(idGenerator.incrementAndGet(), System.currentTimeMillis(), level, category, message, normalizeData(data)));
             if (next.size() > MAX_ENTRIES)
                 next.subList(MAX_ENTRIES, next.size()).clear();
 

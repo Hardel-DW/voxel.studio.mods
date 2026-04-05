@@ -6,27 +6,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveGroupSection
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveSingleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
-import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
-import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
-import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
-import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
+import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
-import java.util.LinkedHashSet
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
-import net.minecraft.resources.Identifier
 
 @Composable
 fun EnchantmentExclusivePage(context: StudioContext) {

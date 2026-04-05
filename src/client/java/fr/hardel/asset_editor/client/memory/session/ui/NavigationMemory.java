@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.ui;
+package fr.hardel.asset_editor.client.memory.session.ui;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
@@ -163,14 +163,6 @@ public final class NavigationMemory implements ReadableMemory<NavigationMemory.S
 
     public void reset() {
         memory.setSnapshot(Snapshot.empty());
-    }
-
-    public StudioTabEntry activeTab() {
-        String activeId = snapshot().activeTabId();
-        if (activeId == null)
-            return null;
-
-        return snapshot().tabs().stream().filter(entry -> entry.getTabId().equals(activeId)).findFirst().orElse(null);
     }
 
     private StudioDestination normalize(StudioDestination destination) {

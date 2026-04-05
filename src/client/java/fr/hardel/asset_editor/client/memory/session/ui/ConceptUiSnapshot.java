@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.ui;
+package fr.hardel.asset_editor.client.memory.session.ui;
 
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView;
 

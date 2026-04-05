@@ -35,7 +35,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.asFlow
-import fr.hardel.asset_editor.client.memory.debug.NetworkTraceMemory
+import fr.hardel.asset_editor.client.memory.session.debug.NetworkTraceMemory
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -140,7 +140,7 @@ fun DebugNetworkPage(context: StudioContext) {
 @Composable
 private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
     val inbound = direction == NetworkTraceMemory.Direction.INBOUND
-    val color = if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400
+    if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

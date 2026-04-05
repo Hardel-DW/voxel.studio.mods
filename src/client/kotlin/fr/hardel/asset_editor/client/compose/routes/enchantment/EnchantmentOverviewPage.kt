@@ -217,7 +217,7 @@ private fun OverviewRow(
                     color = VoxelColors.Zinc600
                 )
                 Text(
-                    text = "${I18n.get("enchantment:overview.level")} ${entry.data().getMaxLevel()}",
+                    text = "${I18n.get("enchantment:overview.level")} ${entry.data().maxLevel}",
                     style = VoxelTypography.regular(10),
                     color = VoxelColors.Zinc500
                 )

@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.memory.debug;
 
 import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.client.memory.session.debug.NetworkTraceMemory;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;

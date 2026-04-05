@@ -14,7 +14,7 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlots
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
-import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
+import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 

@@ -14,8 +14,6 @@ class HighlightRange(
 
     fun end(): Int = end
 
-    fun length(): Int = end - start
-
     fun isCollapsed(): Boolean = start == end
 
     fun clampToLength(textLength: Int): HighlightRange {
@@ -23,9 +21,6 @@ class HighlightRange(
         val clampedEnd = end.coerceIn(clampedStart, textLength)
         return HighlightRange(clampedStart, clampedEnd)
     }
-
-    fun intersects(other: HighlightRange): Boolean =
-        start < other.end && other.start < end
 
     override fun compareTo(other: HighlightRange): Int {
         val byStart = start.compareTo(other.start)

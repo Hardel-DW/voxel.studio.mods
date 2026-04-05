@@ -1,4 +1,5 @@
 package fr.hardel.asset_editor.client.memory.session;
+import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import org.junit.jupiter.api.Test;
 

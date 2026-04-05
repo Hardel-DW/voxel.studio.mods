@@ -4,9 +4,9 @@ import fr.hardel.asset_editor.client.WorkspaceSyncGateway
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
-import fr.hardel.asset_editor.client.memory.session.ClientPackInfo
-import fr.hardel.asset_editor.client.memory.session.PackSelectionMemory
-import fr.hardel.asset_editor.client.memory.session.RegistryMemory
+import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
+import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload
@@ -39,8 +39,6 @@ class EditorActionGateway(
     private val pendingActions = LinkedHashMap<UUID, PendingClientAction<*>>()
 
     fun pendingActionCount(): Int = pendingActions.size
-
-    fun pendingActionsSnapshot(): List<PendingClientAction<*>> = pendingActions.values.toList()
 
     fun clearPendingActions() {
         pendingActions.clear()
@@ -160,7 +158,7 @@ class EditorActionGateway(
 
     private fun restorePending(pending: PendingClientAction<*>) {
         val selectedPack = packSelection.selectedPack()
-        if (selectedPack == null || selectedPack.packId() != pending.packId()) {
+        if (selectedPack == null || selectedPack.packId() != pending.packId) {
             return
         }
 
@@ -216,6 +214,18 @@ class EditorActionGateway(
         }
 
         return null
+    }
+
+    data class PendingClientAction<T : Any>(
+        val actionId: UUID,
+        val packId: String,
+        val registry: ResourceKey<Registry<T>>,
+        val target: Identifier,
+        val previousSnapshot: ElementEntry<T>
+    ) {
+        fun restoreInto(memory: RegistryMemory) {
+            memory.put(registry, target, previousSnapshot)
+        }
     }
 
     companion object {

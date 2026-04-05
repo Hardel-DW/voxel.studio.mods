@@ -1,8 +1,9 @@
-package fr.hardel.asset_editor.client.memory.session;
+package fr.hardel.asset_editor.client.memory.session.ui;
 
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
+import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,15 +14,13 @@ public final class PackSelectionMemory implements ReadableMemory<PackSelectionMe
 
     public record Snapshot(ClientPackInfo selectedPack) { }
 
-    private final SessionMemory sessionMemory;
     private final Supplier<String> preferredPackIdSupplier;
     private final Consumer<String> preferredPackIdConsumer;
     private final SimpleMemory<Snapshot> memory = new SimpleMemory<>(new Snapshot(null));
     private final Subscription sessionSubscription;
 
     public PackSelectionMemory(SessionMemory sessionMemory, Supplier<String> preferredPackIdSupplier,
-        Consumer<String> preferredPackIdConsumer) {
-        this.sessionMemory = sessionMemory;
+                               Consumer<String> preferredPackIdConsumer) {
         this.preferredPackIdSupplier = Objects.requireNonNull(preferredPackIdSupplier, "preferredPackIdSupplier");
         this.preferredPackIdConsumer = Objects.requireNonNull(preferredPackIdConsumer, "preferredPackIdConsumer");
         this.sessionSubscription = sessionMemory.subscribe(() -> syncSelection(sessionMemory.availablePacks()));

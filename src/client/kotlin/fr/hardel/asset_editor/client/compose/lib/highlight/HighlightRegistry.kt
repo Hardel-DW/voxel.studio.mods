@@ -28,13 +28,6 @@ class HighlightRegistry {
 
     fun contains(name: String): Boolean = highlights.containsKey(name)
 
-    fun delete(name: String): Boolean {
-        val removed = highlights.remove(name) ?: return false
-        removed.deregisterFrom(this)
-        scheduleRepaint()
-        return true
-    }
-
     fun clear() {
         if (highlights.isEmpty()) {
             return
@@ -88,10 +81,6 @@ class HighlightRegistry {
 
     fun addListener(listener: Runnable) {
         listeners += listener
-    }
-
-    fun removeListener(listener: Runnable) {
-        listeners -= listener
     }
 
     internal fun scheduleRepaint() {

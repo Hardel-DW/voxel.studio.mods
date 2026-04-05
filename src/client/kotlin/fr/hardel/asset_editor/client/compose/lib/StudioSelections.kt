@@ -2,10 +2,10 @@ package fr.hardel.asset_editor.client.compose.lib
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import fr.hardel.asset_editor.client.memory.ui.NavigationMemory
-import fr.hardel.asset_editor.client.memory.ui.ConceptUiSnapshot
-import fr.hardel.asset_editor.client.memory.ui.UiMemory
-import fr.hardel.asset_editor.client.memory.session.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory
+import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
+import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
+import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.store.ElementEntry
 import net.minecraft.core.Registry
@@ -25,13 +25,6 @@ fun rememberOpenTabs(context: StudioContext): List<StudioTabEntry> {
 @Composable
 fun rememberActiveTabId(context: StudioContext): String? {
     return rememberMemoryValue(context.navigationMemory(), selector = NavigationMemory.Snapshot::activeTabId)
-}
-
-@Composable
-fun rememberActiveTabEntry(context: StudioContext): StudioTabEntry? {
-    return rememberMemoryValue(context.navigationMemory()) { snapshot ->
-        snapshot.activeTabId?.let { activeId -> snapshot.tabs.firstOrNull { it.tabId == activeId } }
-    }
 }
 
 @Composable

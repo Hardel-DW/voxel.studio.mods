@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.debug;
+package fr.hardel.asset_editor.client.memory.session.debug;
 
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
@@ -59,9 +59,9 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
         Identifier payloadId = payload.type().id();
         synchronized (this) {
             knownNamespaces.add(payloadId.getNamespace());
-            entries.add(0, new TraceEntry(idGenerator.incrementAndGet(), System.currentTimeMillis(), direction, payloadId, payload));
+            entries.addFirst(new TraceEntry(idGenerator.incrementAndGet(), System.currentTimeMillis(), direction, payloadId, payload));
             while (entries.size() > MAX_ENTRIES) {
-                entries.remove(entries.size() - 1);
+                entries.removeLast();
             }
 
             publishSnapshot();

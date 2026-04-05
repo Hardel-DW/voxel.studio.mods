@@ -19,7 +19,7 @@ import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
-import fr.hardel.asset_editor.client.AssetEditorClient
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -43,7 +43,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private var activeContext: StudioContext? = null
 
     @JvmStatic
-    fun initializeRuntime() {
+    fun initialize() {
         MinecraftStageWindow.initializeRuntime()
     }
 
@@ -112,7 +112,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         }
 
         permissionSubscription?.unsubscribe()
-        permissionSubscription = AssetEditorClient.sessionMemory().subscribe {
+        permissionSubscription = ClientMemoryHolder.session().subscribe {
             if (state == State.SPLASH)
                 SwingUtilities.invokeLater(::tryTransitionFromSplash)
         }
@@ -145,7 +145,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     }
 
     private fun tryTransitionFromSplash() {
-        if (!splashMinTimeElapsed || !AssetEditorClient.sessionMemory().hasReceivedPermissions()) return
+        if (!splashMinTimeElapsed || !ClientMemoryHolder.session().hasReceivedPermissions()) return
         if (state == State.EDITOR) return
 
         state = State.EDITOR
@@ -182,9 +182,9 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private fun EditorContent(version: Int) {
         val context = remember(version) {
             StudioContext(
-                AssetEditorClient.sessionMemory(),
-                AssetEditorClient.debugMemory(),
-                AssetEditorClient.sessionDispatch()
+                ClientMemoryHolder.session(),
+                ClientMemoryHolder.debug(),
+                ClientMemoryHolder.dispatch()
             )
         }
 

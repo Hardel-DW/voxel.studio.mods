@@ -57,7 +57,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                             description = I18n.get("enchantment:global.explanation.list.1")
                         ) {
                             Counter(
-                                value = entry.data().getMaxLevel(),
+                                value = entry.data().maxLevel,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
@@ -79,7 +79,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                             description = I18n.get("enchantment:global.explanation.list.2")
                         ) {
                             Counter(
-                                value = entry.data().getWeight(),
+                                value = entry.data().weight,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
@@ -101,7 +101,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                             description = I18n.get("enchantment:global.explanation.list.3")
                         ) {
                             Counter(
-                                value = entry.data().getAnvilCost(),
+                                value = entry.data().anvilCost,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,

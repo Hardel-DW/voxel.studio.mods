@@ -27,7 +27,7 @@ public final class ClientPreferences {
 
     private static final ModConfig<Data> CONFIG = new ModConfig<>(FabricLoader.getInstance().getConfigDir().resolve("asset_editor.json"), Data.CODEC, new Data());
 
-    public static void load() {
+    public static void register() {
         CONFIG.load();
     }
 

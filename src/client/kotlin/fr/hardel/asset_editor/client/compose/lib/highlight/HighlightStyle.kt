@@ -26,16 +26,4 @@ class HighlightStyle(
 
     fun hasForeground(): Boolean = foreground != null
 
-    fun hasBackground(): Boolean = background != null
-
-    fun hasUnderline(): Boolean = underline != null
-
-    fun withForeground(value: Color?): HighlightStyle =
-        HighlightStyle(value, background, underline)
-
-    fun withBackground(value: Color?): HighlightStyle =
-        HighlightStyle(foreground, value, underline)
-
-    fun withUnderline(value: Color?): HighlightStyle =
-        HighlightStyle(foreground, background, value)
 }
