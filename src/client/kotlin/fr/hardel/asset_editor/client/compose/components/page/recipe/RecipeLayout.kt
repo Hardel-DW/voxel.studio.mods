@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -19,14 +20,16 @@ import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeOverviewPage
 import kotlinx.collections.immutable.toImmutableSet
+import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
 @Composable
 fun RecipeLayout(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.RECIPE) ?: return
-    val conceptUi = rememberConceptUi(context, conceptId)
-    val entries = rememberRecipeEntries(context)
     val recipeEntryDefs = rememberServerData(StudioDataSlots.RECIPE_ENTRIES)
+    val dataReady = recipeEntryDefs.isNotEmpty()
+    val conceptUi = rememberConceptUi(context, conceptId)
+    val entries = if (dataReady) rememberRecipeEntries(context) else emptyList()
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
@@ -68,7 +71,9 @@ fun RecipeLayout(context: StudioContext) {
             sidebarTitleKey = "recipe:overview.title",
             treeState = treeState,
             pageFactory = { destination: StudioDestination ->
-                when (destination) {
+                if (!dataReady) {
+                    LoadingPlaceholder(I18n.get("studio:loading.server_data"))
+                } else when (destination) {
                     is ConceptOverviewDestination -> RecipeOverviewPage(context)
                     is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
                     else -> EmptyPage()

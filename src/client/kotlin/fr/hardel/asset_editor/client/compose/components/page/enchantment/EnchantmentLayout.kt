@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
 import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -32,10 +33,11 @@ import net.minecraft.core.registries.Registries
 @Composable
 fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
     val conceptId = context.studioConceptId(Registries.ENCHANTMENT) ?: return
+    val compendiumItems = rememberServerData(StudioDataSlots.COMPENDIUM_ITEMS)
+    val dataReady = compendiumItems.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val sidebarView = conceptUi.sidebarView
-    val compendiumItems = rememberServerData(StudioDataSlots.COMPENDIUM_ITEMS)
     val tree = remember(entries, sidebarView, compendiumItems) { EnchantmentTreeBuilder.build(entries, sidebarView) }
     val folderIcons = remember(sidebarView) {
         when (sidebarView) {
@@ -92,11 +94,12 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             sidebarTitleKey = "enchantment:overview.title",
             treeState = treeState,
             pageFactory = { destination: StudioDestination ->
-                when (destination) {
+                if (!dataReady) {
+                    LoadingPlaceholder(I18n.get("studio:loading.server_data"))
+                } else when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)
                     is ConceptSimulationDestination -> EmptyPage()
                     is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
-
                     else -> EmptyPage()
                 }
             },
