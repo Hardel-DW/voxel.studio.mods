@@ -28,8 +28,19 @@ Qui sera ensuite utilisé pour afficher un item par son id.
 - Le dossier components/ui, ce sont des composants ultra génériques non liés à aucune logique, aucun comportement d'aucun concept, pur et 100% générique, pas de I18n dedans.
 
 ### Module Memory
-C'est basiquement un Store. La Memory contient l'état client pur a l'instant T, Elle ne lit pas le disque, elle n'écrit rien, elle ne connait pas la diff serveur, elle ne connait pas les règles métier. Elle stocke juste des snapshots et notifie quand ça change.
-Son rôle c'est de servir de source de vérité coté client pour l'affichage. Compose observe la Memory, réagit, et re-render ce qui a changé. La Gateway modifie la Memory localement si besoin, puis le serveur valide, broadcast ou rollback.
+Source de vérité côté client pour l'affichage. Organisé en deux lifecycles :
+- **Session** (détruit à la déconnexion) : SessionMemory, PackSelectionMemory, RegistryMemory, NavigationMemory, UiMemory, ServerDataStore, DebugMemory
+- **Persistent** (survit entre les mondes) : IssueMemory
+
+Chaque memory est indépendante, stocke ses propres données et les expose directement. Pas d'agrégation.
+`ClientMemoryHolder` est le point d'accès global pour les singletons (SessionMemory, DebugMemory, ClientSessionDispatch).
+Compose observe la Memory, réagit, et re-render ce qui a changé.
+
+### Point d'entrée client (AssetEditorClient)
+Ne contient que `BUILD_VERSION` et `onInitializeClient()` avec des appels `.register()`. Toute la logique est extraite dans des fichiers dédiés :
+- `StudioKeybinding` — enregistrement du keybind F8
+- `ClientTickHandler` — world session tracking, keybind handling
+- `StudioReloadListener` — resource reload
 
 ### Gateway -> Comportement
 Toutes les interactions passent par une Gateway ultra générique qui envoie au serveur. C'est le seul et unique point d'entrée et de sortie des interactions/actions. Validation locale, Optimistic et Rollback, Le serveur si c'est bon broadcast à tous les autres clients (admin/contributeur), soit rollback, soit valide, les sélecteurs feront la mise à jour des affichages.
@@ -44,8 +55,29 @@ Si on a besoin de données spécifiques de différence c'est au serveur de nous 
 # Server
 Le serveur reste autoritaire.
 
+### Point d'entrée serveur (AssetEditor)
+Ne contient que `MOD_ID` et `onInitialize()` avec des appels `.register()`. Registrations :
+- `StudioRegistries` — registres dynamiques Minecraft (concepts, tabs)
+- `StudioResourceLoaders` — reload listeners Fabric (compendium, recipe entries)
+- `EnchantmentWorkspace` / `RecipeWorkspace` — `WorkspaceDefinition` avec tous les handlers d'actions
+- `RecipeAdapterRegistries` — adapteurs polymorphes pour les types de recettes
+- `AssetEditorNetworking` — payloads + handlers réseau
+- Events (start, stop, join, reload, commands)
+
+### WorkspaceDefinition
+Chaque registre supporté a un seul `WorkspaceDefinition<T>` construit via builder :
+Ajouter une action = 2 étapes : définir le record + ajouter `.action()` dans le builder.
+
+```java
+WorkspaceDefinition.builder(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC)
+    .flushAdapter(EnchantmentFlushAdapter.INSTANCE)
+    .customInitializer(entry -> ...)
+    .action(SET_INT_FIELD, (entry, action, ctx) -> ...)
+    .build();
+```
+
 # Module Network (Dossier Network)
-Ne doit que envoyer et recevoir les données entre le client et le serveur. Ensuite le client/server dispatch et utilise les bonnes classes et modules. Mais globalement il doit juste envoiyer et recevoir les données.
+Ne doit que envoyer et recevoir les données entre le client et le serveur. Ensuite le client/server dispatch et utilise les bonnes classes et modules. Mais globalement il doit juste envoyer et recevoir les données.
 
 ### Module Permissions complètement indépendant de tous les modules, indépendant de Compose de la window des concepts, pas lié au système de OP, il permet de définir entre admin, none et Contributor envoyé au Client.
 - **Admin**: full access, can promote/demote other players via `/studio role set`.
