@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.store.workspace;
 
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -10,6 +10,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,44 +42,45 @@ public final class WorkspaceRepository {
         this.packOverlayLoader = new PackOverlayLoader(server);
     }
 
-    public <T> void snapshotBaseline(RegistryWorkspaceBinding<T> binding,
+    public <T> void snapshotBaseline(WorkspaceDefinition<T> definition,
         ResourceManager resourceManager,
         @org.jspecify.annotations.Nullable Registry<T> registry,
         HolderLookup.Provider registries) {
-        baselines.put(binding.registryName(), baselineMap(registryReader.readBaseline(binding, resourceManager, registry, registries)));
-        workspaces.values().forEach(perRegistry -> perRegistry.remove(binding.registryName()));
+        var baseline = registryReader.readBaseline(definition, resourceManager, registry, registries);
+        baselines.put(definition.registryName(), wildcardMap(baseline));
+        workspaces.values().forEach(perRegistry -> perRegistry.remove(definition.registryName()));
     }
 
-    public <T> ElementEntry<T> get(String packId, RegistryWorkspaceBinding<T> binding,
+    public <T> ElementEntry<T> get(String packId, WorkspaceDefinition<T> definition,
         Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
-        return workspace(packId, binding, packRoot, registries).get(elementId);
+        return workspace(packId, definition, packRoot, registries).get(elementId);
     }
 
-    public <T> void put(String packId, RegistryWorkspaceBinding<T> binding,
+    public <T> void put(String packId, WorkspaceDefinition<T> definition,
         Path packRoot, HolderLookup.Provider registries,
         Identifier elementId, ElementEntry<T> entry) {
-        workspace(packId, binding, packRoot, registries).put(elementId, entry);
+        workspace(packId, definition, packRoot, registries).put(elementId, entry);
     }
 
-    public <T> List<ElementEntry<T>> snapshotWorkspace(String packId, RegistryWorkspaceBinding<T> binding,
+    public <T> List<ElementEntry<T>> snapshotWorkspace(String packId, WorkspaceDefinition<T> definition,
         Path packRoot, HolderLookup.Provider registries) {
-        return List.copyOf(workspace(packId, binding, packRoot, registries).entries());
+        return List.copyOf(workspace(packId, definition, packRoot, registries).entries());
     }
 
-    public <T> void flushDirty(Path packRoot, String packId, RegistryWorkspaceBinding<T> binding,
+    public <T> void flushDirty(Path packRoot, String packId, WorkspaceDefinition<T> definition,
         HolderLookup.Provider registries) {
-        RegistryWorkspace<T> workspace = workspace(packId, binding, packRoot, registries);
+        RegistryWorkspace<T> workspace = workspace(packId, definition, packRoot, registries);
         if (workspace.dirty().isEmpty())
             return;
 
         RegistryDiffPlan<T> plan = diffPlanner.plan(
             packRoot,
-            binding,
+            definition,
             workspace,
             registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE)
         );
         if (!plan.isEmpty())
-            diskWriter.write(plan, binding.codec(), registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE));
+            diskWriter.write(plan, definition.codec(), registries.createSerializationContext(com.mojang.serialization.JsonOps.INSTANCE));
         workspace.clearDirty();
     }
 
@@ -87,21 +89,40 @@ public final class WorkspaceRepository {
         workspaces.clear();
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> RegistryWorkspace<T> workspace(String packId, RegistryWorkspaceBinding<T> binding,
+    private <T> RegistryWorkspace<T> workspace(String packId, WorkspaceDefinition<T> definition,
         Path packRoot, HolderLookup.Provider registries) {
         Map<String, RegistryWorkspace<?>> registryWorkspaces = workspaces.computeIfAbsent(packId, ignored -> new HashMap<>());
-        return (RegistryWorkspace<T>) registryWorkspaces.computeIfAbsent(binding.registryName(),
-            ignored -> packOverlayLoader.loadWorkspace(packId, packRoot, binding, registries, baselineEntries(binding)));
+        String name = definition.registryName();
+        if (!registryWorkspaces.containsKey(name)) {
+            registryWorkspaces.put(name, packOverlayLoader.loadWorkspace(packId, packRoot, definition, registries, baselineEntries(definition)));
+        }
+        return TypeSafeWorkspaceMap.narrow(registryWorkspaces.get(name));
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Map<Identifier, ElementEntry<T>> baselineEntries(RegistryWorkspaceBinding<T> binding) {
-        return (Map<Identifier, ElementEntry<T>>) (Map<?, ?>) baselines.getOrDefault(binding.registryName(), Map.of());
+    private <T> Map<Identifier, ElementEntry<T>> baselineEntries(WorkspaceDefinition<T> definition) {
+        return TypeSafeWorkspaceMap.narrowEntries(baselines.getOrDefault(definition.registryName(), Map.of()));
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T> Map<Identifier, ElementEntry<?>> baselineMap(Map<Identifier, ElementEntry<T>> entries) {
-        return (Map<Identifier, ElementEntry<?>>) (Map<?, ?>) entries;
+    private static <T> Map<Identifier, ElementEntry<?>> wildcardMap(Map<Identifier, ElementEntry<T>> entries) {
+        LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>();
+        entries.forEach(result::put);
+        return result;
+    }
+
+    /**
+     * Type-safe heterogeneous container casts.
+     * Safe because workspaces/baselines are keyed by registry name and populated
+     * via typed methods that receive WorkspaceDefinition&lt;T&gt;.
+     */
+    private static final class TypeSafeWorkspaceMap {
+        @SuppressWarnings("unchecked")
+        static <T> RegistryWorkspace<T> narrow(RegistryWorkspace<?> workspace) {
+            return (RegistryWorkspace<T>) workspace;
+        }
+
+        @SuppressWarnings("unchecked")
+        static <T> Map<Identifier, ElementEntry<T>> narrowEntries(Map<Identifier, ElementEntry<?>> entries) {
+            return (Map<Identifier, ElementEntry<T>>) (Map<?, ?>) entries;
+        }
     }
 }

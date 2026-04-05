@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -123,7 +123,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         memory.setSnapshot(Snapshot.empty());
     }
 
-    public RegistryWorkspaceBinding.RegistrySnapshotConsumer asSnapshotConsumer() {
+    public WorkspaceDefinition.SnapshotConsumer asSnapshotConsumer() {
         return this::snapshotFromRegistry;
     }
 

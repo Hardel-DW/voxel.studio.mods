@@ -25,7 +25,12 @@ object RecipeTemplateRegistry {
     private val templates = linkedMapOf<Identifier, RecipeTemplateRenderer>()
 
     init {
-        register(Identifier.fromNamespaceAndPath("minecraft", "crafting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(
+            Identifier.fromNamespaceAndPath(
+                Identifier.DEFAULT_NAMESPACE,
+                "crafting"
+            )
+        ) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             CraftingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -38,7 +43,12 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(Identifier.fromNamespaceAndPath("minecraft", "smelting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(
+            Identifier.fromNamespaceAndPath(
+                Identifier.DEFAULT_NAMESPACE,
+                "smelting"
+            )
+        ) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             SmeltingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -51,7 +61,12 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(Identifier.fromNamespaceAndPath("minecraft", "smithing")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(
+            Identifier.fromNamespaceAndPath(
+                Identifier.DEFAULT_NAMESPACE,
+                "smithing"
+            )
+        ) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             SmithingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,
@@ -64,7 +79,12 @@ object RecipeTemplateRegistry {
                 onResultPointerEnter = onResultPointerEnter
             )
         }
-        register(Identifier.fromNamespaceAndPath("minecraft", "stonecutting")) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
+        register(
+            Identifier.fromNamespaceAndPath(
+                Identifier.DEFAULT_NAMESPACE,
+                "stonecutting"
+            )
+        ) { element, modifier, interactive, onSlotPointerDown, onSlotPointerEnter, onResultPointerDown, onResultPointerEnter ->
             StoneCuttingTemplate(
                 slots = element.slots,
                 resultItemId = element.resultItemId,

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.compendium;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
@@ -11,6 +11,7 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public final class CompendiumTagLoader implements PreparableReloadListener {
     }
 
     @Override
-    public CompletableFuture<Void> reload(SharedState sharedState, Executor prepExecutor, PreparationBarrier barrier, Executor applyExecutor) {
+    public @NonNull CompletableFuture<Void> reload(SharedState sharedState, @NonNull Executor prepExecutor, PreparationBarrier barrier, @NonNull Executor applyExecutor) {
         ResourceManager manager = sharedState.resourceManager();
         return CompletableFuture.supplyAsync(() -> prepare(manager), prepExecutor)
             .thenCompose(barrier::wait)

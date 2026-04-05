@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.concept;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;

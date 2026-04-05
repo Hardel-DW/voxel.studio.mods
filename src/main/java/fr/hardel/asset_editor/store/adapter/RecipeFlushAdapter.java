@@ -11,7 +11,7 @@ public enum RecipeFlushAdapter implements FlushAdapter<Recipe<?>> {
     @Override
     public ElementEntry<Recipe<?>> prepare(ElementEntry<Recipe<?>> entry) {
         Recipe<?> recipe = entry.data();
-        if (!(recipe instanceof ShapedRecipe) || !RecipeAdapterRegistry.hasAdapter(recipe))
+        if (!(recipe instanceof ShapedRecipe) || RecipeAdapterRegistry.isUnsupported(recipe))
             return entry;
 
         Recipe<?> canonical = RecipeAdapterRegistry.rebuild(recipe, RecipeAdapterRegistry.extractIngredients(recipe));

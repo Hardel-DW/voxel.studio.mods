@@ -5,7 +5,7 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -26,7 +26,7 @@ public final class RegistryReader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RegistryReader.class);
 
-    public <T> Map<Identifier, ElementEntry<T>> readBaseline(RegistryWorkspaceBinding<T> binding,
+    public <T> Map<Identifier, ElementEntry<T>> readBaseline(WorkspaceDefinition<T> binding,
         ResourceManager resourceManager,
         @org.jspecify.annotations.Nullable Registry<T> registry,
         HolderLookup.Provider registries) {
@@ -46,7 +46,7 @@ public final class RegistryReader {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Map<Identifier, Set<Identifier>> loadTags(RegistryWorkspaceBinding<T> binding,
+    private <T> Map<Identifier, Set<Identifier>> loadTags(WorkspaceDefinition<T> binding,
         ResourceManager resourceManager,
         Registry<T> registry) {
         var loader = new TagLoader<>(
@@ -63,7 +63,7 @@ public final class RegistryReader {
         return tagsByElement;
     }
 
-    private <T> Map<Identifier, T> loadElements(RegistryWorkspaceBinding<T> binding,
+    private <T> Map<Identifier, T> loadElements(WorkspaceDefinition<T> binding,
         ResourceManager resourceManager,
         com.mojang.serialization.DynamicOps<JsonElement> ops) {
         String registryDir = binding.registryKey().identifier().getPath();

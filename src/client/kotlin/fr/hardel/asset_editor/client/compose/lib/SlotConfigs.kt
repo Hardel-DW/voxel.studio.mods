@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.lib
 
+import fr.hardel.asset_editor.AssetEditor
 import net.minecraft.resources.Identifier
 
 object SlotConfigs {
@@ -32,5 +33,5 @@ object SlotConfigs {
         MAPPINGS[group]?.contains(physicalSlot) == true
 
     fun slotImage(name: String): Identifier =
-        Identifier.fromNamespaceAndPath("minecraft", "textures/studio/slots/$name.png")
+        Identifier.withDefaultNamespace("textures/studio/slots/$name.png")
 }

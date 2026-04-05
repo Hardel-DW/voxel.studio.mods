@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActi
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.AssetEditor
 
 private data class FindTag(val tagId: Identifier) {
     fun titleKey(): String = "enchantment_tag:$tagId"
@@ -24,14 +25,14 @@ private data class FindTag(val tagId: Identifier) {
 }
 
 private val FIND_TAGS = listOf(
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "in_enchanting_table")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_mob_spawn_equipment")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_random_loot")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "tradeable")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "on_traded_equipment")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "curse")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "non_treasure")),
-    FindTag(Identifier.fromNamespaceAndPath("minecraft", "treasure"))
+    FindTag(Identifier.withDefaultNamespace("in_enchanting_table")),
+    FindTag(Identifier.withDefaultNamespace("on_mob_spawn_equipment")),
+    FindTag(Identifier.withDefaultNamespace("on_random_loot")),
+    FindTag(Identifier.withDefaultNamespace("tradeable")),
+    FindTag(Identifier.withDefaultNamespace("on_traded_equipment")),
+    FindTag(Identifier.withDefaultNamespace("curse")),
+    FindTag(Identifier.withDefaultNamespace("non_treasure")),
+    FindTag(Identifier.withDefaultNamespace("treasure"))
 )
 
 @Composable
@@ -67,7 +68,12 @@ fun EnchantmentFindPage(context: StudioContext) {
                     }
                 },
                 defaultSpec = LayoutSpec.AutoFit(368.dp),
-                rules = listOf(BreakpointRule(maxWidth = StudioBreakpoint.XL.px.dp, spec = LayoutSpec.Fixed(floatArrayOf(1f))))
+                rules = listOf(
+                    BreakpointRule(
+                        maxWidth = StudioBreakpoint.XL.px.dp,
+                        spec = LayoutSpec.Fixed(floatArrayOf(1f))
+                    )
+                )
             )
         }
     }

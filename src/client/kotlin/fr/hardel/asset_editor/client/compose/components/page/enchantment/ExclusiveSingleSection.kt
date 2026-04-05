@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.AssetEditor
 
 @Composable
 fun ExclusiveSingleSection(
@@ -16,8 +17,8 @@ fun ExclusiveSingleSection(
 ) {
     val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
     val allIds = remember(entries) { entries.map { entry -> entry.id() } }
-    val custom = remember(allIds) { allIds.filter { id -> id.namespace != "minecraft" } }
-    val vanilla = remember(allIds) { allIds.filter { id -> id.namespace == "minecraft" } }
+    val custom = remember(allIds) { allIds.filter { id -> id.namespace != Identifier.DEFAULT_NAMESPACE } }
+    val vanilla = remember(allIds) { allIds.filter { id -> id.namespace == Identifier.DEFAULT_NAMESPACE } }
 
     if (vanilla.isNotEmpty()) {
         EnchantmentCategory(

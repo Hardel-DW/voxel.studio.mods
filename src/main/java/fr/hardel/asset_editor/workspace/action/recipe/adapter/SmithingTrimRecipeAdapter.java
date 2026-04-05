@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.SmithingTrimRecipe;
@@ -36,7 +35,7 @@ public final class SmithingTrimRecipeAdapter extends RecipeAdapter<SmithingTrimR
 
     @Override
     protected SmithingTrimRecipe doRebuild(SmithingTrimRecipe original, List<Optional<Ingredient>> ingredients) {
-        Ingredient template = ingredients.size() > 0
+        Ingredient template = !ingredients.isEmpty()
             ? ingredients.get(0).orElse(original.templateIngredient().orElseThrow())
             : original.templateIngredient().orElseThrow();
 

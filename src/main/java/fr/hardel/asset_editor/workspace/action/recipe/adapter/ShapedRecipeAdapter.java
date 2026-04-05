@@ -34,8 +34,8 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
         boolean showNotification
     ) {
         List<Optional<Ingredient>> ingredients = expandIngredients(recipe);
-        BoundingBox box = computeBoundingBox(ingredients, 3, 3);
-        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, 3, box);
+        BoundingBox box = computeBoundingBox(ingredients);
+        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, box);
         return new ShapedRecipe(group, category, packPattern(shrunk, box.width()), result, showNotification);
     }
 
@@ -69,8 +69,8 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
             padded.add(Optional.empty());
         }
 
-        BoundingBox box = computeBoundingBox(padded, 3, 3);
-        List<Optional<Ingredient>> shrunk = extractRegion(padded, 3, box);
+        BoundingBox box = computeBoundingBox(padded);
+        List<Optional<Ingredient>> shrunk = extractRegion(padded, box);
         ShapedRecipePattern pattern = packPattern(shrunk, box.width());
         return new ShapedRecipe(original.group(), original.category(), pattern, original.result.copy(), original.showNotification());
     }
@@ -78,8 +78,8 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     @Override
     protected ShapedRecipe doSetResultCount(ShapedRecipe recipe, int count) {
         List<Optional<Ingredient>> ingredients = doExtractIngredients(recipe);
-        BoundingBox box = computeBoundingBox(ingredients, 3, 3);
-        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, 3, box);
+        BoundingBox box = computeBoundingBox(ingredients);
+        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, box);
         return new ShapedRecipe(
             recipe.group(),
             recipe.category(),
@@ -142,8 +142,8 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
             grid.add(i < ingredients.size() ? ingredients.get(i) : Optional.empty());
         }
 
-        BoundingBox box = computeBoundingBox(grid, 3, 3);
-        List<Optional<Ingredient>> shrunk = extractRegion(grid, 3, box);
+        BoundingBox box = computeBoundingBox(grid);
+        List<Optional<Ingredient>> shrunk = extractRegion(grid, box);
         ShapedRecipePattern pattern = packPattern(shrunk, box.width());
         return new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result, true);
     }
@@ -186,13 +186,13 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     private record BoundingBox(int minX, int minY, int width, int height) {}
 
-    private static BoundingBox computeBoundingBox(List<Optional<Ingredient>> grid, int gridWidth, int gridHeight) {
-        int minX = gridWidth, maxX = -1, minY = gridHeight, maxY = -1;
+    private static BoundingBox computeBoundingBox(List<Optional<Ingredient>> grid) {
+        int minX = 3, maxX = -1, minY = 3, maxY = -1;
 
         for (int i = 0; i < grid.size(); i++) {
             if (grid.get(i).isPresent()) {
-                int x = i % gridWidth;
-                int y = i / gridWidth;
+                int x = i % 3;
+                int y = i / 3;
                 minX = Math.min(minX, x);
                 maxX = Math.max(maxX, x);
                 minY = Math.min(minY, y);
@@ -207,11 +207,11 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
         return new BoundingBox(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 
-    private static List<Optional<Ingredient>> extractRegion(List<Optional<Ingredient>> grid, int gridWidth, BoundingBox box) {
+    private static List<Optional<Ingredient>> extractRegion(List<Optional<Ingredient>> grid, BoundingBox box) {
         List<Optional<Ingredient>> result = new ArrayList<>(box.width() * box.height());
         for (int y = box.minY(); y < box.minY() + box.height(); y++) {
             for (int x = box.minX(); x < box.minX() + box.width(); x++) {
-                int index = y * gridWidth + x;
+                int index = y * 3 + x;
                 result.add(index < grid.size() ? grid.get(index) : Optional.empty());
             }
         }

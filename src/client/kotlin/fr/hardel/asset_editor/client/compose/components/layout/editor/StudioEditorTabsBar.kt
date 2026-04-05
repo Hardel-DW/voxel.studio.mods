@@ -39,7 +39,6 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
-import fr.hardel.asset_editor.studio.StudioRegistryResolver
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
 import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea

@@ -2,8 +2,8 @@ package fr.hardel.asset_editor.network.data;
 
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
-import fr.hardel.asset_editor.studio.CompendiumTagGroup;
-import fr.hardel.asset_editor.studio.RecipeEntryDefinition;
+import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
+import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
 import net.minecraft.resources.Identifier;
 
 public final class StudioDataKeys {

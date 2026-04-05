@@ -47,8 +47,7 @@ public final class TagResourceService {
         String registryPath) {
         return registries.listRegistries()
             .filter(lookup -> lookup.key().identifier().getPath().equals(registryPath))
-            .findFirst()
-            .map(lookup -> (HolderLookup.RegistryLookup<?>) lookup);
+            .findFirst();
     }
 
     @SuppressWarnings("unchecked")

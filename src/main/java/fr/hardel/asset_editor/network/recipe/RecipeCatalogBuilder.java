@@ -55,9 +55,9 @@ public final class RecipeCatalogBuilder {
         return switch (display) {
             case ShapedCraftingRecipeDisplay shaped -> indexedSlots(shaped.ingredients(), context);
             case ShapelessCraftingRecipeDisplay shapeless -> indexedSlots(shapeless.ingredients(), context);
-            case FurnaceRecipeDisplay furnace -> singleSlot("0", furnace.ingredient(), context);
+            case FurnaceRecipeDisplay furnace -> singleSlot(furnace.ingredient(), context);
             case SmithingRecipeDisplay smithing -> smithingSlots(smithing, context);
-            case StonecutterRecipeDisplay stonecutter -> singleSlot("0", stonecutter.input(), context);
+            case StonecutterRecipeDisplay stonecutter -> singleSlot(stonecutter.input(), context);
             default -> Map.of();
         };
     }
@@ -73,9 +73,9 @@ public final class RecipeCatalogBuilder {
         return slots;
     }
 
-    private static Map<String, List<String>> singleSlot(String key, SlotDisplay slot, ContextMap context) {
+    private static Map<String, List<String>> singleSlot(SlotDisplay slot, ContextMap context) {
         List<String> items = resolveSlotItems(slot, context);
-        return items.isEmpty() ? Map.of() : Map.of(key, items);
+        return items.isEmpty() ? Map.of() : Map.of("0", items);
     }
 
     private static Map<String, List<String>> smithingSlots(SmithingRecipeDisplay display, ContextMap context) {
@@ -93,7 +93,6 @@ public final class RecipeCatalogBuilder {
     private static List<String> resolveSlotItems(SlotDisplay slot, ContextMap context) {
         return slot.resolveForStacks(context).stream()
             .map(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem()))
-            .filter(Objects::nonNull)
             .map(Object::toString)
             .distinct()
             .limit(16)
@@ -104,7 +103,7 @@ public final class RecipeCatalogBuilder {
         ItemStack stack = result.resolveForFirstStack(context);
         if (stack.isEmpty()) return "minecraft:air";
         var key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return key != null ? key.toString() : "minecraft:air";
+        return key.toString();
     }
 
     private static int resolveResultCount(SlotDisplay result, ContextMap context) {

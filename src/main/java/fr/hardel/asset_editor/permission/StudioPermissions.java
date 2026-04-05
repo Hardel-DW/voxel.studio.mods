@@ -6,7 +6,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 public record StudioPermissions(StudioRole role) {
 
     public static final StudioPermissions ADMIN = new StudioPermissions(StudioRole.ADMIN);
-    public static final StudioPermissions CONTRIBUTOR = new StudioPermissions(StudioRole.CONTRIBUTOR);
     public static final StudioPermissions NONE = new StudioPermissions(StudioRole.NONE);
 
     public static final Codec<StudioPermissions> CODEC = RecordCodecBuilder.create(instance -> instance.group(

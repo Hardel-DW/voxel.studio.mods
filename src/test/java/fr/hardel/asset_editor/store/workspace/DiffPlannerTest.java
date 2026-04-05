@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.adapter.FlushAdapter;
 import fr.hardel.asset_editor.store.adapter.RecipeFlushAdapter;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -48,43 +48,38 @@ class DiffPlannerTest {
 
     @Test
     void revertingAnAddedTagDeletesTheExistingTagFile() {
-        Identifier entryId = Identifier.fromNamespaceAndPath("minecraft", "aqua_affinity");
-        Identifier curseTagId = Identifier.fromNamespaceAndPath("minecraft", "curse");
+        Identifier entryId = Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "aqua_affinity");
+        Identifier curseTagId = Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "curse");
 
         ElementEntry<String> referenceEntry = new ElementEntry<>(
             entryId,
             "aqua_affinity",
             Set.of(),
-            CustomFields.EMPTY
-        );
+            CustomFields.EMPTY);
         ElementEntry<String> addedTagEntry = referenceEntry.toggleTag(curseTagId);
 
         RegistryWorkspace<String> workspace = new RegistryWorkspace<>(
             Map.of(entryId, referenceEntry),
-            Map.of(entryId, referenceEntry)
-        );
+            Map.of(entryId, referenceEntry));
 
-        RegistryWorkspaceBinding<String> binding = new RegistryWorkspaceBinding<>(
-            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("minecraft", "enchantment")),
-            Codec.STRING,
-            FlushAdapter.identity(),
-            entry -> CustomFields.EMPTY
-        );
+        WorkspaceDefinition<String> definition = WorkspaceDefinition.builder(
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "enchantment")),
+            Codec.STRING).build();
 
         DiffPlanner planner = new DiffPlanner();
         Path packRoot = Path.of("test-pack");
-        Path cursePath = packRoot.resolve("data").resolve("minecraft")
+        Path cursePath = packRoot.resolve("data").resolve(Identifier.DEFAULT_NAMESPACE)
             .resolve("tags").resolve("enchantment").resolve("curse.json");
 
         workspace.put(entryId, addedTagEntry);
-        RegistryDiffPlan<String> addPlan = planner.plan(packRoot, binding, workspace, JsonOps.INSTANCE);
+        RegistryDiffPlan<String> addPlan = planner.plan(packRoot, definition, workspace, JsonOps.INSTANCE);
         assertEquals(1, addPlan.tagWrites().size());
         assertEquals(cursePath, addPlan.tagWrites().getFirst().path());
 
         workspace.clearDirty();
         workspace.put(entryId, referenceEntry);
 
-        RegistryDiffPlan<String> revertPlan = planner.plan(packRoot, binding, workspace, JsonOps.INSTANCE);
+        RegistryDiffPlan<String> revertPlan = planner.plan(packRoot, definition, workspace, JsonOps.INSTANCE);
         assertTrue(revertPlan.tagWrites().isEmpty());
         assertEquals(Set.of(cursePath), Set.copyOf(revertPlan.tagDeletes()));
     }
@@ -97,42 +92,34 @@ class DiffPlannerTest {
             CraftingBookCategory.MISC,
             ShapedRecipePattern.of(Map.of('#', Ingredient.of(Items.ACACIA_PLANKS)), List.of("# #", "###")),
             new ItemStack(Items.ACACIA_BOAT),
-            true
-        );
+            true);
         Recipe<?> equivalent = new ShapedRecipe(
             "boat",
             CraftingBookCategory.MISC,
             ShapedRecipePattern.of(Map.of('A', Ingredient.of(Items.ACACIA_PLANKS)), List.of("A A", "AAA")),
             new ItemStack(Items.ACACIA_BOAT),
-            true
-        );
+            true);
 
         ElementEntry<Recipe<?>> referenceEntry = new ElementEntry<>(entryId, reference, Set.of(), CustomFields.EMPTY);
         ElementEntry<Recipe<?>> currentEntry = new ElementEntry<>(entryId, equivalent, Set.of(), CustomFields.EMPTY);
         RegistryWorkspace<Recipe<?>> workspace = new RegistryWorkspace<>(
             Map.of(entryId, referenceEntry),
-            Map.of(entryId, referenceEntry)
-        );
-        RegistryWorkspaceBinding<Recipe<?>> binding = new RegistryWorkspaceBinding<>(
+            Map.of(entryId, referenceEntry));
+        WorkspaceDefinition<Recipe<?>> definition = WorkspaceDefinition.<Recipe<?>> builder(
             Registries.RECIPE,
-            Recipe.CODEC,
-            RecipeFlushAdapter.INSTANCE,
-            entry -> CustomFields.EMPTY
-        );
+            Recipe.CODEC).flushAdapter(RecipeFlushAdapter.INSTANCE).build();
         Path packRoot = Path.of("test-pack");
 
         workspace.put(entryId, currentEntry);
         RegistryDiffPlan<Recipe<?>> plan = new DiffPlanner().plan(
             packRoot,
-            binding,
+            definition,
             workspace,
-            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).createSerializationContext(JsonOps.INSTANCE)
-        );
+            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).createSerializationContext(JsonOps.INSTANCE));
 
         assertTrue(plan.elementWrites().isEmpty());
         assertEquals(
-            Set.of(packRoot.resolve("data").resolve("minecraft").resolve("recipe").resolve("acacia_boat.json")),
-            Set.copyOf(plan.elementDeletes())
-        );
+            Set.of(packRoot.resolve("data").resolve(Identifier.DEFAULT_NAMESPACE).resolve("recipe").resolve("acacia_boat.json")),
+            Set.copyOf(plan.elementDeletes()));
     }
 }

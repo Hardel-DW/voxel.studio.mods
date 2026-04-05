@@ -1,17 +1,14 @@
-package fr.hardel.asset_editor.workspace.registry.impl;
+package fr.hardel.asset_editor.workspace.definition.enchantment;
 
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.store.SlotManager;
+import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.tag.TagSeed;
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions;
-import fr.hardel.asset_editor.workspace.action.EditorAction;
-import fr.hardel.asset_editor.workspace.registry.MutationActionHandler;
-import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistry;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationDispatcher;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationHandler;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
@@ -28,115 +25,58 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
-public final class EnchantmentMutationHandler implements RegistryMutationHandler<Enchantment> {
+public final class EnchantmentWorkspace {
 
     private static final String MODE_KEY = EnchantmentFlushAdapter.MODE_KEY;
     private static final String DISABLED_EFFECTS_KEY = EnchantmentFlushAdapter.DISABLED_EFFECTS_KEY;
     private static final String MODE_NORMAL = EnchantmentFlushAdapter.MODE_NORMAL;
     private static final String MODE_DISABLE = EnchantmentFlushAdapter.MODE_DISABLE;
-    private static final RegistryMutationDispatcher<Enchantment> DISPATCHER = createDispatcher();
 
     public static void register() {
-        MutationHandlerRegistry.register(Registries.ENCHANTMENT, new EnchantmentMutationHandler());
-    }
-
-    @Override
-    public void beforeApply(EditorAction action, RegistryMutationContext context) {
-        DISPATCHER.beforeApply(action, context);
-    }
-
-    @Override
-    public ElementEntry<Enchantment> apply(ElementEntry<Enchantment> entry, EditorAction action,
-        RegistryMutationContext context) {
-        return DISPATCHER.apply(entry, action, context);
-    }
-
-    private static RegistryMutationDispatcher<Enchantment> createDispatcher() {
-        return RegistryMutationHandler.<Enchantment>dispatcher()
-            .register(
-                EnchantmentEditorActions.SET_INT_FIELD,
-                MutationActionHandler.of((entry, action, context) -> applyIntField(entry, action.field(), action.value()))
-            )
-            .register(
-                EnchantmentEditorActions.SET_MODE,
-                MutationActionHandler.of((entry, action, context) ->
-                    applyCustom(entry, custom -> custom.with(MODE_KEY, normalizeMode(action.mode()))))
-            )
-            .register(
-                EnchantmentEditorActions.TOGGLE_DISABLED,
-                MutationActionHandler.of((entry, action, context) -> applyCustom(entry, custom -> {
-                    String current = custom.getString(MODE_KEY, MODE_NORMAL);
-                    return custom.with(MODE_KEY, MODE_DISABLE.equals(current) ? MODE_NORMAL : MODE_DISABLE);
-                }))
-            )
-            .register(
-                EnchantmentEditorActions.TOGGLE_DISABLED_EFFECT,
-                MutationActionHandler.of((entry, action, context) -> applyCustom(entry, custom -> {
-                    Set<String> next = new LinkedHashSet<>(custom.getStringSet(DISABLED_EFFECTS_KEY));
-                    if (!next.remove(action.effectId()))
-                        next.add(action.effectId());
-                    return custom.with(DISABLED_EFFECTS_KEY, next);
-                }))
-            )
-            .register(
-                EnchantmentEditorActions.TOGGLE_SLOT,
-                MutationActionHandler.of((entry, action, context) -> {
-                    EquipmentSlotGroup slot = EquipmentSlotGroup.valueOf(action.slot().toUpperCase());
-                    List<EquipmentSlotGroup> slots = new SlotManager(entry.data().definition().slots()).toggle(slot).toGroups();
-                    return entry.withData(withDefinition(entry.data(), d -> new EnchantmentDefinition(
-                        d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
-                        d.minCost(), d.maxCost(), d.anvilCost(), slots)));
-                })
-            )
-            .register(
-                EnchantmentEditorActions.TOGGLE_TAG,
-                MutationActionHandler.of((entry, action, context) -> entry.toggleTag(action.tagId()))
-            )
-            .register(
-                EnchantmentEditorActions.TOGGLE_EXCLUSIVE,
-                MutationActionHandler.of((entry, action, context) -> applyToggleExclusive(entry, action.enchantmentId(), context))
-            )
-            .register(
-                EnchantmentEditorActions.SET_SUPPORTED_ITEMS,
-                new MutationActionHandler<>() {
-                    @Override
-                    public void beforeApply(EnchantmentEditorActions.SetSupportedItems action, RegistryMutationContext context) {
-                        ensureItemTag(action.tagId(), action.seed(), context);
-                    }
-
-                    @Override
-                    public ElementEntry<Enchantment> apply(
-                        ElementEntry<Enchantment> entry,
-                        EnchantmentEditorActions.SetSupportedItems action,
-                        RegistryMutationContext context
-                    ) {
-                        return applySetSupportedItems(entry, action.tagId(), action.seed(), context);
-                    }
-                }
-            )
-            .register(
-                EnchantmentEditorActions.SET_PRIMARY_ITEMS,
-                new MutationActionHandler<>() {
-                    @Override
-                    public void beforeApply(EnchantmentEditorActions.SetPrimaryItems action, RegistryMutationContext context) {
-                        ensureItemTag(action.tagId(), action.seed(), context);
-                    }
-
-                    @Override
-                    public ElementEntry<Enchantment> apply(
-                        ElementEntry<Enchantment> entry,
-                        EnchantmentEditorActions.SetPrimaryItems action,
-                        RegistryMutationContext context
-                    ) {
-                        return applySetPrimaryItems(entry, action.tagId(), action.seed(), context);
-                    }
-                }
-            )
-            .register(
-                EnchantmentEditorActions.SET_EXCLUSIVE_SET,
-                MutationActionHandler.of((entry, action, context) -> applySetExclusiveSet(entry, action.tagId(), context))
-            );
+        WorkspaceDefinitions.register(
+            WorkspaceDefinition.builder(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC)
+                .flushAdapter(EnchantmentFlushAdapter.INSTANCE)
+                .customInitializer(entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()))
+                .action(EnchantmentEditorActions.SET_INT_FIELD,
+                    (entry, action, ctx) -> applyIntField(entry, action.field(), action.value()))
+                .action(EnchantmentEditorActions.SET_MODE,
+                    (entry, action, ctx) -> applyCustom(entry, custom -> custom.with(MODE_KEY, normalizeMode(action.mode()))))
+                .action(EnchantmentEditorActions.TOGGLE_DISABLED,
+                    (entry, action, ctx) -> applyCustom(entry, custom -> {
+                        String current = custom.getString(MODE_KEY, MODE_NORMAL);
+                        return custom.with(MODE_KEY, MODE_DISABLE.equals(current) ? MODE_NORMAL : MODE_DISABLE);
+                    }))
+                .action(EnchantmentEditorActions.TOGGLE_DISABLED_EFFECT,
+                    (entry, action, ctx) -> applyCustom(entry, custom -> {
+                        Set<String> next = new LinkedHashSet<>(custom.getStringSet(DISABLED_EFFECTS_KEY));
+                        if (!next.remove(action.effectId()))
+                            next.add(action.effectId());
+                        return custom.with(DISABLED_EFFECTS_KEY, next);
+                    }))
+                .action(EnchantmentEditorActions.TOGGLE_SLOT,
+                    (entry, action, ctx) -> {
+                        EquipmentSlotGroup slot = EquipmentSlotGroup.valueOf(action.slot().toUpperCase());
+                        List<EquipmentSlotGroup> slots = new SlotManager(entry.data().definition().slots()).toggle(slot).toGroups();
+                        return entry.withData(withDefinition(entry.data(), d -> new EnchantmentDefinition(
+                            d.supportedItems(), d.primaryItems(), d.weight(), d.maxLevel(),
+                            d.minCost(), d.maxCost(), d.anvilCost(), slots)));
+                    })
+                .action(EnchantmentEditorActions.TOGGLE_TAG,
+                    (entry, action, ctx) -> entry.toggleTag(action.tagId()))
+                .action(EnchantmentEditorActions.TOGGLE_EXCLUSIVE,
+                    (entry, action, ctx) -> applyToggleExclusive(entry, action.enchantmentId(), ctx))
+                .actionWithHook(EnchantmentEditorActions.SET_SUPPORTED_ITEMS,
+                    (entry, action, ctx) -> applySetSupportedItems(entry, action.tagId(), action.seed(), ctx),
+                    (action, ctx) -> ensureItemTag(action.tagId(), action.seed(), ctx))
+                .actionWithHook(EnchantmentEditorActions.SET_PRIMARY_ITEMS,
+                    (entry, action, ctx) -> applySetPrimaryItems(entry, action.tagId(), action.seed(), ctx),
+                    (action, ctx) -> ensureItemTag(action.tagId(), action.seed(), ctx))
+                .action(EnchantmentEditorActions.SET_EXCLUSIVE_SET,
+                    (entry, action, ctx) -> applySetExclusiveSet(entry, action.tagId(), ctx))
+                .build()
+        );
     }
 
     private static void ensureItemTag(String rawTagId, TagSeed seed, RegistryMutationContext context) {
@@ -151,8 +91,7 @@ public final class EnchantmentMutationHandler implements RegistryMutationHandler
     }
 
     private static ElementEntry<Enchantment> applyToggleExclusive(ElementEntry<Enchantment> entry,
-        Identifier enchantmentId,
-        RegistryMutationContext context) {
+        Identifier enchantmentId, RegistryMutationContext context) {
         var lookup = context.registries().lookupOrThrow(Registries.ENCHANTMENT);
         var holder = lookup.get(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId)).orElse(null);
         if (holder == null)
@@ -197,8 +136,7 @@ public final class EnchantmentMutationHandler implements RegistryMutationHandler
     }
 
     private static ElementEntry<Enchantment> applySetExclusiveSet(ElementEntry<Enchantment> entry,
-        String tagId,
-        RegistryMutationContext context) {
+        String tagId, RegistryMutationContext context) {
         Enchantment e = entry.data();
         if (tagId.isEmpty()) {
             return entry.withData(new Enchantment(e.description(), e.definition(), HolderSet.empty(), e.effects()));
@@ -209,8 +147,7 @@ public final class EnchantmentMutationHandler implements RegistryMutationHandler
             return entry;
         HolderSet<Enchantment> resolved = context.resolveTagReference(Registries.ENCHANTMENT, id);
         return entry.withData(new Enchantment(
-            e.description(),
-            e.definition(),
+            e.description(), e.definition(),
             resolved == null ? HolderSet.empty() : resolved,
             e.effects()
         ));
@@ -253,12 +190,11 @@ public final class EnchantmentMutationHandler implements RegistryMutationHandler
         }));
     }
 
-    private static Enchantment withDefinition(Enchantment e, java.util.function.UnaryOperator<EnchantmentDefinition> transform) {
+    private static Enchantment withDefinition(Enchantment e, UnaryOperator<EnchantmentDefinition> transform) {
         return new Enchantment(e.description(), transform.apply(e.definition()), e.exclusiveSet(), e.effects());
     }
 
-    private static ElementEntry<Enchantment> applyCustom(ElementEntry<Enchantment> entry,
-        java.util.function.UnaryOperator<CustomFields> transform) {
+    private static ElementEntry<Enchantment> applyCustom(ElementEntry<Enchantment> entry, UnaryOperator<CustomFields> transform) {
         return entry.withCustom(transform.apply(entry.custom()));
     }
 
@@ -268,4 +204,6 @@ public final class EnchantmentMutationHandler implements RegistryMutationHandler
             default -> MODE_NORMAL;
         };
     }
+
+    private EnchantmentWorkspace() {}
 }

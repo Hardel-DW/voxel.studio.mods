@@ -4,7 +4,7 @@ import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
-import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.client.memory.session.debug.NetworkTraceMemory;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;

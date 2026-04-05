@@ -38,7 +38,7 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
 
     @Override
     protected SmithingTransformRecipe doRebuild(SmithingTransformRecipe original, List<Optional<Ingredient>> ingredients) {
-        Optional<Ingredient> template = ingredients.size() > 0 ? ingredients.get(0) : original.templateIngredient();
+        Optional<Ingredient> template = !ingredients.isEmpty() ? ingredients.get(0) : original.templateIngredient();
         Ingredient base = ingredients.size() > 1 ? ingredients.get(1).orElse(original.baseIngredient()) : original.baseIngredient();
         Optional<Ingredient> addition = ingredients.size() > 2 ? ingredients.get(2) : original.additionIngredient();
         return new SmithingTransformRecipe(template, base, addition, original.result);
@@ -71,7 +71,7 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
 
     @Override
     public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
-        Optional<Ingredient> template = ingredients.size() > 0 ? ingredients.get(0) : Optional.empty();
+        Optional<Ingredient> template = !ingredients.isEmpty() ? ingredients.get(0) : Optional.empty();
         Ingredient base = ingredients.size() > 1
             ? ingredients.get(1).orElse(Ingredient.of(Items.STONE))
             : Ingredient.of(Items.STONE);

@@ -1,6 +1,8 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data;
 
 import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.data.concept.StudioConceptDef;
+import fr.hardel.asset_editor.data.concept.StudioEditorTabDef;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;

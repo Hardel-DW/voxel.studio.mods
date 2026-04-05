@@ -23,7 +23,11 @@ class EditorActionRegistryTest {
 
     @BeforeAll
     static void registerBuiltIns() {
-        EditorActionRegistries.register();
+        try {
+            fr.hardel.asset_editor.workspace.definition.enchantment.EnchantmentWorkspace.register();
+            fr.hardel.asset_editor.workspace.definition.recipe.RecipeWorkspace.register();
+        } catch (IllegalStateException ignored) {
+        }
     }
 
     @Test
@@ -69,9 +73,7 @@ class EditorActionRegistryTest {
             TestAction.class,
             StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8, TestAction::value,
-                TestAction::new
-            )
-        );
+                TestAction::new));
 
         Registry.register(registry, id, type);
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> Registry.register(registry, id, type));
@@ -85,10 +87,9 @@ class EditorActionRegistryTest {
         WorkspaceMutationRequestPayload payload = new WorkspaceMutationRequestPayload(
             UUID.randomUUID(),
             "test-pack",
-            Identifier.fromNamespaceAndPath("minecraft", "enchantment"),
-            Identifier.fromNamespaceAndPath("minecraft", "sharpness"),
-            new EnchantmentEditorActions.ToggleDisabled()
-        );
+            Identifier.withDefaultNamespace("enchantment"),
+            Identifier.withDefaultNamespace("sharpness"),
+            new EnchantmentEditorActions.ToggleDisabled());
 
         var buffer = Unpooled.buffer();
         WorkspaceMutationRequestPayload.CODEC.encode(buffer, payload);

@@ -10,15 +10,14 @@ import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
-import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
-import fr.hardel.asset_editor.studio.CompendiumTagLoader;
-import fr.hardel.asset_editor.studio.RecipeEntryLoader;
+import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
+import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import fr.hardel.asset_editor.store.ServerPackService;
@@ -122,8 +121,8 @@ public final class AssetEditorNetworking {
             ServerPlayer player = context.player();
             MinecraftServer server = context.server();
             WorkspaceMutationService.MutationResult result = WORKSPACE_MUTATION.mutate(player, server, payload);
-            if (result instanceof WorkspaceMutationService.MutationResult.Failure failure) {
-                sendMutationResult(player, payload.actionId(), payload.packId(), false, failure.errorCode(), null);
+            if (result instanceof WorkspaceMutationService.MutationResult.Failure(String errorCode)) {
+                sendMutationResult(player, payload.actionId(), payload.packId(), false, errorCode, null);
                 return;
             }
 
@@ -137,18 +136,18 @@ public final class AssetEditorNetworking {
         context.server().execute(() -> {
             WorkspaceAccessResolver.Resolution resolution = WORKSPACE_ACCESS.resolveEditable(
                 context.player(), context.server(), payload.packId(), payload.registryId());
-            if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success success)) return;
+            if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success(ResolvedWorkspaceAccess access))) return;
 
-            sendElementSeed(context.player(), success.access().binding(), success.access(), payload.elementId());
+            sendElementSeed(context.player(), access.definition(), access, payload.elementId());
         });
     }
 
-    private static <T> void sendElementSeed(ServerPlayer player, RegistryWorkspaceBinding<T> binding,
+    private static <T> void sendElementSeed(ServerPlayer player, WorkspaceDefinition<T> definition,
         ResolvedWorkspaceAccess access, net.minecraft.resources.Identifier elementId) {
-        ElementEntry<T> entry = access.repository().get(access.packId(), binding, access.packRoot(), access.registries(), elementId);
+        ElementEntry<T> entry = access.repository().get(access.packId(), definition, access.packRoot(), access.registries(), elementId);
         if (entry == null) return;
 
-        WorkspaceElementSnapshot snapshot = binding.toSnapshot(entry, access.registries());
+        WorkspaceElementSnapshot snapshot = definition.toSnapshot(entry, access.registries());
         ServerPlayNetworking.send(player, WorkspaceSyncPayload.remoteSync(access.packId(), snapshot));
     }
 

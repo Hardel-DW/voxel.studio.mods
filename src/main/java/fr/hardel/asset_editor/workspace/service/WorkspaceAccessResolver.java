@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.workspace.service;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.store.ServerPackManager;
 import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,15 +23,15 @@ public final class WorkspaceAccessResolver {
         if (repository == null || packManager == null)
             return new Resolution.Failure("error:server_unavailable");
 
-        var binding = RegistryWorkspaceBindings.get(registryId);
-        if (binding == null)
+        var definition = WorkspaceDefinitions.get(registryId);
+        if (definition == null)
             return new Resolution.Failure("error:invalid_registry");
 
         var packRoot = packManager.resolveWritablePack(packId);
         if (packRoot.isEmpty())
             return new Resolution.Failure("error:invalid_pack");
 
-        return new Resolution.Success(new ResolvedWorkspaceAccess(player, server, packId, packRoot.get(), repository, binding));
+        return new Resolution.Success(new ResolvedWorkspaceAccess(player, server, packId, packRoot.get(), repository, definition));
     }
 
     public sealed interface Resolution permits Resolution.Success, Resolution.Failure {

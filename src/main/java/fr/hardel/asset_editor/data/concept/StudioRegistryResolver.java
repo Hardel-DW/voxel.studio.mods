@@ -1,6 +1,8 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.concept;
 
 import com.mojang.datafixers.util.Either;
+import fr.hardel.asset_editor.data.StudioRegistries;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -16,12 +18,10 @@ public final class StudioRegistryResolver {
 
     public static List<Identifier> conceptIds(RegistryAccess registries) {
         Optional<Registry<StudioConceptDef>> registry = conceptRegistry(registries);
-        if (registry.isEmpty())
-            return List.of();
-
-        return registry.get().listElements()
+        return registry.map(studioConceptDefs -> studioConceptDefs.listElements()
             .map(reference -> reference.key().identifier())
-            .toList();
+            .toList()).orElseGet(List::of);
+
     }
 
     public static StudioConceptDef conceptDefinition(RegistryAccess registries, Identifier conceptId) {
@@ -30,7 +30,7 @@ public final class StudioRegistryResolver {
 
         return conceptRegistry(registries)
             .flatMap(registry -> registry.get(ResourceKey.create(StudioRegistries.STUDIO_CONCEPT, conceptId)))
-            .map(reference -> reference.value())
+            .map(Holder.Reference::value)
             .orElse(null);
     }
 
@@ -100,7 +100,7 @@ public final class StudioRegistryResolver {
     }
 
     public static Identifier icon(RegistryAccess registries, Identifier conceptId) {
-        return Identifier.fromNamespaceAndPath("minecraft", "textures/studio/concept/" + registryPath(registries, conceptId) + ".png");
+        return Identifier.withDefaultNamespace("textures/studio/concept/" + registryPath(registries, conceptId) + ".png");
     }
 
     private static Optional<Registry<StudioConceptDef>> conceptRegistry(RegistryAccess registries) {
@@ -117,6 +117,5 @@ public final class StudioRegistryResolver {
         return registries.lookup(StudioRegistries.STUDIO_TAB);
     }
 
-    private StudioRegistryResolver() {
-    }
+    private StudioRegistryResolver() {}
 }

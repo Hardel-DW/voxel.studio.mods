@@ -30,10 +30,6 @@ public final class SlotManager {
         return this;
     }
 
-    public boolean isActive(EquipmentSlotGroup group) {
-        return active.containsAll(group.slots());
-    }
-
     public List<EquipmentSlotGroup> toGroups() {
         var remaining = new LinkedHashSet<>(active);
         List<EquipmentSlotGroup> result = new ArrayList<>();

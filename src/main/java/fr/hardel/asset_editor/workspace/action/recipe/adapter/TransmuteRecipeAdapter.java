@@ -38,7 +38,7 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
 
     @Override
     protected TransmuteRecipe doRebuild(TransmuteRecipe original, List<Optional<Ingredient>> ingredients) {
-        Ingredient input = ingredients.size() > 0 ? ingredients.get(0).orElse(original.input) : original.input;
+        Ingredient input = !ingredients.isEmpty() ? ingredients.get(0).orElse(original.input) : original.input;
         Ingredient material = ingredients.size() > 1 ? ingredients.get(1).orElse(original.material) : original.material;
         return new TransmuteRecipe(original.group(), original.category(), input, material, original.result);
     }

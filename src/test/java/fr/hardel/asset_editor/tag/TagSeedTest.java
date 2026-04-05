@@ -14,12 +14,10 @@ class TagSeedTest {
     void streamCodecRoundTripPreservesFullSeedShape() {
         TagSeed seed = new TagSeed(
             List.of(
-                new TagSeedEntry(Identifier.fromNamespaceAndPath("minecraft", "axes"), true, true),
-                new TagSeedEntry(Identifier.fromNamespaceAndPath("minecraft", "diamond_sword"), false, false)
-            ),
-            List.of(new TagSeedEntry(Identifier.fromNamespaceAndPath("minecraft", "wooden_sword"), false, true)),
-            true
-        );
+                new TagSeedEntry(Identifier.withDefaultNamespace("axes"), true, true),
+                new TagSeedEntry(Identifier.withDefaultNamespace("diamond_sword"), false, false)),
+            List.of(new TagSeedEntry(Identifier.withDefaultNamespace("wooden_sword"), false, true)),
+            true);
 
         var buffer = Unpooled.buffer();
         TagSeed.STREAM_CODEC.encode(buffer, seed);

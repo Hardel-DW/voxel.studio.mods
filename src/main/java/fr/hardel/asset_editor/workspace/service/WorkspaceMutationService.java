@@ -4,11 +4,9 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.store.ElementEntry;
 import fr.hardel.asset_editor.store.workspace.TagResourceService;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationHandler;
-import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistry;
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,33 +27,30 @@ public final class WorkspaceMutationService {
 
     public MutationResult mutate(ServerPlayer player, MinecraftServer server, WorkspaceMutationRequestPayload payload) {
         WorkspaceAccessResolver.Resolution resolution = accessResolver.resolveEditable(player, server, payload.packId(), payload.registryId());
-        if (resolution instanceof WorkspaceAccessResolver.Resolution.Failure failure)
-            return new MutationResult.Failure(failure.errorCode());
+        if (resolution instanceof WorkspaceAccessResolver.Resolution.Failure(String errorCode))
+            return new MutationResult.Failure(errorCode);
 
         return mutateTyped(((WorkspaceAccessResolver.Resolution.Success) resolution).access(), payload);
     }
 
     private MutationResult mutateTyped(ResolvedWorkspaceAccess access, WorkspaceMutationRequestPayload payload) {
-        return mutateTyped(access.binding(), access, payload);
+        return mutateTyped(access.definition(), access, payload);
     }
 
     private <T> MutationResult mutateTyped(
-        RegistryWorkspaceBinding<T> binding,
+        WorkspaceDefinition<T> definition,
         ResolvedWorkspaceAccess access,
         WorkspaceMutationRequestPayload payload) {
-        ElementEntry<T> entry = access.repository().get(access.packId(), binding, access.packRoot(), access.registries(), payload.targetId());
+        ElementEntry<T> entry = access.repository().get(access.packId(), definition, access.packRoot(), access.registries(), payload.targetId());
         if (entry == null)
             return new MutationResult.Failure("error:element_not_found");
 
         RegistryMutationContext context = RegistryMutationContexts.server(access.packRoot(), access.registries(), tagResources, tagReferences);
-        RegistryMutationHandler<T> mutationHandler = MutationHandlerRegistry.get(binding.registryKey());
-        if (mutationHandler == null)
-            mutationHandler = RegistryMutationHandler.unsupported();
 
         ElementEntry<T> updated;
         try {
-            mutationHandler.beforeApply(payload.action(), context);
-            updated = mutationHandler.apply(entry, payload.action(), context);
+            definition.beforeApply(payload.action(), context);
+            updated = definition.apply(entry, payload.action(), context);
         } catch (Exception e) {
             LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
             return new MutationResult.Failure("error:invalid_action");
@@ -63,14 +58,14 @@ public final class WorkspaceMutationService {
 
         WorkspaceElementSnapshot snapshot;
         try {
-            snapshot = binding.toSnapshot(updated, access.registries());
+            snapshot = definition.toSnapshot(updated, access.registries());
         } catch (Exception e) {
             LOGGER.warn("Mutation rejected for {}: {}", payload.targetId(), e.getMessage());
             return new MutationResult.Failure("error:invalid_action");
         }
 
-        access.repository().put(access.packId(), binding, access.packRoot(), access.registries(), payload.targetId(), updated);
-        access.repository().flushDirty(access.packRoot(), access.packId(), binding, access.registries());
+        access.repository().put(access.packId(), definition, access.packRoot(), access.registries(), payload.targetId(), updated);
+        access.repository().flushDirty(access.packRoot(), access.packId(), definition, access.registries());
         return new MutationResult.Success(access.packId(), snapshot);
     }
 

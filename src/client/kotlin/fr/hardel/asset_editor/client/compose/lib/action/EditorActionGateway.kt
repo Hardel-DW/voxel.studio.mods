@@ -15,10 +15,10 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload
 import fr.hardel.asset_editor.store.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
-import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistry
+
 import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions
 import java.util.Objects
 import java.util.UUID
 import net.minecraft.client.Minecraft
@@ -126,9 +126,9 @@ class EditorActionGateway(
             return
         }
 
-        val binding = RegistryWorkspaceBindings.get<Any>(registryId) ?: return
+        val definition = WorkspaceDefinitions.get(registryId) ?: return
         val registries = clientRegistries() ?: return
-        replaceAll(binding, snapshots, registries)
+        replaceAll(definition, snapshots, registries)
     }
 
     private fun <T : Any> projectOptimistic(
@@ -137,18 +137,14 @@ class EditorActionGateway(
         entry: ElementEntry<T>,
         action: EditorAction
     ) {
-        val binding = RegistryWorkspaceBindings.get<T>(registry.identifier()) ?: return
-        val mutationHandler = MutationHandlerRegistry.get(binding.registryKey()) ?: return
+        val definition = WorkspaceDefinitions.get(registry.identifier()) ?: return
         val registries = clientRegistries() ?: return
 
         try {
-            val projected = mutationHandler.apply(
-                entry,
-                action,
-                RegistryMutationContexts.client(registries)
-            )
+            val projected = definition.applyWildcard(entry, action, RegistryMutationContexts.client(registries))
             if (projected != null && !Objects.equals(projected, entry)) {
-                registryMemory.put(registry, target, projected)
+                @Suppress("UNCHECKED_CAST")
+                registryMemory.put(registry, target, projected as ElementEntry<T>)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
@@ -171,27 +167,43 @@ class EditorActionGateway(
             return
         }
 
-        val binding = RegistryWorkspaceBindings.get<Any>(snapshot.registryId()) ?: return
+        val definition = WorkspaceDefinitions.get(snapshot.registryId()) ?: return
         val registries = clientRegistries() ?: return
-        applySnapshot(binding, snapshot, registries)
+        applySnapshot(definition, snapshot, registries)
     }
 
-    private fun <T : Any> replaceAll(
-        binding: RegistryWorkspaceBinding<T>,
+    private fun replaceAll(
+        definition: WorkspaceDefinition<*>,
         snapshots: List<WorkspaceElementSnapshot>,
         registries: HolderLookup.Provider
     ) {
-        val entries = snapshots.map { binding.fromSnapshot(it, registries) }
-        registryMemory.replaceAll(binding.registryKey(), entries)
+        replaceAllTyped(definition, snapshots, registries)
     }
 
-    private fun <T : Any> applySnapshot(
-        binding: RegistryWorkspaceBinding<T>,
+    private fun <T : Any> replaceAllTyped(
+        definition: WorkspaceDefinition<T>,
+        snapshots: List<WorkspaceElementSnapshot>,
+        registries: HolderLookup.Provider
+    ) {
+        val entries = snapshots.map { definition.fromSnapshot(it, registries) }
+        registryMemory.replaceAll(definition.registryKey(), entries)
+    }
+
+    private fun applySnapshot(
+        definition: WorkspaceDefinition<*>,
         snapshot: WorkspaceElementSnapshot,
         registries: HolderLookup.Provider
     ) {
-        val entry = binding.fromSnapshot(snapshot, registries)
-        registryMemory.put(binding.registryKey(), snapshot.targetId(), entry)
+        applySnapshotTyped(definition, snapshot, registries)
+    }
+
+    private fun <T : Any> applySnapshotTyped(
+        definition: WorkspaceDefinition<T>,
+        snapshot: WorkspaceElementSnapshot,
+        registries: HolderLookup.Provider
+    ) {
+        val entry = definition.fromSnapshot(snapshot, registries)
+        registryMemory.put(definition.registryKey(), snapshot.targetId(), entry)
     }
 
     private fun clientRegistries(): HolderLookup.Provider? {

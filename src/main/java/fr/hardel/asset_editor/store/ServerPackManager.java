@@ -65,25 +65,25 @@ public final class ServerPackManager {
         return result;
     }
 
-    public PackEntry createPack(String name, String namespace) {
+    public void createPack(String name, String namespace) {
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
         String safeName = name == null ? "" : name.trim();
         String safeNamespace = namespace == null ? "" : namespace.trim();
         if (safeName.isBlank() || safeName.contains("/") || safeName.contains("\\") || safeName.contains(".."))
-            return null;
+            return;
         if (!Identifier.isValidNamespace(safeNamespace))
-            return null;
+            return;
 
         Path packRoot = datapackDir.resolve(safeName).normalize();
         if (!packRoot.startsWith(datapackDir.toAbsolutePath().normalize()))
-            return null;
+            return;
 
         try {
             Files.createDirectories(packRoot.resolve("data").resolve(safeNamespace));
             writePackMcmeta(packRoot, safeName);
         } catch (IOException e) {
             LOGGER.warn("Failed to create pack: {}", e.getMessage());
-            return null;
+            return;
         }
 
         try {
@@ -96,7 +96,7 @@ public final class ServerPackManager {
             LOGGER.warn("Failed to register pack: {}", e.getMessage());
         }
 
-        return new PackEntry("file/" + safeName, safeName, true, List.of(safeNamespace));
+        new PackEntry("file/" + safeName, safeName, true, List.of(safeNamespace));
     }
 
     public Optional<Path> resolveWritablePack(String packId) {
@@ -117,21 +117,6 @@ public final class ServerPackManager {
             return Optional.empty();
 
         return Optional.of(resolved);
-    }
-
-    public void ensureNamespace(String packId, String namespace) {
-        if (!Identifier.isValidNamespace(namespace))
-            return;
-        Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
-        String name = stripPrefix(packId);
-        Path nsDir = datapackDir.resolve(name).resolve("data").resolve(namespace);
-        if (Files.exists(nsDir))
-            return;
-        try {
-            Files.createDirectories(nsDir);
-        } catch (IOException e) {
-            LOGGER.warn("Failed to create namespace dir: {}", e.getMessage());
-        }
     }
 
     private PackEntry toPackEntry(Pack pack, Path datapackDir) {

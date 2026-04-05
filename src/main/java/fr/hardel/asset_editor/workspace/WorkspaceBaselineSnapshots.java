@@ -1,10 +1,11 @@
 package fr.hardel.asset_editor.workspace;
 
 import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBindings;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 
@@ -20,23 +21,23 @@ public final class WorkspaceBaselineSnapshots {
         var selectedPacks = server.getPackRepository().getSelectedPacks();
         var vanillaPacks = new ArrayList<>(selectedPacks.stream()
             .filter(pack -> pack.getPackSource() != PackSource.WORLD)
-            .map(pack -> pack.open())
+            .map(Pack::open)
             .toList());
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
-            for (var binding : RegistryWorkspaceBindings.all())
-                snapshotBinding(server, repository, vanillaResources, binding);
+            for (var definition : WorkspaceDefinitions.all())
+                snapshotDefinition(server, repository, vanillaResources, definition);
         }
     }
 
-    private static <T> void snapshotBinding(
+    private static <T> void snapshotDefinition(
         MinecraftServer server,
         WorkspaceRepository repository,
         MultiPackResourceManager resources,
-        RegistryWorkspaceBinding<T> binding
+        WorkspaceDefinition<T> definition
     ) {
-        var registry = server.registryAccess().lookup(binding.registryKey()).orElse(null);
-        repository.snapshotBaseline(binding, resources, registry, server.registryAccess());
+        var registry = server.registryAccess().lookup(definition.registryKey()).orElse(null);
+        repository.snapshotBaseline(definition, resources, registry, server.registryAccess());
     }
 
     private WorkspaceBaselineSnapshots() {

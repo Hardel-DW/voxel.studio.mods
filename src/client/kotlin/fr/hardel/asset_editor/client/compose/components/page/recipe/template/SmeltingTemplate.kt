@@ -14,7 +14,8 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateBase
 import net.minecraft.resources.Identifier
 
-private val BURN_PROGRESS_LOCATION = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/gui/burn_progres.png")
+private val BURN_PROGRESS_LOCATION =
+    Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "textures/studio/gui/burn_progres.png")
 
 @Composable
 fun SmeltingTemplate(

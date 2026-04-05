@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.compendium;
 
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;

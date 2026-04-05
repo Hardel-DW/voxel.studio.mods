@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
-import fr.hardel.asset_editor.studio.StudioRegistryResolver
+import fr.hardel.asset_editor.data.concept.StudioRegistryResolver
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import java.util.concurrent.CompletableFuture
 

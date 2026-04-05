@@ -11,6 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -30,20 +31,13 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
     public static final String MODE_DISABLE = "disable";
     public static final String MODE_ONLY_CREATIVE = "only_creative";
 
-    public static final Identifier CURSE_TAG = Identifier.fromNamespaceAndPath("minecraft", "curse");
-    public static final Identifier DOUBLE_TRADE_PRICE_TAG = Identifier.fromNamespaceAndPath("minecraft", "double_trade_price");
-    public static final Identifier IN_ENCHANTING_TABLE_TAG = Identifier.fromNamespaceAndPath("minecraft", "in_enchanting_table");
-    public static final Identifier NON_TREASURE_TAG = Identifier.fromNamespaceAndPath("minecraft", "non_treasure");
-    public static final Identifier ON_MOB_SPAWN_EQUIPMENT_TAG = Identifier.fromNamespaceAndPath("minecraft", "on_mob_spawn_equipment");
-    public static final Identifier ON_RANDOM_LOOT_TAG = Identifier.fromNamespaceAndPath("minecraft", "on_random_loot");
-    public static final Identifier ON_TRADED_EQUIPMENT_TAG = Identifier.fromNamespaceAndPath("minecraft", "on_traded_equipment");
-    public static final Identifier PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG = Identifier.fromNamespaceAndPath("minecraft", "prevents_bee_spawns_when_mining");
-    public static final Identifier PREVENTS_DECORATED_POT_SHATTERING_TAG = Identifier.fromNamespaceAndPath("minecraft", "prevents_decorated_pot_shattering");
-    public static final Identifier PREVENTS_ICE_MELTING_TAG = Identifier.fromNamespaceAndPath("minecraft", "prevents_ice_melting");
-    public static final Identifier PREVENTS_INFESTED_SPAWNS_TAG = Identifier.fromNamespaceAndPath("minecraft", "prevents_infested_spawns");
-    public static final Identifier SMELTS_LOOT_TAG = Identifier.fromNamespaceAndPath("minecraft", "smelts_loot");
-    public static final Identifier TRADEABLE_TAG = Identifier.fromNamespaceAndPath("minecraft", "tradeable");
-    public static final Identifier TREASURE_TAG = Identifier.fromNamespaceAndPath("minecraft", "treasure");
+    public static final Identifier CURSE_TAG = Identifier.withDefaultNamespace("curse");
+    public static final Identifier DOUBLE_TRADE_PRICE_TAG = Identifier.withDefaultNamespace("double_trade_price");
+    public static final Identifier PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG = Identifier.withDefaultNamespace("prevents_bee_spawns_when_mining");
+    public static final Identifier PREVENTS_DECORATED_POT_SHATTERING_TAG = Identifier.withDefaultNamespace("prevents_decorated_pot_shattering");
+    public static final Identifier PREVENTS_ICE_MELTING_TAG = Identifier.withDefaultNamespace("prevents_ice_melting");
+    public static final Identifier PREVENTS_INFESTED_SPAWNS_TAG = Identifier.withDefaultNamespace("prevents_infested_spawns");
+    public static final Identifier SMELTS_LOOT_TAG = Identifier.withDefaultNamespace("smelts_loot");
 
     public static final Set<Identifier> FUNCTIONALITY_TAGS = Set.of(
         CURSE_TAG, DOUBLE_TRADE_PRICE_TAG,
@@ -63,6 +57,11 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
             default -> entry.tags();
         };
 
+        Enchantment prepared = getEnchantment(entry, mode, disabledEffects);
+        return entry.withData(prepared).withTags(tags);
+    }
+
+    private static @NonNull Enchantment getEnchantment(ElementEntry<Enchantment> entry, String mode, Set<String> disabledEffects) {
         Enchantment enchantment = entry.data();
         DataComponentMap effects = enchantment.effects();
         if (MODE_DISABLE.equals(mode)) {
@@ -72,9 +71,7 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
         }
 
         HolderSet<Enchantment> exclusiveSet = MODE_DISABLE.equals(mode) ? HolderSet.empty() : enchantment.exclusiveSet();
-        Enchantment prepared = new Enchantment(enchantment.description(), enchantment.definition(), exclusiveSet, effects);
-
-        return entry.withData(prepared).withTags(tags);
+        return new Enchantment(enchantment.description(), enchantment.definition(), exclusiveSet, effects);
     }
 
     public static CustomFields initializeCustom(Enchantment enchantment, Set<Identifier> tags) {
@@ -95,10 +92,6 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
         return MODE_DISABLE.equals(mode(entry));
     }
 
-    public static boolean isSoftDeleted(CustomFields custom) {
-        return MODE_DISABLE.equals(mode(custom));
-    }
-
     public static Set<String> disabledEffects(CustomFields custom) {
         return custom.getStringSet(DISABLED_EFFECTS_KEY);
     }
@@ -114,21 +107,21 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
     public static List<String> availableEffects(Enchantment enchantment) {
         return enchantment.effects().keySet().stream()
             .map(EnchantmentFlushAdapter::effectId)
-            .filter(id -> id != null && !id.isBlank())
+            .filter(id -> !id.isBlank())
             .sorted()
             .toList();
     }
 
     public static Identifier previewItemId(Enchantment enchantment,
         Function<TagKey<Item>, Optional<HolderSet<Item>>> itemTagResolver) {
-        Identifier primary = TagHelper.firstIdentifier(enchantment.definition().primaryItems(), itemTagResolver);
-        return primary != null ? primary : TagHelper.firstIdentifier(Optional.of(enchantment.definition().supportedItems()), itemTagResolver);
+        Identifier primary = TagHelper.firstIdentifier(enchantment.definition().primaryItems().orElse(null), itemTagResolver);
+        return primary != null ? primary : TagHelper.firstIdentifier(enchantment.definition().supportedItems(), itemTagResolver);
     }
 
     public static List<Identifier> customExclusiveTags(List<ElementEntry<Enchantment>> entries) {
         return entries.stream()
             .flatMap(entry -> collectExclusiveTags(entry).stream())
-            .filter(tagId -> !"minecraft".equals(tagId.getNamespace()))
+            .filter(tagId -> !Identifier.DEFAULT_NAMESPACE.equals(tagId.getNamespace()))
             .distinct()
             .sorted(Comparator.comparing(Identifier::toString))
             .toList();
@@ -139,7 +132,7 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
         boolean hasExclusiveSet = enchantment.exclusiveSet().unwrapKey().isPresent()
             || enchantment.exclusiveSet().stream().findAny().isPresent();
 
-        if (!tags.isEmpty() && tags.stream().allMatch(FUNCTIONALITY_TAGS::contains))
+        if (!tags.isEmpty() && FUNCTIONALITY_TAGS.containsAll(tags))
             return MODE_ONLY_CREATIVE;
         if (!hasEffects && tags.isEmpty() && !hasExclusiveSet)
             return MODE_DISABLE;
@@ -161,7 +154,7 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
     private static List<Identifier> collectExclusiveTags(ElementEntry<Enchantment> entry) {
         Set<Identifier> tags = new LinkedHashSet<>();
         entry.data().exclusiveSet().unwrapKey()
-            .map(key -> key.location())
+            .map(TagKey::location)
             .ifPresent(tags::add);
         tags.addAll(TagHelper.filterByPathPrefix(entry.tags(), "exclusive_set/"));
         return List.copyOf(tags);

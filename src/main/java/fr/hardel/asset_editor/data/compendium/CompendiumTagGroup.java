@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.compendium;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

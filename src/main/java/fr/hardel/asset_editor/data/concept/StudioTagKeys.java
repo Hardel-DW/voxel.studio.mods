@@ -1,5 +1,6 @@
-package fr.hardel.asset_editor.studio;
+package fr.hardel.asset_editor.data.concept;
 
+import fr.hardel.asset_editor.data.StudioRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 

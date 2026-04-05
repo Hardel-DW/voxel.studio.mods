@@ -16,15 +16,15 @@ class NetworkTraceMemoryTest {
         NetworkTraceMemory memory = new NetworkTraceMemory();
 
         memory.capture(NetworkTraceMemory.Direction.OUTBOUND, new TestPayload("asset_editor", "payload_a"));
-        memory.capture(NetworkTraceMemory.Direction.INBOUND, new TestPayload("minecraft", "payload_b"));
+        memory.capture(NetworkTraceMemory.Direction.INBOUND, new TestPayload(Identifier.DEFAULT_NAMESPACE, "payload_b"));
 
         assertEquals(2, memory.snapshot().size());
         assertTrue(memory.snapshot().availableNamespaces().contains(AssetEditor.MOD_ID));
-        assertTrue(memory.snapshot().availableNamespaces().contains("minecraft"));
+        assertTrue(memory.snapshot().availableNamespaces().contains(Identifier.DEFAULT_NAMESPACE));
 
-        memory.selectNamespace("minecraft");
+        memory.selectNamespace(Identifier.DEFAULT_NAMESPACE);
         assertEquals(1, memory.snapshot().size());
-        assertEquals("minecraft", memory.snapshot().selectedNamespace());
+        assertEquals(Identifier.DEFAULT_NAMESPACE, memory.snapshot().selectedNamespace());
         assertEquals("payload_b", memory.snapshot().entries().getFirst().payloadId().getPath());
 
         memory.clear();
@@ -36,8 +36,8 @@ class NetworkTraceMemoryTest {
         NetworkTraceMemory memory = new NetworkTraceMemory();
 
         memory.capture(NetworkTraceMemory.Direction.OUTBOUND, new TestPayload("asset_editor", "payload_a"));
-        memory.capture(NetworkTraceMemory.Direction.INBOUND, new TestPayload("minecraft", "payload_b"));
-        memory.selectNamespace("minecraft");
+        memory.capture(NetworkTraceMemory.Direction.INBOUND, new TestPayload(Identifier.DEFAULT_NAMESPACE, "payload_b"));
+        memory.selectNamespace(Identifier.DEFAULT_NAMESPACE);
 
         memory.resetState();
         assertEquals(0, memory.snapshot().size());

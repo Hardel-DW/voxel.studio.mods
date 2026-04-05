@@ -1,22 +1,13 @@
 package fr.hardel.asset_editor;
 
-import fr.hardel.asset_editor.command.AssetEditorCommands;
-import fr.hardel.asset_editor.event.PackReloadEnd;
-import fr.hardel.asset_editor.event.PlayerJoinEvent;
-import fr.hardel.asset_editor.event.SeverStartedEvent;
-import fr.hardel.asset_editor.event.ServerStoppedEvent;
+import fr.hardel.asset_editor.event.*;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
-import fr.hardel.asset_editor.studio.CompendiumTagLoader;
-import fr.hardel.asset_editor.studio.RecipeEntryLoader;
-import fr.hardel.asset_editor.studio.StudioRegistries;
-import fr.hardel.asset_editor.workspace.action.EditorActionRegistries;
+import fr.hardel.asset_editor.data.StudioRegistries;
+import fr.hardel.asset_editor.data.StudioResourceLoaders;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
-import fr.hardel.asset_editor.workspace.registry.MutationHandlerRegistries;
-import fr.hardel.asset_editor.workspace.registry.WorkspaceBindings;
+import fr.hardel.asset_editor.workspace.definition.enchantment.EnchantmentWorkspace;
+import fr.hardel.asset_editor.workspace.definition.recipe.RecipeWorkspace;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.PackType;
 
 public class AssetEditor implements ModInitializer {
 
@@ -26,21 +17,15 @@ public class AssetEditor implements ModInitializer {
     @Override
     public void onInitialize() {
         StudioRegistries.register();
-        EditorActionRegistries.register();
         RecipeAdapterRegistries.register();
-        MutationHandlerRegistries.register();
-        WorkspaceBindings.register();
+        EnchantmentWorkspace.register();
+        RecipeWorkspace.register();
         AssetEditorNetworking.register();
-        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
-            Identifier.fromNamespaceAndPath(MOD_ID, "studio_compendium_tags"),
-            new CompendiumTagLoader());
-        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
-            Identifier.fromNamespaceAndPath(MOD_ID, "studio_recipe_entries"),
-            new RecipeEntryLoader());
+        StudioResourceLoaders.register();
         SeverStartedEvent.register();
         ServerStoppedEvent.register();
         PlayerJoinEvent.register();
-        PackReloadEnd.register();
-        AssetEditorCommands.register();
+        PackReloadEndEvent.register();
+        CommandRegistrationEvent.register();
     }
 }

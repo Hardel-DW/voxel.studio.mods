@@ -18,8 +18,10 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.AssetEditor
 
-private val PROGRESS_LOCATION = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/gui/progress.png")
+private val PROGRESS_LOCATION =
+    Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "textures/studio/gui/progress.png")
 
 @Composable
 fun RecipeTemplateBase(

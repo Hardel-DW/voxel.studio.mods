@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.workspace.service;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,25 +22,25 @@ public final class WorkspaceQueryService {
     public Optional<PackWorkspaceSyncPayload> loadPackWorkspace(ServerPlayer player, MinecraftServer server,
         String packId, Identifier registryId) {
         WorkspaceAccessResolver.Resolution resolution = accessResolver.resolveEditable(player, server, packId, registryId);
-        if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success success))
+        if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success(ResolvedWorkspaceAccess access)))
             return Optional.empty();
 
-        return Optional.of(loadPackWorkspaceTyped(success.access()));
+        return Optional.of(loadPackWorkspaceTyped(access));
     }
 
     private PackWorkspaceSyncPayload loadPackWorkspaceTyped(ResolvedWorkspaceAccess access) {
-        return loadPackWorkspaceTyped(access.binding(), access);
+        return loadPackWorkspaceTyped(access.definition(), access);
     }
 
     private <T> PackWorkspaceSyncPayload loadPackWorkspaceTyped(
-        RegistryWorkspaceBinding<T> binding,
+        WorkspaceDefinition<T> definition,
         ResolvedWorkspaceAccess access
     ) {
-        List<ElementEntry<T>> entries = access.repository().snapshotWorkspace(access.packId(), binding, access.packRoot(), access.registries());
+        List<ElementEntry<T>> entries = access.repository().snapshotWorkspace(access.packId(), definition, access.packRoot(), access.registries());
         List<WorkspaceElementSnapshot> snapshots = entries.stream()
-            .map(entry -> binding.toSnapshot(entry, access.registries()))
+            .map(entry -> definition.toSnapshot(entry, access.registries()))
             .toList();
 
-        return new PackWorkspaceSyncPayload(access.packId(), binding.registryId(), snapshots);
+        return new PackWorkspaceSyncPayload(access.packId(), definition.registryId(), snapshots);
     }
 }

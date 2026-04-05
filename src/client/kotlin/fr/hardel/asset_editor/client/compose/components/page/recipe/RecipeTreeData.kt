@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
-import fr.hardel.asset_editor.studio.RecipeEntryDefinition
+import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition
 import net.minecraft.resources.Identifier
 
 object RecipeTreeData {

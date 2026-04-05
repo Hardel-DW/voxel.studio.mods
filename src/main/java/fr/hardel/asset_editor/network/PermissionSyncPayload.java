@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.network.session;
+package fr.hardel.asset_editor.network;
 
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import io.netty.buffer.ByteBuf;

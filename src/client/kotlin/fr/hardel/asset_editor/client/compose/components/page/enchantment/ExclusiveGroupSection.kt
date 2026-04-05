@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
-import fr.hardel.asset_editor.studio.CompendiumTagGroup
+import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup
 import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Category

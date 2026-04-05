@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
-import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 
 import javax.swing.SwingUtilities;

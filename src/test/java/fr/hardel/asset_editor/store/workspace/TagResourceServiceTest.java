@@ -43,8 +43,7 @@ class TagResourceServiceTest {
             "item",
             tagId,
             TagSeed.fromValueLiterals(List.of("#minecraft:axes")),
-            registries
-        );
+            registries);
 
         Path file = tempDir.resolve("data").resolve("voxel").resolve("tags").resolve("item")
             .resolve("enchantable/axes.json");
@@ -53,8 +52,7 @@ class TagResourceServiceTest {
         assertTrue(Files.exists(file));
 
         ExtendedTagFile parsed = ExtendedTagFile.CODEC.parse(
-            new Dynamic<>(JsonOps.INSTANCE, JsonParser.parseString(Files.readString(file)))
-        ).getOrThrow();
+            new Dynamic<>(JsonOps.INSTANCE, JsonParser.parseString(Files.readString(file)))).getOrThrow();
 
         assertEquals(List.of("#minecraft:axes"), parsed.entries().stream().map(Object::toString).toList());
         assertEquals(List.of(), parsed.exclude());
@@ -76,8 +74,7 @@ class TagResourceServiceTest {
             "item",
             tagId,
             TagSeed.fromValueLiterals(List.of("#minecraft:axes")),
-            registries
-        );
+            registries);
 
         assertTrue(ensured);
         assertEquals("{\"values\":[\"minecraft:diamond_sword\"],\"replace\":false}", Files.readString(file));
@@ -86,7 +83,7 @@ class TagResourceServiceTest {
     @Test
     void ensureExistsSkipsWritingWhenTagAlreadyExistsInRuntime() {
         TagResourceService service = new TagResourceService();
-        Identifier tagId = Identifier.fromNamespaceAndPath("minecraft", "axes");
+        Identifier tagId = Identifier.withDefaultNamespace("axes");
         HolderLookup.Provider registries = registriesWithRuntimeItemTag(tagId);
 
         boolean ensured = service.ensureExists(
@@ -94,10 +91,9 @@ class TagResourceServiceTest {
             "item",
             tagId,
             TagSeed.fromValueLiterals(List.of("minecraft:diamond_sword")),
-            registries
-        );
+            registries);
 
-        Path file = tempDir.resolve("data").resolve("minecraft").resolve("tags").resolve("item")
+        Path file = tempDir.resolve("data").resolve(Identifier.DEFAULT_NAMESPACE).resolve("tags").resolve("item")
             .resolve("axes.json");
 
         assertTrue(ensured);
@@ -107,8 +103,7 @@ class TagResourceServiceTest {
     private static HolderLookup.Provider emptyRegistries() {
         return HolderLookup.Provider.create(Stream.of(
             new MappedRegistry<>(Registries.ITEM, Lifecycle.stable()),
-            new MappedRegistry<>(Registries.ENCHANTMENT, Lifecycle.stable())
-        ));
+            new MappedRegistry<>(Registries.ENCHANTMENT, Lifecycle.stable())));
     }
 
     private static HolderLookup.Provider registriesWithRuntimeItemTag(Identifier tagId) {
@@ -147,8 +142,7 @@ class TagResourceServiceTest {
                     return Stream.of(placeholderTag(tagId));
                 }
             },
-            new MappedRegistry<>(Registries.ENCHANTMENT, Lifecycle.stable())
-        ));
+            new MappedRegistry<>(Registries.ENCHANTMENT, Lifecycle.stable())));
     }
 
     @SuppressWarnings("unchecked")

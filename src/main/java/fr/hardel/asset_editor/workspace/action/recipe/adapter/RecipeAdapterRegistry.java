@@ -45,13 +45,13 @@ public final class RecipeAdapterRegistry {
         return BY_SERIALIZER.get(serializerId);
     }
 
-    public static boolean hasAdapter(Recipe<?> recipe) {
+    public static boolean isUnsupported(Recipe<?> recipe) {
         Class<?> type = recipe.getClass();
         while (type != null && Recipe.class.isAssignableFrom(type)) {
-            if (BY_CLASS.containsKey(type)) return true;
+            if (BY_CLASS.containsKey(type)) return false;
             type = type.getSuperclass();
         }
-        return false;
+        return true;
     }
 
     public static List<Optional<Ingredient>> extractIngredients(Recipe<?> recipe) {
@@ -68,7 +68,7 @@ public final class RecipeAdapterRegistry {
 
     public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {
         RecipeAdapter<?> targetAdapter = getBySerializer(targetSerializer);
-        if (targetAdapter == null || !hasAdapter(source)) return null;
+        if (targetAdapter == null || isUnsupported(source)) return null;
 
         RecipeAdapter<?> sourceAdapter = get(source);
         List<Optional<Ingredient>> ingredients = preserveIngredients
@@ -122,39 +122,6 @@ public final class RecipeAdapterRegistry {
 
     public static boolean supportsResultItem(Recipe<?> recipe) {
         return get(recipe).supportsResultItem();
-    }
-
-    public static boolean supportsResultItem(Identifier serializerId) {
-        RecipeAdapter<?> adapter = getBySerializer(serializerId);
-        return adapter != null && adapter.supportsResultItem();
-    }
-
-    public static boolean supportsGroup(Recipe<?> recipe) {
-        return get(recipe).supportsGroup();
-    }
-
-    public static boolean supportsCraftingCategory(Recipe<?> recipe) {
-        return get(recipe).supportsCraftingCategory();
-    }
-
-    public static boolean supportsCookingCategory(Recipe<?> recipe) {
-        return get(recipe).supportsCookingCategory();
-    }
-
-    public static boolean supportsCookingExperience(Recipe<?> recipe) {
-        return get(recipe).supportsCookingExperience();
-    }
-
-    public static boolean supportsCookingTime(Recipe<?> recipe) {
-        return get(recipe).supportsCookingTime();
-    }
-
-    public static boolean supportsShowNotification(Recipe<?> recipe) {
-        return get(recipe).supportsShowNotification();
-    }
-
-    public static boolean supportsConversion(Identifier serializerId) {
-        return getBySerializer(serializerId) != null;
     }
 
     private RecipeAdapterRegistry() {

@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib
 
 import androidx.compose.runtime.Composable
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
-import fr.hardel.asset_editor.studio.StudioRegistryResolver
+import fr.hardel.asset_editor.data.concept.StudioRegistryResolver
 import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 

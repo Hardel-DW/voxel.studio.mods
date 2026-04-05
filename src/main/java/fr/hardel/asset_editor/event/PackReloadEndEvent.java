@@ -4,7 +4,7 @@ import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.store.ServerPackService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
-public final class PackReloadEnd {
+public final class PackReloadEndEvent {
 
     private static final ServerPackService PACK_SERVICE = new ServerPackService();
 
@@ -18,6 +18,6 @@ public final class PackReloadEnd {
         });
     }
 
-    private PackReloadEnd() {
+    private PackReloadEndEvent() {
     }
 }

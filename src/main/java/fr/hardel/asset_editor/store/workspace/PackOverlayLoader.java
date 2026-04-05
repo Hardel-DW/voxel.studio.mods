@@ -7,7 +7,7 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.store.CustomFields;
 import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -40,7 +40,7 @@ public final class PackOverlayLoader {
     }
 
     public <T> RegistryWorkspace<T> loadWorkspace(String packId, Path packRoot,
-        RegistryWorkspaceBinding<T> binding,
+        WorkspaceDefinition<T> binding,
         HolderLookup.Provider registries,
         Map<Identifier, ElementEntry<T>> baseEntries) {
         LayerState<T> referenceState = baseLayer(baseEntries);
@@ -80,7 +80,7 @@ public final class PackOverlayLoader {
         return Optional.of(resolved);
     }
 
-    private <T> void applyLayer(Path packRoot, RegistryWorkspaceBinding<T> binding, HolderLookup.Provider registries, LayerState<T> state) {
+    private <T> void applyLayer(Path packRoot, WorkspaceDefinition<T> binding, HolderLookup.Provider registries, LayerState<T> state) {
         applyElementOverrides(packRoot, binding, registries, state);
         applyTagOverrides(packRoot, binding.registryKey().identifier().getPath(), state);
     }
@@ -89,7 +89,7 @@ public final class PackOverlayLoader {
         return new LayerState<>(new LinkedHashMap<>(baseEntries), copyTags(baseEntries));
     }
 
-    private <T> Map<Identifier, ElementEntry<T>> initializeEntries(RegistryWorkspaceBinding<T> binding, LayerState<T> state) {
+    private <T> Map<Identifier, ElementEntry<T>> initializeEntries(WorkspaceDefinition<T> binding, LayerState<T> state) {
         Map<Identifier, ElementEntry<T>> initialized = new LinkedHashMap<>();
 
         for (var entry : state.entries.entrySet()) {
@@ -111,7 +111,7 @@ public final class PackOverlayLoader {
         return tags;
     }
 
-    private <T> void applyElementOverrides(Path packRoot, RegistryWorkspaceBinding<T> binding,
+    private <T> void applyElementOverrides(Path packRoot, WorkspaceDefinition<T> binding,
         HolderLookup.Provider registries,
         LayerState<T> state) {
         Path dataDir = packRoot.resolve("data");
@@ -129,7 +129,7 @@ public final class PackOverlayLoader {
     }
 
     private <T> void applyElementOverridesInNamespace(Path namespaceDir, String registryDir,
-        RegistryWorkspaceBinding<T> binding,
+        WorkspaceDefinition<T> binding,
         DynamicOps<JsonElement> ops,
         LayerState<T> state) {
         Path registryRoot = namespaceDir.resolve(registryDir);
@@ -149,7 +149,7 @@ public final class PackOverlayLoader {
     }
 
     private <T> void applyElementOverrideFile(Path file, Identifier elementId,
-        RegistryWorkspaceBinding<T> binding,
+        WorkspaceDefinition<T> binding,
         DynamicOps<JsonElement> ops,
         LayerState<T> state) {
         JsonElement json = readJson(file, "pack entry");
@@ -249,14 +249,14 @@ public final class PackOverlayLoader {
     }
 
     private List<Path> namespaceDirectories(Path dataDir) {
-        return childDirectories(dataDir, "pack namespaces");
+        return childDirectories(dataDir);
     }
 
-    private List<Path> childDirectories(Path root, String label) {
+    private List<Path> childDirectories(Path root) {
         try (var children = Files.list(root)) {
             return children.filter(Files::isDirectory).toList();
         } catch (IOException exception) {
-            LOGGER.warn("Failed to list {} in {}: {}", label, root, exception.getMessage());
+            LOGGER.warn("Failed to list {} in {}: {}", "pack namespaces", root, exception.getMessage());
             return List.of();
         }
     }

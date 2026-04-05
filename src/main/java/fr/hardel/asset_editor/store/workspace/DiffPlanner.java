@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
-import fr.hardel.asset_editor.workspace.registry.RegistryWorkspaceBinding;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagEntry;
 
@@ -23,10 +23,10 @@ public final class DiffPlanner {
 
     private static final RegistryDiffPlan<?> EMPTY_PLAN = new RegistryDiffPlan<>(List.of(), List.of(), List.of(), List.of());
 
-    public <T> RegistryDiffPlan<T> plan(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
+    public <T> RegistryDiffPlan<T> plan(Path packRoot, WorkspaceDefinition<T> definition, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
         if (workspace.dirty().isEmpty())
             return emptyPlan();
-        return new Planner<>(packRoot, binding, workspace, ops).plan();
+        return new Planner<>(packRoot, definition, workspace, ops).plan();
     }
 
     @SuppressWarnings("unchecked")
@@ -50,11 +50,11 @@ public final class DiffPlanner {
         private final ArrayList<RegistryDiffPlan.TagWrite> tagWrites = new ArrayList<>();
         private final ArrayList<Path> tagDeletes = new ArrayList<>();
 
-        private Planner(Path packRoot, RegistryWorkspaceBinding<T> binding, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
+        private Planner(Path packRoot, WorkspaceDefinition<T> definition, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
             this.packRoot = packRoot;
-            this.registryDir = binding.registryKey().identifier().getPath();
-            this.adapter = binding.adapter() == null ? FlushAdapter.identity() : binding.adapter();
-            this.codec = binding.codec();
+            this.registryDir = definition.registryKey().identifier().getPath();
+            this.adapter = definition.flushAdapter();
+            this.codec = definition.codec();
             this.ops = ops;
             this.dirtyTags = workspace.dirtyTags();
             this.referenceEntries = workspace.referenceEntries();
