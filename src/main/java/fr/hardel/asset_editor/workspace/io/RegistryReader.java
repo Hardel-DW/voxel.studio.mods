@@ -32,7 +32,9 @@ public final class RegistryReader {
         HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         Map<Identifier, T> elements = loadElements(binding, resourceManager, ops);
-        Map<Identifier, Set<Identifier>> tagsByElement = registry != null ? loadTags(binding, resourceManager, registry) : Map.of();
+        Map<Identifier, Set<Identifier>> tagsByElement = registry != null
+            ? loadTags(binding, resourceManager, TagLoader.ElementLookup.fromFrozenRegistry(registry))
+            : Map.of();
         Map<Identifier, ElementEntry<T>> result = new LinkedHashMap<>();
 
         for (var entry : elements.entrySet()) {
@@ -45,17 +47,14 @@ public final class RegistryReader {
         return Map.copyOf(result);
     }
 
-    @SuppressWarnings("unchecked") // fromFrozenRegistry returns ElementLookup<? extends Holder<T>>, same cast as Mojang's TagLoader.loadPendingTags
-    private <T> Map<Identifier, Set<Identifier>> loadTags(WorkspaceDefinition<T> binding,
+    private <T, H extends Holder<T>> Map<Identifier, Set<Identifier>> loadTags(WorkspaceDefinition<T> binding,
         ResourceManager resourceManager,
-        Registry<T> registry) {
-        var loader = new TagLoader<>(
-            (TagLoader.ElementLookup<Holder<T>>) TagLoader.ElementLookup.fromFrozenRegistry(registry),
-            Registries.tagsDirPath(binding.registryKey()));
+        TagLoader.ElementLookup<H> elementLookup) {
+        var loader = new TagLoader<>(elementLookup, Registries.tagsDirPath(binding.registryKey()));
 
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         loader.build(loader.load(resourceManager)).forEach((tagId, holders) -> {
-            for (var holder : holders) {
+            for (H holder : holders) {
                 holder.unwrapKey().ifPresent(key ->
                     tagsByElement.computeIfAbsent(key.identifier(), ignored -> new java.util.HashSet<>()).add(tagId));
             }
