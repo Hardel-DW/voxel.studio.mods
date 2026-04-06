@@ -83,7 +83,7 @@ main
     ├── action                   — EditorAction interface, EditorActionType, EditorActionRegistry
     │   ├── enchantment          — Enchantment action records (SetIntField, ToggleSlot, etc.)
     │   └── recipe               — Recipe action records + RecipeAdapter system
-    ├── definition               — WorkspaceDefinition, WorkspaceDefinitions, ActionHandler
+    ├── definition               — WorkspaceDefinition, WorkspaceDefinition, ActionHandler
     │   ├── enchantment          — EnchantmentWorkspace (definition + all handlers)
     │   └── recipe               — RecipeWorkspace (definition + all handlers)
     ├── registry                 — RegistryMutationContext, RegistryMutationContexts

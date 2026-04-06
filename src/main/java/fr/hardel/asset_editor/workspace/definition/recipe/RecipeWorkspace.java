@@ -1,12 +1,11 @@
 package fr.hardel.asset_editor.workspace.definition.recipe;
 
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.adapter.RecipeFlushAdapter;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.RecipeFlushAdapter;
 import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions;
 import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.crafting.CampfireCookingRecipe;
 import net.minecraft.world.item.crafting.CookingBookCategory;
@@ -23,7 +22,7 @@ import java.util.Optional;
 public final class RecipeWorkspace {
 
     public static void register() {
-        WorkspaceDefinitions.register(
+        WorkspaceDefinition.register(
             WorkspaceDefinition.builder(Registries.RECIPE, Recipe.CODEC)
                 .flushAdapter(RecipeFlushAdapter.INSTANCE)
                 .action(RecipeEditorActions.ADD_INGREDIENT, RecipeWorkspace::applyAddIngredient)
@@ -39,8 +38,7 @@ public final class RecipeWorkspace {
                 .action(RecipeEditorActions.SET_COOKING_EXPERIENCE, RecipeWorkspace::applySetCookingExperience)
                 .action(RecipeEditorActions.SET_COOKING_TIME, RecipeWorkspace::applySetCookingTime)
                 .action(RecipeEditorActions.SET_SHOW_NOTIFICATION, RecipeWorkspace::applySetShowNotification)
-                .build()
-        );
+                .build());
     }
 
     private static ElementEntry<Recipe<?>> applyAddIngredient(
@@ -48,10 +46,12 @@ public final class RecipeWorkspace {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> recipe = entry.data();
 
-        if (recipe instanceof ShapelessRecipe) return entry;
+        if (recipe instanceof ShapelessRecipe)
+            return entry;
 
         List<Optional<Ingredient>> ingredients = helper.extractIngredients(recipe);
-        if (action.slot() < 0 || action.slot() >= ingredients.size()) return entry;
+        if (action.slot() < 0 || action.slot() >= ingredients.size())
+            return entry;
 
         Optional<Ingredient> existing = ingredients.get(action.slot());
         if (action.replace() || existing.isEmpty()) {
@@ -65,15 +65,15 @@ public final class RecipeWorkspace {
 
     private static ElementEntry<Recipe<?>> applyAddShapelessIngredient(
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.AddShapelessIngredient action, RegistryMutationContext context) {
-        if (!(entry.data() instanceof ShapelessRecipe shapeless)) return entry;
+        if (!(entry.data() instanceof ShapelessRecipe shapeless))
+            return entry;
 
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         List<Ingredient> newIngredients = new ArrayList<>(shapeless.ingredients);
         newIngredients.add(helper.toIngredient(action.items()));
 
         return entry.withData(new ShapelessRecipe(
-            shapeless.group(), shapeless.category(), shapeless.result.copy(), newIngredients
-        ));
+            shapeless.group(), shapeless.category(), shapeless.result.copy(), newIngredients));
     }
 
     private static ElementEntry<Recipe<?>> applyRemoveIngredient(
@@ -82,13 +82,15 @@ public final class RecipeWorkspace {
         Recipe<?> recipe = entry.data();
 
         List<Optional<Ingredient>> ingredients = helper.extractIngredients(recipe);
-        if (action.slot() < 0 || action.slot() >= ingredients.size()) return entry;
+        if (action.slot() < 0 || action.slot() >= ingredients.size())
+            return entry;
 
         if (action.items().isEmpty()) {
             ingredients.set(action.slot(), Optional.empty());
         } else {
             Optional<Ingredient> existing = ingredients.get(action.slot());
-            if (existing.isEmpty()) return entry;
+            if (existing.isEmpty())
+                return entry;
 
             Ingredient filtered = helper.remove(existing.get(), action.items());
             ingredients.set(action.slot(), Optional.ofNullable(filtered));
@@ -135,7 +137,8 @@ public final class RecipeWorkspace {
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.ConvertRecipeType action, RegistryMutationContext context) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> converted = helper.convertRecipeType(entry.data(), action.newSerializer(), action.preserveIngredients());
-        if (converted == null) return entry;
+        if (converted == null)
+            return entry;
         return entry.withData(converted);
     }
 
@@ -145,7 +148,8 @@ public final class RecipeWorkspace {
         int maxCount = Math.max(1, helper.extractResult(entry.data()).getMaxStackSize());
         int count = Math.max(1, Math.min(maxCount, action.count()));
         Recipe<?> updated = helper.setResultCount(entry.data(), count);
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
@@ -153,7 +157,8 @@ public final class RecipeWorkspace {
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetResultItem action, RegistryMutationContext context) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> updated = helper.setResultItem(entry.data(), action.itemId());
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
@@ -161,7 +166,8 @@ public final class RecipeWorkspace {
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetGroup action, RegistryMutationContext context) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> updated = helper.setGroup(entry.data(), action.group().trim());
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
@@ -182,16 +188,19 @@ public final class RecipeWorkspace {
             }
         }
 
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
     private static ElementEntry<Recipe<?>> applySetCookingExperience(
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetCookingExperience action, RegistryMutationContext context) {
-        if (!Float.isFinite(action.experience())) return entry;
+        if (!Float.isFinite(action.experience()))
+            return entry;
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> updated = helper.setCookingExperience(entry.data(), Math.max(0.0F, action.experience()));
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
@@ -199,7 +208,8 @@ public final class RecipeWorkspace {
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetCookingTime action, RegistryMutationContext context) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> updated = helper.setCookingTime(entry.data(), sanitizeCookingTime(entry.data(), action.time()));
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 
@@ -207,7 +217,8 @@ public final class RecipeWorkspace {
         ElementEntry<Recipe<?>> entry, RecipeEditorActions.SetShowNotification action, RegistryMutationContext context) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(context.registries());
         Recipe<?> updated = helper.setShowNotification(entry.data(), action.value());
-        if (updated == null) return entry;
+        if (updated == null)
+            return entry;
         return entry.withData(updated);
     }
 

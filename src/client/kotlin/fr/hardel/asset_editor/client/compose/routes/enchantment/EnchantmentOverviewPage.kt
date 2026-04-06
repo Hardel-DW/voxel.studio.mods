@@ -42,8 +42,8 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
-import fr.hardel.asset_editor.store.ElementEntry
-import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n

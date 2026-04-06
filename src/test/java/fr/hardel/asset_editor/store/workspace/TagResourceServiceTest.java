@@ -6,6 +6,7 @@ import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.Lifecycle;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import fr.hardel.asset_editor.tag.TagSeed;
+import fr.hardel.asset_editor.workspace.TagResourceService;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;

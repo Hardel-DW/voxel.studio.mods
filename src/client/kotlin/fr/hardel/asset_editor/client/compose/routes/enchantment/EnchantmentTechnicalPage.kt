@@ -16,7 +16,7 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
 import net.minecraft.client.resources.language.I18n

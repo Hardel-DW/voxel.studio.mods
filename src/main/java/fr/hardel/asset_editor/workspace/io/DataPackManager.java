@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.store;
+package fr.hardel.asset_editor.workspace.io;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -26,29 +26,29 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class ServerPackManager {
+public final class DataPackManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerPackManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataPackManager.class);
 
     public record PackEntry(String packId, String name, boolean writable, List<String> namespaces) {}
 
-    private static ServerPackManager instance;
+    private static DataPackManager instance;
 
     private final MinecraftServer server;
 
-    private ServerPackManager(MinecraftServer server) {
+    private DataPackManager(MinecraftServer server) {
         this.server = server;
     }
 
     public static void init(MinecraftServer server) {
-        instance = new ServerPackManager(server);
+        instance = new DataPackManager(server);
     }
 
     public static void shutdown() {
         instance = null;
     }
 
-    public static ServerPackManager get() {
+    public static DataPackManager get() {
         return instance;
     }
 

@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.memory.session;
 import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory;
-import fr.hardel.asset_editor.store.ServerPackManager;
+import fr.hardel.asset_editor.workspace.io.DataPackManager;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -18,8 +18,8 @@ class PackSelectionMemoryTest {
         PackSelectionMemory memory = new PackSelectionMemory(sessionMemory, preferredPackId::get, preferredPackId::set);
 
         sessionMemory.updatePacks(List.of(
-            new ServerPackManager.PackEntry("file/pack_a", "Pack A", true, List.of("a")),
-            new ServerPackManager.PackEntry("file/pack_b", "Pack B", true, List.of("b"))
+            new DataPackManager.PackEntry("file/pack_a", "Pack A", true, List.of("a")),
+            new DataPackManager.PackEntry("file/pack_b", "Pack B", true, List.of("b"))
         ));
 
         assertNotNull(memory.selectedPack());
@@ -29,7 +29,7 @@ class PackSelectionMemoryTest {
         assertEquals("file/pack_b", preferredPackId.get());
 
         sessionMemory.updatePacks(List.of(
-            new ServerPackManager.PackEntry("file/pack_b", "Pack B", true, List.of("b"))
+            new DataPackManager.PackEntry("file/pack_b", "Pack B", true, List.of("b"))
         ));
 
         assertNotNull(memory.selectedPack());

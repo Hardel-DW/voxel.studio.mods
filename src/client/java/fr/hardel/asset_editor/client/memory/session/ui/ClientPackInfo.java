@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.memory.session.ui;
 
-import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
+import fr.hardel.asset_editor.workspace.io.DataPackManager.PackEntry;
 
 import java.util.List;
 

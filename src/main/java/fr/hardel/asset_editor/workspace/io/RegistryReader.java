@@ -1,10 +1,10 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.CustomFields;
+import fr.hardel.asset_editor.workspace.ElementEntry;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;

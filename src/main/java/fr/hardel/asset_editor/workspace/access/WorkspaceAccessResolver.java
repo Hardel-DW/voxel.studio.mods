@@ -1,9 +1,9 @@
-package fr.hardel.asset_editor.workspace.service;
+package fr.hardel.asset_editor.workspace.access;
 
 import fr.hardel.asset_editor.permission.PermissionManager;
-import fr.hardel.asset_editor.store.ServerPackManager;
-import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
+import fr.hardel.asset_editor.workspace.io.DataPackManager;
+import fr.hardel.asset_editor.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,11 +19,11 @@ public final class WorkspaceAccessResolver {
             return new Resolution.Failure("error:permission_denied");
 
         WorkspaceRepository repository = WorkspaceRepository.get();
-        ServerPackManager packManager = ServerPackManager.get();
+        DataPackManager packManager = DataPackManager.get();
         if (repository == null || packManager == null)
             return new Resolution.Failure("error:server_unavailable");
 
-        var definition = WorkspaceDefinitions.get(registryId);
+        var definition = WorkspaceDefinition.get(registryId);
         if (definition == null)
             return new Resolution.Failure("error:invalid_registry");
 

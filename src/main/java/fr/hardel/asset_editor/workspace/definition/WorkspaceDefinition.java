@@ -5,25 +5,29 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.adapter.FlushAdapter;
+import fr.hardel.asset_editor.workspace.CustomFields;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.action.ActionHandler;
+import fr.hardel.asset_editor.workspace.action.EditorActionRegistry;
+import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.action.EditorActionType;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.packs.resources.ResourceManager;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public final class WorkspaceDefinition<T> {
+
+    private static final Map<String, WorkspaceDefinition<?>> DEFINITIONS = new ConcurrentHashMap<>();
 
     private final ResourceKey<Registry<T>> registryKey;
     private final Codec<T> codec;
@@ -76,11 +80,6 @@ public final class WorkspaceDefinition<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public ElementEntry<?> applyWildcard(ElementEntry<?> entry, EditorAction action, RegistryMutationContext context) {
-        return apply((ElementEntry<T>) entry, action, context);
-    }
-
     public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction action, RegistryMutationContext context) {
         BoundHandler<T> handler = handlers.get(action.typeId().toString());
         if (handler == null) {
@@ -109,19 +108,10 @@ public final class WorkspaceDefinition<T> {
             .orElseThrow(() -> new IllegalArgumentException("Failed to encode workspace snapshot for " + entry.id()));
     }
 
-    public void snapshotFromAccess(RegistryAccess registryAccess, SnapshotConsumer consumer) {
-        registryAccess.lookup(registryKey).ifPresent(registry ->
-            consumer.accept(registryKey, registry, customInitializer)
-        );
+    public void snapshotBaseline(WorkspaceRepository repository, ResourceManager resources, RegistryAccess registryAccess) {
+        Registry<T> registry = registryAccess.lookup(registryKey).orElse(null);
+        repository.snapshotBaseline(this, resources, registry, registryAccess);
     }
-
-    @FunctionalInterface
-    public interface SnapshotConsumer {
-        <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry, Function<ElementEntry<T>, CustomFields> customInitializer);
-    }
-
-
-    // --- Builder ---
 
     public static <T> Builder<T> builder(ResourceKey<Registry<T>> registryKey, Codec<T> codec) {
         return new Builder<>(registryKey, codec);
@@ -169,8 +159,6 @@ public final class WorkspaceDefinition<T> {
         }
     }
 
-    // --- Internal dispatch (type-safe, no unchecked) ---
-
     private interface BoundHandler<T> {
         void beforeApply(EditorAction action, RegistryMutationContext context);
         ElementEntry<T> apply(ElementEntry<T> entry, EditorAction action, RegistryMutationContext context);
@@ -198,5 +186,28 @@ public final class WorkspaceDefinition<T> {
         public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction action, RegistryMutationContext context) {
             return handler.apply(entry, type.cast(action), context);
         }
+    }
+
+    public static <T> void register(WorkspaceDefinition<T> definition) {
+        if (definition == null)
+            throw new IllegalArgumentException("Workspace definition cannot be null");
+
+        WorkspaceDefinition<?> previous = DEFINITIONS.putIfAbsent(definition.registryId().toString(), definition);
+        if (previous != null)
+            throw new IllegalStateException("Duplicate workspace definition: " + definition.registryId());
+
+        for (var actionType : definition.actionTypes()) {
+            EditorActionRegistry.register(actionType);
+        }
+    }
+
+    public static WorkspaceDefinition<?> get(Identifier registryId) {
+        if (registryId == null)
+            return null;
+        return DEFINITIONS.get(registryId.toString());
+    }
+
+    public static Collection<WorkspaceDefinition<?>> all() {
+        return Collections.unmodifiableCollection(DEFINITIONS.values());
     }
 }

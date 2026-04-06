@@ -1,6 +1,7 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace;
 
 import fr.hardel.asset_editor.tag.TagSeed;
+import fr.hardel.asset_editor.workspace.io.DiskWriter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -43,8 +44,7 @@ public final class TagResourceService {
             .resolve("tags").resolve(registryPath).resolve(tagId.getPath() + ".json");
     }
 
-    private Optional<HolderLookup.RegistryLookup<?>> lookupRegistry(HolderLookup.Provider registries,
-        String registryPath) {
+    private Optional<HolderLookup.RegistryLookup<?>> lookupRegistry(HolderLookup.Provider registries, String registryPath) {
         return registries.listRegistries()
             .filter(lookup -> lookup.key().identifier().getPath().equals(registryPath))
             .findFirst();

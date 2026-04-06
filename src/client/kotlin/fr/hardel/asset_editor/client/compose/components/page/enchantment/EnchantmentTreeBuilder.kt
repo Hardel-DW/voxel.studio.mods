@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.enchantment
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
-import fr.hardel.asset_editor.store.ElementEntry
+import fr.hardel.asset_editor.workspace.ElementEntry
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier

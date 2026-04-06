@@ -1,6 +1,5 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace;
 
-import fr.hardel.asset_editor.store.ElementEntry;
 import net.minecraft.resources.Identifier;
 
 import java.util.Collection;

@@ -1,6 +1,5 @@
-package fr.hardel.asset_editor.workspace.registry;
+package fr.hardel.asset_editor.workspace;
 
-import fr.hardel.asset_editor.store.workspace.TagResourceService;
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import fr.hardel.asset_editor.tag.TagSeed;
 import net.minecraft.core.HolderLookup;

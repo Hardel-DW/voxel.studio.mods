@@ -18,12 +18,14 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+import net.minecraft.world.item.enchantment.Enchantment
 
 private val EXCLUSIVE_GROUP = Identifier.fromNamespaceAndPath("asset_editor", "exclusive")
 
@@ -120,7 +122,7 @@ fun ExclusiveGroupSection(
 }
 
 private fun tagMembers(
-    entries: List<fr.hardel.asset_editor.store.ElementEntry<net.minecraft.world.item.enchantment.Enchantment>>
+    entries: List<ElementEntry<Enchantment>>
 ): Map<Identifier, List<String>> {
     val members = LinkedHashMap<Identifier, MutableList<String>>()
     entries.forEach { entry ->

@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.event;
 
 import fr.hardel.asset_editor.permission.PermissionManager;
-import fr.hardel.asset_editor.store.ServerPackManager;
-import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.io.DataPackManager;
+import fr.hardel.asset_editor.workspace.WorkspaceRepository;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 public final class ServerStoppedEvent {
@@ -11,7 +11,7 @@ public final class ServerStoppedEvent {
         ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
             PermissionManager.shutdown();
             WorkspaceRepository.shutdown();
-            ServerPackManager.shutdown();
+            DataPackManager.shutdown();
         });
     }
 

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

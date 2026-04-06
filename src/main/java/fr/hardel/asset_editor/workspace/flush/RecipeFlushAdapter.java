@@ -1,6 +1,6 @@
-package fr.hardel.asset_editor.store.adapter;
+package fr.hardel.asset_editor.workspace.flush;
 
-import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.ElementEntry;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipe;

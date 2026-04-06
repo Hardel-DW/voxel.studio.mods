@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.permission.StudioPermissions;
-import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
+import fr.hardel.asset_editor.workspace.io.DataPackManager.PackEntry;
 
 import java.util.List;
 

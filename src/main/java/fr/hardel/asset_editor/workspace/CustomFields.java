@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.store;
+package fr.hardel.asset_editor.workspace;
 
 import java.util.LinkedHashMap;
 import java.util.List;

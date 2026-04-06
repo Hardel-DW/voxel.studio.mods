@@ -1,14 +1,13 @@
 package fr.hardel.asset_editor.workspace.definition.enchantment;
 
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.SlotManager;
-import fr.hardel.asset_editor.store.adapter.EnchantmentFlushAdapter;
+import fr.hardel.asset_editor.workspace.CustomFields;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.definition.SlotManager;
+import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.tag.TagSeed;
 import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions;
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
@@ -35,7 +34,7 @@ public final class EnchantmentWorkspace {
     private static final String MODE_DISABLE = EnchantmentFlushAdapter.MODE_DISABLE;
 
     public static void register() {
-        WorkspaceDefinitions.register(
+        WorkspaceDefinition.register(
             WorkspaceDefinition.builder(Registries.ENCHANTMENT, Enchantment.DIRECT_CODEC)
                 .flushAdapter(EnchantmentFlushAdapter.INSTANCE)
                 .customInitializer(entry -> EnchantmentFlushAdapter.initializeCustom(entry.data(), entry.tags()))
@@ -75,8 +74,7 @@ public final class EnchantmentWorkspace {
                     (action, ctx) -> ensureItemTag(action.tagId(), action.seed(), ctx))
                 .action(EnchantmentEditorActions.SET_EXCLUSIVE_SET,
                     (entry, action, ctx) -> applySetExclusiveSet(entry, action.tagId(), ctx))
-                .build()
-        );
+                .build());
     }
 
     private static void ensureItemTag(String rawTagId, TagSeed seed, RegistryMutationContext context) {
@@ -149,8 +147,7 @@ public final class EnchantmentWorkspace {
         return entry.withData(new Enchantment(
             e.description(), e.definition(),
             resolved == null ? HolderSet.empty() : resolved,
-            e.effects()
-        ));
+            e.effects()));
     }
 
     private static HolderSet<Item> resolveItemTag(String rawTagId, TagSeed seed, RegistryMutationContext context) {

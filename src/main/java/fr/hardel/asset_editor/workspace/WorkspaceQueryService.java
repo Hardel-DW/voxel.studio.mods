@@ -1,8 +1,9 @@
-package fr.hardel.asset_editor.workspace.service;
+package fr.hardel.asset_editor.workspace;
 
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
-import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
+import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -21,21 +22,14 @@ public final class WorkspaceQueryService {
 
     public Optional<PackWorkspaceSyncPayload> loadPackWorkspace(ServerPlayer player, MinecraftServer server,
         String packId, Identifier registryId) {
-        WorkspaceAccessResolver.Resolution resolution = accessResolver.resolveEditable(player, server, packId, registryId);
+        var resolution = accessResolver.resolveEditable(player, server, packId, registryId);
         if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success(ResolvedWorkspaceAccess access)))
             return Optional.empty();
 
-        return Optional.of(loadPackWorkspaceTyped(access));
+        return Optional.of(buildPayload(access.definition(), access));
     }
 
-    private PackWorkspaceSyncPayload loadPackWorkspaceTyped(ResolvedWorkspaceAccess access) {
-        return loadPackWorkspaceTyped(access.definition(), access);
-    }
-
-    private <T> PackWorkspaceSyncPayload loadPackWorkspaceTyped(
-        WorkspaceDefinition<T> definition,
-        ResolvedWorkspaceAccess access
-    ) {
+    private <T> PackWorkspaceSyncPayload buildPayload(WorkspaceDefinition<T> definition, ResolvedWorkspaceAccess access) {
         List<ElementEntry<T>> entries = access.repository().snapshotWorkspace(access.packId(), definition, access.packRoot(), access.registries());
         List<WorkspaceElementSnapshot> snapshots = entries.stream()
             .map(entry -> definition.toSnapshot(entry, access.registries()))

@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.network.workspace;
 
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.CustomFieldsJson;
+import fr.hardel.asset_editor.workspace.CustomFields;
+import fr.hardel.asset_editor.workspace.CustomFieldsJson;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

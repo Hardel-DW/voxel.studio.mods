@@ -16,16 +16,16 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
-import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.ElementEntry;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.StudioPermissions;
-import fr.hardel.asset_editor.store.ServerPackManager;
-import fr.hardel.asset_editor.store.ServerPackService;
-import fr.hardel.asset_editor.workspace.service.ResolvedWorkspaceAccess;
-import fr.hardel.asset_editor.workspace.service.WorkspaceAccessResolver;
-import fr.hardel.asset_editor.workspace.service.WorkspaceBroadcastService;
-import fr.hardel.asset_editor.workspace.service.WorkspaceMutationService;
-import fr.hardel.asset_editor.workspace.service.WorkspaceQueryService;
+import fr.hardel.asset_editor.workspace.io.DataPackManager;
+import fr.hardel.asset_editor.workspace.ServerPackService;
+import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
+import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
+import fr.hardel.asset_editor.workspace.WorkspaceBroadcastService;
+import fr.hardel.asset_editor.workspace.io.WorkspaceMutationService;
+import fr.hardel.asset_editor.workspace.WorkspaceQueryService;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -73,11 +73,11 @@ public final class AssetEditorNetworking {
         ServerPlayNetworking.send(player, new PermissionSyncPayload(permissions));
     }
 
-    public static void sendPackList(ServerPlayer player, java.util.List<ServerPackManager.PackEntry> packs) {
+    public static void sendPackList(ServerPlayer player, java.util.List<DataPackManager.PackEntry> packs) {
         ServerPlayNetworking.send(player, new PackListSyncPayload(packs));
     }
 
-    public static void broadcastPackList(MinecraftServer server, java.util.List<ServerPackManager.PackEntry> packs) {
+    public static void broadcastPackList(MinecraftServer server, java.util.List<DataPackManager.PackEntry> packs) {
         PackListSyncPayload payload = new PackListSyncPayload(packs);
         for (ServerPlayer player : server.getPlayerList().getPlayers())
             ServerPlayNetworking.send(player, payload);

@@ -1,12 +1,13 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.ElementEntry;
+import fr.hardel.asset_editor.workspace.CustomFields;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.RegistryWorkspace;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
@@ -29,20 +30,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class PackOverlayLoader {
+public final class OverlayManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PackOverlayLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OverlayManager.class);
 
     private final MinecraftServer server;
 
-    public PackOverlayLoader(MinecraftServer server) {
+    public OverlayManager(MinecraftServer server) {
         this.server = server;
     }
 
-    public <T> RegistryWorkspace<T> loadWorkspace(String packId, Path packRoot,
-        WorkspaceDefinition<T> binding,
-        HolderLookup.Provider registries,
-        Map<Identifier, ElementEntry<T>> baseEntries) {
+    public <T> RegistryWorkspace<T> loadWorkspace(String packId, Path packRoot, WorkspaceDefinition<T> binding, HolderLookup.Provider registries, Map<Identifier, ElementEntry<T>> baseEntries) {
         LayerState<T> referenceState = baseLayer(baseEntries);
         for (Path layerRoot : lowerLayerRoots(packId))
             applyLayer(layerRoot, binding, registries, referenceState);
@@ -286,27 +284,20 @@ public final class PackOverlayLoader {
         String path = relative.toString().replace('\\', '/');
         if (!path.endsWith(".json"))
             return null;
+
         return Identifier.fromNamespaceAndPath(namespace, path.substring(0, path.length() - 5));
     }
 
-    private static final class LayerState<T> {
-        private final Map<Identifier, ElementEntry<T>> entries;
-        private final Map<Identifier, Set<Identifier>> tagsByElement;
-
-        private LayerState(Map<Identifier, ElementEntry<T>> entries, Map<Identifier, Set<Identifier>> tagsByElement) {
-            this.entries = entries;
-            this.tagsByElement = tagsByElement;
-        }
-
+    private record LayerState<T>(Map<Identifier, ElementEntry<T>> entries, Map<Identifier, Set<Identifier>> tagsByElement) {
         private LayerState<T> copy() {
-            return new LayerState<>(new LinkedHashMap<>(entries), copyTagMemberships());
-        }
+                return new LayerState<>(new LinkedHashMap<>(entries), copyTagMemberships());
+            }
 
-        private Map<Identifier, Set<Identifier>> copyTagMemberships() {
-            Map<Identifier, Set<Identifier>> copy = new LinkedHashMap<>();
-            for (var entry : tagsByElement.entrySet())
-                copy.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
-            return copy;
+            private Map<Identifier, Set<Identifier>> copyTagMemberships() {
+                Map<Identifier, Set<Identifier>> copy = new LinkedHashMap<>();
+                for (var entry : tagsByElement.entrySet())
+                    copy.put(entry.getKey(), new LinkedHashSet<>(entry.getValue()));
+                return copy;
+            }
         }
-    }
 }

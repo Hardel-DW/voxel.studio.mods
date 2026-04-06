@@ -13,12 +13,11 @@ import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload
-import fr.hardel.asset_editor.store.ElementEntry
+import fr.hardel.asset_editor.workspace.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
-import fr.hardel.asset_editor.workspace.registry.RegistryMutationContexts
+import fr.hardel.asset_editor.workspace.RegistryMutationContexts
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions
 import java.util.Objects
 import java.util.UUID
 import net.minecraft.client.Minecraft
@@ -126,7 +125,7 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinitions.get(registryId) ?: return
+        val definition = WorkspaceDefinition.get(registryId) ?: return
         val registries = clientRegistries() ?: return
         replaceAll(definition, snapshots, registries)
     }
@@ -137,7 +136,7 @@ class EditorActionGateway(
         entry: ElementEntry<T>,
         action: EditorAction
     ) {
-        val definition = WorkspaceDefinitions.get(registry.identifier()) ?: return
+        val definition = WorkspaceDefinition.get(registry.identifier()) ?: return
         val registries = clientRegistries() ?: return
 
         try {
@@ -167,7 +166,7 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinitions.get(snapshot.registryId()) ?: return
+        val definition = WorkspaceDefinition.get(snapshot.registryId()) ?: return
         val registries = clientRegistries() ?: return
         applySnapshot(definition, snapshot, registries)
     }

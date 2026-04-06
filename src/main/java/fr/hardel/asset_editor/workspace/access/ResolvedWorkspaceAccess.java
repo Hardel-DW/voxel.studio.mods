@@ -1,6 +1,6 @@
-package fr.hardel.asset_editor.workspace.service;
+package fr.hardel.asset_editor.workspace.access;
 
-import fr.hardel.asset_editor.store.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.WorkspaceRepository;
 import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.server.MinecraftServer;

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.store;
+package fr.hardel.asset_editor.workspace.definition;
 
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;

@@ -19,7 +19,7 @@ import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.data.concept.StudioRegistryResolver
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinitions
+import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition
 import java.util.Optional
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
@@ -36,7 +36,8 @@ class StudioContext(
     private val dispatch: ClientSessionDispatch
 ) {
 
-    private val packSelection = PackSelectionMemory(sessionMemory, ClientPreferences::lastPackId, ClientPreferences::setLastPackId)
+    private val packSelection =
+        PackSelectionMemory(sessionMemory, ClientPreferences::lastPackId, ClientPreferences::setLastPackId)
     private val issues = IssueMemory()
     private val registries = RegistryMemory()
     private val subscriptions = mutableListOf<Subscription>()
@@ -190,7 +191,7 @@ class StudioContext(
 
     private fun snapshotRegistries() {
         val connection = Minecraft.getInstance().connection ?: return
-        for (binding in WorkspaceDefinitions.all()) {
+        for (binding in WorkspaceDefinition.all()) {
             binding.snapshotFromAccess(connection.registryAccess(), registries.asSnapshotConsumer())
         }
     }
@@ -200,7 +201,7 @@ class StudioContext(
         issues.clear()
         val pack = packSelection.selectedPack() ?: return
 
-        for (binding in WorkspaceDefinitions.all()) {
+        for (binding in WorkspaceDefinition.all()) {
             requestWorkspaceRefresh(pack.packId(), binding.registryKey())
         }
     }

@@ -1,7 +1,8 @@
-package fr.hardel.asset_editor.store.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
-import fr.hardel.asset_editor.store.ElementEntry;
-import fr.hardel.asset_editor.store.adapter.FlushAdapter;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.RegistryWorkspace;
+import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
