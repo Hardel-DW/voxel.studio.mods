@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.workspace.CustomFields;
 import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;

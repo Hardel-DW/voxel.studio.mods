@@ -13,7 +13,9 @@ import fr.hardel.asset_editor.client.compose.components.page.enchantment.Exclusi
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveSingleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.action.enchantment.SetExclusiveSetAction
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleExclusiveAction
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
@@ -64,7 +66,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EnchantmentEditorActions.ToggleExclusive(enchantmentId),
+                            action = ToggleExclusiveAction(enchantmentId),
                             dialogs = dialogs
                         )
                     }
@@ -78,7 +80,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EnchantmentEditorActions.SetExclusiveSet(if (checked) tagId.toString() else ""),
+                            action = SetExclusiveSetAction(if (checked) tagId.toString() else ""),
                             dialogs = dialogs
                         )
                     },
@@ -86,7 +88,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EnchantmentEditorActions.ToggleTag(tagId),
+                            action = ToggleTagAction(tagId),
                             dialogs = dialogs
                         )
                     }

@@ -8,7 +8,8 @@ import fr.hardel.asset_editor.workspace.RegistryMutationContexts;
 import fr.hardel.asset_editor.workspace.TagResourceService;
 import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
 import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.action.EditorActionType;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,8 +45,7 @@ public final class WorkspaceMutationService {
         RegistryMutationContext context = RegistryMutationContexts.server(access.packRoot(), access.registries(), tagResources, tagReferences);
         ElementEntry<T> updated;
         try {
-            definition.beforeApply(payload.action(), context);
-            updated = definition.apply(entry, payload.action(), context);
+            updated = EditorActionType.dispatch(entry, payload.action(), context);
         } catch (Exception e) {
             LOGGER.warn("Action rejected for {}: {}", payload.targetId(), e.getMessage());
             return new MutationResult.Failure("error:invalid_action");

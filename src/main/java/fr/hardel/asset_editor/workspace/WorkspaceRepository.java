@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.workspace;
 
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.io.*;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;

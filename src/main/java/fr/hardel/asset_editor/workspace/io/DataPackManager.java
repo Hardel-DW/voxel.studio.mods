@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -56,13 +55,7 @@ public final class DataPackManager {
         var repo = server.getPackRepository();
         repo.reload();
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
-        List<PackEntry> result = new ArrayList<>();
-        for (Pack pack : repo.getAvailablePacks()) {
-            PackEntry entry = toPackEntry(pack, datapackDir);
-            if (entry != null)
-                result.add(entry);
-        }
-        return result;
+        return repo.getAvailablePacks().stream().map(pack -> toPackEntry(pack, datapackDir)).filter(entry -> entry != null).toList();
     }
 
     public void createPack(String name, String namespace) {
@@ -71,6 +64,7 @@ public final class DataPackManager {
         String safeNamespace = namespace == null ? "" : namespace.trim();
         if (safeName.isBlank() || safeName.contains("/") || safeName.contains("\\") || safeName.contains(".."))
             return;
+
         if (!Identifier.isValidNamespace(safeNamespace))
             return;
 
@@ -113,6 +107,7 @@ public final class DataPackManager {
         Path resolved = datapackDir.resolve(name).normalize();
         if (!resolved.startsWith(datapackDir))
             return Optional.empty();
+
         if (!Files.isDirectory(resolved))
             return Optional.empty();
 
@@ -129,6 +124,7 @@ public final class DataPackManager {
                 Path rootPath = datapackDir.resolve(stripPrefix(id)).normalize();
                 return new PackEntry(id, pack.getTitle().getString(), true, scanNamespaces(rootPath));
             }
+
             return new PackEntry(id, pack.getTitle().getString(), false, List.of());
         }
     }
@@ -154,6 +150,7 @@ public final class DataPackManager {
         var json = PackMetadataSection.SERVER_TYPE.codec()
             .encodeStart(JsonOps.INSTANCE, section)
             .getOrThrow(msg -> new IOException("Failed to encode pack.mcmeta: " + msg));
+
         var meta = new JsonObject();
         meta.add("pack", json);
         Files.writeString(packRoot.resolve("pack.mcmeta"),

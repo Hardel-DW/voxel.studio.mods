@@ -27,8 +27,7 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     protected List<Optional<Ingredient>> doExtractIngredients(TransmuteRecipe recipe) {
         return new ArrayList<>(List.of(
             Optional.of(recipe.input),
-            Optional.of(recipe.material)
-        ));
+            Optional.of(recipe.material)));
     }
 
     @Override
@@ -45,24 +44,14 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
 
     @Override
     protected TransmuteRecipe doSetResultCount(TransmuteRecipe recipe, int count) {
-        return new TransmuteRecipe(
-            recipe.group(),
-            recipe.category(),
-            recipe.input,
-            recipe.material,
-            new TransmuteResult(recipe.result.item(), count, recipe.result.components())
-        );
+        return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
+            new TransmuteResult(recipe.result.item(), count, recipe.result.components()));
     }
 
     @Override
     protected TransmuteRecipe doSetResultItem(TransmuteRecipe recipe, Holder<Item> item) {
-        return new TransmuteRecipe(
-            recipe.group(),
-            recipe.category(),
-            recipe.input,
-            recipe.material,
-            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components())
-        );
+        return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
+            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
     }
 
     @Override
@@ -103,9 +92,6 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
             .findFirst()
             .orElse(input);
 
-        return new TransmuteRecipe(
-            "", CraftingBookCategory.MISC, input, material,
-            new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())
-        );
+        return new TransmuteRecipe("", CraftingBookCategory.MISC, input, material, new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch()));
     }
 }

@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.workspace.access;
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.workspace.io.DataPackManager;
 import fr.hardel.asset_editor.workspace.WorkspaceRepository;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;

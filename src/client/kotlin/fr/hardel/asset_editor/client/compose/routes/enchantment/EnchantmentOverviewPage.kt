@@ -44,7 +44,7 @@ import fr.hardel.asset_editor.client.compose.components.page.enchantment.Enchant
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.workspace.ElementEntry
 import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -190,7 +190,7 @@ private fun OverviewRow(
                         context.dispatchRegistryAction(
                             registry = Registries.ENCHANTMENT,
                             target = entry.id(),
-                            action = EnchantmentEditorActions.ToggleDisabled(),
+                            action = ToggleDisabledAction(),
                             dialogs = dialogs
                         )
                     }

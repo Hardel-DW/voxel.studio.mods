@@ -18,7 +18,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.EditorAction
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectAction
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -40,10 +42,10 @@ private val BEHAVIOUR_TAGS = listOf(
 )
 
 private val COST_FIELDS = listOf(
-    CostField("minCostBase", { enchantment -> enchantment.definition().minCost().base() }, { value -> EnchantmentEditorActions.SetIntField("min_cost_base", value) }),
-    CostField("minCostPerLevelAboveFirst", { enchantment -> enchantment.definition().minCost().perLevelAboveFirst() }, { value -> EnchantmentEditorActions.SetIntField("min_cost_per_level", value) }),
-    CostField("maxCostBase", { enchantment -> enchantment.definition().maxCost().base() }, { value -> EnchantmentEditorActions.SetIntField("max_cost_base", value) }),
-    CostField("maxCostPerLevelAboveFirst", { enchantment -> enchantment.definition().maxCost().perLevelAboveFirst() }, { value -> EnchantmentEditorActions.SetIntField("max_cost_per_level", value) })
+    CostField("minCostBase", { enchantment -> enchantment.definition().minCost().base() }, { value -> SetIntFieldAction("min_cost_base", value) }),
+    CostField("minCostPerLevelAboveFirst", { enchantment -> enchantment.definition().minCost().perLevelAboveFirst() }, { value -> SetIntFieldAction("min_cost_per_level", value) }),
+    CostField("maxCostBase", { enchantment -> enchantment.definition().maxCost().base() }, { value -> SetIntFieldAction("max_cost_base", value) }),
+    CostField("maxCostPerLevelAboveFirst", { enchantment -> enchantment.definition().maxCost().perLevelAboveFirst() }, { value -> SetIntFieldAction("max_cost_per_level", value) })
 )
 
 @Composable
@@ -71,7 +73,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                                 context.dispatchRegistryAction(
                                     registry = Registries.ENCHANTMENT,
                                     target = entry.id(),
-                                    action = EnchantmentEditorActions.ToggleTag(field.tagId),
+                                    action = ToggleTagAction(field.tagId),
                                     dialogs = dialogs
                                 )
                             }
@@ -132,7 +134,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.ToggleDisabledEffect(effectId),
+                                        action = ToggleDisabledEffectAction(effectId),
                                         dialogs = dialogs
                                     )
                                 }

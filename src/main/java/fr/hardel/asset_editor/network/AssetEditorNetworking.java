@@ -17,7 +17,7 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.workspace.io.DataPackManager;
 import fr.hardel.asset_editor.workspace.ServerPackService;

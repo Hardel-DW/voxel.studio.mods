@@ -13,7 +13,8 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
-import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.TransmuteRecipe
 
@@ -60,7 +61,7 @@ fun TransmuteEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
             EditorCard {
                 RecipeGroupOption(
                     value = it.group(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetGroup(value)) }
+                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
                 )
             }
 
@@ -68,7 +69,7 @@ fun TransmuteEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
                 RecipeCategoryOption(
                     value = it.category().serializedName,
                     options = CraftingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCategory(value)) }
+                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
                 )
             }
         }

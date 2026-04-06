@@ -38,30 +38,17 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
             ? original.input()
             : ingredients.getFirst().orElse(original.input());
 
-        return factory.create(
-            original.group(), original.category(), input,
-            original.result().copy(), original.experience(), original.cookingTime()
-        );
+        return factory.create(original.group(), original.category(), input, original.result().copy(), original.experience(), original.cookingTime());
     }
 
     @Override
     protected T doSetResultCount(T recipe, int count) {
-        return factory.create(
-            recipe.group(), recipe.category(), recipe.input(),
-            recipe.result().copyWithCount(count), recipe.experience(), recipe.cookingTime()
-        );
+        return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copyWithCount(count), recipe.experience(), recipe.cookingTime());
     }
 
     @Override
     protected T doSetResultItem(T recipe, Holder<Item> item) {
-        return factory.create(
-            recipe.group(),
-            recipe.category(),
-            recipe.input(),
-            replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()),
-            recipe.experience(),
-            recipe.cookingTime()
-        );
+        return factory.create(recipe.group(), recipe.category(), recipe.input(), replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()), recipe.experience(), recipe.cookingTime());
     }
 
     @Override
@@ -91,50 +78,22 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
 
     @Override
     protected T doSetGroup(T recipe, String group) {
-        return factory.create(
-            group,
-            recipe.category(),
-            recipe.input(),
-            recipe.result().copy(),
-            recipe.experience(),
-            recipe.cookingTime()
-        );
+        return factory.create(group, recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime());
     }
 
     @Override
     protected T doSetCookingCategory(T recipe, CookingBookCategory category) {
-        return factory.create(
-            recipe.group(),
-            category,
-            recipe.input(),
-            recipe.result().copy(),
-            recipe.experience(),
-            recipe.cookingTime()
-        );
+        return factory.create(recipe.group(), category, recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime());
     }
 
     @Override
     protected T doSetCookingExperience(T recipe, float experience) {
-        return factory.create(
-            recipe.group(),
-            recipe.category(),
-            recipe.input(),
-            recipe.result().copy(),
-            experience,
-            recipe.cookingTime()
-        );
+        return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), experience, recipe.cookingTime());
     }
 
     @Override
     protected T doSetCookingTime(T recipe, int cookingTime) {
-        return factory.create(
-            recipe.group(),
-            recipe.category(),
-            recipe.input(),
-            recipe.result().copy(),
-            recipe.experience(),
-            cookingTime
-        );
+        return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), cookingTime);
     }
 
     @Override

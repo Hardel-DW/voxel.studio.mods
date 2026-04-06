@@ -24,13 +24,7 @@ import java.util.stream.Collectors;
 public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> {
 
     public static final EnchantmentFlushAdapter INSTANCE = new EnchantmentFlushAdapter();
-
-    public static final String MODE_KEY = "mode";
     public static final String DISABLED_EFFECTS_KEY = "disabledEffects";
-    public static final String MODE_NORMAL = "normal";
-    public static final String MODE_DISABLE = "disable";
-    public static final String MODE_ONLY_CREATIVE = "only_creative";
-
     public static final Identifier CURSE_TAG = Identifier.withDefaultNamespace("curse");
     public static final Identifier DOUBLE_TRADE_PRICE_TAG = Identifier.withDefaultNamespace("double_trade_price");
     public static final Identifier PREVENTS_BEE_SPAWNS_WHEN_MINING_TAG = Identifier.withDefaultNamespace("prevents_bee_spawns_when_mining");
@@ -46,50 +40,47 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
 
     @Override
     public ElementEntry<Enchantment> prepare(ElementEntry<Enchantment> entry) {
-        String mode = entry.custom().getString(MODE_KEY, MODE_NORMAL);
-        Set<String> disabledEffects = entry.custom().getStringSet(DISABLED_EFFECTS_KEY);
-
+        EnchantmentMode mode = mode(entry);
+        Set<String> disabledEffects = disabledEffects(entry);
         Set<Identifier> tags = switch (mode) {
-            case MODE_ONLY_CREATIVE -> entry.tags().stream()
-                .filter(FUNCTIONALITY_TAGS::contains)
-                .collect(Collectors.toUnmodifiableSet());
-            case MODE_DISABLE -> Set.of();
+            case ONLY_CREATIVE -> entry.tags().stream().filter(FUNCTIONALITY_TAGS::contains).collect(Collectors.toUnmodifiableSet());
+            case DISABLE -> Set.of();
             default -> entry.tags();
         };
 
-        Enchantment prepared = getEnchantment(entry, mode, disabledEffects);
+        Enchantment prepared = prepareEnchantment(entry, mode, disabledEffects);
         return entry.withData(prepared).withTags(tags);
     }
 
-    private static @NonNull Enchantment getEnchantment(ElementEntry<Enchantment> entry, String mode, Set<String> disabledEffects) {
+    private static @NonNull Enchantment prepareEnchantment(ElementEntry<Enchantment> entry, EnchantmentMode mode, Set<String> disabledEffects) {
         Enchantment enchantment = entry.data();
         DataComponentMap effects = enchantment.effects();
-        if (MODE_DISABLE.equals(mode)) {
+        if (mode == EnchantmentMode.DISABLE) {
             effects = DataComponentMap.EMPTY;
         } else if (!disabledEffects.isEmpty() && !effects.isEmpty()) {
             effects = effects.filter(type -> !disabledEffects.contains(effectId(type)));
         }
 
-        HolderSet<Enchantment> exclusiveSet = MODE_DISABLE.equals(mode) ? HolderSet.empty() : enchantment.exclusiveSet();
+        HolderSet<Enchantment> exclusiveSet = mode == EnchantmentMode.DISABLE ? HolderSet.empty() : enchantment.exclusiveSet();
         return new Enchantment(enchantment.description(), enchantment.definition(), exclusiveSet, effects);
     }
 
     public static CustomFields initializeCustom(Enchantment enchantment, Set<Identifier> tags) {
         return CustomFields.EMPTY
-            .with(MODE_KEY, deriveMode(enchantment, tags))
+            .with(EnchantmentMode.CUSTOM_FIELD_KEY, deriveMode(enchantment, tags).id())
             .with(DISABLED_EFFECTS_KEY, Set.<String> of());
     }
 
-    public static String mode(CustomFields custom) {
-        return normalizeMode(custom.getString(MODE_KEY, MODE_NORMAL));
+    public static EnchantmentMode mode(CustomFields custom) {
+        return EnchantmentMode.fromId(custom.getString(EnchantmentMode.CUSTOM_FIELD_KEY, EnchantmentMode.NORMAL.id()));
     }
 
-    public static String mode(ElementEntry<Enchantment> entry) {
+    public static EnchantmentMode mode(ElementEntry<Enchantment> entry) {
         return mode(entry.custom());
     }
 
     public static boolean isSoftDeleted(ElementEntry<Enchantment> entry) {
-        return MODE_DISABLE.equals(mode(entry));
+        return mode(entry) == EnchantmentMode.DISABLE;
     }
 
     public static Set<String> disabledEffects(CustomFields custom) {
@@ -127,23 +118,16 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
             .toList();
     }
 
-    private static String deriveMode(Enchantment enchantment, Set<Identifier> tags) {
+    private static EnchantmentMode deriveMode(Enchantment enchantment, Set<Identifier> tags) {
         boolean hasEffects = !enchantment.effects().isEmpty();
         boolean hasExclusiveSet = enchantment.exclusiveSet().unwrapKey().isPresent()
             || enchantment.exclusiveSet().stream().findAny().isPresent();
 
         if (!tags.isEmpty() && FUNCTIONALITY_TAGS.containsAll(tags))
-            return MODE_ONLY_CREATIVE;
+            return EnchantmentMode.ONLY_CREATIVE;
         if (!hasEffects && tags.isEmpty() && !hasExclusiveSet)
-            return MODE_DISABLE;
-        return MODE_NORMAL;
-    }
-
-    private static String normalizeMode(String value) {
-        return switch (value) {
-            case MODE_DISABLE, MODE_ONLY_CREATIVE -> value;
-            default -> MODE_NORMAL;
-        };
+            return EnchantmentMode.DISABLE;
+        return EnchantmentMode.NORMAL;
     }
 
     private static String effectId(DataComponentType<?> type) {
@@ -153,12 +137,38 @@ public final class EnchantmentFlushAdapter implements FlushAdapter<Enchantment> 
 
     private static List<Identifier> collectExclusiveTags(ElementEntry<Enchantment> entry) {
         Set<Identifier> tags = new LinkedHashSet<>();
-        entry.data().exclusiveSet().unwrapKey()
-            .map(TagKey::location)
-            .ifPresent(tags::add);
+        entry.data().exclusiveSet().unwrapKey().map(TagKey::location).ifPresent(tags::add);
         tags.addAll(TagHelper.filterByPathPrefix(entry.tags(), "exclusive_set/"));
         return List.copyOf(tags);
     }
 
     private EnchantmentFlushAdapter() {}
+
+    public enum EnchantmentMode {
+        NORMAL("normal"),
+        DISABLE("disable"),
+        ONLY_CREATIVE("only_creative");
+
+        public static final String CUSTOM_FIELD_KEY = "mode";
+
+        private final String id;
+
+        EnchantmentMode(String id) {
+            this.id = id;
+        }
+
+        public String id() {
+            return id;
+        }
+
+        public static EnchantmentMode fromId(String value) {
+            if (value == null)
+                return NORMAL;
+            return switch (value) {
+                case "disable" -> DISABLE;
+                case "only_creative" -> ONLY_CREATIVE;
+                default -> NORMAL;
+            };
+        }
+    }
 }

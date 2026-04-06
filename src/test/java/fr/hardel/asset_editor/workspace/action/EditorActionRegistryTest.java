@@ -3,7 +3,9 @@ package fr.hardel.asset_editor.workspace.action;
 import com.mojang.serialization.Lifecycle;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.tag.TagSeed;
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions;
+import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction;
+import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction;
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
@@ -24,15 +26,14 @@ class EditorActionRegistryTest {
     @BeforeAll
     static void registerBuiltIns() {
         try {
-            fr.hardel.asset_editor.workspace.definition.enchantment.EnchantmentWorkspace.register();
-            fr.hardel.asset_editor.workspace.definition.recipe.RecipeWorkspace.register();
+            Actions.register();
         } catch (IllegalStateException ignored) {
         }
     }
 
     @Test
     void streamCodecRoundTripPreservesSimpleAction() {
-        EditorAction action = new EnchantmentEditorActions.SetMode("disable");
+        EditorAction action = new SetModeAction("disable");
 
         var buffer = Unpooled.buffer();
         EditorAction.STREAM_CODEC.encode(buffer, action);
@@ -45,7 +46,7 @@ class EditorActionRegistryTest {
     @Test
     void streamCodecRoundTripPreservesActionWithTagSeed() {
         TagSeed seed = TagSeed.fromValueLiterals(List.of("#minecraft:axes", "minecraft:diamond_sword?"));
-        EditorAction action = new EnchantmentEditorActions.SetSupportedItems("voxel:enchantable/axes", seed);
+        EditorAction action = new SetSupportedItemsAction("voxel:enchantable/axes", seed);
 
         var buffer = Unpooled.buffer();
         EditorAction.STREAM_CODEC.encode(buffer, action);
@@ -67,13 +68,14 @@ class EditorActionRegistryTest {
     @Test
     void duplicateActionTypeRegistrationIsRejected() {
         Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "test/" + UUID.randomUUID());
-        Registry<EditorActionType<?>> registry = new MappedRegistry<>(EditorActionRegistry.REGISTRY_KEY, Lifecycle.stable());
-        EditorActionType<TestAction> type = new EditorActionType<>(
+        Registry<EditorActionType<?, ?>> registry = new MappedRegistry<>(EditorActionRegistry.REGISTRY_KEY, Lifecycle.stable());
+        EditorActionType<Object, TestAction> type = new EditorActionType<>(
             id,
             TestAction.class,
             StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8, TestAction::value,
-                TestAction::new));
+                TestAction::new),
+            (entry, action, ctx) -> entry);
 
         Registry.register(registry, id, type);
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> Registry.register(registry, id, type));
@@ -89,7 +91,7 @@ class EditorActionRegistryTest {
             "test-pack",
             Identifier.withDefaultNamespace("enchantment"),
             Identifier.withDefaultNamespace("sharpness"),
-            new EnchantmentEditorActions.ToggleDisabled());
+            new ToggleDisabledAction());
 
         var buffer = Unpooled.buffer();
         WorkspaceMutationRequestPayload.CODEC.encode(buffer, payload);
@@ -104,7 +106,7 @@ class EditorActionRegistryTest {
 
     private record TestAction(String value) implements EditorAction {
         @Override
-        public EditorActionType<TestAction> type() {
+        public EditorActionType<?, TestAction> type() {
             throw new UnsupportedOperationException("Not used in duplicate-registration test");
         }
     }

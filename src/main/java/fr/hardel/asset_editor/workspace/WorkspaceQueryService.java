@@ -4,7 +4,6 @@ import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
 import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;

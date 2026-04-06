@@ -30,6 +30,7 @@ public final class RegistryWorkspace<T> {
         dirty.add(id);
         if (previous != null)
             dirtyTags.addAll(previous.tags());
+
         dirtyTags.addAll(entry.tags());
     }
 

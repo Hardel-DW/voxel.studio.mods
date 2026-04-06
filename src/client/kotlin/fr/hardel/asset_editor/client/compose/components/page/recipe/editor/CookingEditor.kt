@@ -15,7 +15,10 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmeltingTemplate
-import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetCookingExperienceAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetCookingTimeAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.world.item.crafting.AbstractCookingRecipe
 import net.minecraft.world.item.crafting.CampfireCookingRecipe
 import net.minecraft.world.item.crafting.CookingBookCategory
@@ -63,7 +66,7 @@ fun CookingEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
             EditorCard {
                 RecipeGroupOption(
                     value = it.group(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetGroup(value)) }
+                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
                 )
             }
 
@@ -71,14 +74,14 @@ fun CookingEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
                 RecipeCategoryOption(
                     value = it.category().serializedName,
                     options = CookingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCategory(value)) }
+                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
                 )
             }
 
             EditorCard {
                 RecipeExperienceOption(
                     value = it.experience(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCookingExperience(value)) }
+                    onValueChange = { value -> state.onAction(SetCookingExperienceAction(value)) }
                 )
             }
 
@@ -86,7 +89,7 @@ fun CookingEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
                 RecipeCookingTimeOption(
                     value = it.cookingTime(),
                     max = if (it is CampfireCookingRecipe) Int.MAX_VALUE else Short.MAX_VALUE.toInt(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCookingTime(value)) }
+                    onValueChange = { value -> state.onAction(SetCookingTimeAction(value)) }
                 )
             }
         }

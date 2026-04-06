@@ -19,7 +19,7 @@ import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.data.concept.StudioRegistryResolver
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import java.util.Optional
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n

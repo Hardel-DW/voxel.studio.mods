@@ -4,9 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.workspace.CustomFields;
 import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import fr.hardel.asset_editor.workspace.flush.RecipeFlushAdapter;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.io.DiffPlanner;
 import fr.hardel.asset_editor.workspace.io.RegistryDiffPlan;
 import fr.hardel.asset_editor.workspace.RegistryWorkspace;
@@ -63,9 +64,9 @@ class DiffPlannerTest {
             Map.of(entryId, referenceEntry),
             Map.of(entryId, referenceEntry));
 
-        WorkspaceDefinition<String> definition = WorkspaceDefinition.builder(
+        WorkspaceDefinition<String> definition = WorkspaceDefinition.of(
             ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Identifier.DEFAULT_NAMESPACE, "enchantment")),
-            Codec.STRING).build();
+            Codec.STRING, FlushAdapter.identity());
 
         DiffPlanner planner = new DiffPlanner();
         Path packRoot = Path.of("test-pack");
@@ -106,9 +107,8 @@ class DiffPlannerTest {
         RegistryWorkspace<Recipe<?>> workspace = new RegistryWorkspace<>(
             Map.of(entryId, referenceEntry),
             Map.of(entryId, referenceEntry));
-        WorkspaceDefinition<Recipe<?>> definition = WorkspaceDefinition.<Recipe<?>> builder(
-            Registries.RECIPE,
-            Recipe.CODEC).flushAdapter(RecipeFlushAdapter.INSTANCE).build();
+        WorkspaceDefinition<Recipe<?>> definition = WorkspaceDefinition.of(
+            Registries.RECIPE, Recipe.CODEC, RecipeFlushAdapter.INSTANCE);
         Path packRoot = Path.of("test-pack");
 
         workspace.put(entryId, currentEntry);

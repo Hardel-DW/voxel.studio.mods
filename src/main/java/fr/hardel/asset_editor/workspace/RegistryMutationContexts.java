@@ -16,7 +16,7 @@ public final class RegistryMutationContexts {
         return new BaseContext(registries, new TagReferenceResolver()) {
             @Override
             public <T> void ensureTagResource(ResourceKey<Registry<T>> registryKey, Identifier tagId, TagSeed seed) {
-                throw new UnsupportedOperationException("Client mutation context cannot ensure tag resources");
+                // No-op on client: tag creation is server-side only
             }
         };
     }

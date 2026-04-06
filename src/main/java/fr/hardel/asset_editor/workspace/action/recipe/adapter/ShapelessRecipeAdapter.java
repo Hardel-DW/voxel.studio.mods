@@ -46,12 +46,7 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
 
     @Override
     protected ShapelessRecipe doSetResultItem(ShapelessRecipe recipe, Holder<Item> item) {
-        return new ShapelessRecipe(
-            recipe.group(),
-            recipe.category(),
-            replaceResultStack(item, recipe.result.getCount(), recipe.result.getComponentsPatch()),
-            recipe.ingredients
-        );
+        return new ShapelessRecipe(recipe.group(), recipe.category(), replaceResultStack(item, recipe.result.getCount(), recipe.result.getComponentsPatch()), recipe.ingredients);
     }
 
     @Override

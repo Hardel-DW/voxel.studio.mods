@@ -15,7 +15,7 @@ public interface EditorAction {
 
     StreamCodec<ByteBuf, EditorAction> STREAM_CODEC = EditorActionRegistry.streamCodec();
 
-    EditorActionType<? extends EditorAction> type();
+    EditorActionType<?, ? extends EditorAction> type();
 
     default Identifier typeId() {
         return type().id();

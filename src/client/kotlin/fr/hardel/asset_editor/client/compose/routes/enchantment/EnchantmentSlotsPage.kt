@@ -16,7 +16,7 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleSlotAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
@@ -49,7 +49,7 @@ fun EnchantmentSlotsPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.ToggleSlot(slotId),
+                                        action = ToggleSlotAction(slotId),
                                         dialogs = dialogs
                                     )
                                 }

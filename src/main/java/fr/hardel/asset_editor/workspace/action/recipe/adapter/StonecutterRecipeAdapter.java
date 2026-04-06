@@ -36,6 +36,7 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
         Ingredient input = ingredients.isEmpty()
             ? original.input()
             : ingredients.getFirst().orElse(original.input());
+
         return new StonecutterRecipe(original.group(), input, original.result().copy());
     }
 
@@ -46,11 +47,7 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
 
     @Override
     protected StonecutterRecipe doSetResultItem(StonecutterRecipe recipe, Holder<Item> item) {
-        return new StonecutterRecipe(
-            recipe.group(),
-            recipe.input(),
-            replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch())
-        );
+        return new StonecutterRecipe(recipe.group(), recipe.input(), replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()));
     }
 
     @Override

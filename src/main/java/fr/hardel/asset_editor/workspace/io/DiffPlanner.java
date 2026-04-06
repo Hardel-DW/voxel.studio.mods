@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DynamicOps;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagEntry;
 
@@ -67,6 +67,7 @@ public final class DiffPlanner {
                 ElementEntry<T> currentEntry = preparedEntry(currentEntries, id);
                 if (currentEntry == null)
                     continue;
+
                 planElementChange(id, currentEntry);
             }
         }
@@ -78,6 +79,7 @@ public final class DiffPlanner {
                 elementDeletes.add(filePath);
                 return;
             }
+
             elementWrites.add(new RegistryDiffPlan.ElementWrite<>(filePath, currentEntry.data()));
         }
 

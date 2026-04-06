@@ -26,7 +26,9 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter.EnchantmentMode
+import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
+import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -62,7 +64,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.SetIntField("max_level", value),
+                                        action = SetIntFieldAction("max_level", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -84,7 +86,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.SetIntField("weight", value),
+                                        action = SetIntFieldAction("weight", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -106,7 +108,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.SetIntField("anvil_cost", value),
+                                        action = SetIntFieldAction("anvil_cost", value),
                                         dialogs = dialogs
                                     )
                                 },
@@ -125,16 +127,16 @@ fun EnchantmentMainPage(context: StudioContext) {
                 title = I18n.get("enchantment:global.mode.title"),
                 description = I18n.get("enchantment:global.mode.description"),
                 options = linkedMapOf(
-                    EnchantmentFlushAdapter.MODE_NORMAL to I18n.get("enchantment:global.mode.enum.normal"),
-                    EnchantmentFlushAdapter.MODE_DISABLE to I18n.get("enchantment:global.mode.enum.soft_delete"),
-                    EnchantmentFlushAdapter.MODE_ONLY_CREATIVE to I18n.get("enchantment:global.mode.enum.only_creative")
+                    EnchantmentMode.NORMAL.id() to I18n.get("enchantment:global.mode.enum.normal"),
+                    EnchantmentMode.DISABLE.id() to I18n.get("enchantment:global.mode.enum.soft_delete"),
+                    EnchantmentMode.ONLY_CREATIVE.id() to I18n.get("enchantment:global.mode.enum.only_creative")
                 ),
-                selectedValue = EnchantmentFlushAdapter.mode(entry),
+                selectedValue = EnchantmentFlushAdapter.mode(entry).id(),
                 onValueChange = { value ->
                     context.dispatchRegistryAction(
                         registry = Registries.ENCHANTMENT,
                         target = entry.id(),
-                        action = EnchantmentEditorActions.SetMode(value),
+                        action = SetModeAction(value),
                         dialogs = dialogs
                     )
                 }

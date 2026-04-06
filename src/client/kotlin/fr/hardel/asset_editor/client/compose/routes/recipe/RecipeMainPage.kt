@@ -16,7 +16,12 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
+import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
+import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction
+import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetResultItemAction
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -74,7 +79,7 @@ fun RecipeMainPage(context: StudioContext) {
                 context.dispatchRegistryAction(
                     registry = Registries.RECIPE,
                     target = targetId,
-                    action = RecipeEditorActions.ConvertRecipeType(Identifier.parse(nextType), true),
+                    action = ConvertRecipeTypeAction(Identifier.parse(nextType), true),
                     dialogs = dialogs
                 )
             }
@@ -84,7 +89,7 @@ fun RecipeMainPage(context: StudioContext) {
             context.dispatchRegistryAction(
                 registry = Registries.RECIPE,
                 target = targetId,
-                action = RecipeEditorActions.SetResultCount(value),
+                action = SetResultCountAction(value),
                 dialogs = dialogs
             )
         },
@@ -94,16 +99,16 @@ fun RecipeMainPage(context: StudioContext) {
             context.dispatchRegistryAction(
                 registry = Registries.RECIPE,
                 target = targetId,
-                action = RecipeEditorActions.SetResultItem(itemId),
+                action = SetResultItemAction(itemId),
                 dialogs = dialogs
             )
         },
         onAction = { action ->
             if (targetId == null || workspaceEntry == null) return@RecipeEditorState
-            if (action is RecipeEditorActions.AddIngredient ||
-                action is RecipeEditorActions.AddShapelessIngredient) {
+            if (action is AddIngredientAction ||
+                action is AddShapelessIngredientAction) {
                 paintMode = PaintMode.PAINTING
-            } else if (action is RecipeEditorActions.RemoveIngredient) {
+            } else if (action is RemoveIngredientAction) {
                 paintMode = PaintMode.ERASING
             }
             context.dispatchRegistryAction(

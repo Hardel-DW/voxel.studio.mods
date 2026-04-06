@@ -27,7 +27,8 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentTreeData
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.workspace.action.enchantment.EnchantmentEditorActions
+import fr.hardel.asset_editor.workspace.action.enchantment.SetPrimaryItemsAction
+import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -79,9 +80,9 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                 active = selected,
                                 onActiveChange = {
                                     val action = if (section == "primaryItems") {
-                                        EnchantmentEditorActions.SetPrimaryItems(tag.tagId.toString(), tag.seed)
+                                        SetPrimaryItemsAction(tag.tagId.toString(), tag.seed)
                                     } else {
-                                        EnchantmentEditorActions.SetSupportedItems(tag.tagId.toString(), tag.seed)
+                                        SetSupportedItemsAction(tag.tagId.toString(), tag.seed)
                                     }
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
@@ -104,7 +105,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                     context.dispatchRegistryAction(
                                         registry = Registries.ENCHANTMENT,
                                         target = entry.id(),
-                                        action = EnchantmentEditorActions.SetPrimaryItems("", null),
+                                        action = SetPrimaryItemsAction("", null),
                                         dialogs = dialogs
                                     )
                                 }

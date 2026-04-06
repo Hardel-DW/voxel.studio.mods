@@ -11,7 +11,9 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
-import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.ShapelessRecipe
@@ -23,7 +25,7 @@ fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modif
     fun addShapeless() {
         val itemId = state.selectedItemId ?: return
         val itemIdentifier = Identifier.tryParse(itemId) ?: return
-        state.onAction(RecipeEditorActions.AddShapelessIngredient(listOf(itemIdentifier)))
+        state.onAction(AddShapelessIngredientAction(listOf(itemIdentifier)))
     }
 
     RecipeSection(
@@ -69,7 +71,7 @@ fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modif
             EditorCard {
                 RecipeGroupOption(
                     value = it.group(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetGroup(value)) }
+                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
                 )
             }
 
@@ -77,7 +79,7 @@ fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modif
                 RecipeCategoryOption(
                     value = it.category().serializedName,
                     options = CraftingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetCategory(value)) }
+                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
                 )
             }
         }

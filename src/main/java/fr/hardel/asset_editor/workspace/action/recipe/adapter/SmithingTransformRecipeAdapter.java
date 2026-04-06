@@ -27,8 +27,7 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
         return new ArrayList<>(List.of(
             recipe.templateIngredient(),
             Optional.of(recipe.baseIngredient()),
-            recipe.additionIngredient()
-        ));
+            recipe.additionIngredient()));
     }
 
     @Override
@@ -50,8 +49,7 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
             recipe.templateIngredient(),
             recipe.baseIngredient(),
             recipe.additionIngredient(),
-            new TransmuteResult(recipe.result.item(), count, recipe.result.components())
-        );
+            new TransmuteResult(recipe.result.item(), count, recipe.result.components()));
     }
 
     @Override
@@ -60,8 +58,7 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
             recipe.templateIngredient(),
             recipe.baseIngredient(),
             recipe.additionIngredient(),
-            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components())
-        );
+            replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
     }
 
     @Override
@@ -79,7 +76,6 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
 
         return new SmithingTransformRecipe(
             template, base, addition,
-            new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch())
-        );
+            new TransmuteResult(result.getItemHolder(), result.getCount(), result.getComponentsPatch()));
     }
 }

@@ -4,9 +4,9 @@ import fr.hardel.asset_editor.event.*;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.data.StudioRegistries;
 import fr.hardel.asset_editor.data.StudioResourceLoaders;
+import fr.hardel.asset_editor.workspace.action.Actions;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
-import fr.hardel.asset_editor.workspace.definition.enchantment.EnchantmentWorkspace;
-import fr.hardel.asset_editor.workspace.definition.recipe.RecipeWorkspace;
+import fr.hardel.asset_editor.workspace.flush.Workspaces;
 import net.fabricmc.api.ModInitializer;
 
 public class AssetEditor implements ModInitializer {
@@ -18,8 +18,8 @@ public class AssetEditor implements ModInitializer {
     public void onInitialize() {
         StudioRegistries.register();
         RecipeAdapterRegistries.register();
-        EnchantmentWorkspace.register();
-        RecipeWorkspace.register();
+        Actions.register();
+        Workspaces.register();
         AssetEditorNetworking.register();
         StudioResourceLoaders.register();
         SeverStartedEvent.register();

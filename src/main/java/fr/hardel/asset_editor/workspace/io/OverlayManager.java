@@ -8,7 +8,7 @@ import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.workspace.CustomFields;
 import fr.hardel.asset_editor.workspace.ElementEntry;
 import fr.hardel.asset_editor.workspace.RegistryWorkspace;
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;

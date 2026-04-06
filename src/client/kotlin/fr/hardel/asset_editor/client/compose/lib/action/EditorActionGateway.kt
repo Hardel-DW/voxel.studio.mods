@@ -17,7 +17,8 @@ import fr.hardel.asset_editor.workspace.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
 import fr.hardel.asset_editor.workspace.RegistryMutationContexts
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition
+import fr.hardel.asset_editor.workspace.action.EditorActionType
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import java.util.Objects
 import java.util.UUID
 import net.minecraft.client.Minecraft
@@ -141,8 +142,7 @@ class EditorActionGateway(
 
         try {
             val context = RegistryMutationContexts.client(registries)
-            definition.beforeApply(action, context)
-            val projected = definition.apply(entry, action, context)
+            val projected = EditorActionType.dispatch(entry, action, context)
             if (!Objects.equals(projected, entry)) {
                 registryMemory.put(registry, target, projected)
             }

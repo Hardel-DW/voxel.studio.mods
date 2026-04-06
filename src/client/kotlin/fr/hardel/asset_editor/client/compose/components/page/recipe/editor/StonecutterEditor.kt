@@ -12,7 +12,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.StoneCuttingTemplate
-import fr.hardel.asset_editor.workspace.action.recipe.RecipeEditorActions
+import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.world.item.crafting.StonecutterRecipe
 
 @Composable
@@ -58,7 +58,7 @@ fun StonecutterEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
             EditorCard {
                 RecipeGroupOption(
                     value = it.group(),
-                    onValueChange = { value -> state.onAction(RecipeEditorActions.SetGroup(value)) }
+                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
                 )
             }
         }
