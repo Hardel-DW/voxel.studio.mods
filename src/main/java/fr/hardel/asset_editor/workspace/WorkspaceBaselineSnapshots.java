@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.workspace;
 
-import fr.hardel.asset_editor.workspace.definition.WorkspaceDefinition;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
@@ -23,8 +22,7 @@ public final class WorkspaceBaselineSnapshots {
             .toList());
 
         try (var vanillaResources = new MultiPackResourceManager(PackType.SERVER_DATA, vanillaPacks)) {
-            for (var definition : WorkspaceDefinition.all())
-                definition.snapshotBaseline(repository, vanillaResources, server.registryAccess());
+            repository.snapshotAllBaselines(vanillaResources, server.registryAccess());
         }
     }
 

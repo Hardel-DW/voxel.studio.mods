@@ -7,7 +7,7 @@ import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.workspace.CustomFields;
 import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.WorkspaceRepository;
+import fr.hardel.asset_editor.workspace.RegistryWorkspace;
 import fr.hardel.asset_editor.workspace.action.ActionHandler;
 import fr.hardel.asset_editor.workspace.action.EditorActionRegistry;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
@@ -16,10 +16,8 @@ import fr.hardel.asset_editor.workspace.action.EditorActionType;
 import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +33,9 @@ public final class WorkspaceDefinition<T> {
     private final Function<ElementEntry<T>, CustomFields> customInitializer;
     private final Map<String, BoundHandler<T>> handlers;
     private final List<EditorActionType<?>> actionTypes;
+
+    private Map<Identifier, ElementEntry<T>> baseline = Map.of();
+    private final Map<String, RegistryWorkspace<T>> workspaces = new HashMap<>();
 
     private WorkspaceDefinition(Builder<T> builder) {
         this.registryKey = builder.registryKey;
@@ -59,10 +60,6 @@ public final class WorkspaceDefinition<T> {
 
     public Identifier registryId() {
         return registryKey.identifier();
-    }
-
-    public String registryName() {
-        return registryKey.identifier().toString();
     }
 
     List<EditorActionType<?>> actionTypes() {
@@ -108,9 +105,26 @@ public final class WorkspaceDefinition<T> {
             .orElseThrow(() -> new IllegalArgumentException("Failed to encode workspace snapshot for " + entry.id()));
     }
 
-    public void snapshotBaseline(WorkspaceRepository repository, ResourceManager resources, RegistryAccess registryAccess) {
-        Registry<T> registry = registryAccess.lookup(registryKey).orElse(null);
-        repository.snapshotBaseline(this, resources, registry, registryAccess);
+    public void setBaseline(Map<Identifier, ElementEntry<T>> entries) {
+        this.baseline = Map.copyOf(entries);
+        this.workspaces.clear();
+    }
+
+    public Map<Identifier, ElementEntry<T>> baseline() {
+        return baseline;
+    }
+
+    public RegistryWorkspace<T> workspaceOrLoad(String packId, java.util.function.Supplier<RegistryWorkspace<T>> loader) {
+        return workspaces.computeIfAbsent(packId, ignored -> loader.get());
+    }
+
+    private void clearState() {
+        baseline = Map.of();
+        workspaces.clear();
+    }
+
+    public static void clearAllState() {
+        DEFINITIONS.values().forEach(WorkspaceDefinition::clearState);
     }
 
     public static <T> Builder<T> builder(ResourceKey<Registry<T>> registryKey, Codec<T> codec) {
