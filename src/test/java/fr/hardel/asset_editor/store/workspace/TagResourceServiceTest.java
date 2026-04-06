@@ -13,8 +13,10 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.PlaceholderLookupProvider;
+import net.minecraft.world.item.Item;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -41,7 +43,7 @@ class TagResourceServiceTest {
 
         boolean ensured = service.ensureExists(
             tempDir,
-            "item",
+            Registries.ITEM,
             tagId,
             TagSeed.fromValueLiterals(List.of("#minecraft:axes")),
             registries);
@@ -72,7 +74,7 @@ class TagResourceServiceTest {
 
         boolean ensured = service.ensureExists(
             tempDir,
-            "item",
+            Registries.ITEM,
             tagId,
             TagSeed.fromValueLiterals(List.of("#minecraft:axes")),
             registries);
@@ -89,7 +91,7 @@ class TagResourceServiceTest {
 
         boolean ensured = service.ensureExists(
             tempDir,
-            "item",
+            Registries.ITEM,
             tagId,
             TagSeed.fromValueLiterals(List.of("minecraft:diamond_sword")),
             registries);
@@ -109,10 +111,10 @@ class TagResourceServiceTest {
 
     private static HolderLookup.Provider registriesWithRuntimeItemTag(Identifier tagId) {
         return HolderLookup.Provider.create(Stream.of(
-            new HolderLookup.RegistryLookup<>() {
+            new HolderLookup.RegistryLookup<Item>() {
                 @Override
-                public net.minecraft.resources.ResourceKey<? extends net.minecraft.core.Registry<? extends Object>> key() {
-                    return (net.minecraft.resources.ResourceKey<? extends net.minecraft.core.Registry<? extends Object>>) (Object) Registries.ITEM;
+                public ResourceKey<net.minecraft.core.Registry<Item>> key() {
+                    return Registries.ITEM;
                 }
 
                 @Override
@@ -121,37 +123,35 @@ class TagResourceServiceTest {
                 }
 
                 @Override
-                public Optional<Holder.Reference<Object>> get(net.minecraft.resources.ResourceKey<Object> id) {
+                public Optional<Holder.Reference<Item>> get(ResourceKey<Item> id) {
                     return Optional.empty();
                 }
 
                 @Override
-                public Stream<Holder.Reference<Object>> listElements() {
+                public Stream<Holder.Reference<Item>> listElements() {
                     return Stream.empty();
                 }
 
                 @Override
-                public Optional<HolderSet.Named<Object>> get(TagKey<Object> id) {
-                    TagKey<Object> expected = (TagKey<Object>) (Object) TagKey.create(Registries.ITEM, tagId);
+                public Optional<HolderSet.Named<Item>> get(TagKey<Item> id) {
+                    TagKey<Item> expected = TagKey.create(Registries.ITEM, tagId);
                     if (!id.equals(expected))
                         return Optional.empty();
                     return Optional.of(placeholderTag(tagId));
                 }
 
                 @Override
-                public Stream<HolderSet.Named<Object>> listTags() {
+                public Stream<HolderSet.Named<Item>> listTags() {
                     return Stream.of(placeholderTag(tagId));
                 }
             },
             new MappedRegistry<>(Registries.ENCHANTMENT, Lifecycle.stable())));
     }
 
-    @SuppressWarnings("unchecked")
-    private static HolderSet.Named<Object> placeholderTag(Identifier tagId) {
+    private static HolderSet.Named<Item> placeholderTag(Identifier tagId) {
         PlaceholderLookupProvider placeholders = new PlaceholderLookupProvider(emptyRegistries());
-        HolderSet.Named<?> named = placeholders.lookup(Registries.ITEM)
+        return placeholders.lookup(Registries.ITEM)
             .orElseThrow()
             .getOrThrow(TagKey.create(Registries.ITEM, tagId));
-        return (HolderSet.Named<Object>) named;
     }
 }

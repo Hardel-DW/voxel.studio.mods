@@ -136,14 +136,15 @@ class EditorActionGateway(
         entry: ElementEntry<T>,
         action: EditorAction
     ) {
-        val definition = WorkspaceDefinition.get(registry.identifier()) ?: return
+        val definition = WorkspaceDefinition.get(registry) ?: return
         val registries = clientRegistries() ?: return
 
         try {
-            val projected = definition.applyWildcard(entry, action, RegistryMutationContexts.client(registries))
-            if (projected != null && !Objects.equals(projected, entry)) {
-                @Suppress("UNCHECKED_CAST")
-                registryMemory.put(registry, target, projected as ElementEntry<T>)
+            val context = RegistryMutationContexts.client(registries)
+            definition.beforeApply(action, context)
+            val projected = definition.apply(entry, action, context)
+            if (!Objects.equals(projected, entry)) {
+                registryMemory.put(registry, target, projected)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)

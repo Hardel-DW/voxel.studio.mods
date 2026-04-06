@@ -192,7 +192,7 @@ class StudioContext(
     private fun snapshotRegistries() {
         val connection = Minecraft.getInstance().connection ?: return
         for (binding in WorkspaceDefinition.all()) {
-            binding.snapshotFromAccess(connection.registryAccess(), registries.asSnapshotConsumer())
+            binding.snapshotClientRegistry(connection.registryAccess(), registries.asSnapshotConsumer())
         }
     }
 

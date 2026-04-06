@@ -22,17 +22,10 @@ import java.util.Set;
 
 public final class DiffPlanner {
 
-    private static final RegistryDiffPlan<?> EMPTY_PLAN = new RegistryDiffPlan<>(List.of(), List.of(), List.of(), List.of());
-
     public <T> RegistryDiffPlan<T> plan(Path packRoot, WorkspaceDefinition<T> definition, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
         if (workspace.dirty().isEmpty())
-            return emptyPlan();
+            return new RegistryDiffPlan<>(List.of(), List.of(), List.of(), List.of());
         return new Planner<>(packRoot, definition, workspace, ops).plan();
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> RegistryDiffPlan<T> emptyPlan() {
-        return (RegistryDiffPlan<T>) EMPTY_PLAN;
     }
 
     private static final class Planner<T> {

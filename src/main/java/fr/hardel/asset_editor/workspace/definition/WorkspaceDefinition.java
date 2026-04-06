@@ -70,6 +70,16 @@ public final class WorkspaceDefinition<T> {
         return entry.withCustom(customInitializer.apply(entry));
     }
 
+    public void snapshotClientRegistry(net.minecraft.core.RegistryAccess registryAccess, ClientSnapshotConsumer consumer) {
+        registryAccess.lookup(registryKey).ifPresent(registry ->
+            consumer.accept(registryKey, registry, customInitializer));
+    }
+
+    @FunctionalInterface
+    public interface ClientSnapshotConsumer {
+        <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry, Function<ElementEntry<T>, CustomFields> customInitializer);
+    }
+
     public void beforeApply(EditorAction action, RegistryMutationContext context) {
         BoundHandler<T> handler = handlers.get(action.typeId().toString());
         if (handler != null) {
@@ -219,6 +229,11 @@ public final class WorkspaceDefinition<T> {
         if (registryId == null)
             return null;
         return DEFINITIONS.get(registryId.toString());
+    }
+
+    @SuppressWarnings("unchecked") // Safe: register() stores definitions keyed by registryKey, so the T always matches (Effective Java Item 33)
+    public static <T> WorkspaceDefinition<T> get(ResourceKey<Registry<T>> registryKey) {
+        return (WorkspaceDefinition<T>) DEFINITIONS.get(registryKey.identifier().toString());
     }
 
     public static Collection<WorkspaceDefinition<?>> all() {

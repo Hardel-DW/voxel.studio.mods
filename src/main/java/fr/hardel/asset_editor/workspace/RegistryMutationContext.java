@@ -11,7 +11,7 @@ public interface RegistryMutationContext {
 
     HolderLookup.Provider registries();
 
-    void ensureTagResource(String registryPath, Identifier tagId, TagSeed seed);
+    <T> void ensureTagResource(ResourceKey<Registry<T>> registryKey, Identifier tagId, TagSeed seed);
 
     <T> HolderSet<T> resolveTagReference(ResourceKey<Registry<T>> registryKey, Identifier tagId);
 

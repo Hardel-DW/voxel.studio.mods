@@ -45,7 +45,7 @@ public final class RegistryReader {
         return Map.copyOf(result);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked") // fromFrozenRegistry returns ElementLookup<? extends Holder<T>>, same cast as Mojang's TagLoader.loadPendingTags
     private <T> Map<Identifier, Set<Identifier>> loadTags(WorkspaceDefinition<T> binding,
         ResourceManager resourceManager,
         Registry<T> registry) {

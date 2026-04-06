@@ -85,7 +85,7 @@ public final class EnchantmentWorkspace {
         if (tagId == null)
             throw new IllegalArgumentException("Invalid item tag id: " + rawTagId);
 
-        context.ensureTagResource(Registries.ITEM.identifier().getPath(), tagId, seed);
+        context.ensureTagResource(Registries.ITEM, tagId, seed);
     }
 
     private static ElementEntry<Enchantment> applyToggleExclusive(ElementEntry<Enchantment> entry,

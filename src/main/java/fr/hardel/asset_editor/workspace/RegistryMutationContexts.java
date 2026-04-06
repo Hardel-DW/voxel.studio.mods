@@ -15,7 +15,7 @@ public final class RegistryMutationContexts {
     public static RegistryMutationContext client(HolderLookup.Provider registries) {
         return new BaseContext(registries, new TagReferenceResolver()) {
             @Override
-            public void ensureTagResource(String registryPath, Identifier tagId, TagSeed seed) {
+            public <T> void ensureTagResource(ResourceKey<Registry<T>> registryKey, Identifier tagId, TagSeed seed) {
                 throw new UnsupportedOperationException("Client mutation context cannot ensure tag resources");
             }
         };
@@ -25,8 +25,8 @@ public final class RegistryMutationContexts {
         TagResourceService tagResources, TagReferenceResolver tagReferences) {
         return new BaseContext(registries, tagReferences) {
             @Override
-            public void ensureTagResource(String registryPath, Identifier tagId, TagSeed seed) {
-                if (!tagResources.ensureExists(packRoot, registryPath, tagId, seed, registries()))
+            public <T> void ensureTagResource(ResourceKey<Registry<T>> registryKey, Identifier tagId, TagSeed seed) {
+                if (!tagResources.ensureExists(packRoot, registryKey, tagId, seed, registries()))
                     throw new IllegalArgumentException("Unable to ensure tag resource " + tagId);
             }
         };

@@ -123,7 +123,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         memory.setSnapshot(Snapshot.empty());
     }
 
-    public WorkspaceDefinition.SnapshotConsumer asSnapshotConsumer() {
+    public WorkspaceDefinition.ClientSnapshotConsumer asSnapshotConsumer() {
         return this::snapshotFromRegistry;
     }
 
