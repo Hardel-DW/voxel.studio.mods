@@ -5,6 +5,8 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
+import fr.hardel.asset_editor.workspace.action.Action;
+import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -23,6 +25,7 @@ public final class WorkspaceDefinition<T> {
     private final Codec<T> codec;
     private final FlushAdapter<T> flushAdapter;
     private final Function<ElementEntry<T>, CustomFields> customInitializer;
+    private final Map<Class<?>, Action<T, ?>> actions = new HashMap<>();
 
     private Map<Identifier, ElementEntry<T>> baseline = Map.of();
     private final Map<String, RegistryWorkspace<T>> workspaces = new HashMap<>();
@@ -55,9 +58,22 @@ public final class WorkspaceDefinition<T> {
         return entry.withCustom(customInitializer.apply(entry));
     }
 
+    public <A extends EditorAction<T>> void registerAction(Action<T, A> action) {
+        Action<T, ?> previous = actions.putIfAbsent(action.actionClass(), action);
+        if (previous != null)
+            throw new IllegalStateException("Duplicate action class for workspace " + registryId() + ": " + action.actionClass().getName());
+    }
+
+    public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction<?> action, RegistryMutationContext ctx) {
+        Action<T, ?> definition = actions.get(action.getClass());
+        if (definition == null)
+            throw new IllegalArgumentException("Action " + action.getClass().getName() + " is not registered for workspace " + registryId());
+
+        return definition.apply(entry, action, ctx);
+    }
+
     public void snapshotClientRegistry(net.minecraft.core.RegistryAccess registryAccess, ClientSnapshotConsumer consumer) {
-        registryAccess.lookup(registryKey).ifPresent(registry ->
-            consumer.accept(registryKey, registry, customInitializer));
+        registryAccess.lookup(registryKey).ifPresent(registry -> consumer.accept(registryKey, registry, customInitializer));
     }
 
     @FunctionalInterface
@@ -72,8 +88,7 @@ public final class WorkspaceDefinition<T> {
     public ElementEntry<T> fromSnapshot(WorkspaceElementSnapshot snapshot, HolderLookup.Provider registries) {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         JsonElement json = JsonParser.parseString(snapshot.dataJson());
-        T data = codec.parse(ops, json).getOrThrow(message ->
-            new IllegalArgumentException("Failed to decode workspace snapshot for " + snapshot.targetId() + ": " + message));
+        T data = codec.parse(ops, json).getOrThrow(message -> new IllegalArgumentException("Failed to decode workspace snapshot for " + snapshot.targetId() + ": " + message));
         return new ElementEntry<>(snapshot.targetId(), data, snapshot.tags(), snapshot.custom());
     }
 

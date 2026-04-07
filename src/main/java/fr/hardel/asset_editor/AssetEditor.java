@@ -18,8 +18,8 @@ public class AssetEditor implements ModInitializer {
     public void onInitialize() {
         StudioRegistries.register();
         RecipeAdapterRegistries.register();
-        Actions.register();
         Workspaces.register();
+        Actions.register();
         AssetEditorNetworking.register();
         StudioResourceLoaders.register();
         SeverStartedEvent.register();

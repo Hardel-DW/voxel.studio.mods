@@ -17,7 +17,6 @@ import fr.hardel.asset_editor.workspace.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
 import fr.hardel.asset_editor.workspace.RegistryMutationContexts
-import fr.hardel.asset_editor.workspace.action.Action
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import java.util.Objects
 import java.util.UUID
@@ -142,7 +141,7 @@ class EditorActionGateway(
 
         try {
             val context = RegistryMutationContexts.client(registries)
-            val projected = Action.dispatch(entry, action, context)
+            val projected = definition.apply(entry, action, context)
             if (!Objects.equals(projected, entry)) {
                 registryMemory.put(registry, target, projected)
             }

@@ -6,7 +6,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 
-public final class Action<A extends EditorAction<?>> {
+public final class Action<T, A extends EditorAction<T>> {
 
     private final Identifier id;
     private final Class<A> actionClass;
@@ -22,6 +22,10 @@ public final class Action<A extends EditorAction<?>> {
         return id;
     }
 
+    public Class<A> actionClass() {
+        return actionClass;
+    }
+
     public void encode(ByteBuf buffer, EditorAction<?> action) {
         codec.encode(buffer, actionClass.cast(action));
     }
@@ -30,8 +34,7 @@ public final class Action<A extends EditorAction<?>> {
         return codec.decode(buffer);
     }
 
-    @SuppressWarnings("unchecked") // Safe: actions are registered per workspace, T always matches
-    public static <T> ElementEntry<T> dispatch(ElementEntry<T> entry, EditorAction<?> action, RegistryMutationContext ctx) {
-        return ((EditorAction<T>) action).apply(entry, ctx);
+    public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction<?> action, RegistryMutationContext ctx) {
+        return actionClass.cast(action).apply(entry, ctx);
     }
 }
