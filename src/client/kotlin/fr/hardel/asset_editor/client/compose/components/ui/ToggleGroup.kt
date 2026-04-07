@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 import java.util.Locale
 
@@ -48,8 +48,8 @@ fun ToggleGroup(
     Row(
         modifier = modifier
             .clip(groupShape)
-            .background(VoxelColors.Zinc950)
-            .border(1.dp, VoxelColors.Zinc800, groupShape)
+            .background(StudioColors.Zinc950)
+            .border(1.dp, StudioColors.Zinc800, groupShape)
             .padding(4.dp)
     ) {
         for (option in options) {
@@ -67,7 +67,7 @@ fun ToggleGroup(
                 modifier = optionModifier
                     .then(if (isActive) Modifier.shadow(1.dp, optionShape) else Modifier)
                     .clip(optionShape)
-                    .then(if (isActive) Modifier.background(VoxelColors.Zinc800) else Modifier)
+                    .then(if (isActive) Modifier.background(StudioColors.Zinc800) else Modifier)
                     .hoverable(interactionSource)
                     .pointerHoverIcon(PointerIcon.Hand)
                     .clickable(
@@ -89,11 +89,11 @@ fun ToggleGroup(
                 when (option) {
                     is ToggleOption.TextOption -> Text(
                         text = option.label.uppercase(Locale.ROOT),
-                        style = VoxelTypography.bold(10),
+                        style = StudioTypography.bold(10),
                         color = when {
-                            isActive -> VoxelColors.Zinc100
-                            isHovered -> VoxelColors.Zinc300
-                            else -> VoxelColors.Zinc500
+                            isActive -> StudioColors.Zinc100
+                            isHovered -> StudioColors.Zinc300
+                            else -> StudioColors.Zinc500
                         }
                     )
                     is ToggleOption.IconOption -> SvgIcon(

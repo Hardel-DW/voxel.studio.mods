@@ -14,8 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun SectionSelector(
@@ -38,14 +38,14 @@ fun SectionSelector(
             ) {
                 Text(
                     text = title,
-                    style = VoxelTypography.semiBold(24),
-                    color = VoxelColors.Zinc100
+                    style = StudioTypography.semiBold(24),
+                    color = StudioColors.Zinc100
                 )
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(VoxelColors.Zinc700)
+                        .background(StudioColors.Zinc700)
                 )
             }
 

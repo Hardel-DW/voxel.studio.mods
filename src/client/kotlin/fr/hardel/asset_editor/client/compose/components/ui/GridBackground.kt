@@ -10,10 +10,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 
 private const val CELL_SIZE = 64f
-private val LINE_COLOR = VoxelColors.Zinc950
+private val LINE_COLOR = StudioColors.Zinc950
 private val GRID_DIM = Color.Black.copy(alpha = 0.6f)
 
 @Composable

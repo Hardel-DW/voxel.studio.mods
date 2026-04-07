@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSelector
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import net.minecraft.client.resources.language.I18n
@@ -33,7 +33,7 @@ fun RecipeSection(
     Box(
         modifier = modifier
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .border(1.dp, VoxelColors.Zinc900, RoundedCornerShape(12.dp))
+            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(12.dp))
     ) {
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.12f)
 
@@ -46,13 +46,13 @@ fun RecipeSection(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = I18n.get("recipe:section.title"),
-                        style = VoxelTypography.bold(20),
+                        style = StudioTypography.bold(20),
                         color = Color.White
                     )
                     Text(
                         text = I18n.get("recipe:section.description"),
-                        style = VoxelTypography.regular(14),
-                        color = VoxelColors.Zinc400
+                        style = StudioTypography.regular(14),
+                        color = StudioColors.Zinc400
                     )
                 }
 

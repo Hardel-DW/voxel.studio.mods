@@ -28,14 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import androidx.compose.ui.window.Popup
@@ -71,8 +70,8 @@ fun RecipeSelector(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(64.dp)
-                .background(VoxelColors.Zinc950, RoundedCornerShape(8.dp))
-                .border(2.dp, VoxelColors.Zinc800, RoundedCornerShape(8.dp))
+                .background(StudioColors.Zinc950, RoundedCornerShape(8.dp))
+                .border(2.dp, StudioColors.Zinc800, RoundedCornerShape(8.dp))
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable { expanded = !expanded }
         ) {
@@ -88,8 +87,8 @@ fun RecipeSelector(
                 Box(
                     modifier = Modifier
                         .padding(top = 72.dp)
-                        .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
-                        .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(12.dp))
+                        .background(StudioColors.Zinc950, RoundedCornerShape(12.dp))
+                        .border(1.dp, StudioColors.Zinc800, RoundedCornerShape(12.dp))
                 ) {
                     ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.1f)
 
@@ -104,13 +103,13 @@ fun RecipeSelector(
                             Column {
                                 Text(
                                     text = I18n.get("recipe:selector.title"),
-                                    style = VoxelTypography.bold(18),
+                                    style = StudioTypography.bold(18),
                                     color = Color.White
                                 )
                                 Text(
                                     text = displayName,
-                                    style = VoxelTypography.regular(12),
-                                    color = VoxelColors.Zinc400
+                                    style = StudioTypography.regular(12),
+                                    color = StudioColors.Zinc400
                                 )
                             }
 
@@ -192,18 +191,18 @@ private fun RecipeSelectorGrid(
                             .size(64.dp)
                             .background(
                                 color = when {
-                                    active -> VoxelColors.Zinc900
-                                    hovered && enabled -> VoxelColors.Zinc900
-                                    else -> VoxelColors.Zinc950
+                                    active -> StudioColors.Zinc900
+                                    hovered && enabled -> StudioColors.Zinc900
+                                    else -> StudioColors.Zinc950
                                 },
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .border(
                                 2.dp,
                                 when {
-                                    active -> VoxelColors.Zinc800
-                                    hovered && enabled -> VoxelColors.Zinc800
-                                    else -> VoxelColors.Zinc900
+                                    active -> StudioColors.Zinc800
+                                    hovered && enabled -> StudioColors.Zinc800
+                                    else -> StudioColors.Zinc900
                                 },
                                 RoundedCornerShape(8.dp)
                             )
@@ -228,13 +227,13 @@ private fun RecipeSelectorGrid(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
-                                    .background(VoxelColors.Zinc900, RoundedCornerShape(4.dp))
-                                    .border(1.dp, VoxelColors.Zinc600, RoundedCornerShape(4.dp))
+                                    .background(StudioColors.Zinc900, RoundedCornerShape(4.dp))
+                                    .border(1.dp, StudioColors.Zinc600, RoundedCornerShape(4.dp))
                             ) {
                                 Text(
                                     text = count.toString(),
-                                    style = VoxelTypography.regular(9),
-                                    color = VoxelColors.Zinc300,
+                                    style = StudioTypography.regular(9),
+                                    color = StudioColors.Zinc300,
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                                 )
                             }
@@ -255,7 +254,7 @@ private fun AdvancedTypeRow(label: String, description: String, onClick: () -> U
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier
             .background(
-                color = if (hovered) VoxelColors.Zinc900.copy(alpha = 0.6f) else Color.Transparent,
+                color = if (hovered) StudioColors.Zinc900.copy(alpha = 0.6f) else Color.Transparent,
                 RoundedCornerShape(8.dp)
             )
             .hoverable(interaction)
@@ -268,13 +267,13 @@ private fun AdvancedTypeRow(label: String, description: String, onClick: () -> U
     ) {
         Text(
             text = label,
-            style = VoxelTypography.medium(12),
-            color = VoxelColors.Zinc200
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc200
         )
         Text(
             text = description,
-            style = VoxelTypography.regular(10),
-            color = VoxelColors.Zinc500
+            style = StudioTypography.regular(10),
+            color = StudioColors.Zinc500
         )
     }
 }

@@ -28,8 +28,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import net.minecraft.client.resources.language.I18n
@@ -107,8 +107,8 @@ private fun SidebarActionRow(
                 .clip(ROW_SHAPE)
                 .background(
                     when {
-                        active -> VoxelColors.Zinc800.copy(alpha = 0.8f)
-                        hovered -> VoxelColors.Zinc900.copy(alpha = 0.5f)
+                        active -> StudioColors.Zinc800.copy(alpha = 0.8f)
+                        hovered -> StudioColors.Zinc900.copy(alpha = 0.5f)
                         else -> Color.Transparent
                     }
                 )
@@ -141,8 +141,8 @@ private fun SidebarActionRow(
 
                 Text(
                     text = label,
-                    style = VoxelTypography.medium(14),
-                    color = if (active) Color.White else VoxelColors.Zinc400,
+                    style = StudioTypography.medium(14),
+                    color = if (active) Color.White else StudioColors.Zinc400,
                     maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
@@ -150,15 +150,15 @@ private fun SidebarActionRow(
 
             Text(
                 text = count.toString(),
-                style = VoxelTypography.regular(10),
-                color = VoxelColors.Zinc600,
+                style = StudioTypography.regular(10),
+                color = StudioColors.Zinc600,
                 modifier = Modifier
                     .padding(end = 12.dp)
                     .clip(COUNT_SHAPE)
-                    .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
+                    .background(StudioColors.Zinc900.copy(alpha = 0.5f))
                     .border(
                         1.dp,
-                        if (hovered) VoxelColors.Zinc700 else VoxelColors.Zinc800,
+                        if (hovered) StudioColors.Zinc700 else StudioColors.Zinc800,
                         COUNT_SHAPE
                     )
                     .padding(horizontal = 6.dp, vertical = 2.dp)

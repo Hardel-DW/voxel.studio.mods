@@ -27,8 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 data class TableColumn<T>(
     val header: String,
@@ -67,15 +67,15 @@ fun <T> DataTable(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 40.dp)
-                .background(VoxelColors.Zinc900.copy(alpha = 0.4f), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                .background(StudioColors.Zinc900.copy(alpha = 0.4f), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .padding(horizontal = 16.dp)
         ) {
             for (col in columns) {
                 Box(modifier = Modifier.weight(col.weight)) {
                     Text(
                         text = col.header.uppercase(),
-                        style = VoxelTypography.medium(11),
-                        color = VoxelColors.Zinc500
+                        style = StudioTypography.medium(11),
+                        color = StudioColors.Zinc500
                     )
                 }
             }
@@ -86,13 +86,13 @@ fun <T> DataTable(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+                    .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
                     .padding(32.dp)
             ) {
                 Text(
                     text = placeholder,
-                    style = VoxelTypography.medium(14),
-                    color = VoxelColors.Zinc500
+                    style = StudioTypography.medium(14),
+                    color = StudioColors.Zinc500
                 )
             }
         } else {
@@ -100,7 +100,7 @@ fun <T> DataTable(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-                    .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+                    .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
                     .verticalScroll(rememberScrollState())
             ) {
                 visibleItems.forEachIndexed { index, item ->
@@ -116,7 +116,7 @@ fun <T> DataTable(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(1.dp)
-                                    .background(VoxelColors.Zinc800.copy(alpha = 0.3f))
+                                    .background(StudioColors.Zinc800.copy(alpha = 0.3f))
                             )
                         }
 
@@ -127,9 +127,9 @@ fun <T> DataTable(
                                 .heightIn(min = 36.dp)
                                 .background(
                                     when {
-                                        isHovered -> VoxelColors.Zinc800.copy(alpha = 0.4f)
-                                        isEven -> VoxelColors.Zinc900.copy(alpha = 0.15f)
-                                        else -> VoxelColors.Zinc950.copy(alpha = 0.3f)
+                                        isHovered -> StudioColors.Zinc800.copy(alpha = 0.4f)
+                                        isEven -> StudioColors.Zinc900.copy(alpha = 0.15f)
+                                        else -> StudioColors.Zinc950.copy(alpha = 0.3f)
                                     }
                                 )
                                 .hoverable(interactionSource)

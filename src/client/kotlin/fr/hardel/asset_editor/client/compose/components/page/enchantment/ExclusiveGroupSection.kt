@@ -8,14 +8,14 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Category
 import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
 import fr.hardel.asset_editor.client.compose.components.ui.LayoutSpec
 import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.StudioText
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
@@ -62,7 +62,7 @@ fun ExclusiveGroupSection(
             } else {
                 context.resolveHolder(Registries.ENCHANTMENT, parsed)
                     .map { holder -> holder.value().description().string }
-                    .orElseGet { StudioText.resolve(Registries.ENCHANTMENT, parsed) }
+                    .orElseGet { StudioTranslation.resolve(Registries.ENCHANTMENT, parsed) }
             }
         }
     }
@@ -72,7 +72,7 @@ fun ExclusiveGroupSection(
             items = vanillaGroups.map { group ->
                 {
                     EnchantmentTags(
-                        title = StudioText.resolve("enchantment_tag", group.tagId),
+                        title = StudioTranslation.resolve("enchantment_tag", group.tagId),
                         description = I18n.get("enchantment_tag:${group.tagId}.desc"),
                         imageId = group.image(),
                         values = membersByTag[group.tagId].orEmpty(),
@@ -94,15 +94,15 @@ fun ExclusiveGroupSection(
         if (customTags.isEmpty()) {
             Text(
                 text = I18n.get("enchantment.exclusive:custom.fallback"),
-                style = VoxelTypography.regular(13),
-                color = VoxelColors.Zinc400
+                style = StudioTypography.regular(13),
+                color = StudioColors.Zinc400
             )
         } else {
             ResponsiveGrid(
                 items = customTags.map { tagId ->
                     {
                         EnchantmentTags(
-                            title = StudioText.resolve("enchantment_tag", tagId),
+                            title = StudioTranslation.resolve("enchantment_tag", tagId),
                             description = tagId.toString(),
                             imageId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg"),
                             values = membersByTag[tagId].orEmpty(),

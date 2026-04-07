@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.debug.RecordIntrospector
 import fr.hardel.asset_editor.client.debug.RecordIntrospector.Field
 import fr.hardel.asset_editor.client.debug.RecordIntrospector.FieldValue
@@ -63,13 +63,13 @@ private fun ScalarRow(key: String, value: String, depth: Int) {
     ) {
         Text(
             text = key,
-            style = VoxelTypography.medium(11),
-            color = VoxelColors.Zinc500
+            style = StudioTypography.medium(11),
+            color = StudioColors.Zinc500
         )
         Text(
             text = value,
-            style = VoxelTypography.regular(12),
-            color = VoxelColors.Zinc300,
+            style = StudioTypography.regular(12),
+            color = StudioColors.Zinc300,
             modifier = Modifier.weight(1f)
         )
         CopyButton(textProvider = { value })
@@ -81,8 +81,8 @@ private fun NestedSection(key: String, children: List<Field>, depth: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = key,
-            style = VoxelTypography.semiBold(11),
-            color = VoxelColors.Zinc400,
+            style = StudioTypography.semiBold(11),
+            color = StudioColors.Zinc400,
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp).padding(start = (depth * 12).dp)
         )
         for (child in children) {
@@ -96,8 +96,8 @@ private fun ItemsSection(key: String, items: FieldValue.Items, depth: Int) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = "$key (${items.totalSize()})",
-            style = VoxelTypography.semiBold(11),
-            color = VoxelColors.Zinc400,
+            style = StudioTypography.semiBold(11),
+            color = StudioColors.Zinc400,
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp).padding(start = (depth * 12).dp)
         )
 
@@ -107,8 +107,8 @@ private fun ItemsSection(key: String, items: FieldValue.Items, depth: Int) {
                 is FieldValue.Scalar -> {
                     Text(
                         text = item.text(),
-                        style = VoxelTypography.regular(11),
-                        color = VoxelColors.Zinc300,
+                        style = StudioTypography.regular(11),
+                        color = StudioColors.Zinc300,
                         modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp).padding(start = ((depth + 1) * 12).dp)
                     )
                     shown++
@@ -130,8 +130,8 @@ private fun ItemsSection(key: String, items: FieldValue.Items, depth: Int) {
             val remaining = items.totalSize() - shown
             Text(
                 text = I18n.get("debug:keyvalue.more", remaining),
-                style = VoxelTypography.regular(11),
-                color = VoxelColors.Zinc600,
+                style = StudioTypography.regular(11),
+                color = StudioColors.Zinc600,
                 modifier = Modifier.padding(vertical = 2.dp, horizontal = 8.dp).padding(start = ((depth + 1) * 12).dp)
             )
         }

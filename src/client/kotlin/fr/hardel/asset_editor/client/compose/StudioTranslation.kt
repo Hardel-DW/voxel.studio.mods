@@ -1,13 +1,13 @@
-package fr.hardel.asset_editor.client.compose.lib
+package fr.hardel.asset_editor.client.compose
 
-import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
+import java.util.Locale
 
-object StudioText {
+object StudioTranslation {
 
     @JvmStatic
     fun resolve(domain: String, id: Identifier): String {

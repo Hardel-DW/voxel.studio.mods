@@ -17,8 +17,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 private const val VISIBLE = 5
 
@@ -58,7 +58,7 @@ private fun PageButton(page: Int, isCurrent: Boolean, onClick: () -> Unit) {
         modifier = Modifier
             .size(28.dp)
             .clip(RoundedCornerShape(6.dp))
-            .then(if (isCurrent) Modifier.background(VoxelColors.Zinc800) else Modifier)
+            .then(if (isCurrent) Modifier.background(StudioColors.Zinc800) else Modifier)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -67,8 +67,8 @@ private fun PageButton(page: Int, isCurrent: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = (page + 1).toString(),
-            style = VoxelTypography.medium(12),
-            color = if (isCurrent) VoxelColors.Zinc100 else VoxelColors.Zinc500
+            style = StudioTypography.medium(12),
+            color = if (isCurrent) StudioColors.Zinc100 else StudioColors.Zinc500
         )
     }
 }
@@ -91,8 +91,8 @@ private fun NavButton(text: String, enabled: Boolean, onClick: () -> Unit) {
     ) {
         Text(
             text = text,
-            style = VoxelTypography.medium(12),
-            color = if (enabled) VoxelColors.Zinc400 else VoxelColors.Zinc700
+            style = StudioTypography.medium(12),
+            color = if (enabled) StudioColors.Zinc400 else StudioColors.Zinc700
         )
     }
 }

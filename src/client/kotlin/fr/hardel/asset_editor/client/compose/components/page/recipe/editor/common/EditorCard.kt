@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 
 @Composable
@@ -22,7 +22,7 @@ fun EditorCard(
     Box(
         modifier = modifier
             .background(Color.Transparent, RoundedCornerShape(8.dp))
-            .border(1.dp, VoxelColors.Zinc900, RoundedCornerShape(8.dp))
+            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(8.dp))
     ) {
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.1f)
         Column(

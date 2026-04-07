@@ -5,10 +5,12 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.List;
+import java.util.function.Function;
 
-public record ServerDataKey<T>(Identifier id, StreamCodec<ByteBuf, List<T>> listCodec) {
+public record ServerDataKey<T>(Identifier id, StreamCodec<ByteBuf, List<T>> listCodec, Function<MinecraftServer, List<T>> provider) {
 
     public byte[] encode(List<T> data) {
         ByteBuf buf = Unpooled.buffer();
@@ -31,7 +33,7 @@ public record ServerDataKey<T>(Identifier id, StreamCodec<ByteBuf, List<T>> list
         }
     }
 
-    public static <T> ServerDataKey<T> of(Identifier id, StreamCodec<ByteBuf, T> elementCodec) {
-        return new ServerDataKey<>(id, elementCodec.apply(ByteBufCodecs.list()));
+    public static <T> ServerDataKey<T> of(Identifier id, StreamCodec<ByteBuf, T> elementCodec, Function<MinecraftServer, List<T>> provider) {
+        return new ServerDataKey<>(id, elementCodec.apply(ByteBufCodecs.list()), provider);
     }
 }

@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun OptionRowLayout(
@@ -30,13 +30,13 @@ fun OptionRowLayout(
         ) {
             Text(
                 text = title,
-                style = VoxelTypography.semiBold(16),
-                color = VoxelColors.Zinc400
+                style = StudioTypography.semiBold(16),
+                color = StudioColors.Zinc400
             )
             Text(
                 text = description,
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
             )
         }
 

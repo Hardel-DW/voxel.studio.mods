@@ -19,8 +19,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -56,19 +56,19 @@ fun EditorBreadcrumb(
                         onClick = onBack
                     )
             ) {
-                SvgIcon(BACK_ICON, 14.dp, VoxelColors.Zinc400, modifier = Modifier.alpha(0.5f))
+                SvgIcon(BACK_ICON, 14.dp, StudioColors.Zinc400, modifier = Modifier.alpha(0.5f))
                 Text(
                     text = I18n.get("generic:back"),
-                    style = VoxelTypography.medium(12),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.medium(12),
+                    color = StudioColors.Zinc400
                 )
             }
         }
 
         Text(
             text = rootLabel.uppercase(Locale.ROOT),
-            style = VoxelTypography.medium(12),
-            color = VoxelColors.Zinc400,
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc400,
             modifier = Modifier.alpha(0.5f)
         )
 
@@ -76,8 +76,8 @@ fun EditorBreadcrumb(
             // span: flex items-center gap-2
             Text(
                 text = "/",
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500,
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500,
                 modifier = Modifier.alpha(0.3f)
             )
 
@@ -91,16 +91,16 @@ fun EditorBreadcrumb(
                 ) {
                     Text(
                         text = segment.uppercase(Locale.ROOT),
-                        style = VoxelTypography.medium(12),
-                        color = VoxelColors.Zinc300
+                        style = StudioTypography.medium(12),
+                        color = StudioColors.Zinc300
                     )
                 }
             } else {
                 // span: opacity-50 font-medium text-xs uppercase tracking-wider
                 Text(
                     text = segment.uppercase(Locale.ROOT),
-                    style = VoxelTypography.medium(12),
-                    color = VoxelColors.Zinc400,
+                    style = StudioTypography.medium(12),
+                    color = StudioColors.Zinc400,
                     modifier = Modifier.alpha(0.5f)
                 )
             }

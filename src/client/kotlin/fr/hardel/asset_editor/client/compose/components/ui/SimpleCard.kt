@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 
 @Composable
 fun SimpleCard(
@@ -64,12 +64,12 @@ fun SimpleCard(
                 .fillMaxHeight()
                 .offset(y = offsetY)
                 .background(
-                    color = if (active) VoxelColors.Zinc950.copy(alpha = 0.5f) else Color.Black.copy(alpha = 0.35f),
+                    color = if (active) StudioColors.Zinc950.copy(alpha = 0.5f) else Color.Black.copy(alpha = 0.35f),
                     shape = RoundedCornerShape(12.dp)
                 )
                 .border(
                     width = 1.dp,
-                    color = if (active) VoxelColors.Zinc700 else VoxelColors.Zinc900,
+                    color = if (active) StudioColors.Zinc700 else StudioColors.Zinc900,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .clip(RoundedCornerShape(12.dp))

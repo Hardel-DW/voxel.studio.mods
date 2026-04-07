@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.sp
 
-object VoxelTypography {
+object StudioTypography {
     private const val FONT_ROOT = "assets/asset_editor/fonts/"
 
     val RubikFamily = FontFamily(

@@ -29,12 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.StudioText
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
@@ -70,10 +70,10 @@ fun EditorHeader(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(VoxelColors.Zinc900.copy(alpha = 0.5f))
+            .background(StudioColors.Zinc900.copy(alpha = 0.5f))
             .drawBehind {
                 drawLine(
-                    color = VoxelColors.Zinc800.copy(alpha = 0.5f),
+                    color = StudioColors.Zinc800.copy(alpha = 0.5f),
                     start = Offset(0f, size.height - 0.5f),
                     end = Offset(size.width, size.height - 0.5f),
                     strokeWidth = 1f
@@ -96,8 +96,8 @@ fun EditorHeader(
                         Brush.verticalGradient(
                             colors = listOf(
                                 Color.Transparent,
-                                VoxelColors.Zinc950.copy(alpha = 0.8f),
-                                VoxelColors.Zinc950
+                                StudioColors.Zinc950.copy(alpha = 0.8f),
+                                StudioColors.Zinc950
                             )
                         )
                     )
@@ -131,7 +131,7 @@ fun EditorHeader(
 
                         Text(
                             text = title,
-                            style = VoxelTypography.minecraftTen(36),
+                            style = StudioTypography.minecraftTen(36),
                             color = Color.White
                         )
 
@@ -193,11 +193,11 @@ fun HeaderActionButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc900, RoundedCornerShape(8.dp))
+            .background(if (hovered) StudioColors.Zinc800 else StudioColors.Zinc900, RoundedCornerShape(8.dp))
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawRoundRect(
-                    color = VoxelColors.Zinc800,
+                    color = StudioColors.Zinc800,
                     topLeft = Offset(stroke / 2f, stroke / 2f),
                     size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
                     cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
@@ -215,8 +215,8 @@ fun HeaderActionButton(
     ) {
         Text(
             text = text,
-            style = VoxelTypography.medium(13),
-            color = if (hovered) VoxelColors.Zinc300 else VoxelColors.Zinc400
+            style = StudioTypography.medium(13),
+            color = if (hovered) StudioColors.Zinc300 else StudioColors.Zinc400
         )
     }
 }
@@ -269,7 +269,7 @@ private fun resolveTitle(
     }
 
     val identifier = Identifier.tryParse(id) ?: return id
-    return StudioText.resolve(conceptRegistryKey, identifier)
+    return StudioTranslation.resolve(conceptRegistryKey, identifier)
 }
 
 private fun resolveColorKey(
@@ -306,7 +306,7 @@ private fun buildBreadcrumbSegments(
             } else {
                 Identifier.fromNamespaceAndPath(identifier.namespace, part)
             }
-            add(StudioText.resolve(conceptRegistryKey, segmentId))
+            add(StudioTranslation.resolve(conceptRegistryKey, segmentId))
         }
     }
 }

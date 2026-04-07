@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
 private val CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg")
@@ -85,8 +85,8 @@ fun Dialog(
                         alpha = p
                     }
                     .shadow(24.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                    .border(1.dp, VoxelColors.Zinc800, shape)
-                    .background(VoxelColors.Zinc950, shape)
+                    .border(1.dp, StudioColors.Zinc800, shape)
+                    .background(StudioColors.Zinc950, shape)
                     .clip(shape)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
@@ -112,8 +112,8 @@ fun Dialog(
                     ) {
                         Text(
                             text = title,
-                            style = VoxelTypography.semiBold(18),
-                            color = VoxelColors.Zinc100
+                            style = StudioTypography.semiBold(18),
+                            color = StudioColors.Zinc100
                         )
                         Spacer(Modifier.weight(1f))
                         val closeInteraction = remember { MutableInteractionSource() }
@@ -123,7 +123,7 @@ fun Dialog(
                             modifier = Modifier
                                 .size(28.dp)
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(if (closeHovered) VoxelColors.Zinc800 else Color.Transparent)
+                                .background(if (closeHovered) StudioColors.Zinc800 else Color.Transparent)
                                 .hoverable(closeInteraction)
                                 .pointerHoverIcon(PointerIcon.Hand)
                                 .clickable(
@@ -131,7 +131,7 @@ fun Dialog(
                                     indication = null
                                 ) { onDismiss() }
                         ) {
-                            SvgIcon(CLOSE_ICON, 16.dp, if (closeHovered) VoxelColors.Zinc100 else VoxelColors.Zinc400)
+                            SvgIcon(CLOSE_ICON, 16.dp, if (closeHovered) StudioColors.Zinc100 else StudioColors.Zinc400)
                         }
                     }
 

@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.layout.editor.PackCreateDialog
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
@@ -106,8 +106,8 @@ fun RegistryPageDialogs(
             ) {
                 androidx.compose.material.Text(
                     text = I18n.get("studio:pack.required.message"),
-                    style = VoxelTypography.regular(13),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.regular(13),
+                    color = StudioColors.Zinc400
                 )
             }
         }
@@ -128,8 +128,8 @@ fun RegistryPageDialogs(
         ) {
             androidx.compose.material.Text(
                 text = I18n.get(errorKey),
-                style = VoxelTypography.regular(13),
-                color = VoxelColors.Zinc400
+                style = StudioTypography.regular(13),
+                color = StudioColors.Zinc400
             )
         }
     }

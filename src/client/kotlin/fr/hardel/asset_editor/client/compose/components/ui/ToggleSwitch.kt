@@ -20,11 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 
 private val SWITCH_WIDTH = 44.dp
 private val SWITCH_HEIGHT = 24.dp
@@ -43,10 +42,10 @@ fun ToggleSwitch(
         animationSpec = tween(200)
     )
 
-    val railBrush = if (checked) VoxelColors.CheckedRail else Brush.linearGradient(listOf(VoxelColors.UncheckedRail, VoxelColors.UncheckedRail))
+    val railBrush = if (checked) StudioColors.CheckedRail else Brush.linearGradient(listOf(StudioColors.UncheckedRail, StudioColors.UncheckedRail))
 
     val knobColor by animateColorAsState(
-        targetValue = if (checked) VoxelColors.CheckedCircle else VoxelColors.UncheckedCircle,
+        targetValue = if (checked) StudioColors.CheckedCircle else StudioColors.UncheckedCircle,
         animationSpec = tween(200)
     )
 

@@ -27,8 +27,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
 private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
@@ -51,7 +51,7 @@ fun <T> Dropdown(
             modifier = Modifier
                 .height(32.dp)
                 .clip(dropdownShape)
-                .border(2.dp, VoxelColors.Zinc900, dropdownShape)
+                .border(2.dp, StudioColors.Zinc900, dropdownShape)
                 .padding(horizontal = 12.dp)
                 .pointerHoverIcon(PointerIcon.Hand)
                 .clickable(
@@ -61,10 +61,10 @@ fun <T> Dropdown(
         ) {
             Text(
                 text = if (selected != null) labelExtractor(selected) else "",
-                style = VoxelTypography.medium(12),
-                color = VoxelColors.Zinc300
+                style = StudioTypography.medium(12),
+                color = StudioColors.Zinc300
             )
-            SvgIcon(CHEVRON_ICON, 10.dp, VoxelColors.Zinc500)
+            SvgIcon(CHEVRON_ICON, 10.dp, StudioColors.Zinc500)
         }
 
         Popover(
@@ -99,12 +99,12 @@ private fun DropdownOption(
 
     Text(
         text = label,
-        style = VoxelTypography.medium(12),
-        color = if (isSelected) VoxelColors.Zinc100 else VoxelColors.Zinc400,
+        style = StudioTypography.medium(12),
+        color = if (isSelected) StudioColors.Zinc100 else StudioColors.Zinc400,
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(6.dp))
-            .then(if (isHovered) Modifier.background(VoxelColors.Zinc800) else Modifier)
+            .then(if (isHovered) Modifier.background(StudioColors.Zinc800) else Modifier)
             .hoverable(interactionSource)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(

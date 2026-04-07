@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import net.minecraft.resources.Identifier
 
@@ -39,12 +39,12 @@ object ItemsSelector {
             modifier = modifier
                 .size(56.dp)
                 .background(
-                    color = if (highlighted) VoxelColors.Zinc900.copy(alpha = 0.4f) else VoxelColors.Zinc900.copy(alpha = 0.2f),
+                    color = if (highlighted) StudioColors.Zinc900.copy(alpha = 0.4f) else StudioColors.Zinc900.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp)
                 )
                 .border(
                     1.dp,
-                    if (highlighted) VoxelColors.Zinc600 else VoxelColors.Zinc800,
+                    if (highlighted) StudioColors.Zinc600 else StudioColors.Zinc800,
                     RoundedCornerShape(8.dp)
                 )
                 .hoverable(interaction)

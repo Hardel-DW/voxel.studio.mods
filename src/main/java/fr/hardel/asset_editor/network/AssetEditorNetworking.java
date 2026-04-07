@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.network;
 
 import fr.hardel.asset_editor.network.data.ServerDataKey;
+import fr.hardel.asset_editor.network.data.ServerDataKeys;
 import fr.hardel.asset_editor.network.data.ServerDataRequestPayload;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.data.StudioDataKeys;
@@ -9,13 +10,10 @@ import fr.hardel.asset_editor.network.pack.PackListRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceRequestPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
-import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
 import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
-import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
-import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.StudioPermissions;
@@ -93,10 +91,12 @@ public final class AssetEditorNetworking {
     }
 
     public static void broadcastAllServerData(MinecraftServer server) {
-        broadcastServerData(server, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
-        broadcastServerData(server, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
-        broadcastServerData(server, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
-        broadcastServerData(server, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
+        for (ServerDataKey<?> key : ServerDataKeys.all())
+            broadcastResolved(server, key);
+    }
+
+    private static <T> void broadcastResolved(MinecraftServer server, ServerDataKey<T> key) {
+        broadcastServerData(server, key, key.provider().apply(server));
     }
 
     private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) {
@@ -155,14 +155,7 @@ public final class AssetEditorNetworking {
     }
 
     private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key) {
-        if (key.equals(StudioDataKeys.RECIPE_CATALOG.id()))
-            sendServerData(player, StudioDataKeys.RECIPE_CATALOG, RecipeCatalogBuilder.build(server));
-        else if (key.equals(StudioDataKeys.COMPENDIUM_ITEMS.id()))
-            sendServerData(player, StudioDataKeys.COMPENDIUM_ITEMS, CompendiumTagLoader.itemGroups());
-        else if (key.equals(StudioDataKeys.COMPENDIUM_ENCHANTMENTS.id()))
-            sendServerData(player, StudioDataKeys.COMPENDIUM_ENCHANTMENTS, CompendiumTagLoader.enchantmentGroups());
-        else if (key.equals(StudioDataKeys.RECIPE_ENTRIES.id()))
-            sendServerData(player, StudioDataKeys.RECIPE_ENTRIES, RecipeEntryLoader.entries());
+        ServerPlayNetworking.send(player, ServerDataKeys.resolve(key, server));
     }
 
     private AssetEditorNetworking() {}

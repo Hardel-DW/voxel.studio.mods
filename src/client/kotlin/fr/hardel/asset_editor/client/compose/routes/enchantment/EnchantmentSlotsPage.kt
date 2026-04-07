@@ -12,8 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
@@ -67,18 +67,18 @@ fun EnchantmentSlotsPage(context: StudioContext) {
             ) {
                 Text(
                     text = I18n.get("enchantment:slots.explanation.title"),
-                    style = VoxelTypography.regular(13),
-                    color = VoxelColors.Zinc300
+                    style = StudioTypography.regular(13),
+                    color = StudioColors.Zinc300
                 )
                 Text(
                     text = "- ${I18n.get("enchantment:slots.explanation.list.1")}",
-                    style = VoxelTypography.light(13),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.light(13),
+                    color = StudioColors.Zinc400
                 )
                 Text(
                     text = "- ${I18n.get("enchantment:slots.explanation.list.2")}",
-                    style = VoxelTypography.light(13),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.light(13),
+                    color = StudioColors.Zinc400
                 )
             }
         }

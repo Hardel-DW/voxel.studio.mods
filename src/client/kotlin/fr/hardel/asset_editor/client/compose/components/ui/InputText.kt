@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -29,8 +28,8 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
 private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/search.svg")
@@ -46,7 +45,7 @@ fun InputText(
 ) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(20.dp)
-    val textStyle = VoxelTypography.regular(13).copy(color = VoxelColors.Zinc100)
+    val textStyle = StudioTypography.regular(13).copy(color = StudioColors.Zinc100)
 
     val widthModifier = if (maxWidth != Dp.Unspecified) Modifier.widthIn(max = maxWidth) else Modifier.fillMaxWidth()
 
@@ -54,9 +53,9 @@ fun InputText(
         modifier = modifier
             .then(widthModifier)
             .height(40.dp)
-            .border(1.dp, if (focused) VoxelColors.Zinc700 else VoxelColors.Zinc800, shape)
+            .border(1.dp, if (focused) StudioColors.Zinc700 else StudioColors.Zinc800, shape)
             .background(
-                color = if (focused) VoxelColors.Zinc700.copy(alpha = 0.2f) else VoxelColors.Zinc800.copy(alpha = 0.3f),
+                color = if (focused) StudioColors.Zinc700.copy(alpha = 0.2f) else StudioColors.Zinc800.copy(alpha = 0.3f),
                 shape = shape
             )
             .pointerHoverIcon(PointerIcon.Text)
@@ -65,7 +64,7 @@ fun InputText(
             value = value,
             onValueChange = onValueChange,
             textStyle = textStyle,
-            cursorBrush = SolidColor(VoxelColors.Zinc100),
+            cursorBrush = SolidColor(StudioColors.Zinc100),
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
@@ -81,7 +80,7 @@ fun InputText(
                         SvgIcon(
                             location = SEARCH_ICON,
                             size = 16.dp,
-                            tint = VoxelColors.Zinc400
+                            tint = StudioColors.Zinc400
                         )
                         Spacer(Modifier.width(8.dp))
                     }
@@ -92,7 +91,7 @@ fun InputText(
                         if (value.isEmpty()) {
                             Text(
                                 text = placeholder,
-                                style = textStyle.copy(color = VoxelColors.Zinc400)
+                                style = textStyle.copy(color = StudioColors.Zinc400)
                             )
                         }
                         innerTextField()

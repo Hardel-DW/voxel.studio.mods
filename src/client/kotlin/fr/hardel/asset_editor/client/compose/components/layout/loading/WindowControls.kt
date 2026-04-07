@@ -18,7 +18,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow
 import net.minecraft.resources.Identifier
@@ -34,9 +34,9 @@ fun WindowControls(
     modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier, horizontalArrangement = Arrangement.Start) {
-        WindowButton(MINIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestMinimize() }
-        WindowButton(MAXIMIZE_ICON, VoxelColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestToggleMaximize() }
-        WindowButton(CLOSE_ICON, VoxelColors.Red400, buttonWidth, buttonHeight) { VoxelStudioWindow.requestClose() }
+        WindowButton(MINIMIZE_ICON, StudioColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestMinimize() }
+        WindowButton(MAXIMIZE_ICON, StudioColors.Zinc200, buttonWidth, buttonHeight) { VoxelStudioWindow.requestToggleMaximize() }
+        WindowButton(CLOSE_ICON, StudioColors.Red400, buttonWidth, buttonHeight) { VoxelStudioWindow.requestClose() }
     }
 }
 
@@ -62,7 +62,7 @@ private fun WindowButton(
         SvgIcon(
             location = icon,
             size = 12.dp,
-            tint = if (isHovered) hoverTint else VoxelColors.Zinc500
+            tint = if (isHovered) hoverTint else StudioColors.Zinc500
         )
     }
 }

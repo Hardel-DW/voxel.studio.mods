@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun Selector(
@@ -37,13 +37,13 @@ fun Selector(
             ) {
                 Text(
                     text = title,
-                    style = VoxelTypography.regular(14),
-                    color = VoxelColors.Zinc100
+                    style = StudioTypography.regular(14),
+                    color = StudioColors.Zinc100
                 )
                 Text(
                     text = description,
-                    style = VoxelTypography.light(12),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.light(12),
+                    color = StudioColors.Zinc400
                 )
             }
 

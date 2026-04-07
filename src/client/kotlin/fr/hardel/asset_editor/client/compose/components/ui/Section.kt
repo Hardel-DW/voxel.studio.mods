@@ -14,8 +14,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun Section(
@@ -27,8 +27,8 @@ fun Section(
         Column(modifier = Modifier.padding(8.dp)) {
             Text(
                 text = title,
-                style = VoxelTypography.semiBold(24),
-                color = VoxelColors.Zinc100
+                style = StudioTypography.semiBold(24),
+                color = StudioColors.Zinc100
             )
 
             Box(

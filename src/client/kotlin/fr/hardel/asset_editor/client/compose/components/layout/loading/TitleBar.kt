@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
@@ -51,8 +51,8 @@ fun TitleBar(modifier: Modifier = Modifier) {
                     SvgIcon(location = LOGO, size = 16.dp, tint = Color.White)
                     Text(
                         text = I18n.get("app:title"),
-                        style = VoxelTypography.medium(12),
-                        color = VoxelColors.Zinc400,
+                        style = StudioTypography.medium(12),
+                        color = StudioColors.Zinc400,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
@@ -69,7 +69,7 @@ fun TitleBar(modifier: Modifier = Modifier) {
                 .height(1.dp)
                 .background(
                     Brush.horizontalGradient(
-                        listOf(VoxelColors.Editor, VoxelColors.HeaderCloudy, VoxelColors.Editor)
+                        listOf(StudioColors.Editor, StudioColors.HeaderCloudy, StudioColors.Editor)
                     )
                 )
         )

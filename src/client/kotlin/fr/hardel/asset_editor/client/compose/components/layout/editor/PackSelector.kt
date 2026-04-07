@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -80,8 +80,8 @@ fun PackSelector(
                 anchorPosition = IntOffset(position.x.roundToInt(), position.y.roundToInt())
                 anchorSize = coordinates.size
             }
-            .background(if (hovered) VoxelColors.Zinc900 else Color.Transparent, packSelectorShape)
-            .border(1.dp, if (hovered) VoxelColors.Zinc700 else VoxelColors.Zinc800, packSelectorShape)
+            .background(if (hovered) StudioColors.Zinc900 else Color.Transparent, packSelectorShape)
+            .border(1.dp, if (hovered) StudioColors.Zinc700 else StudioColors.Zinc800, packSelectorShape)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
@@ -95,15 +95,15 @@ fun PackSelector(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            SvgIcon(FOLDER_ICON, 14.dp, VoxelColors.Zinc400)
+            SvgIcon(FOLDER_ICON, 14.dp, StudioColors.Zinc400)
             Text(
                 text = selectedPack?.name() ?: I18n.get("studio:pack.none"),
-                style = VoxelTypography.medium(12),
-                color = if (selectedPack == null) VoxelColors.Zinc500 else VoxelColors.Zinc200,
+                style = StudioTypography.medium(12),
+                color = if (selectedPack == null) StudioColors.Zinc500 else StudioColors.Zinc200,
                 maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
-            SvgIcon(CHEVRON_ICON, 10.dp, VoxelColors.Zinc500)
+            SvgIcon(CHEVRON_ICON, 10.dp, StudioColors.Zinc500)
         }
     }
 
@@ -120,8 +120,8 @@ fun PackSelector(
                 modifier = Modifier
                     .width(280.dp)
                     .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                    .border(1.dp, VoxelColors.Zinc800, popupShape)
-                    .background(VoxelColors.Zinc950, popupShape)
+                    .border(1.dp, StudioColors.Zinc800, popupShape)
+                    .background(StudioColors.Zinc950, popupShape)
                     .clip(popupShape)
             ) {
                 ShineOverlay(
@@ -140,8 +140,8 @@ fun PackSelector(
                 ) {
                     Text(
                         text = I18n.get("studio:pack.select"),
-                        style = VoxelTypography.semiBold(13),
-                        color = VoxelColors.Zinc300,
+                        style = StudioTypography.semiBold(13),
+                        color = StudioColors.Zinc300,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
@@ -162,7 +162,7 @@ fun PackSelector(
                             .padding(vertical = 6.dp)
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(VoxelColors.Zinc800)
+                            .background(StudioColors.Zinc800)
                     )
 
                     CreatePackButton {
@@ -198,7 +198,7 @@ private fun PackRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (!selected && hovered) VoxelColors.Zinc900 else Color.Transparent,
+                color = if (!selected && hovered) StudioColors.Zinc900 else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)
@@ -212,12 +212,12 @@ private fun PackRow(
         SvgIcon(
             location = FOLDER_ICON,
             size = 14.dp,
-            tint = if (selected) VoxelColors.Zinc200 else VoxelColors.Zinc400
+            tint = if (selected) StudioColors.Zinc200 else StudioColors.Zinc400
         )
         Text(
             text = pack.name(),
-            style = if (selected) VoxelTypography.semiBold(13) else VoxelTypography.medium(13),
-            color = if (selected) VoxelColors.Zinc100 else VoxelColors.Zinc300
+            style = if (selected) StudioTypography.semiBold(13) else StudioTypography.medium(13),
+            color = if (selected) StudioColors.Zinc100 else StudioColors.Zinc300
         )
     }
 }
@@ -236,7 +236,7 @@ private fun CreatePackButton(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = if (hovered) VoxelColors.Zinc900 else Color.Transparent,
+                color = if (hovered) StudioColors.Zinc900 else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)
@@ -247,11 +247,11 @@ private fun CreatePackButton(
             )
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        SvgIcon(PENCIL_ICON, 12.dp, VoxelColors.Zinc400)
+        SvgIcon(PENCIL_ICON, 12.dp, StudioColors.Zinc400)
         Text(
             text = I18n.get("studio:pack.create"),
-            style = VoxelTypography.medium(12),
-            color = VoxelColors.Zinc300
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc300
         )
     }
 }

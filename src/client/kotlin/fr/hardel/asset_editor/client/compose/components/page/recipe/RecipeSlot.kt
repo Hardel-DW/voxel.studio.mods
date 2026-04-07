@@ -24,8 +24,8 @@ import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import net.minecraft.resources.Identifier
 
@@ -51,8 +51,8 @@ fun RecipeSlot(
                 .size(48.dp)
                 .aspectRatio(1f)
                 .clip(RoundedCornerShape(6.dp))
-                .background(VoxelColors.Zinc800.copy(alpha = 0.5f))
-                .border(1.dp, if (hovered) VoxelColors.Zinc500 else VoxelColors.Zinc600, RoundedCornerShape(6.dp))
+                .background(StudioColors.Zinc800.copy(alpha = 0.5f))
+                .border(1.dp, if (hovered) StudioColors.Zinc500 else StudioColors.Zinc600, RoundedCornerShape(6.dp))
                 .hoverable(interaction)
                 .then(
                     if (interactive && (onPointerDown != null || onPointerEnter != null)) {
@@ -76,13 +76,13 @@ fun RecipeSlot(
                 displayId != null -> ItemSprite(displayId, 32.dp)
                 item.isNotEmpty() -> Text(
                     text = item.first().removePrefix("#"),
-                    style = VoxelTypography.bold(8).copy(fontFamily = FontFamily.Monospace),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.bold(8).copy(fontFamily = FontFamily.Monospace),
+                    color = StudioColors.Zinc400
                 )
                 isResult -> Text(
                     text = "?",
-                    style = VoxelTypography.bold(14),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.bold(14),
+                    color = StudioColors.Zinc400
                 )
             }
         }
@@ -92,13 +92,13 @@ fun RecipeSlot(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .background(VoxelColors.Zinc900, RoundedCornerShape(4.dp))
-                    .border(1.dp, VoxelColors.Zinc600, RoundedCornerShape(4.dp))
+                    .background(StudioColors.Zinc900, RoundedCornerShape(4.dp))
+                    .border(1.dp, StudioColors.Zinc600, RoundedCornerShape(4.dp))
             ) {
                 Text(
                     text = (count ?: item.size).toString(),
-                    style = VoxelTypography.regular(9),
-                    color = VoxelColors.Zinc300,
+                    style = StudioTypography.regular(9),
+                    color = StudioColors.Zinc300,
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                 )
             }

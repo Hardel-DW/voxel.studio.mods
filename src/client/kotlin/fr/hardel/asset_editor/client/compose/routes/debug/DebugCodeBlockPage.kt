@@ -19,8 +19,8 @@ import com.google.gson.JsonElement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.JsonOps
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
@@ -45,8 +45,8 @@ fun DebugCodeBlockPage() {
         Section(I18n.get("debug:code.title")) {
             androidx.compose.material.Text(
                 text = I18n.get("debug:code.description"),
-                style = VoxelTypography.regular(13),
-                color = VoxelColors.Zinc400
+                style = StudioTypography.regular(13),
+                color = StudioColors.Zinc400
             )
 
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -68,9 +68,9 @@ private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
     CodeBlockState().apply {
         JsonCodeBlockHighlighter.installDefaultPalette(palette)
         highlighter = JsonCodeBlockHighlighter()
-        textFill = VoxelColors.Zinc300
-        backgroundFill = VoxelColors.Zinc950
-        borderFill = VoxelColors.Zinc800
+        textFill = StudioColors.Zinc300
+        backgroundFill = StudioColors.Zinc950
+        borderFill = StudioColors.Zinc800
         textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
         contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)
         lineSpacing = 5.sp

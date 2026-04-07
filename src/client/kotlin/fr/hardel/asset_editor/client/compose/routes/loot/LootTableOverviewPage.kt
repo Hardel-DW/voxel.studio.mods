@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
@@ -49,13 +49,13 @@ fun LootTableOverviewPage(context: StudioContext) {
             ) {
                 Text(
                     text = I18n.get("loot:overview.empty.title"),
-                    style = VoxelTypography.medium(20),
-                    color = VoxelColors.Zinc300
+                    style = StudioTypography.medium(20),
+                    color = StudioColors.Zinc300
                 )
                 Text(
                     text = I18n.get("loot:overview.empty.description"),
-                    style = VoxelTypography.regular(14),
-                    color = VoxelColors.Zinc500
+                    style = StudioTypography.regular(14),
+                    color = StudioColors.Zinc500
                 )
             }
         }

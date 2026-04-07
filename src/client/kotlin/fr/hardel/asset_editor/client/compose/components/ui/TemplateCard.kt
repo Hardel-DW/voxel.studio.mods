@@ -12,8 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
 @Composable
@@ -41,14 +41,14 @@ fun TemplateCard(
         ) {
             Text(
                 text = title,
-                style = VoxelTypography.semiBold(18),
-                color = VoxelColors.Zinc100
+                style = StudioTypography.semiBold(18),
+                color = StudioColors.Zinc100
             )
             if (description != null) {
                 Text(
                     text = description,
-                    style = VoxelTypography.regular(14),
-                    color = VoxelColors.Zinc400
+                    style = StudioTypography.regular(14),
+                    color = StudioColors.Zinc400
                 )
             }
         }

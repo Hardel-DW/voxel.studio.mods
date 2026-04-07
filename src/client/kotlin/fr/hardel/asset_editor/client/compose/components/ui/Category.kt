@@ -13,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun Category(
@@ -34,19 +34,19 @@ fun Category(
                 Modifier
                     .weight(1f)
                     .height(4.dp)
-                    .background(VoxelColors.Zinc700)
+                    .background(StudioColors.Zinc700)
             )
             Text(
                 text = title,
-                style = VoxelTypography.semiBold(24),
-                color = VoxelColors.Zinc100,
+                style = StudioTypography.semiBold(24),
+                color = StudioColors.Zinc100,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
             Box(
                 Modifier
                     .weight(1f)
                     .height(4.dp)
-                    .background(VoxelColors.Zinc700)
+                    .background(StudioColors.Zinc700)
             )
         }
 

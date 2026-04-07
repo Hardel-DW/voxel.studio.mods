@@ -27,8 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeOverviewCard
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
@@ -90,7 +90,7 @@ fun RecipeOverviewPage(context: StudioContext) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(VoxelColors.Zinc950.copy(alpha = 0.75f))
+                .background(StudioColors.Zinc950.copy(alpha = 0.75f))
                 .padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             InputText(
@@ -113,7 +113,7 @@ fun RecipeOverviewPage(context: StudioContext) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .background(VoxelColors.Zinc900.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                            .background(StudioColors.Zinc900.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
                             .padding(28.dp)
                     ) {
                         SvgIcon(SEARCH_ICON, 40.dp, Color.White.copy(alpha = 0.2f))
@@ -121,13 +121,13 @@ fun RecipeOverviewPage(context: StudioContext) {
 
                     Text(
                         text = I18n.get("recipe:overview.no.recipes.found"),
-                        style = VoxelTypography.medium(20),
-                        color = VoxelColors.Zinc300
+                        style = StudioTypography.medium(20),
+                        color = StudioColors.Zinc300
                     )
                     Text(
                         text = I18n.get("recipe:overview.try.adjusting.search.or.filter"),
-                        style = VoxelTypography.regular(14),
-                        color = VoxelColors.Zinc500
+                        style = StudioTypography.regular(14),
+                        color = StudioColors.Zinc500
                     )
                 }
             }
@@ -162,8 +162,8 @@ fun RecipeOverviewPage(context: StudioContext) {
                         ) {
                             Text(
                                 text = I18n.get("recipe:inventory.loading_more"),
-                                style = VoxelTypography.regular(12),
-                                color = VoxelColors.Zinc500
+                                style = StudioTypography.regular(12),
+                                color = StudioColors.Zinc500
                             )
                         }
                     }

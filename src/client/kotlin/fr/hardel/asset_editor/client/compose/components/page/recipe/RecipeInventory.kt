@@ -32,8 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
@@ -99,7 +99,7 @@ fun RecipeInventory(
         modifier = modifier
             .fillMaxHeight()
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .border(1.dp, VoxelColors.Zinc900, RoundedCornerShape(12.dp))
+            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(12.dp))
     ) {
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.12f)
 
@@ -112,13 +112,13 @@ fun RecipeInventory(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = I18n.get("recipe:inventory.title"),
-                            style = VoxelTypography.bold(20),
+                            style = StudioTypography.bold(20),
                             color = Color.White
                         )
                         Text(
                             text = I18n.get("recipe:inventory.description"),
-                            style = VoxelTypography.regular(14),
-                            color = VoxelColors.Zinc400
+                            style = StudioTypography.regular(14),
+                            color = StudioColors.Zinc400
                         )
                     }
 
@@ -134,7 +134,7 @@ fun RecipeInventory(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
-                        .background(VoxelColors.Zinc800.copy(alpha = 0.5f))
+                        .background(StudioColors.Zinc800.copy(alpha = 0.5f))
                         .padding(vertical = 0.5.dp)
                 )
             }
@@ -170,8 +170,8 @@ fun RecipeInventory(
                                 ) {
                                     Text(
                                         text = I18n.get("recipe:inventory.loading_more"),
-                                        style = VoxelTypography.regular(12),
-                                        color = VoxelColors.Zinc500
+                                        style = StudioTypography.regular(12),
+                                        color = StudioColors.Zinc500
                                     )
                                 }
                             }
@@ -209,7 +209,7 @@ private fun InventoryStatus(text: String) {
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxHeight().fillMaxWidth()
     ) {
-        Text(text = text, style = VoxelTypography.regular(14), color = VoxelColors.Zinc400)
+        Text(text = text, style = StudioTypography.regular(14), color = StudioColors.Zinc400)
     }
 }
 
@@ -222,6 +222,6 @@ private fun InventoryLoading(text: String, modifier: Modifier = Modifier) {
             .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(8.dp))
             .padding(vertical = 8.dp, horizontal = 12.dp)
     ) {
-        Text(text = text, style = VoxelTypography.regular(12), color = VoxelColors.Zinc400)
+        Text(text = text, style = StudioTypography.regular(12), color = StudioColors.Zinc400)
     }
 }

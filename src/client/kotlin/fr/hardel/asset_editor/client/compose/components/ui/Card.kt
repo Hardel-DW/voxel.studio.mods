@@ -17,8 +17,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
 private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
@@ -51,8 +51,8 @@ fun Card(
                     if (lockText != null) {
                         Text(
                             text = lockText,
-                            style = VoxelTypography.light(11),
-                            color = VoxelColors.Zinc400,
+                            style = StudioTypography.light(11),
+                            color = StudioColors.Zinc400,
                             modifier = Modifier.align(Alignment.BottomEnd)
                         )
                     }
@@ -77,14 +77,14 @@ fun Card(
             ) {
                 Text(
                     text = title,
-                    style = VoxelTypography.semiBold(16),
-                    color = VoxelColors.Zinc100
+                    style = StudioTypography.semiBold(16),
+                    color = StudioColors.Zinc100
                 )
                 if (description != null) {
                     Text(
                         text = description,
-                        style = VoxelTypography.regular(13),
-                        color = VoxelColors.Zinc400
+                        style = StudioTypography.regular(13),
+                        color = StudioColors.Zinc400
                     )
                 }
             }

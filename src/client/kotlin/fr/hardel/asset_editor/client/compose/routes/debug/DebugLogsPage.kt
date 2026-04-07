@@ -18,8 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -58,8 +58,8 @@ fun DebugLogsPage(context: StudioContext) {
         ) {
             Text(
                 text = I18n.get("debug:logs.count", entries.size),
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
             )
             Spacer(modifier = Modifier.weight(1f))
             Button(
@@ -98,16 +98,16 @@ fun DebugLogsPage(context: StudioContext) {
             items = entries,
             columns = listOf(
                 TableColumn(I18n.get("debug:logs.column.time"), weight = 0.8f) { entry ->
-                    Text(TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = VoxelTypography.regular(11), color = VoxelColors.Zinc500)
+                    Text(TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
                 },
                 TableColumn(I18n.get("debug:logs.column.level"), weight = 0.7f) { entry ->
-                    Text(I18n.get("debug:logs.level.${entry.level().name.lowercase()}"), style = VoxelTypography.semiBold(11), color = levelColor(entry.level()))
+                    Text(I18n.get("debug:logs.level.${entry.level().name.lowercase()}"), style = StudioTypography.semiBold(11), color = levelColor(entry.level()))
                 },
                 TableColumn(I18n.get("debug:logs.column.category"), weight = 0.9f) { entry ->
-                    Text(I18n.get("debug:logs.category.${entry.category().name.lowercase()}"), style = VoxelTypography.medium(11), color = VoxelColors.Zinc400)
+                    Text(I18n.get("debug:logs.category.${entry.category().name.lowercase()}"), style = StudioTypography.medium(11), color = StudioColors.Zinc400)
                 },
                 TableColumn(I18n.get("debug:logs.column.message"), weight = 2.6f) { entry ->
-                    Text(entry.message(), style = VoxelTypography.regular(13), color = VoxelColors.Zinc300)
+                    Text(entry.message(), style = StudioTypography.regular(13), color = StudioColors.Zinc300)
                 }
             ),
             pageSize = 50,
@@ -121,8 +121,8 @@ fun DebugLogsPage(context: StudioContext) {
                 if (entry.data().isEmpty()) {
                     Text(
                         text = I18n.get("debug:logs.no_additional_data"),
-                        style = VoxelTypography.regular(12),
-                        color = VoxelColors.Zinc500
+                        style = StudioTypography.regular(12),
+                        color = StudioColors.Zinc500
                     )
                 } else {
                     Column(
@@ -135,8 +135,8 @@ fun DebugLogsPage(context: StudioContext) {
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(key, style = VoxelTypography.medium(11), color = VoxelColors.Zinc500)
-                                Text(value, style = VoxelTypography.regular(12), color = VoxelColors.Zinc300, modifier = Modifier.weight(1f))
+                                Text(key, style = StudioTypography.medium(11), color = StudioColors.Zinc500)
+                                Text(value, style = StudioTypography.regular(12), color = StudioColors.Zinc300, modifier = Modifier.weight(1f))
                                 CopyButton(textProvider = { value })
                             }
                         }
@@ -152,8 +152,8 @@ fun DebugLogsPage(context: StudioContext) {
 
 private fun levelColor(level: DebugLogMemory.Level): Color =
     when (level) {
-        DebugLogMemory.Level.INFO -> VoxelColors.Sky400
-        DebugLogMemory.Level.WARN -> VoxelColors.Amber400
-        DebugLogMemory.Level.ERROR -> VoxelColors.Red400
-        DebugLogMemory.Level.SUCCESS -> VoxelColors.Emerald400
+        DebugLogMemory.Level.INFO -> StudioColors.Sky400
+        DebugLogMemory.Level.WARN -> StudioColors.Amber400
+        DebugLogMemory.Level.ERROR -> StudioColors.Red400
+        DebugLogMemory.Level.SUCCESS -> StudioColors.Emerald400
     }

@@ -12,8 +12,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioTranslation
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
@@ -23,7 +24,6 @@ import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.resources.Identifier
 
@@ -139,8 +139,8 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
             if (effects.isEmpty()) {
                 Text(
                     text = I18n.get("enchantment:technical.empty_effects"),
-                    style = VoxelTypography.regular(14),
-                    color = VoxelColors.Zinc400,
+                    style = StudioTypography.regular(14),
+                    color = StudioColors.Zinc400,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
             } else {
@@ -149,7 +149,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                         {
                             val effectKey = Identifier.tryParse(effectId)
                             val effectLabel =
-                                if (effectKey != null) StudioText.resolve("effect", effectKey) else effectId
+                                if (effectKey != null) StudioTranslation.resolve("effect", effectKey) else effectId
                             val descKey = if (effectKey != null) "effect:$effectKey.desc" else ""
                             SwitchCard(
                                 title = effectLabel,

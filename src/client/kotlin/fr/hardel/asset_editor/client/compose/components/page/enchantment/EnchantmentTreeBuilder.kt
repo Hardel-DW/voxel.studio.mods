@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
-import fr.hardel.asset_editor.client.compose.lib.StudioText
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import java.util.Locale
@@ -60,7 +60,7 @@ object EnchantmentTreeBuilder {
 
             val category = createCategoryNode(matching)
             category.icon = tag.icon()
-            category.label = StudioText.resolve("item_tag", tag.tagId)
+            category.label = StudioTranslation.resolve("item_tag", tag.tagId)
             root.children[tag.key()] = category
         }
     }
@@ -89,7 +89,7 @@ object EnchantmentTreeBuilder {
             val category = createCategoryNode(value)
             val tagId = Identifier.tryParse(key)
             category.label = if (tagId != null) {
-                StudioText.resolve("enchantment_tag", tagId)
+                StudioTranslation.resolve("enchantment_tag", tagId)
             } else {
                 key.lowercase(Locale.ROOT)
             }

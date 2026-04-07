@@ -21,7 +21,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResponsiveGrid
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.StudioText
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
@@ -31,7 +31,6 @@ import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegist
 import fr.hardel.asset_editor.workspace.action.enchantment.SetPrimaryItemsAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
 private val NONE_IMAGE = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/cross.png")
@@ -77,7 +76,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                             val selected = if (section == "primaryItems") primaryTag == tag.tagId else supportedTag == tag.tagId
                             Card(
                                 imageId = tag.icon(),
-                                title = StudioText.resolve("item_tag", tag.tagId),
+                                title = StudioTranslation.resolve("item_tag", tag.tagId),
                                 active = selected,
                                 onActiveChange = {
                                     val action = if (section == "primaryItems") {

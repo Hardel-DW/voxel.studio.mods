@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
@@ -40,7 +40,7 @@ fun FileInput(
             .height(80.dp)
             .border(
                 width = 2.dp,
-                color = VoxelColors.Zinc700.copy(alpha = 0.5f),
+                color = StudioColors.Zinc700.copy(alpha = 0.5f),
                 shape = RoundedCornerShape(12.dp)
             )
             .pointerHoverIcon(PointerIcon.Hand)
@@ -62,8 +62,8 @@ fun FileInput(
     ) {
         Text(
             text = selectedFileName ?: promptText,
-            style = VoxelTypography.regular(12),
-            color = if (selectedFileName != null) VoxelColors.Zinc200 else VoxelColors.Zinc500
+            style = StudioTypography.regular(12),
+            color = if (selectedFileName != null) StudioColors.Zinc200 else StudioColors.Zinc500
         )
     }
 }

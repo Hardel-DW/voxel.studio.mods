@@ -34,8 +34,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -79,7 +79,7 @@ fun EnchantmentTags(
             .clip(RoundedCornerShape(12.dp))
             .then(
                 if (isTarget) {
-                    Modifier.border(1.dp, VoxelColors.Zinc600, RoundedCornerShape(12.dp))
+                    Modifier.border(1.dp, StudioColors.Zinc600, RoundedCornerShape(12.dp))
                 } else {
                     Modifier
                 }
@@ -100,7 +100,7 @@ fun EnchantmentTags(
                 ) {
                     if (imageId != null) {
                         if (IconUtils.isSvgIcon(imageId)) {
-                            SvgIcon(imageId, 32.dp, VoxelColors.Zinc300)
+                            SvgIcon(imageId, 32.dp, StudioColors.Zinc300)
                         } else {
                             ResourceImageIcon(imageId, 32.dp)
                         }
@@ -112,13 +112,13 @@ fun EnchantmentTags(
                     ) {
                         Text(
                             text = title,
-                            style = VoxelTypography.regular(16),
+                            style = StudioTypography.regular(16),
                             color = Color.White
                         )
                         Text(
                             text = description,
-                            style = VoxelTypography.light(12),
-                            color = VoxelColors.Zinc400
+                            style = StudioTypography.light(12),
+                            color = StudioColors.Zinc400
                         )
                     }
                 }
@@ -128,7 +128,7 @@ fun EnchantmentTags(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(1.dp)
-                            .background(VoxelColors.Zinc700)
+                            .background(StudioColors.Zinc700)
                     )
 
                     Column(
@@ -151,8 +151,8 @@ fun EnchantmentTags(
                     if (remainingValues.isNotEmpty()) {
                         Text(
                             text = "${I18n.get("generic:see.more")} (${remainingValues.size})",
-                            style = VoxelTypography.regular(12),
-                            color = if (seeMoreHovered) VoxelColors.Zinc200 else VoxelColors.Zinc400,
+                            style = StudioTypography.regular(12),
+                            color = if (seeMoreHovered) StudioColors.Zinc200 else StudioColors.Zinc400,
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
                                 .hoverable(seeMoreInteraction)
@@ -171,7 +171,7 @@ fun EnchantmentTags(
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 modifier = Modifier
-                                    .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
+                                    .background(StudioColors.Zinc950, RoundedCornerShape(12.dp))
                                     .padding(12.dp)
                             ) {
                                 remainingValues.forEach { value ->
@@ -198,7 +198,7 @@ fun EnchantmentTags(
                             Column(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier
-                                    .background(VoxelColors.Zinc950, RoundedCornerShape(12.dp))
+                                    .background(StudioColors.Zinc950, RoundedCornerShape(12.dp))
                                     .padding(12.dp)
                             ) {
                                 ActionRow(
@@ -241,12 +241,12 @@ fun EnchantmentTags(
 private fun TagChip(value: String) {
     Text(
         text = value,
-        style = VoxelTypography.regular(12),
-        color = VoxelColors.Zinc400,
+        style = StudioTypography.regular(12),
+        color = StudioColors.Zinc400,
         modifier = Modifier
             .fillMaxWidth()
-            .background(VoxelColors.Zinc900.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
-            .border(1.dp, VoxelColors.Zinc900, RoundedCornerShape(6.dp))
+            .background(StudioColors.Zinc900.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(6.dp))
             .padding(horizontal = 8.dp, vertical = 2.dp)
     )
 }
@@ -271,7 +271,7 @@ private fun ActionRow(
             .clip(RoundedCornerShape(8.dp))
             .then(
                 if (isHovered && enabled) {
-                    Modifier.background(VoxelColors.Zinc900.copy(alpha = 0.5f))
+                    Modifier.background(StudioColors.Zinc900.copy(alpha = 0.5f))
                 } else {
                     Modifier
                 }
@@ -292,25 +292,25 @@ private fun ActionRow(
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = title,
-                    style = VoxelTypography.medium(13),
-                    color = VoxelColors.Zinc200
+                    style = StudioTypography.medium(13),
+                    color = StudioColors.Zinc200
                 )
                 if (subtitle.isNotBlank()) {
                     Text(
                         text = subtitle,
-                        style = VoxelTypography.regular(10),
-                        color = VoxelColors.Zinc500,
+                        style = StudioTypography.regular(10),
+                        color = StudioColors.Zinc500,
                         modifier = Modifier
-                            .background(VoxelColors.Zinc900.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
-                            .border(1.dp, VoxelColors.Zinc900, RoundedCornerShape(6.dp))
+                            .background(StudioColors.Zinc900.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(6.dp))
                             .padding(horizontal = 4.dp, vertical = 2.dp)
                     )
                 }
             }
             Text(
                 text = description,
-                style = VoxelTypography.regular(11),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(11),
+                color = StudioColors.Zinc500
             )
         }
 

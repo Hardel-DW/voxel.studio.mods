@@ -35,8 +35,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import kotlin.math.roundToInt
 
 private val RANGE_HEIGHT = 24.dp
@@ -111,14 +111,14 @@ fun Range(
         ) {
             Text(
                 text = displayLabel,
-                style = VoxelTypography.medium(13),
-                color = VoxelColors.Zinc400,
+                style = StudioTypography.medium(13),
+                color = StudioColors.Zinc400,
                 modifier = Modifier.weight(1f)
             )
             Text(
                 text = displayedValue.toString(),
-                style = VoxelTypography.medium(13),
-                color = VoxelColors.Zinc400,
+                style = StudioTypography.medium(13),
+                color = StudioColors.Zinc400,
                 textAlign = TextAlign.End
             )
         }
@@ -135,7 +135,7 @@ fun Range(
                     .align(Alignment.CenterStart)
                     .fillMaxWidth()
                     .height(RANGE_TRACK_HEIGHT)
-                    .background(VoxelColors.Tertiary, CircleShape)
+                    .background(StudioColors.Tertiary, CircleShape)
             )
 
             if (activeWidth > 0.dp) {
@@ -144,7 +144,7 @@ fun Range(
                         .align(Alignment.CenterStart)
                         .width(activeWidth)
                         .height(RANGE_HEIGHT)
-                        .background(VoxelColors.Primary, RANGE_ACTIVE_SHAPE)
+                        .background(StudioColors.Primary, RANGE_ACTIVE_SHAPE)
                 )
             }
 
@@ -158,7 +158,7 @@ fun Range(
                         )
                     }
                     .size(RANGE_VISUAL_THUMB_SIZE)
-                    .border(RANGE_VISUAL_THUMB_BORDER, VoxelColors.Primary, CircleShape)
+                    .border(RANGE_VISUAL_THUMB_BORDER, StudioColors.Primary, CircleShape)
                     .background(Color.Black, CircleShape)
             )
 

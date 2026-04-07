@@ -30,13 +30,13 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.layout.loading.WindowControls
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.lib.StudioText
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
@@ -69,7 +69,7 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .size(width = 1.dp, height = 24.dp)
-                .background(VoxelColors.Zinc700)
+                .background(StudioColors.Zinc700)
         )
 
         // div[role=tablist]: flex items-center gap-1 overflow-x-auto scrollbar-none
@@ -117,7 +117,7 @@ private fun StudioEditorTabItem(
     val conceptRegistryKey = context.studioRegistryKey(conceptId)
     val identifier = Identifier.tryParse(tab.destination.elementId)
     val label = if (identifier != null) {
-        StudioText.resolve(conceptRegistryKey, identifier)
+        StudioTranslation.resolve(conceptRegistryKey, identifier)
     } else {
         tab.destination.elementId
     }
@@ -131,8 +131,8 @@ private fun StudioEditorTabItem(
         modifier = Modifier
             .background(
                 color = when {
-                    active -> VoxelColors.Zinc800.copy(alpha = 0.8f)
-                    itemHovered -> VoxelColors.Zinc800.copy(alpha = 0.5f)
+                    active -> StudioColors.Zinc800.copy(alpha = 0.8f)
+                    itemHovered -> StudioColors.Zinc800.copy(alpha = 0.5f)
                     else -> Color.Transparent
                 },
                 shape = RoundedCornerShape(6.dp)
@@ -154,8 +154,8 @@ private fun StudioEditorTabItem(
         )
         Text(
             text = label,
-            style = VoxelTypography.medium(14),
-            color = if (active) VoxelColors.Zinc100 else VoxelColors.Zinc400,
+            style = StudioTypography.medium(14),
+            color = if (active) StudioColors.Zinc100 else StudioColors.Zinc400,
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
             modifier = Modifier.widthIn(max = 192.dp)
@@ -167,7 +167,7 @@ private fun StudioEditorTabItem(
                 .size(16.dp)
                 .alpha(if (active || itemHovered) 1f else 0f)
                 .background(
-                    color = if (closeHovered) VoxelColors.Zinc700 else Color.Transparent,
+                    color = if (closeHovered) StudioColors.Zinc700 else Color.Transparent,
                     shape = RoundedCornerShape(4.dp)
                 )
                 .hoverable(closeInteraction)
@@ -182,7 +182,7 @@ private fun StudioEditorTabItem(
             SvgIcon(
                 location = CLOSE_ICON,
                 size = 10.dp,
-                tint = if (closeHovered) Color.White else if (active) VoxelColors.Zinc200 else VoxelColors.Zinc400
+                tint = if (closeHovered) Color.White else if (active) StudioColors.Zinc200 else StudioColors.Zinc400
             )
         }
     }

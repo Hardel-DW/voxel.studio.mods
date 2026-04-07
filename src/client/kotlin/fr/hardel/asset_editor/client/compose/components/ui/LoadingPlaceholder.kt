@@ -6,8 +6,8 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun LoadingPlaceholder(message: String, modifier: Modifier = Modifier) {
@@ -17,8 +17,8 @@ fun LoadingPlaceholder(message: String, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = message,
-            style = VoxelTypography.medium(14),
-            color = VoxelColors.Zinc500
+            style = StudioTypography.medium(14),
+            color = StudioColors.Zinc500
         )
     }
 }

@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ContentRow
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
@@ -117,19 +117,19 @@ private fun EmptyOverviewState() {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(96.dp)
-                    .background(VoxelColors.Zinc900.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
+                    .background(StudioColors.Zinc900.copy(alpha = 0.5f), androidx.compose.foundation.shape.CircleShape)
             ) {
                 SvgIcon(SEARCH_ICON, 40.dp, Color.White.copy(alpha = 0.2f))
             }
             Text(
                 text = I18n.get("enchantment:items.no_results.title"),
-                style = VoxelTypography.medium(20),
-                color = VoxelColors.Zinc300
+                style = StudioTypography.medium(20),
+                color = StudioColors.Zinc300
             )
             Text(
                 text = I18n.get("enchantment:items.no_results.description"),
-                style = VoxelTypography.regular(14),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(14),
+                color = StudioColors.Zinc500
             )
         }
     }
@@ -157,11 +157,11 @@ private fun OverviewRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (hovered) VoxelColors.Zinc900.copy(alpha = 0.6f) else VoxelColors.Zinc950.copy(alpha = 0.3f))
+            .background(if (hovered) StudioColors.Zinc900.copy(alpha = 0.6f) else StudioColors.Zinc950.copy(alpha = 0.3f))
             .drawBehind {
                 val stroke = 1.dp.toPx()
                 drawLine(
-                    color = VoxelColors.Zinc800.copy(alpha = 0.3f),
+                    color = StudioColors.Zinc800.copy(alpha = 0.3f),
                     start = Offset(0f, size.height - stroke / 2f),
                     end = Offset(size.width, size.height - stroke / 2f),
                     strokeWidth = stroke
@@ -180,7 +180,7 @@ private fun OverviewRow(
                     if (itemId != null) {
                         ItemSprite(itemId, 32.dp)
                     } else {
-                        Text("?", style = VoxelTypography.semiBold(10), color = VoxelColors.Zinc500)
+                        Text("?", style = StudioTypography.semiBold(10), color = StudioColors.Zinc500)
                     }
                 }
             },
@@ -200,8 +200,8 @@ private fun OverviewRow(
         ) {
             Text(
                 text = entry.data().description().string,
-                style = VoxelTypography.medium(14),
-                color = VoxelColors.Zinc200
+                style = StudioTypography.medium(14),
+                color = StudioColors.Zinc200
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -209,18 +209,18 @@ private fun OverviewRow(
             ) {
                 Text(
                     text = entry.id().toString(),
-                    style = VoxelTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
-                    color = VoxelColors.Zinc500
+                    style = StudioTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
+                    color = StudioColors.Zinc500
                 )
                 Text(
                     text = "\u2022",
-                    style = VoxelTypography.regular(10),
-                    color = VoxelColors.Zinc600
+                    style = StudioTypography.regular(10),
+                    color = StudioColors.Zinc600
                 )
                 Text(
                     text = "${I18n.get("enchantment:overview.level")} ${entry.data().maxLevel}",
-                    style = VoxelTypography.regular(10),
-                    color = VoxelColors.Zinc500
+                    style = StudioTypography.regular(10),
+                    color = StudioColors.Zinc500
                 )
             }
         }

@@ -29,11 +29,10 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeRuntimeEntry
 import net.minecraft.client.resources.language.I18n
 
@@ -44,7 +43,7 @@ fun RecipeOverviewCard(
     modifier: Modifier = Modifier
 ) {
     val interaction = remember(element.id) { MutableInteractionSource() }
-    val borderColor = VoxelColors.Zinc900
+    val borderColor = StudioColors.Zinc900
     val entryConfig = RecipeTreeData.getEntryByRecipeType(element.type)
 
     // TSX: bg-black/35 border-t-2 border-l-2 border-zinc-900 rounded-xl
@@ -78,15 +77,15 @@ fun RecipeOverviewCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = I18n.get(entryConfig.translationKey),
-                        style = VoxelTypography.semiBold(14),
+                        style = StudioTypography.semiBold(14),
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = element.id.toString(),
-                        style = VoxelTypography.regular(11),
-                        color = VoxelColors.Zinc500,
+                        style = StudioTypography.regular(11),
+                        color = StudioColors.Zinc500,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -101,7 +100,7 @@ fun RecipeOverviewCard(
                     .fillMaxWidth()
                     .drawBehind {
                         drawLine(
-                            VoxelColors.Zinc800.copy(alpha = 0.5f),
+                            StudioColors.Zinc800.copy(alpha = 0.5f),
                             Offset(0f, 0f),
                             Offset(size.width, 0f),
                             strokeWidth = 1.dp.toPx()
@@ -111,13 +110,13 @@ fun RecipeOverviewCard(
             ) {
                 Text(
                     text = I18n.get("generic:configure"),
-                    style = VoxelTypography.medium(12),
-                    color = VoxelColors.Zinc300,
+                    style = StudioTypography.medium(12),
+                    color = StudioColors.Zinc300,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(VoxelColors.Zinc800.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                        .border(1.dp, VoxelColors.Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .background(StudioColors.Zinc800.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                        .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }

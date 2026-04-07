@@ -41,7 +41,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 private val WIDTH_DEFAULT = 80.dp
 private val WIDTH_HOVER = 128.dp
@@ -120,7 +120,7 @@ fun Counter(
             BasicTextField(
                 value = editText,
                 onValueChange = { editText = sanitizeInput(it) },
-                textStyle = VoxelTypography.bold(20).copy(color = Color.White, textAlign = TextAlign.Center),
+                textStyle = StudioTypography.bold(20).copy(color = Color.White, textAlign = TextAlign.Center),
                 cursorBrush = SolidColor(Color.White),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
@@ -142,7 +142,7 @@ fun Counter(
         } else {
             Text(
                 text = displayValue,
-                style = VoxelTypography.bold(20),
+                style = StudioTypography.bold(20),
                 color = Color.White,
                 modifier = Modifier
                     .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Text) else Modifier)

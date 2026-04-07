@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
@@ -56,7 +56,7 @@ fun ConceptLayout(
     Row(
         modifier = modifier
             .fillMaxSize()
-            .background(VoxelColors.Zinc950)
+            .background(StudioColors.Zinc950)
     ) {
         // aside: EditorSidebar equivalent
         EditorSidebar(
@@ -72,7 +72,7 @@ fun ConceptLayout(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth()
-                .background(VoxelColors.Zinc950)
+                .background(StudioColors.Zinc950)
         ) {
             EditorHeader(
                 context = context,

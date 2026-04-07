@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,8 +12,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -34,19 +33,19 @@ fun NoPermissionPage(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(modifier = Modifier.alpha(0.5f)) {
-                SvgIcon(location = LOCK_ICON, size = 48.dp, tint = VoxelColors.Zinc500)
+                SvgIcon(location = LOCK_ICON, size = 48.dp, tint = StudioColors.Zinc500)
             }
 
             Text(
                 text = I18n.get("studio:permission.no_access.title"),
-                style = VoxelTypography.bold(20),
-                color = VoxelColors.Zinc400
+                style = StudioTypography.bold(20),
+                color = StudioColors.Zinc400
             )
 
             Text(
                 text = I18n.get("studio:permission.no_access.description"),
-                style = VoxelTypography.regular(14),
-                color = VoxelColors.Zinc600,
+                style = StudioTypography.regular(14),
+                color = StudioColors.Zinc600,
                 textAlign = TextAlign.Center
             )
         }

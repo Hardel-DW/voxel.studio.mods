@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.network.data;
 
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -31,5 +32,13 @@ public final class ServerDataKeys {
 
     public static Collection<ServerDataKey<?>> all() {
         return List.copyOf(KEYS.values());
+    }
+
+    public static ServerDataSyncPayload resolve(Identifier id, MinecraftServer server) {
+        return createPayload(get(id), server);
+    }
+
+    private static <T> ServerDataSyncPayload createPayload(ServerDataKey<T> key, MinecraftServer server) {
+        return ServerDataSyncPayload.create(key, key.provider().apply(server));
     }
 }

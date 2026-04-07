@@ -37,8 +37,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 enum class ButtonVariant {
     DEFAULT, BLACK, GHOST, GHOST_BORDER, AURORA, TRANSPARENT, LINK, SHIMMER, PATREON
@@ -102,7 +102,7 @@ fun Button(
             if (text != null) {
                 Text(
                     text = text,
-                    style = VoxelTypography.medium(14),
+                    style = StudioTypography.medium(14),
                     color = textColor
                 )
             }
@@ -111,14 +111,14 @@ fun Button(
 }
 
 private fun buttonTextColor(variant: ButtonVariant, hovered: Boolean): Color = when (variant) {
-    ButtonVariant.DEFAULT -> VoxelColors.Zinc800
-    ButtonVariant.BLACK -> VoxelColors.Zinc200
-    ButtonVariant.GHOST -> if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc200
-    ButtonVariant.GHOST_BORDER -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc200
-    ButtonVariant.AURORA -> if (hovered) VoxelColors.Zinc100 else VoxelColors.Zinc400
-    ButtonVariant.TRANSPARENT -> VoxelColors.Zinc200
-    ButtonVariant.LINK -> if (hovered) Color.White else VoxelColors.Zinc400
-    ButtonVariant.SHIMMER -> VoxelColors.Background
+    ButtonVariant.DEFAULT -> StudioColors.Zinc800
+    ButtonVariant.BLACK -> StudioColors.Zinc200
+    ButtonVariant.GHOST -> if (hovered) StudioColors.Zinc800 else StudioColors.Zinc200
+    ButtonVariant.GHOST_BORDER -> if (hovered) StudioColors.Zinc100 else StudioColors.Zinc200
+    ButtonVariant.AURORA -> if (hovered) StudioColors.Zinc100 else StudioColors.Zinc400
+    ButtonVariant.TRANSPARENT -> StudioColors.Zinc200
+    ButtonVariant.LINK -> if (hovered) Color.White else StudioColors.Zinc400
+    ButtonVariant.SHIMMER -> StudioColors.Background
     ButtonVariant.PATREON -> Color.White
 }
 
@@ -139,32 +139,32 @@ private fun buttonPadding(size: ButtonSize) = when (size) {
 }
 
 private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifier = when (variant) {
-    ButtonVariant.DEFAULT -> Modifier.background(if (hovered) VoxelColors.Zinc300 else VoxelColors.Zinc200)
-    ButtonVariant.BLACK -> Modifier.background(if (hovered) VoxelColors.Zinc900 else Color.Black)
-    ButtonVariant.GHOST -> Modifier.background(if (hovered) VoxelColors.Zinc200 else Color.Transparent)
+    ButtonVariant.DEFAULT -> Modifier.background(if (hovered) StudioColors.Zinc300 else StudioColors.Zinc200)
+    ButtonVariant.BLACK -> Modifier.background(if (hovered) StudioColors.Zinc900 else Color.Black)
+    ButtonVariant.GHOST -> Modifier.background(if (hovered) StudioColors.Zinc200 else Color.Transparent)
     ButtonVariant.GHOST_BORDER -> Modifier.background(Color.Transparent)
     ButtonVariant.AURORA -> Modifier.background(
         Brush.horizontalGradient(
             colors = listOf(
                 Color.Transparent,
                 Color.Transparent,
-                VoxelColors.Zinc700.copy(alpha = 0.3f)
+                StudioColors.Zinc700.copy(alpha = 0.3f)
             )
         )
     )
     ButtonVariant.TRANSPARENT -> Modifier.background(if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent)
     ButtonVariant.LINK -> Modifier.background(Color.Transparent)
-    ButtonVariant.SHIMMER -> Modifier.background(VoxelColors.Zinc100)
+    ButtonVariant.SHIMMER -> Modifier.background(StudioColors.Zinc100)
     ButtonVariant.PATREON -> Modifier.background(Color(0xFFC2410C))
 }
 
 private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier = when (variant) {
     ButtonVariant.DEFAULT, ButtonVariant.BLACK, ButtonVariant.GHOST, ButtonVariant.TRANSPARENT ->
-        Modifier.border(2.dp, VoxelColors.Zinc500, RoundedCornerShape(12.dp))
+        Modifier.border(2.dp, StudioColors.Zinc500, RoundedCornerShape(12.dp))
     ButtonVariant.GHOST_BORDER ->
-        Modifier.border(2.dp, if (hovered) VoxelColors.Zinc700 else VoxelColors.Zinc900, RoundedCornerShape(12.dp))
+        Modifier.border(2.dp, if (hovered) StudioColors.Zinc700 else StudioColors.Zinc900, RoundedCornerShape(12.dp))
     ButtonVariant.AURORA ->
-        Modifier.border(2.dp, if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc900, RoundedCornerShape(12.dp))
+        Modifier.border(2.dp, if (hovered) StudioColors.Zinc800 else StudioColors.Zinc900, RoundedCornerShape(12.dp))
     else -> Modifier
 }
 
@@ -189,13 +189,13 @@ private fun buttonEffects(variant: ButtonVariant): Modifier {
         if (variant == ButtonVariant.SHIMMER) {
             val strokeWidth = 1.dp.toPx()
             drawLine(
-                color = VoxelColors.Zinc900,
+                color = StudioColors.Zinc900,
                 start = Offset(0f, strokeWidth / 2f),
                 end = Offset(size.width, strokeWidth / 2f),
                 strokeWidth = strokeWidth
             )
             drawLine(
-                color = VoxelColors.Zinc900,
+                color = StudioColors.Zinc900,
                 start = Offset(strokeWidth / 2f, 0f),
                 end = Offset(strokeWidth / 2f, size.height),
                 strokeWidth = strokeWidth

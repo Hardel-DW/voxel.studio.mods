@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.lib.highlight.Highlight
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightPalette
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRange
@@ -59,9 +59,9 @@ class CodeBlockState {
         }
 
     var textStyle by mutableStateOf(DEFAULT_TEXT_STYLE)
-    var textFill by mutableStateOf(VoxelColors.Zinc300)
-    var backgroundFill by mutableStateOf(VoxelColors.Zinc950)
-    var borderFill by mutableStateOf(VoxelColors.Zinc800)
+    var textFill by mutableStateOf(StudioColors.Zinc300)
+    var backgroundFill by mutableStateOf(StudioColors.Zinc950)
+    var borderFill by mutableStateOf(StudioColors.Zinc800)
     var contentPadding by mutableStateOf(PaddingValues(14.dp))
     var lineSpacing by mutableStateOf(4.sp)
     var wrapText by mutableStateOf(false)

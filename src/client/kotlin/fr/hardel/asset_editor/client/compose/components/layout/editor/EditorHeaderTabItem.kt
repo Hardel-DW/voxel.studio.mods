@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun EditorHeaderTabItem(
@@ -63,11 +63,11 @@ fun EditorHeaderTabItem(
     ) {
         Text(
             text = label,
-            style = VoxelTypography.medium(13),
+            style = StudioTypography.medium(13),
             color = when {
                 active -> Color.White
-                hovered -> VoxelColors.Zinc300
-                else -> VoxelColors.Zinc400
+                hovered -> StudioColors.Zinc300
+                else -> StudioColors.Zinc400
             }
         )
     }

@@ -25,8 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.client.resources.language.I18n
 
 @Composable
@@ -85,7 +85,7 @@ fun ContentRow(
                     Modifier
                         .width(1.dp)
                         .height(16.dp)
-                        .background(VoxelColors.Zinc800.copy(alpha = 0.5f))
+                        .background(StudioColors.Zinc800.copy(alpha = 0.5f))
                 )
 
                 Box(
@@ -93,10 +93,10 @@ fun ContentRow(
                     modifier = Modifier
                         .widthIn(min = 80.dp)
                         .background(
-                            color = if (actionHovered) VoxelColors.Zinc800 else VoxelColors.Zinc900,
+                            color = if (actionHovered) StudioColors.Zinc800 else StudioColors.Zinc900,
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .border(1.dp, VoxelColors.Zinc800, RoundedCornerShape(8.dp))
+                        .border(1.dp, StudioColors.Zinc800, RoundedCornerShape(8.dp))
                         .pointerHoverIcon(PointerIcon.Hand)
                         .clickable(
                             interactionSource = actionInteraction,
@@ -106,8 +106,8 @@ fun ContentRow(
                 ) {
                     Text(
                         text = I18n.get(actionKey ?: "generic:configure"),
-                        style = VoxelTypography.medium(12),
-                        color = if (actionHovered) Color.White else VoxelColors.Zinc400
+                        style = StudioTypography.medium(12),
+                        color = if (actionHovered) Color.White else StudioColors.Zinc400
                     )
                 }
             }

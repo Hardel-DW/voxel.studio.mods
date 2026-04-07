@@ -11,8 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -118,8 +118,8 @@ object PackCreateDialog {
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        style = VoxelTypography.regular(12),
-                        color = VoxelColors.Red400
+                        style = StudioTypography.regular(12),
+                        color = StudioColors.Red400
                     )
                 }
             }
@@ -131,8 +131,8 @@ object PackCreateDialog {
         // label: text-sm/compact helper above the field
         Text(
             text = I18n.get(key),
-            style = VoxelTypography.medium(12),
-            color = VoxelColors.Zinc300
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc300
         )
     }
 }

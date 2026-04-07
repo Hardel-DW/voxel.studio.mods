@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -89,13 +88,13 @@ fun SupportCard(modifier: Modifier = Modifier) {
             // Title + description
             Text(
                 text = I18n.get("supports:title"),
-                style = VoxelTypography.semiBold(30),
+                style = StudioTypography.semiBold(30),
                 color = Color.White
             )
             Text(
                 text = I18n.get("supports:description"),
-                style = VoxelTypography.regular(14),
-                color = VoxelColors.Zinc400,
+                style = StudioTypography.regular(14),
+                color = StudioColors.Zinc400,
                 modifier = Modifier.padding(top = 8.dp)
             )
 
@@ -109,7 +108,7 @@ fun SupportCard(modifier: Modifier = Modifier) {
                     // h3: text-white font-bold text-xl pb-4 pt-6
                     Text(
                         text = I18n.get("supports:advantages"),
-                        style = VoxelTypography.bold(20),
+                        style = StudioTypography.bold(20),
                         color = Color.White,
                         modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
                     )
@@ -172,8 +171,8 @@ private fun AdvantageItem(key: String) {
         SvgIcon(CHECK, 16.dp, Color.White)
         Text(
             text = I18n.get(key),
-            style = VoxelTypography.semiBold(14),
-            color = VoxelColors.Zinc300
+            style = StudioTypography.semiBold(14),
+            color = StudioColors.Zinc300
         )
     }
 }

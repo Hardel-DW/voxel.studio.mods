@@ -16,7 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 
 private val contentShape = RoundedCornerShape(topStart = 24.dp)
@@ -24,7 +24,7 @@ private val contentShape = RoundedCornerShape(topStart = 24.dp)
 @Composable
 fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
     // div: flex h-dvh w-full overflow-hidden bg-sidebar
-    Row(modifier = modifier.fillMaxSize().background(VoxelColors.Sidebar)) {
+    Row(modifier = modifier.fillMaxSize().background(StudioColors.Sidebar)) {
         // aside: shrink-0 w-16 flex flex-col
         StudioPrimarySidebar(
             context = context,
@@ -42,14 +42,14 @@ fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
                     .weight(1f)
                     .fillMaxSize()
                     .clip(contentShape)
-                    .background(VoxelColors.Content)
+                    .background(StudioColors.Content)
                     .drawWithContent {
                         drawContent()
                         val stroke = 1.dp.toPx()
                         val hs = stroke / 2f
                         val r = 24.dp.toPx()
                         val arcSize = Size((r - hs) * 2, (r - hs) * 2)
-                        val borderColor = VoxelColors.Zinc900
+                        val borderColor = StudioColors.Zinc900
 
                         drawLine(borderColor, Offset(hs, r), Offset(hs, size.height), strokeWidth = stroke)
                         drawArc(borderColor, 180f, 90f, false, Offset(hs, hs), arcSize, style = Stroke(stroke))

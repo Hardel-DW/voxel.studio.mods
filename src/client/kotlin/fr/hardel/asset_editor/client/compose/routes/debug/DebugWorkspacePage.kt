@@ -13,8 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -75,8 +75,8 @@ fun DebugWorkspacePage(context: StudioContext) {
                 } else {
                     Text(
                         text = snapshot.toString(),
-                        style = VoxelTypography.regular(12),
-                        color = VoxelColors.Zinc400
+                        style = StudioTypography.regular(12),
+                        color = StudioColors.Zinc400
                     )
                 }
             }

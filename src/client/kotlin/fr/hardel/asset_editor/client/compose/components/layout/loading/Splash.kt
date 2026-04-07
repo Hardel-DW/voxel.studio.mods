@@ -6,7 +6,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,8 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.AssetEditorClient
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.GridBackground
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
@@ -58,11 +57,11 @@ import net.minecraft.resources.Identifier
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
 private val GITHUB = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 
-private val DASHED_BORDER_COLOR = VoxelColors.HeaderCloudy
-private val CORNER_COLOR = VoxelColors.Zinc600
-private val DOT_1_COLOR = VoxelColors.Zinc500
-private val DOT_2_COLOR = VoxelColors.Zinc600
-private val DOT_3_COLOR = VoxelColors.Zinc700
+private val DASHED_BORDER_COLOR = StudioColors.HeaderCloudy
+private val CORNER_COLOR = StudioColors.Zinc600
+private val DOT_1_COLOR = StudioColors.Zinc500
+private val DOT_2_COLOR = StudioColors.Zinc600
+private val DOT_3_COLOR = StudioColors.Zinc700
 
 @Composable
 fun Splash(modifier: Modifier = Modifier) {
@@ -140,7 +139,7 @@ private fun FrameTop(modifier: Modifier = Modifier) {
             text = "BUILD ${AssetEditorClient.BUILD_VERSION}",
             fontFamily = FontFamily.Monospace,
             fontSize = 10.sp,
-            color = VoxelColors.Zinc600,
+            color = StudioColors.Zinc600,
             letterSpacing = 1.sp
         )
     }
@@ -159,7 +158,7 @@ private fun FrameBottom(modifier: Modifier = Modifier) {
             text = I18n.get("splash:help"),
             fontFamily = FontFamily.Monospace,
             fontSize = 10.sp,
-            color = if (helpHovered) VoxelColors.Zinc400 else VoxelColors.Zinc600,
+            color = if (helpHovered) StudioColors.Zinc400 else StudioColors.Zinc600,
             modifier = Modifier
                 .hoverable(helpInteraction)
                 .pointerHoverIcon(PointerIcon.Hand)
@@ -201,19 +200,19 @@ private fun CenterContent() {
 
         BasicText(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(brush = Brush.verticalGradient(listOf(Color.White, VoxelColors.Zinc400)))) {
+                withStyle(SpanStyle(brush = Brush.verticalGradient(listOf(Color.White, StudioColors.Zinc400)))) {
                     append(I18n.get("splash:title"))
                 }
             },
-            style = VoxelTypography.extraBold(36).copy(textAlign = TextAlign.Center)
+            style = StudioTypography.extraBold(36).copy(textAlign = TextAlign.Center)
         )
 
         Spacer(Modifier.height(4.dp))
 
         Text(
             text = I18n.get("splash:subtitle").uppercase(),
-            style = VoxelTypography.medium(12),
-            color = VoxelColors.Zinc500,
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc500,
             letterSpacing = 3.6.sp,
             textAlign = TextAlign.Center
         )
@@ -247,7 +246,7 @@ private fun LoadingText(modifier: Modifier = Modifier) {
         text = I18n.get("splash:loading").uppercase(),
         fontFamily = FontFamily.Monospace,
         fontSize = 10.sp,
-        color = VoxelColors.Zinc400,
+        color = StudioColors.Zinc400,
         letterSpacing = 1.sp,
         modifier = modifier.alpha(alpha)
     )

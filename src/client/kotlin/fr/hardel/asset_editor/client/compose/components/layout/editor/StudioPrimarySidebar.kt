@@ -26,7 +26,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -57,7 +57,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .background(VoxelColors.Sidebar)
+            .background(StudioColors.Sidebar)
     ) {
         // div: h-16 flex items-center justify-center
         Box(
@@ -130,11 +130,11 @@ private fun ConceptButton(
         modifier = Modifier
             .size(56.dp)
             .background(
-                color = if (active) VoxelColors.Zinc700.copy(alpha = 0.05f) else Color.Transparent,
+                color = if (active) StudioColors.Zinc700.copy(alpha = 0.05f) else Color.Transparent,
                 shape = shape
             )
             .then(
-                if (active) Modifier.border(1.dp, VoxelColors.Zinc800, shape)
+                if (active) Modifier.border(1.dp, StudioColors.Zinc800, shape)
                 else Modifier
             )
             .then(if (!active) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
@@ -162,7 +162,7 @@ private fun SidebarIconButton(icon: Identifier, onClick: () -> Unit) {
         SvgIcon(
             location = icon,
             size = 24.dp,
-            tint = if (isHovered) Color.White else VoxelColors.Zinc400
+            tint = if (isHovered) Color.White else StudioColors.Zinc400
         )
     }
 }

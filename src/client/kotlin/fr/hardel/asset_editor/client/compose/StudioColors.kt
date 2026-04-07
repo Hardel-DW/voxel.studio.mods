@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.compose
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-object VoxelColors {
+object StudioColors {
     // Tailwind Colors
     val Zinc50 = Color(0xFFFAFAFA)
     val Zinc100 = Color(0xFFF4F4F5)

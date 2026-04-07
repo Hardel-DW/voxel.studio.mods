@@ -19,7 +19,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
+import fr.hardel.asset_editor.client.compose.StudioColors
 import kotlinx.coroutines.delay
 import net.minecraft.resources.Identifier
 import java.awt.Toolkit
@@ -61,9 +61,9 @@ fun CopyButton(
             }
     ) {
         if (showCheck) {
-            SvgIcon(CHECK_ICON, iconSize, VoxelColors.Emerald400)
+            SvgIcon(CHECK_ICON, iconSize, StudioColors.Emerald400)
         } else {
-            SvgIcon(COPY_ICON, iconSize, if (isHovered) VoxelColors.Zinc300 else VoxelColors.Zinc500)
+            SvgIcon(COPY_ICON, iconSize, if (isHovered) StudioColors.Zinc300 else StudioColors.Zinc500)
         }
     }
 }

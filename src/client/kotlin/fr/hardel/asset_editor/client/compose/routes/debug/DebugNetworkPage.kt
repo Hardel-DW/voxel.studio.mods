@@ -23,8 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -71,8 +71,8 @@ fun DebugNetworkPage(context: StudioContext) {
         ) {
             Text(
                 text = I18n.get("debug:network.count", entries.size),
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
             )
             Dropdown(
                 items = namespaces,
@@ -95,21 +95,21 @@ fun DebugNetworkPage(context: StudioContext) {
             items = entries,
             columns = listOf(
                 TableColumn(I18n.get("debug:network.column.time"), weight = 0.8f) { entry ->
-                    Text(NETWORK_TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = VoxelTypography.regular(11), color = VoxelColors.Zinc500)
+                    Text(NETWORK_TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
                 },
                 TableColumn(I18n.get("debug:network.column.direction"), weight = 0.7f) { entry ->
                     DirectionBadge(entry.direction())
                 },
                 TableColumn(I18n.get("debug:network.column.payload_id"), weight = 1.4f) { entry ->
-                    Text(entry.payloadId().path, style = VoxelTypography.medium(11), color = VoxelColors.Zinc400)
+                    Text(entry.payloadId().path, style = StudioTypography.medium(11), color = StudioColors.Zinc400)
                 },
                 TableColumn(I18n.get("debug:network.column.title"), weight = 1.4f) { entry ->
                     val titleKey = "debug:payload.${entry.payloadId().namespace}.${entry.payloadId().path.replace('/', '.')}.title"
-                    Text(if (I18n.exists(titleKey)) I18n.get(titleKey) else entry.payloadId().path, style = VoxelTypography.regular(13), color = VoxelColors.Zinc300)
+                    Text(if (I18n.exists(titleKey)) I18n.get(titleKey) else entry.payloadId().path, style = StudioTypography.regular(13), color = StudioColors.Zinc300)
                 },
                 TableColumn(I18n.get("debug:network.column.description"), weight = 2.2f) { entry ->
                     val descKey = "debug:payload.${entry.payloadId().namespace}.${entry.payloadId().path.replace('/', '.')}.description"
-                    Text(if (I18n.exists(descKey)) I18n.get(descKey) else "", style = VoxelTypography.regular(11), color = VoxelColors.Zinc500)
+                    Text(if (I18n.exists(descKey)) I18n.get(descKey) else "", style = StudioTypography.regular(11), color = StudioColors.Zinc500)
                 },
                 TableColumn("", weight = 0.35f) { entry ->
                     CopyButton(
@@ -140,7 +140,7 @@ fun DebugNetworkPage(context: StudioContext) {
 @Composable
 private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
     val inbound = direction == NetworkTraceMemory.Direction.INBOUND
-    if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400
+    if (inbound) StudioColors.Red400 else StudioColors.Emerald400
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -148,14 +148,14 @@ private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
     ) {
         Text(
             text = if (inbound) "S" else "C",
-            style = VoxelTypography.semiBold(11),
-            color = if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400
+            style = StudioTypography.semiBold(11),
+            color = if (inbound) StudioColors.Red400 else StudioColors.Emerald400
         )
-        Text("->", style = VoxelTypography.medium(11), color = VoxelColors.Zinc600)
+        Text("->", style = StudioTypography.medium(11), color = StudioColors.Zinc600)
         Text(
             text = if (inbound) "C" else "S",
-            style = VoxelTypography.semiBold(11),
-            color = if (inbound) VoxelColors.Emerald400 else VoxelColors.Red400
+            style = StudioTypography.semiBold(11),
+            color = if (inbound) StudioColors.Emerald400 else StudioColors.Red400
         )
     }
 }
@@ -164,15 +164,15 @@ private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
 private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
     val inbound = entry.direction() == NetworkTraceMemory.Direction.INBOUND
     val directionLabel = if (inbound) "Server -> Client" else "Client -> Server"
-    val directionColor = if (inbound) VoxelColors.Red400 else VoxelColors.Emerald400
+    val directionColor = if (inbound) StudioColors.Red400 else StudioColors.Emerald400
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(VoxelColors.Zinc900.copy(alpha = 0.3f))
-            .border(1.dp, VoxelColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .background(StudioColors.Zinc900.copy(alpha = 0.3f))
+            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
             .padding(16.dp)
     ) {
         Row(
@@ -182,7 +182,7 @@ private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
         ) {
             Text(
                 text = directionLabel,
-                style = VoxelTypography.semiBold(11),
+                style = StudioTypography.semiBold(11),
                 color = directionColor,
                 modifier = Modifier
                     .background(directionColor.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
@@ -190,14 +190,14 @@ private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
             )
             Text(
                 text = entry.payloadId().toString(),
-                style = VoxelTypography.medium(12),
-                color = VoxelColors.Zinc300
+                style = StudioTypography.medium(12),
+                color = StudioColors.Zinc300
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = NETWORK_TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())),
-                style = VoxelTypography.regular(11),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(11),
+                color = StudioColors.Zinc500
             )
             CopyButton(
                 iconSize = 14.dp,
@@ -211,15 +211,15 @@ private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(VoxelColors.Zinc800.copy(alpha = 0.5f))
+                .background(StudioColors.Zinc800.copy(alpha = 0.5f))
         )
 
         val payload = entry.payload()
         if (payload == null || !payload.javaClass.isRecord) {
             Text(
                 text = I18n.get("debug:network.no_additional_data"),
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
             )
         } else {
             KeyValueGrid(payload)

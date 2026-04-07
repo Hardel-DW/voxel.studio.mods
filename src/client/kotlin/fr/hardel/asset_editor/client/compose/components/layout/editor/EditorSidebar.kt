@@ -31,8 +31,8 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.VoxelColors
-import fr.hardel.asset_editor.client.compose.VoxelTypography
+import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
@@ -44,7 +44,7 @@ import net.minecraft.resources.Identifier
 
 private val DISCORD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/discord.svg")
 private val DISCORD_CARD_SHAPE = RoundedCornerShape(8.dp)
-private val borderColor = VoxelColors.Zinc800.copy(alpha = 0.5f)
+private val borderColor = StudioColors.Zinc800.copy(alpha = 0.5f)
 
 @Composable
 fun EditorSidebar(
@@ -60,7 +60,7 @@ fun EditorSidebar(
         modifier = modifier
             .width(288.dp)
             .fillMaxHeight()
-            .background(VoxelColors.SecondarySidebar)
+            .background(StudioColors.SecondarySidebar)
             .drawWithContent {
                 drawContent()
                 val stroke = 1.dp.toPx()
@@ -87,15 +87,15 @@ fun EditorSidebar(
                 ResourceImageIcon(iconPath, 20.dp, modifier = Modifier.alpha(0.8f))
                 Text(
                     text = I18n.get(titleKey),
-                    style = VoxelTypography.bold(18),
-                    color = VoxelColors.Zinc100
+                    style = StudioTypography.bold(18),
+                    color = StudioColors.Zinc100
                 )
             }
             // p: text-xs text-zinc-500 pl-7
             Text(
                 text = I18n.get("generic:explore"),
-                style = VoxelTypography.regular(12),
-                color = VoxelColors.Zinc500,
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500,
                 modifier = Modifier.padding(start = 28.dp)
             )
         }
@@ -125,7 +125,7 @@ private fun DiscordFooter() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(VoxelColors.Zinc950.copy(alpha = 0.9f))
+            .background(StudioColors.Zinc950.copy(alpha = 0.9f))
             .drawWithContent {
                 val stroke = 1.dp.toPx()
                 drawLine(
@@ -144,11 +144,11 @@ private fun DiscordFooter() {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(VoxelColors.Zinc900.copy(alpha = 0.3f), DISCORD_CARD_SHAPE)
+                .background(StudioColors.Zinc900.copy(alpha = 0.3f), DISCORD_CARD_SHAPE)
                 .border(
                     1.dp,
-                    if (hovered) VoxelColors.Zinc700.copy(alpha = 0.5f)
-                    else VoxelColors.Zinc800.copy(alpha = 0.5f),
+                    if (hovered) StudioColors.Zinc700.copy(alpha = 0.5f)
+                    else StudioColors.Zinc800.copy(alpha = 0.5f),
                     DISCORD_CARD_SHAPE
                 )
                 .hoverable(interaction)
@@ -162,8 +162,8 @@ private fun DiscordFooter() {
             // div.flex-1 > div: text-sm font-medium text-zinc-300 group-hover:text-white
             Text(
                 text = I18n.get("supports:help.discord"),
-                style = VoxelTypography.medium(14),
-                color = if (hovered) Color.White else VoxelColors.Zinc300,
+                style = StudioTypography.medium(14),
+                color = if (hovered) Color.White else StudioColors.Zinc300,
                 modifier = Modifier.weight(1f)
             )
 
@@ -173,7 +173,7 @@ private fun DiscordFooter() {
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        if (hovered) VoxelColors.Zinc800 else VoxelColors.Zinc800.copy(alpha = 0.5f),
+                        if (hovered) StudioColors.Zinc800 else StudioColors.Zinc800.copy(alpha = 0.5f),
                         CircleShape
                     )
             ) {
