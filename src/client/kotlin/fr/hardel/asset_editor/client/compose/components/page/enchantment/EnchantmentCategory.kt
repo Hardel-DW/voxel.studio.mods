@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
@@ -25,7 +26,7 @@ fun EnchantmentCategory(
         ResponsiveGrid(
             items = identifiers.map { id ->
                 {
-                    val name = context.registryMemory().get(Registries.ENCHANTMENT, id)?.data()?.description()?.string
+                    val name = context.registryMemory().get(ClientWorkspaceRegistries.ENCHANTMENT, id)?.data()?.description()?.string
                         ?: StudioText.resolve(Registries.ENCHANTMENT, id)
                     InlineCard(
                         title = name,

@@ -25,8 +25,8 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter.EnchantmentMode
 import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction
@@ -41,7 +41,7 @@ private val ANVIL_COST_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID
 @Composable
 fun EnchantmentMainPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
 
     Column(
         verticalArrangement = Arrangement.spacedBy(32.dp),
@@ -63,7 +63,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                 value = entry.data().maxLevel,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = SetIntFieldAction("max_level", value),
                                         dialogs = dialogs
@@ -85,7 +85,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                 value = entry.data().weight,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = SetIntFieldAction("weight", value),
                                         dialogs = dialogs
@@ -107,7 +107,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                                 value = entry.data().anvilCost,
                                 onValueChange = { value ->
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = SetIntFieldAction("anvil_cost", value),
                                         dialogs = dialogs
@@ -135,7 +135,7 @@ fun EnchantmentMainPage(context: StudioContext) {
                 selectedValue = EnchantmentFlushAdapter.mode(entry).id(),
                 onValueChange = { value ->
                     context.dispatchRegistryAction(
-                        definition = Workspaces.ENCHANTMENT,
+                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                         target = entry.id(),
                         action = SetModeAction(value),
                         dialogs = dialogs

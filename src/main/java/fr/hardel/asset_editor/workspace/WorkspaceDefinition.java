@@ -73,15 +73,6 @@ public final class WorkspaceDefinition<T> {
         return definition.apply(entry, action, ctx);
     }
 
-    public void snapshotClientRegistry(net.minecraft.core.RegistryAccess registryAccess, ClientSnapshotConsumer consumer) {
-        registryAccess.lookup(registryKey).ifPresent(registry -> consumer.accept(registryKey, registry, customInitializer));
-    }
-
-    @FunctionalInterface
-    public interface ClientSnapshotConsumer {
-        <T> void accept(ResourceKey<Registry<T>> registryKey, Registry<T> registry, Function<ElementEntry<T>, CustomFields> customInitializer);
-    }
-
     public WorkspaceElementSnapshot toSnapshot(ElementEntry<T> entry, HolderLookup.Provider registries) {
         return new WorkspaceElementSnapshot(registryKey.identifier(), entry.id(), encode(entry, registries), entry.tags(), entry.custom());
     }

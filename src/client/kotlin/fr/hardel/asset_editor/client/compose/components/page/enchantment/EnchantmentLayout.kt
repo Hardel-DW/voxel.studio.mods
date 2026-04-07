@@ -20,6 +20,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
@@ -36,7 +37,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
     val compendiumItems = rememberServerData(StudioDataSlots.COMPENDIUM_ITEMS)
     val dataReady = compendiumItems.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
-    val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
+    val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.ENCHANTMENT)
     val sidebarView = conceptUi.sidebarView
     val tree = remember(entries, sidebarView, compendiumItems) { EnchantmentTreeBuilder.build(entries, sidebarView) }
     val folderIcons = remember(sidebarView) {

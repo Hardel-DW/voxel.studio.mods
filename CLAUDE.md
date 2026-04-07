@@ -27,7 +27,7 @@ Important: if you need knowledge, search in the directory:
 - Try to criticize my choices which can sometimes go in the wrong direction.
 - Don't just create full static files all the time; it's useless, unreadable, and counterproductive.
 - Prioritize the OOP approach. Don't make everything in a static class. Use a correct Pattern. (Static is good but not for everything)
-- Avoid "unchecked", "UNCHECKED_CAST" find good architectural solutions that avoid them as much as possible.
+- Avoid unchecked, UNCHECKED_CAST find good architectural solutions that avoid them as much as possible.
 # Studio Project :
 - Unlike Studio Web, we don't have to manage all versions of Minecraft, just the current e.g 1.21.11
 - You can use Minecraft/Mixins registries and codecs and everything.

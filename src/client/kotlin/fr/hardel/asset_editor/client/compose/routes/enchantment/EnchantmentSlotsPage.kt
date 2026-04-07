@@ -16,15 +16,14 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.workspace.flush.Workspaces
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleSlotAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 
 @Composable
 fun EnchantmentSlotsPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
 
     val activeSlots = remember(entry) {
         entry.data().definition().slots().map { it.serializedName }.toSet()
@@ -48,7 +47,7 @@ fun EnchantmentSlotsPage(context: StudioContext) {
                                 active = activeSlots.any { slot -> SlotConfigs.expandsTo(slot, slotId) },
                                 onActiveChange = {
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = ToggleSlotAction(slotId),
                                         dialogs = dialogs

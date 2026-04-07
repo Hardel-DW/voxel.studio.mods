@@ -16,8 +16,8 @@ import fr.hardel.asset_editor.client.compose.VoxelColors
 import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectAction
@@ -65,7 +65,7 @@ private val COST_FIELDS = listOf(
 @Composable
 fun EnchantmentTechnicalPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
     val effects = remember(entry) { EnchantmentFlushAdapter.availableEffects(entry.data()) }
 
     Column(
@@ -85,7 +85,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                             checked = entry.tags().contains(field.tagId),
                             onCheckedChange = {
                                 context.dispatchRegistryAction(
-                                    definition = Workspaces.ENCHANTMENT,
+                                    workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                     target = entry.id(),
                                     action = ToggleTagAction(field.tagId),
                                     dialogs = dialogs
@@ -113,7 +113,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                             value = field.value(entry.data()),
                             onValueChange = { value ->
                                 context.dispatchRegistryAction(
-                                    definition = Workspaces.ENCHANTMENT,
+                                    workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                     target = entry.id(),
                                     action = field.action(value),
                                     dialogs = dialogs
@@ -157,7 +157,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                                 checked = !EnchantmentFlushAdapter.isEffectDisabled(entry, effectId),
                                 onCheckedChange = {
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = ToggleDisabledEffectAction(effectId),
                                         dialogs = dialogs

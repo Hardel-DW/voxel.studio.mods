@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.workspace.flush.Workspaces
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -39,7 +39,7 @@ private val FIND_TAGS = listOf(
 @Composable
 fun EnchantmentFindPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
 
     Column(
         verticalArrangement = Arrangement.spacedBy(32.dp),
@@ -59,7 +59,7 @@ fun EnchantmentFindPage(context: StudioContext) {
                             active = entry.tags().contains(tag.tagId),
                             onActiveChange = {
                                 context.dispatchRegistryAction(
-                                    definition = Workspaces.ENCHANTMENT,
+                                    workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                     target = entry.id(),
                                     action = ToggleTagAction(tag.tagId),
                                     dialogs = dialogs

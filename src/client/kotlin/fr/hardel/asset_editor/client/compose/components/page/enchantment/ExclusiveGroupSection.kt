@@ -18,6 +18,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList
@@ -43,7 +44,7 @@ fun ExclusiveGroupSection(
     onTargetToggle: (Identifier, Boolean) -> Unit,
     onMembershipToggle: (Identifier, Boolean) -> Unit
 ) {
-    val allEntries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
+    val allEntries = rememberRegistryEntries(context, ClientWorkspaceRegistries.ENCHANTMENT)
     val membersByTag = remember(allEntries) { tagMembers(allEntries) }
     val customTags = remember(allEntries) { EnchantmentFlushAdapter.customExclusiveTags(allEntries) }
     val enchantmentGroups = rememberServerData(StudioDataSlots.COMPENDIUM_ENCHANTMENTS)

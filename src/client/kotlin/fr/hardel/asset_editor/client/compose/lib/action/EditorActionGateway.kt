@@ -5,6 +5,8 @@ import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
@@ -17,16 +19,12 @@ import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
 import fr.hardel.asset_editor.workspace.io.RegistryMutationContexts
-import fr.hardel.asset_editor.workspace.WorkspaceDefinition
-import fr.hardel.asset_editor.workspace.WorkspaceDefinitions
 import java.util.Objects
 import java.util.UUID
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientPacketListener
 import net.minecraft.core.HolderLookup
-import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
-import net.minecraft.resources.ResourceKey
 import org.slf4j.LoggerFactory
 
 class EditorActionGateway(
@@ -53,7 +51,7 @@ class EditorActionGateway(
     }
 
     fun <T : Any> dispatch(
-        definition: WorkspaceDefinition<T>,
+        workspace: ClientWorkspaceRegistry<T>,
         target: Identifier?,
         action: EditorAction<*>
     ): EditorActionResult {
@@ -65,39 +63,38 @@ class EditorActionGateway(
         val pack = packSelection.selectedPack()
             ?: return EditorActionResult.packRequired()
         val resolvedTarget = target ?: return EditorActionResult.error("error:workspace_sync_pending")
-        val registry = definition.registryKey()
-        val entry = registryMemory.get(registry, resolvedTarget)
+        val entry = registryMemory.get(workspace, resolvedTarget)
             ?: return EditorActionResult.error("error:workspace_sync_pending")
 
         val actionId = UUID.randomUUID()
         trackPendingAction(
             actionId,
-            PendingClientAction(actionId, pack.packId(), registry, resolvedTarget, entry)
+            PendingClientAction(actionId, pack.packId(), workspace, resolvedTarget, entry)
         )
 
-        projectOptimistic(definition, resolvedTarget, entry, action)
+        projectOptimistic(workspace, resolvedTarget, entry, action)
         val payload = WorkspaceMutationRequestPayload(
             actionId,
             pack.packId(),
-            definition.registryId(),
+            workspace.registryId(),
             resolvedTarget,
             action
         )
-        ClientDebugTelemetry.actionDispatched(pack.packId(), definition.registryId(), resolvedTarget, action, actionId)
+        ClientDebugTelemetry.actionDispatched(pack.packId(), workspace.registryId(), resolvedTarget, action, actionId)
         ClientPayloadSender.send(payload)
         return EditorActionResult.applied()
     }
 
-    fun requestPackWorkspace(definition: WorkspaceDefinition<*>) {
+    fun requestPackWorkspace(workspace: ClientWorkspaceRegistry<*>) {
         val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
-        ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), definition.registryId()))
+        ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), workspace.registryId()))
     }
 
-    fun requestElementSeed(definition: WorkspaceDefinition<*>, elementId: Identifier) {
+    fun requestElementSeed(workspace: ClientWorkspaceRegistry<*>, elementId: Identifier) {
         val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
-        ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), definition.registryId(), elementId))
+        ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), workspace.registryId(), elementId))
     }
 
     override fun handleWorkspaceSync(payload: WorkspaceSyncPayload) {
@@ -127,13 +124,13 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinitions.get(registryId) ?: return
+        val workspace = ClientWorkspaceRegistries.get(registryId) ?: return
         val registries = clientRegistries() ?: return
-        replaceAll(definition, snapshots, registries)
+        replaceAll(workspace, snapshots, registries)
     }
 
     private fun <T : Any> projectOptimistic(
-        definition: WorkspaceDefinition<T>,
+        workspace: ClientWorkspaceRegistry<T>,
         target: Identifier,
         entry: ElementEntry<T>,
         action: EditorAction<*>
@@ -142,13 +139,13 @@ class EditorActionGateway(
 
         try {
             val context = RegistryMutationContexts.client(registries)
-            val projected = definition.apply(entry, action, context)
+            val projected = workspace.definition().apply(entry, action, context)
             if (!Objects.equals(projected, entry)) {
-                registryMemory.put(definition.registryKey(), target, projected)
+                registryMemory.put(workspace, target, projected)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
-            ClientDebugTelemetry.optimisticFailed(definition.registryId(), target, action, exception.message ?: "unknown")
+            ClientDebugTelemetry.optimisticFailed(workspace.registryId(), target, action, exception.message ?: "unknown")
         }
     }
 
@@ -167,43 +164,43 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinitions.get(snapshot.registryId()) ?: return
+        val workspace = ClientWorkspaceRegistries.get(snapshot.registryId()) ?: return
         val registries = clientRegistries() ?: return
-        applySnapshot(definition, snapshot, registries)
+        applySnapshot(workspace, snapshot, registries)
     }
 
     private fun replaceAll(
-        definition: WorkspaceDefinition<*>,
+        workspace: ClientWorkspaceRegistry<*>,
         snapshots: List<WorkspaceElementSnapshot>,
         registries: HolderLookup.Provider
     ) {
-        replaceAllTyped(definition, snapshots, registries)
+        replaceAllTyped(workspace, snapshots, registries)
     }
 
     private fun <T : Any> replaceAllTyped(
-        definition: WorkspaceDefinition<T>,
+        workspace: ClientWorkspaceRegistry<T>,
         snapshots: List<WorkspaceElementSnapshot>,
         registries: HolderLookup.Provider
     ) {
-        val entries = snapshots.map { definition.fromSnapshot(it, registries) }
-        registryMemory.replaceAll(definition.registryKey(), entries)
+        val entries = snapshots.map { workspace.definition().fromSnapshot(it, registries) }
+        registryMemory.replaceAll(workspace, entries)
     }
 
     private fun applySnapshot(
-        definition: WorkspaceDefinition<*>,
+        workspace: ClientWorkspaceRegistry<*>,
         snapshot: WorkspaceElementSnapshot,
         registries: HolderLookup.Provider
     ) {
-        applySnapshotTyped(definition, snapshot, registries)
+        applySnapshotTyped(workspace, snapshot, registries)
     }
 
     private fun <T : Any> applySnapshotTyped(
-        definition: WorkspaceDefinition<T>,
+        workspace: ClientWorkspaceRegistry<T>,
         snapshot: WorkspaceElementSnapshot,
         registries: HolderLookup.Provider
     ) {
-        val entry = definition.fromSnapshot(snapshot, registries)
-        registryMemory.put(definition.registryKey(), snapshot.targetId(), entry)
+        val entry = workspace.definition().fromSnapshot(snapshot, registries)
+        registryMemory.put(workspace, snapshot.targetId(), entry)
     }
 
     private fun clientRegistries(): HolderLookup.Provider? {
@@ -231,12 +228,12 @@ class EditorActionGateway(
     data class PendingClientAction<T : Any>(
         val actionId: UUID,
         val packId: String,
-        val registry: ResourceKey<Registry<T>>,
+        val workspace: ClientWorkspaceRegistry<T>,
         val target: Identifier,
         val previousSnapshot: ElementEntry<T>
     ) {
         fun restoreInto(memory: RegistryMemory) {
-            memory.put(registry, target, previousSnapshot)
+            memory.put(workspace, target, previousSnapshot)
         }
     }
 

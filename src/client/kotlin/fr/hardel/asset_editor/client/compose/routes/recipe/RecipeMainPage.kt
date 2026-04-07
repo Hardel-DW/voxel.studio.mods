@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction
@@ -23,7 +24,6 @@ import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultItemAction
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
-import fr.hardel.asset_editor.workspace.flush.Workspaces
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
@@ -33,7 +33,7 @@ fun RecipeMainPage(context: StudioContext) {
     val editor = rememberCurrentElementDestination(context, conceptId)
     val entries = rememberRecipeEntries(context)
     val runtimeEntry = rememberRecipeEntry(context, editor?.elementId)
-    val workspaceEntry = rememberCurrentRegistryEntry(context, Registries.RECIPE)
+    val workspaceEntry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.RECIPE)
     val dialogs = rememberRegistryDialogState()
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
 
@@ -48,7 +48,7 @@ fun RecipeMainPage(context: StudioContext) {
     LaunchedEffect(editor?.elementId, workspaceEntry, context.sessionMemory().worldSessionKey()) {
         if (editor?.elementId == null || workspaceEntry != null) return@LaunchedEffect
         val elementId = Identifier.tryParse(editor.elementId) ?: return@LaunchedEffect
-        context.gateway.requestElementSeed(Workspaces.RECIPE, elementId)
+        context.gateway.requestElementSeed(ClientWorkspaceRegistries.RECIPE, elementId)
     }
 
     val recipeCounts = remember(entries) {
@@ -78,7 +78,7 @@ fun RecipeMainPage(context: StudioContext) {
 
             if (nextType != model.type && targetId != null && workspaceEntry != null) {
                 context.dispatchRegistryAction(
-                    definition = Workspaces.RECIPE,
+                    workspace = ClientWorkspaceRegistries.RECIPE,
                     target = targetId,
                     action = ConvertRecipeTypeAction(Identifier.parse(nextType), true),
                     dialogs = dialogs
@@ -88,7 +88,7 @@ fun RecipeMainPage(context: StudioContext) {
         onResultCountChange = { value ->
             if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeEditorState
             context.dispatchRegistryAction(
-                definition = Workspaces.RECIPE,
+                workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
                 action = SetResultCountAction(value),
                 dialogs = dialogs
@@ -98,7 +98,7 @@ fun RecipeMainPage(context: StudioContext) {
             val itemId = selectedItemId?.let(Identifier::tryParse) ?: return@RecipeEditorState
             if (targetId == null || workspaceEntry == null || !resultItemEditable) return@RecipeEditorState
             context.dispatchRegistryAction(
-                definition = Workspaces.RECIPE,
+                workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
                 action = SetResultItemAction(itemId),
                 dialogs = dialogs
@@ -113,7 +113,7 @@ fun RecipeMainPage(context: StudioContext) {
                 paintMode = PaintMode.ERASING
             }
             context.dispatchRegistryAction(
-                definition = Workspaces.RECIPE,
+                workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
                 action = action,
                 dialogs = dialogs

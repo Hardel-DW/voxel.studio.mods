@@ -27,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentTreeData
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.workspace.flush.Workspaces
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.SetPrimaryItemsAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction
 import net.minecraft.client.resources.language.I18n
@@ -39,7 +39,7 @@ private val NONE_IMAGE = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "te
 @Composable
 fun EnchantmentItemsPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, Registries.ENCHANTMENT) ?: return
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
     var section by remember { mutableStateOf("supportedItems") }
 
     val supportedTag = remember(entry) {
@@ -86,7 +86,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                         SetSupportedItemsAction(tag.tagId.toString(), tag.seed)
                                     }
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = action,
                                         dialogs = dialogs
@@ -104,7 +104,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                 active = primaryTag == null,
                                 onActiveChange = {
                                     context.dispatchRegistryAction(
-                                        definition = Workspaces.ENCHANTMENT,
+                                        workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                                         target = entry.id(),
                                         action = SetPrimaryItemsAction("", null),
                                         dialogs = dialogs

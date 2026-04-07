@@ -6,11 +6,10 @@ import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
-import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
-import net.minecraft.resources.ResourceKey
 
 @Composable
 fun rememberCurrentDestination(context: StudioContext): StudioDestination {
@@ -65,11 +64,11 @@ fun rememberCurrentElementDestination(
 @Composable
 fun <T : Any> rememberCurrentEntry(
     context: StudioContext,
-    registry: ResourceKey<Registry<T>>,
+    workspace: ClientWorkspaceRegistry<T>,
     destination: ElementEditorDestination?
 ): ElementEntry<T>? {
-    val registryMemory = remember(context, registry) { context.registryMemory().observeTypedRegistry(registry) }
-    return rememberMemoryValue(registryMemory, registry, destination?.elementId) { entries ->
+    val registryMemory = remember(context, workspace) { context.registryMemory().observeTypedRegistry(workspace) }
+    return rememberMemoryValue(registryMemory, workspace, destination?.elementId) { entries ->
         val identifier = destination?.elementId?.let(Identifier::tryParse) ?: return@rememberMemoryValue null
         entries[identifier]
     }

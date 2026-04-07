@@ -5,11 +5,9 @@ import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
 import fr.hardel.asset_editor.workspace.flush.CustomFields;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
-import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snapshot> {
 
@@ -37,7 +34,15 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
     }
 
     private final SimpleMemory<Snapshot> memory = new SimpleMemory<>(Snapshot.empty());
-    private final LinkedHashMap<String, RegistrySlot<?>> registrySlots = new LinkedHashMap<>();
+    private final LinkedHashMap<String, ClientWorkspaceRegistry<?>> registries = new LinkedHashMap<>();
+
+    public RegistryMemory() {
+        this(ClientWorkspaceRegistries.all());
+    }
+
+    public RegistryMemory(Collection<ClientWorkspaceRegistry<?>> registries) {
+        registries.forEach(this::register);
+    }
 
     @Override
     public Snapshot snapshot() {
@@ -49,10 +54,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         return memory.subscribe(listener);
     }
 
-    public <T> void snapshotFromRegistry(ResourceKey<Registry<T>> registryKey, Registry<T> registry,
-        Function<ElementEntry<T>, CustomFields> customInitializer) {
-        RegistrySlot<T> slot = slot(registryKey);
-
+    public <T> void snapshotFromRegistry(ClientWorkspaceRegistry<T> registryHandle, Registry<T> registry) {
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         registry.listTags().forEach(named -> {
             Identifier tagId = named.key().location();
@@ -67,93 +69,71 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
             Identifier id = holder.key().identifier();
             Set<Identifier> tags = tagsByElement.getOrDefault(id, Set.of());
             ElementEntry<T> entry = new ElementEntry<>(id, holder.value(), Set.copyOf(tags), CustomFields.EMPTY);
-            ElementEntry<T> enriched = entry.withCustom(customInitializer.apply(entry));
-            entries.put(id, enriched);
+            entries.put(id, registryHandle.definition().initializeEntry(entry));
         });
 
-        publishRegistry(registryName(registryKey), slot, entries);
+        publishRegistry(registryHandle, entries);
     }
 
-    public <T> ElementEntry<T> get(ResourceKey<Registry<T>> registry, Identifier id) {
+    public <T> ElementEntry<T> get(ClientWorkspaceRegistry<T> registry, Identifier id) {
         return typedRegistrySnapshot(registry).get(id);
     }
 
-    public <T> List<ElementEntry<T>> allTypedElements(ResourceKey<Registry<T>> registry) {
+    public <T> List<ElementEntry<T>> allTypedElements(ClientWorkspaceRegistry<T> registry) {
         return List.copyOf(typedRegistrySnapshot(registry).values());
     }
 
-    public <T> void put(ResourceKey<Registry<T>> registry, Identifier id, ElementEntry<T> entry) {
-        RegistrySlot<T> slot = slot(registry);
-        LinkedHashMap<Identifier, ElementEntry<T>> nextEntries = new LinkedHashMap<>(slot.snapshot());
+    public <T> void put(ClientWorkspaceRegistry<T> registry, Identifier id, ElementEntry<T> entry) {
+        LinkedHashMap<Identifier, ElementEntry<T>> nextEntries = new LinkedHashMap<>(registry.snapshot());
         nextEntries.put(id, entry);
-        publishRegistry(registryName(registry), slot, nextEntries);
+        publishRegistry(registry, nextEntries);
     }
 
-    public <T> void replaceAll(ResourceKey<Registry<T>> registry, Collection<ElementEntry<T>> entries) {
-        RegistrySlot<T> slot = slot(registry);
+    public <T> void replaceAll(ClientWorkspaceRegistry<T> registry, Collection<ElementEntry<T>> entries) {
         LinkedHashMap<Identifier, ElementEntry<T>> nextEntries = new LinkedHashMap<>();
         for (ElementEntry<T> entry : entries) {
             nextEntries.put(entry.id(), entry);
         }
 
-        publishRegistry(registryName(registry), slot, nextEntries);
+        publishRegistry(registry, nextEntries);
     }
 
-    public synchronized <T> ReadableMemory<Map<Identifier, ElementEntry<T>>> observeTypedRegistry(ResourceKey<Registry<T>> registry) {
-        return slot(registry).memory();
+    public <T> ReadableMemory<Map<Identifier, ElementEntry<T>>> observeTypedRegistry(ClientWorkspaceRegistry<T> registry) {
+        return registry.memory();
     }
 
-    public synchronized <T> Map<Identifier, ElementEntry<T>> typedRegistrySnapshot(ResourceKey<Registry<T>> registry) {
-        return slot(registry).snapshot();
+    public <T> Map<Identifier, ElementEntry<T>> typedRegistrySnapshot(ClientWorkspaceRegistry<T> registry) {
+        return registry.snapshot();
     }
 
     public synchronized Map<String, Integer> entryCountsSnapshot() {
         LinkedHashMap<String, Integer> counts = new LinkedHashMap<>();
-        registrySlots.forEach((registry, slot) -> {
-            int size = slot.snapshot().size();
+        registries.forEach((registryId, registry) -> {
+            int size = registry.snapshot().size();
             if (size > 0) {
-                counts.put(registry, size);
+                counts.put(registryId, size);
             }
         });
         return Map.copyOf(counts);
     }
 
     public synchronized void clearAll() {
-        registrySlots.values().forEach(RegistrySlot::clear);
+        registries.values().forEach(ClientWorkspaceRegistry::clear);
         memory.setSnapshot(Snapshot.empty());
     }
 
-    public WorkspaceDefinition.ClientSnapshotConsumer asSnapshotConsumer() {
-        return this::snapshotFromRegistry;
-    }
-
-    static String registryName(ResourceKey<?> key) {
-        return key.identifier().toString();
-    }
-
-    private synchronized <T> void publishRegistry(String name, RegistrySlot<T> slot, Map<Identifier, ElementEntry<T>> nextEntries) {
-        slot.publish(immutableEntries(nextEntries));
-        registrySlots.put(name, slot);
+    private synchronized <T> void publishRegistry(ClientWorkspaceRegistry<T> registry, Map<Identifier, ElementEntry<T>> nextEntries) {
+        registry.publish(immutableEntries(nextEntries));
         memory.setSnapshot(buildSnapshot());
     }
 
     private synchronized Snapshot buildSnapshot() {
-        if (registrySlots.isEmpty())
+        if (registries.isEmpty())
             return Snapshot.empty();
 
-        LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> registries = new LinkedHashMap<>();
-        registrySlots.forEach((name, slot) -> registries.put(name, slot.wildcardSnapshot()));
-        return new Snapshot(registries);
-    }
-
-    private synchronized <T> RegistrySlot<T> slot(ResourceKey<Registry<T>> registry) {
-        String name = registryName(registry);
-        if (!registrySlots.containsKey(name)) {
-            var slot = new RegistrySlot<T>();
-            registrySlots.put(name, slot);
-            return slot;
-        }
-        return TypeSafeSlotMap.narrow(registrySlots.get(name));
+        LinkedHashMap<String, Map<Identifier, ElementEntry<?>>> snapshots = new LinkedHashMap<>();
+        registries.forEach((name, registry) -> snapshots.put(name, registry.wildcardSnapshot()));
+        return new Snapshot(snapshots);
     }
 
     private static <T> Map<Identifier, ElementEntry<T>> immutableEntries(Map<Identifier, ElementEntry<T>> entries) {
@@ -164,42 +144,13 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         return Collections.unmodifiableMap(copy);
     }
 
-    /**
-     * Type-safe heterogeneous container cast (Effective Java, Item 33).
-     * The cast is safe because slots are only ever created and accessed via methods
-     * that receive {@code ResourceKey<Registry<T>>}, guaranteeing type consistency
-     * between the key and the slot content.
-     */
-    private static final class TypeSafeSlotMap {
-        @SuppressWarnings("unchecked")
-        static <T> RegistrySlot<T> narrow(RegistrySlot<?> slot) {
-            return (RegistrySlot<T>) slot;
-        }
+    private void register(ClientWorkspaceRegistry<?> registry) {
+        String registryId = registryName(registry);
+        if (registries.putIfAbsent(registryId, registry) != null)
+            throw new IllegalStateException("Duplicate client workspace registry: " + registryId);
     }
 
-    private static final class RegistrySlot<T> {
-
-        private final SimpleMemory<Map<Identifier, ElementEntry<T>>> memory = new SimpleMemory<>(Map.of());
-
-        private ReadableMemory<Map<Identifier, ElementEntry<T>>> memory() {
-            return memory;
-        }
-
-        private Map<Identifier, ElementEntry<T>> snapshot() {
-            return memory.snapshot();
-        }
-
-        private Map<Identifier, ElementEntry<?>> wildcardSnapshot() {
-            LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>(memory.snapshot());
-            return Collections.unmodifiableMap(result);
-        }
-
-        private void publish(Map<Identifier, ElementEntry<T>> nextEntries) {
-            memory.setSnapshot(nextEntries);
-        }
-
-        private void clear() {
-            memory.setSnapshot(Map.of());
-        }
+    public static String registryName(ClientWorkspaceRegistry<?> registry) {
+        return registry.registryId().toString();
     }
 }

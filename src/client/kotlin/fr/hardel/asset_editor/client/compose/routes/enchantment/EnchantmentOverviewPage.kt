@@ -42,8 +42,8 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
-import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction
 import java.util.Locale
@@ -57,7 +57,7 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 @Composable
 fun EnchantmentOverviewPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
-    val entries = rememberRegistryEntries(context, Registries.ENCHANTMENT)
+    val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.ENCHANTMENT)
     val conceptId = context.studioConceptId(Registries.ENCHANTMENT) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
@@ -189,7 +189,7 @@ private fun OverviewRow(
                     checked = enabled,
                     onCheckedChange = {
                         context.dispatchRegistryAction(
-                            definition = Workspaces.ENCHANTMENT,
+                            workspace = ClientWorkspaceRegistries.ENCHANTMENT,
                             target = entry.id(),
                             action = ToggleDisabledAction(),
                             dialogs = dialogs

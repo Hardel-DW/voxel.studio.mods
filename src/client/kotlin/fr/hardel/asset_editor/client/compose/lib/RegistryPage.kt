@@ -16,13 +16,11 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionResult
-import fr.hardel.asset_editor.workspace.WorkspaceDefinition
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
-import net.minecraft.resources.ResourceKey
 
 class RegistryDialogState {
     var packRequired by mutableStateOf(false)
@@ -46,10 +44,10 @@ fun rememberRegistryDialogState(): RegistryDialogState =
 @Composable
 fun <T : Any> rememberRegistryEntries(
     context: StudioContext,
-    registry: ResourceKey<Registry<T>>
+    workspace: ClientWorkspaceRegistry<T>
 ): List<ElementEntry<T>> {
-    val registryMemory = remember(context, registry) { context.registryMemory().observeTypedRegistry(registry) }
-    return rememberMemoryValue(registryMemory, registry) { entries ->
+    val registryMemory = remember(context, workspace) { context.registryMemory().observeTypedRegistry(workspace) }
+    return rememberMemoryValue(registryMemory, workspace) { entries ->
         entries.values.toList()
     }
 }
@@ -57,19 +55,19 @@ fun <T : Any> rememberRegistryEntries(
 @Composable
 fun <T : Any> rememberCurrentRegistryEntry(
     context: StudioContext,
-    registry: ResourceKey<Registry<T>>
+    workspace: ClientWorkspaceRegistry<T>
 ): ElementEntry<T>? {
     val destination = rememberCurrentElementDestination(context)
-    return rememberCurrentEntry(context, registry, destination)
+    return rememberCurrentEntry(context, workspace, destination)
 }
 
 fun <T : Any> StudioContext.dispatchRegistryAction(
-    definition: WorkspaceDefinition<T>,
+    workspace: ClientWorkspaceRegistry<T>,
     target: Identifier?,
     action: EditorAction<*>,
     dialogs: RegistryDialogState
 ): EditorActionResult {
-    val result = gateway.dispatch(definition, target, action)
+    val result = gateway.dispatch(workspace, target, action)
     dialogs.handle(result)
     return result
 }

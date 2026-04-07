@@ -1,8 +1,14 @@
 package fr.hardel.asset_editor.client.memory.session;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.Lifecycle;
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry;
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.flush.CustomFields;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -15,15 +21,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RegistryMemoryTest {
 
     @Test
     void putReplaceAllAndClearMaintainCountsAndValues() {
-        RegistryMemory memory = new RegistryMemory();
-        ResourceKey<Registry<String>> registryKey = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath("test", "registry")
-        );
+        ClientWorkspaceRegistry<String> registry = testRegistry("registry");
+        RegistryMemory memory = new RegistryMemory(List.of(registry));
 
         ElementEntry<String> first = new ElementEntry<>(
             Identifier.fromNamespaceAndPath("test", "first"),
@@ -38,29 +43,25 @@ class RegistryMemoryTest {
             CustomFields.EMPTY
         );
 
-        memory.put(registryKey, first.id(), first);
-        assertEquals(first, memory.get(registryKey, first.id()));
+        memory.put(registry, first.id(), first);
+        assertEquals(first, memory.get(registry, first.id()));
         assertEquals(1, memory.entryCountsSnapshot().get("test:registry"));
 
-        memory.replaceAll(registryKey, List.of(second));
-        assertNull(memory.get(registryKey, first.id()));
-        assertEquals(second, memory.get(registryKey, second.id()));
-        assertEquals(1, memory.allTypedElements(registryKey).size());
+        memory.replaceAll(registry, List.of(second));
+        assertNull(memory.get(registry, first.id()));
+        assertEquals(second, memory.get(registry, second.id()));
+        assertEquals(1, memory.allTypedElements(registry).size());
 
         memory.clearAll();
         assertEquals(0, memory.entryCountsSnapshot().size());
-        assertEquals(List.of(), memory.allTypedElements(registryKey));
+        assertEquals(List.of(), memory.allTypedElements(registry));
     }
 
     @Test
     void registryObserversOnlyReceiveUpdatesForTheirRegistryUntilClearAll() {
-        RegistryMemory memory = new RegistryMemory();
-        ResourceKey<Registry<String>> firstRegistry = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath("test", "first_registry")
-        );
-        ResourceKey<Registry<String>> secondRegistry = ResourceKey.createRegistryKey(
-            Identifier.fromNamespaceAndPath("test", "second_registry")
-        );
+        ClientWorkspaceRegistry<String> firstRegistry = testRegistry("first_registry");
+        ClientWorkspaceRegistry<String> secondRegistry = testRegistry("second_registry");
+        RegistryMemory memory = new RegistryMemory(List.of(firstRegistry, secondRegistry));
 
         ElementEntry<String> first = new ElementEntry<>(
             Identifier.fromNamespaceAndPath("test", "first"),
@@ -97,5 +98,45 @@ class RegistryMemoryTest {
         assertEquals(2, secondNotifications.get());
         assertEquals(Map.of(), memory.typedRegistrySnapshot(firstRegistry));
         assertEquals(Map.of(), memory.typedRegistrySnapshot(secondRegistry));
+    }
+
+    @Test
+    void duplicateRegistryHandlesAreRejected() {
+        ClientWorkspaceRegistry<String> first = testRegistry("duplicate");
+        ClientWorkspaceRegistry<String> second = testRegistry("duplicate");
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> new RegistryMemory(List.of(first, second)));
+        assertEquals("Duplicate client workspace registry: test:duplicate", exception.getMessage());
+    }
+
+    @Test
+    void snapshotFromRegistryInitializesCustomFields() {
+        ResourceKey<Registry<String>> registryKey = registryKey("snapshot_registry");
+        WorkspaceDefinition<String> definition = WorkspaceDefinition.of(
+            registryKey,
+            Codec.STRING,
+            FlushAdapter.identity(),
+            entry -> CustomFields.EMPTY.with("mode", "workspace"));
+        ClientWorkspaceRegistry<String> workspace = ClientWorkspaceRegistry.of(definition);
+        RegistryMemory memory = new RegistryMemory(List.of(workspace));
+        Registry<String> registry = new MappedRegistry<>(registryKey, Lifecycle.stable());
+        Identifier elementId = Identifier.fromNamespaceAndPath("test", "entry");
+
+        Registry.register(registry, elementId, "alpha");
+        registry.freeze();
+        memory.snapshotFromRegistry(workspace, registry);
+
+        ElementEntry<String> entry = memory.get(workspace, elementId);
+        assertEquals("alpha", entry.data());
+        assertEquals("workspace", entry.custom().getString("mode", ""));
+    }
+
+    private static ClientWorkspaceRegistry<String> testRegistry(String path) {
+        return ClientWorkspaceRegistry.of(WorkspaceDefinition.of(registryKey(path), Codec.STRING, FlushAdapter.identity()));
+    }
+
+    private static ResourceKey<Registry<String>> registryKey(String path) {
+        return ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath("test", path));
     }
 }
