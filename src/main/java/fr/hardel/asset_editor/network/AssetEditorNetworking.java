@@ -16,15 +16,14 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
-import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.workspace.io.DataPackManager;
-import fr.hardel.asset_editor.workspace.ServerPackService;
-import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
-import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
+import fr.hardel.asset_editor.workspace.io.ServerPackService;
+import fr.hardel.asset_editor.workspace.WorkspaceAccessResolver;
 import fr.hardel.asset_editor.workspace.WorkspaceBroadcastService;
-import fr.hardel.asset_editor.workspace.io.WorkspaceMutationService;
+import fr.hardel.asset_editor.workspace.WorkspaceMutationService;
 import fr.hardel.asset_editor.workspace.WorkspaceQueryService;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -136,14 +135,14 @@ public final class AssetEditorNetworking {
         context.server().execute(() -> {
             WorkspaceAccessResolver.Resolution resolution = WORKSPACE_ACCESS.resolveEditable(
                 context.player(), context.server(), payload.packId(), payload.registryId());
-            if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success(ResolvedWorkspaceAccess access))) return;
+            if (!(resolution instanceof WorkspaceAccessResolver.Resolution.Success access)) return;
 
             sendElementSeed(context.player(), access.definition(), access, payload.elementId());
         });
     }
 
     private static <T> void sendElementSeed(ServerPlayer player, WorkspaceDefinition<T> definition,
-        ResolvedWorkspaceAccess access, net.minecraft.resources.Identifier elementId) {
+        WorkspaceAccessResolver.Resolution.Success access, net.minecraft.resources.Identifier elementId) {
         ElementEntry<T> entry = access.repository().get(access.packId(), definition, access.packRoot(), access.registries(), elementId);
         if (entry == null) return;
 

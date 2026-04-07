@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.event;
 
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
-import fr.hardel.asset_editor.workspace.ServerPackService;
+import fr.hardel.asset_editor.workspace.io.ServerPackService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 public final class PackReloadEndEvent {

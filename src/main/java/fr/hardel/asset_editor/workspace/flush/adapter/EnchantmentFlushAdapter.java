@@ -1,8 +1,9 @@
-package fr.hardel.asset_editor.workspace.flush;
+package fr.hardel.asset_editor.workspace.flush.adapter;
 
-import fr.hardel.asset_editor.workspace.CustomFields;
-import fr.hardel.asset_editor.workspace.ElementEntry;
 import fr.hardel.asset_editor.tag.TagHelper;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;

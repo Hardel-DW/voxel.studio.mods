@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
 import fr.hardel.asset_editor.client.compose.lib.SlotConfigs
-import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import net.minecraft.world.item.enchantment.Enchantment
 import java.util.Locale
 

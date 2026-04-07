@@ -13,10 +13,10 @@ import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload
-import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
-import fr.hardel.asset_editor.workspace.RegistryMutationContexts
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContexts
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import java.util.Objects
 import java.util.UUID

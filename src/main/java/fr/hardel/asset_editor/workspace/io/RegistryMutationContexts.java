@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import fr.hardel.asset_editor.tag.TagSeed;
@@ -22,7 +22,7 @@ public final class RegistryMutationContexts {
     }
 
     public static RegistryMutationContext server(Path packRoot, HolderLookup.Provider registries,
-        TagResourceService tagResources, TagReferenceResolver tagReferences) {
+                                                 TagResourceService tagResources, TagReferenceResolver tagReferences) {
         return new BaseContext(registries, tagReferences) {
             @Override
             public <T> void ensureTagResource(ResourceKey<Registry<T>> registryKey, Identifier tagId, TagSeed seed) {

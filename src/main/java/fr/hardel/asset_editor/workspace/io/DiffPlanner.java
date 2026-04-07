@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.workspace.io;
 
-import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.RegistryWorkspace;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.WorkspaceRegistry;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import fr.hardel.asset_editor.tag.ExtendedTagFile;
 import com.google.gson.JsonElement;
@@ -22,7 +22,7 @@ import java.util.Set;
 
 public final class DiffPlanner {
 
-    public <T> RegistryDiffPlan<T> plan(Path packRoot, WorkspaceDefinition<T> definition, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
+    public <T> RegistryDiffPlan<T> plan(Path packRoot, WorkspaceDefinition<T> definition, WorkspaceRegistry<T> workspace, DynamicOps<JsonElement> ops) {
         if (workspace.dirty().isEmpty())
             return new RegistryDiffPlan<>(List.of(), List.of(), List.of(), List.of());
         return new Planner<>(packRoot, definition, workspace, ops).plan();
@@ -44,7 +44,7 @@ public final class DiffPlanner {
         private final ArrayList<RegistryDiffPlan.TagWrite> tagWrites = new ArrayList<>();
         private final ArrayList<Path> tagDeletes = new ArrayList<>();
 
-        private Planner(Path packRoot, WorkspaceDefinition<T> definition, RegistryWorkspace<T> workspace, DynamicOps<JsonElement> ops) {
+        private Planner(Path packRoot, WorkspaceDefinition<T> definition, WorkspaceRegistry<T> workspace, DynamicOps<JsonElement> ops) {
             this.packRoot = packRoot;
             this.registryDir = definition.registryKey().identifier().getPath();
             this.adapter = definition.flushAdapter();

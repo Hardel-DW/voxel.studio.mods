@@ -1,7 +1,6 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import fr.hardel.asset_editor.permission.PermissionManager;
-import fr.hardel.asset_editor.workspace.io.DataPackManager;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;

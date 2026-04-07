@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
-import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.BuiltInRegistries

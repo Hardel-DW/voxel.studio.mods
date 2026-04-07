@@ -1,14 +1,11 @@
-package fr.hardel.asset_editor.workspace.io;
+package fr.hardel.asset_editor.workspace;
 
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
-import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.RegistryMutationContext;
-import fr.hardel.asset_editor.workspace.RegistryMutationContexts;
-import fr.hardel.asset_editor.workspace.TagResourceService;
-import fr.hardel.asset_editor.workspace.access.ResolvedWorkspaceAccess;
-import fr.hardel.asset_editor.workspace.access.WorkspaceAccessResolver;
-import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContexts;
+import fr.hardel.asset_editor.workspace.io.TagResourceService;
 import fr.hardel.asset_editor.tag.TagReferenceResolver;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,11 +29,11 @@ public final class WorkspaceMutationService {
         if (resolution instanceof WorkspaceAccessResolver.Resolution.Failure(String errorCode))
             return new MutationResult.Failure(errorCode);
 
-        var access = ((WorkspaceAccessResolver.Resolution.Success) resolution).access();
+        var access = (WorkspaceAccessResolver.Resolution.Success) resolution;
         return applyMutation(access.definition(), access, payload);
     }
 
-    private <T> MutationResult applyMutation(WorkspaceDefinition<T> definition, ResolvedWorkspaceAccess access, WorkspaceMutationRequestPayload payload) {
+    private <T> MutationResult applyMutation(WorkspaceDefinition<T> definition, WorkspaceAccessResolver.Resolution.Success access, WorkspaceMutationRequestPayload payload) {
         ElementEntry<T> entry = access.repository().get(access.packId(), definition, access.packRoot(), access.registries(), payload.targetId());
         if (entry == null)
             return new MutationResult.Failure("error:element_not_found");
@@ -65,7 +62,6 @@ public final class WorkspaceMutationService {
 
     public sealed interface MutationResult permits MutationResult.Success, MutationResult.Failure {
         record Success(String packId, WorkspaceElementSnapshot snapshot) implements MutationResult {}
-
         record Failure(String errorCode) implements MutationResult {}
     }
 }

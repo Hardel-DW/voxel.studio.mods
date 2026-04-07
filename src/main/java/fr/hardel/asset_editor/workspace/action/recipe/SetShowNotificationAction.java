@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe;
 
-import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

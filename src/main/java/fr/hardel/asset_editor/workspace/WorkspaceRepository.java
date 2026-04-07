@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace;
 
 import com.mojang.serialization.JsonOps;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.io.*;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -52,7 +53,7 @@ public final class WorkspaceRepository {
     }
 
     public <T> ElementEntry<T> get(String packId, WorkspaceDefinition<T> definition,
-        Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
+                                   Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
         return workspace(packId, definition, packRoot, registries).get(elementId);
     }
 
@@ -69,7 +70,7 @@ public final class WorkspaceRepository {
 
     public <T> void flushDirty(Path packRoot, String packId, WorkspaceDefinition<T> definition,
         HolderLookup.Provider registries) {
-        RegistryWorkspace<T> workspace = workspace(packId, definition, packRoot, registries);
+        WorkspaceRegistry<T> workspace = workspace(packId, definition, packRoot, registries);
         if (workspace.dirty().isEmpty())
             return;
 
@@ -81,8 +82,8 @@ public final class WorkspaceRepository {
         workspace.clearDirty();
     }
 
-    private <T> RegistryWorkspace<T> workspace(String packId, WorkspaceDefinition<T> definition,
-        Path packRoot, HolderLookup.Provider registries) {
+    private <T> WorkspaceRegistry<T> workspace(String packId, WorkspaceDefinition<T> definition,
+                                               Path packRoot, HolderLookup.Provider registries) {
         return definition.workspaceOrLoad(packId,
             () -> overlayManager.loadWorkspace(packId, packRoot, definition, registries, definition.baseline()));
     }

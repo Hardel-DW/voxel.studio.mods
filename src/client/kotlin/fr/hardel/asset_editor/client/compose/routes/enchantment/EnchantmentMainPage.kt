@@ -25,8 +25,8 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
-import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter.EnchantmentMode
+import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter.EnchantmentMode
 import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction
 import net.minecraft.client.resources.language.I18n

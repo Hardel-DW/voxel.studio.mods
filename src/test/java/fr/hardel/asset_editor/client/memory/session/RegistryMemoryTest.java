@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.client.memory.session;
 
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory;
-import fr.hardel.asset_editor.workspace.CustomFields;
-import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;

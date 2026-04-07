@@ -1,12 +1,13 @@
-package fr.hardel.asset_editor.workspace.access;
+package fr.hardel.asset_editor.workspace;
 
 import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.workspace.io.DataPackManager;
-import fr.hardel.asset_editor.workspace.WorkspaceRepository;
-import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.nio.file.Path;
 
 public final class WorkspaceAccessResolver {
 
@@ -31,11 +32,18 @@ public final class WorkspaceAccessResolver {
         if (packRoot.isEmpty())
             return new Resolution.Failure("error:invalid_pack");
 
-        return new Resolution.Success(new ResolvedWorkspaceAccess(player, server, packId, packRoot.get(), repository, definition));
+        return new Resolution.Success(player, server, packId, packRoot.get(), repository, definition);
     }
 
     public sealed interface Resolution permits Resolution.Success, Resolution.Failure {
-        record Success(ResolvedWorkspaceAccess access) implements Resolution {}
+
+        record Success(ServerPlayer player, MinecraftServer server, String packId,
+            Path packRoot, WorkspaceRepository repository, WorkspaceDefinition<?> definition) implements Resolution {
+
+            public HolderLookup.Provider registries() {
+                return server.registryAccess();
+            }
+        }
 
         record Failure(String errorCode) implements Resolution {}
     }

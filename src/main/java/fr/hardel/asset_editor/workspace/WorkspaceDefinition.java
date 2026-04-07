@@ -5,6 +5,9 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.Action;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
@@ -28,7 +31,7 @@ public final class WorkspaceDefinition<T> {
     private final Map<Class<?>, Action<T, ?>> actions = new HashMap<>();
 
     private Map<Identifier, ElementEntry<T>> baseline = Map.of();
-    private final Map<String, RegistryWorkspace<T>> workspaces = new HashMap<>();
+    private final Map<String, WorkspaceRegistry<T>> workspaces = new HashMap<>();
 
     private WorkspaceDefinition(ResourceKey<Registry<T>> registryKey, Codec<T> codec,
         FlushAdapter<T> flushAdapter, Function<ElementEntry<T>, CustomFields> customInitializer) {
@@ -109,7 +112,7 @@ public final class WorkspaceDefinition<T> {
         return baseline;
     }
 
-    public RegistryWorkspace<T> workspaceOrLoad(String packId, java.util.function.Supplier<RegistryWorkspace<T>> loader) {
+    public WorkspaceRegistry<T> workspaceOrLoad(String packId, java.util.function.Supplier<WorkspaceRegistry<T>> loader) {
         return workspaces.computeIfAbsent(packId, ignored -> loader.get());
     }
 

@@ -2,15 +2,15 @@ package fr.hardel.asset_editor.store.workspace;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.workspace.CustomFields;
-import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
-import fr.hardel.asset_editor.workspace.flush.RecipeFlushAdapter;
+import fr.hardel.asset_editor.workspace.flush.adapter.RecipeFlushAdapter;
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistries;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.io.DiffPlanner;
 import fr.hardel.asset_editor.workspace.io.RegistryDiffPlan;
-import fr.hardel.asset_editor.workspace.RegistryWorkspace;
+import fr.hardel.asset_editor.workspace.WorkspaceRegistry;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -60,7 +60,7 @@ class DiffPlannerTest {
             CustomFields.EMPTY);
         ElementEntry<String> addedTagEntry = referenceEntry.toggleTag(curseTagId);
 
-        RegistryWorkspace<String> workspace = new RegistryWorkspace<>(
+        WorkspaceRegistry<String> workspace = new WorkspaceRegistry<>(
             Map.of(entryId, referenceEntry),
             Map.of(entryId, referenceEntry));
 
@@ -104,7 +104,7 @@ class DiffPlannerTest {
 
         ElementEntry<Recipe<?>> referenceEntry = new ElementEntry<>(entryId, reference, Set.of(), CustomFields.EMPTY);
         ElementEntry<Recipe<?>> currentEntry = new ElementEntry<>(entryId, equivalent, Set.of(), CustomFields.EMPTY);
-        RegistryWorkspace<Recipe<?>> workspace = new RegistryWorkspace<>(
+        WorkspaceRegistry<Recipe<?>> workspace = new WorkspaceRegistry<>(
             Map.of(entryId, referenceEntry),
             Map.of(entryId, referenceEntry));
         WorkspaceDefinition<Recipe<?>> definition = WorkspaceDefinition.of(

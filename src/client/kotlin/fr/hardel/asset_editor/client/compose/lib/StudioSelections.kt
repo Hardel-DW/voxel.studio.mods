@@ -7,7 +7,7 @@ import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
 import fr.hardel.asset_editor.permission.StudioPermissions
-import fr.hardel.asset_editor.workspace.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import net.minecraft.core.Registry
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey

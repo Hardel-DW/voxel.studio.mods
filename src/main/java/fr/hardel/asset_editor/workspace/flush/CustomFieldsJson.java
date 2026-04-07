@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.flush;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

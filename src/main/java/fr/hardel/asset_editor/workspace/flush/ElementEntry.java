@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.flush;
 
 import net.minecraft.resources.Identifier;
 

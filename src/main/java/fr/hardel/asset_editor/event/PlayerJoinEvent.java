@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.event;
 
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import fr.hardel.asset_editor.permission.PermissionManager;
-import fr.hardel.asset_editor.workspace.ServerPackService;
+import fr.hardel.asset_editor.workspace.io.ServerPackService;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 
 public final class PlayerJoinEvent {

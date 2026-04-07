@@ -1,7 +1,6 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import fr.hardel.asset_editor.tag.TagSeed;
-import fr.hardel.asset_editor.workspace.io.DiskWriter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;

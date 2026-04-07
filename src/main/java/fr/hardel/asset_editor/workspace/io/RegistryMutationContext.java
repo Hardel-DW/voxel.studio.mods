@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.workspace;
+package fr.hardel.asset_editor.workspace.io;
 
 import fr.hardel.asset_editor.tag.TagSeed;
 import net.minecraft.core.HolderLookup;

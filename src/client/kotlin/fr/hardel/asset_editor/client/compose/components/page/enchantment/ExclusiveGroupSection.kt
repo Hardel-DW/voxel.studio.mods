@@ -18,8 +18,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioText
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.workspace.ElementEntry
-import fr.hardel.asset_editor.workspace.flush.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import net.minecraft.client.resources.language.I18n

@@ -1,8 +1,8 @@
 package fr.hardel.asset_editor.workspace.action;
 
 import fr.hardel.asset_editor.tag.TagSeed;
-import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.RegistryMutationContext;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;

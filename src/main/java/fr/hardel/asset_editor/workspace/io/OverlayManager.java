@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.workspace.CustomFields;
-import fr.hardel.asset_editor.workspace.ElementEntry;
-import fr.hardel.asset_editor.workspace.RegistryWorkspace;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.ElementEntry;
+import fr.hardel.asset_editor.workspace.WorkspaceRegistry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
@@ -40,7 +40,7 @@ public final class OverlayManager {
         this.server = server;
     }
 
-    public <T> RegistryWorkspace<T> loadWorkspace(String packId, Path packRoot, WorkspaceDefinition<T> binding, HolderLookup.Provider registries, Map<Identifier, ElementEntry<T>> baseEntries) {
+    public <T> WorkspaceRegistry<T> loadWorkspace(String packId, Path packRoot, WorkspaceDefinition<T> binding, HolderLookup.Provider registries, Map<Identifier, ElementEntry<T>> baseEntries) {
         LayerState<T> referenceState = baseLayer(baseEntries);
         for (Path layerRoot : lowerLayerRoots(packId))
             applyLayer(layerRoot, binding, registries, referenceState);
@@ -48,7 +48,7 @@ public final class OverlayManager {
         LayerState<T> currentState = referenceState.copy();
         applyLayer(packRoot, binding, registries, currentState);
 
-        return new RegistryWorkspace<>(
+        return new WorkspaceRegistry<>(
             initializeEntries(binding, referenceState),
             initializeEntries(binding, currentState));
     }
