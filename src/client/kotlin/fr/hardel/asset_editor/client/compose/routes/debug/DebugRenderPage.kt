@@ -129,32 +129,38 @@ fun DebugRenderPage() {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Dropdown(
-                    items = atlasOptions,
-                    selected = selectedOption,
-                    labelExtractor = AtlasOption::label,
-                    onSelect = { option ->
-                        selectedOption = option
-                        query = ""
-                    }
-                )
-                InputText(
-                    value = query,
-                    onValueChange = { value -> query = value },
-                    placeholder = I18n.get("debug:render.search"),
-                    maxWidth = 400.dp
-                )
-            }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Dropdown(
+                        items = atlasOptions,
+                        selected = selectedOption,
+                        labelExtractor = AtlasOption::label,
+                        onSelect = { option ->
+                            selectedOption = option
+                            query = ""
+                        },
+                        label = I18n.get("debug:render.atlas.dropdown_label")
+                    )
+                    InputText(
+                        value = query,
+                        onValueChange = { value -> query = value },
+                        placeholder = I18n.get("debug:render.search"),
+                        maxWidth = 320.dp
+                    )
+                }
 
-            if (title.isNotEmpty()) {
-                Text(
-                    text = title,
-                    style = StudioTypography.semiBold(18),
-                    color = StudioColors.Zinc100
-                )
+                if (title.isNotEmpty()) {
+                    Text(
+                        text = title,
+                        style = StudioTypography.regular(13),
+                        color = StudioColors.Zinc400
+                    )
+                }
             }
 
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {

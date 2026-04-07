@@ -125,6 +125,7 @@
     "debug:network.filter.label": "Filter: %s",
     "debug:keyvalue.more": "+%s more…",
     "debug:render.search": "Search sprites…",
+    "debug:render.atlas.dropdown_label": "Atlas",
     "debug:payload.asset_editor.permission_sync.title": "Permission Sync",
     "debug:payload.asset_editor.permission_sync.description": "Synchronizes the current user's permissions from the server to the client.",
     "debug:payload.asset_editor.pack_list_request.title": "Pack List Request",

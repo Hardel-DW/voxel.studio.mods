@@ -123,6 +123,7 @@
     "debug:network.filter.label": "Filtre : %s",
     "debug:keyvalue.more": "+%s de plus…",
     "debug:render.search": "Rechercher des sprites…",
+    "debug:render.atlas.dropdown_label": "Atlas",
     "debug:payload.asset_editor.permission_sync.title": "Sync des permissions",
     "debug:payload.asset_editor.permission_sync.description": "Synchronise les permissions du joueur courant du serveur vers le client.",
     "debug:payload.asset_editor.pack_list_request.title": "Requete liste des packs",
