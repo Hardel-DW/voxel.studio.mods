@@ -9,10 +9,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,12 +31,20 @@ public final class NativeAtlasSnapshotService {
 
     private static volatile Snapshot currentSnapshot;
 
+    public record SpriteRegion(
+        Identifier spriteId,
+        int sourceX,
+        int sourceY,
+        int sourceWidth,
+        int sourceHeight
+    ) {}
+
     public record Snapshot(
         Identifier atlasId,
         int width,
         int height,
         int[] argbPixels,
-        Map<Identifier, TextureAtlasSprite> sprites
+        Map<Identifier, SpriteRegion> sprites
     ) {}
 
     public static Snapshot getSnapshot() {
@@ -74,7 +84,7 @@ public final class NativeAtlasSnapshotService {
         TextureAtlasAccessor accessor = (TextureAtlasAccessor) atlas;
         int width = accessor.asset_editor$getWidth();
         int height = accessor.asset_editor$getHeight();
-        Map<Identifier, TextureAtlasSprite> sprites = accessor.asset_editor$getTexturesByName();
+        Map<Identifier, SpriteRegion> sprites = captureRegions(accessor.asset_editor$getTexturesByName(), width, height);
 
         if (width <= 0 || height <= 0) {
             LOGGER.warn("Atlas {} has invalid dimensions: {}x{}", atlasId, width, height);
@@ -114,6 +124,28 @@ public final class NativeAtlasSnapshotService {
                 readbackBuffer.close();
             }
         }, 0);
+    }
+
+    private static Map<Identifier, SpriteRegion> captureRegions(
+        Map<Identifier, TextureAtlasSprite> sprites,
+        int atlasWidth,
+        int atlasHeight
+    ) {
+        LinkedHashMap<Identifier, SpriteRegion> regions = new LinkedHashMap<>(sprites.size());
+        sprites.forEach((spriteId, sprite) -> {
+            int sourceX = Mth.clamp(Math.round(sprite.getU0() * atlasWidth), 0, atlasWidth);
+            int sourceY = Mth.clamp(Math.round(sprite.getV0() * atlasHeight), 0, atlasHeight);
+            int sourceWidth = Math.min(sprite.contents().width(), atlasWidth - sourceX);
+            int sourceHeight = Math.min(sprite.contents().height(), atlasHeight - sourceY);
+
+            if (sourceWidth <= 0 || sourceHeight <= 0) {
+                LOGGER.debug("Skipping empty sprite region {} in atlas {}", spriteId, sprite.atlasLocation());
+                return;
+            }
+
+            regions.put(spriteId, new SpriteRegion(spriteId, sourceX, sourceY, sourceWidth, sourceHeight));
+        });
+        return regions;
     }
 
     private NativeAtlasSnapshotService() {}

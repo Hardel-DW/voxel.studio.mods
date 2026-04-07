@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.routes.debug
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -20,17 +21,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.debug.ItemCell
 import fr.hardel.asset_editor.client.compose.components.page.debug.SpriteCell
 import fr.hardel.asset_editor.client.compose.components.ui.Dropdown
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.NativeAtlasBridge
+import fr.hardel.asset_editor.client.rendering.NativeAtlasSnapshotService
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.BuiltInRegistries
@@ -39,6 +41,13 @@ import net.minecraft.resources.Identifier
 private val STUDIO_ITEMS_ID = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_items")
 
 private data class AtlasOption(val id: Identifier, val label: String)
+private data class AtlasSpriteTile(
+    val id: Identifier,
+    val sourceX: Int,
+    val sourceY: Int,
+    val sourceWidth: Int,
+    val sourceHeight: Int
+)
 
 @Composable
 fun DebugRenderPage() {
@@ -69,24 +78,44 @@ fun DebugRenderPage() {
         if (lower.isBlank()) allItems else allItems.filter { it.toString().contains(lower) }
     }
 
-    val snapshot = remember(version) { NativeAtlasBridge.getSnapshot() }
-    val atlasImage = remember(version) { NativeAtlasBridge.getImage() }
-    val snapshotReady = snapshot != null && atlasImage != null && snapshot.atlasId() == selectedOption.id
+    val nativeSnapshot = remember(version) { NativeAtlasBridge.getSnapshot() }
+    val nativeAtlasImage = remember(version) { NativeAtlasBridge.getImage() }
+    val studioAtlasImage = remember(version) { ItemAtlasGenerator.getAtlasImage() }
+    val snapshotReady =
+        nativeSnapshot != null && nativeAtlasImage != null && nativeSnapshot.atlasId() == selectedOption.id
 
-    val filteredSprites = remember(snapshot, query) {
-        if (snapshot == null) emptyList()
+    val nativeSprites = remember(nativeSnapshot, query) {
+        if (nativeSnapshot == null) emptyList()
         else {
             val lower = query.trim().lowercase()
-            val all = snapshot.sprites().entries.sortedBy { it.key.toString() }
-            if (lower.isBlank()) all else all.filter { it.key.toString().contains(lower) }
+            val all = nativeSnapshot.sprites().values
+                .sortedBy(NativeAtlasSnapshotService.SpriteRegion::spriteId)
+                .map(::toTile)
+            if (lower.isBlank()) all else all.filter { it.id.toString().contains(lower) }
         }
     }
 
-    val loading = if (isStudioItems) ItemAtlasGenerator.getAtlasImage() == null else !snapshotReady
+    val studioSprites = remember(version, filteredItems) {
+        filteredItems.mapNotNull { itemId ->
+            ItemAtlasGenerator.getEntry(itemId)?.let { entry ->
+                AtlasSpriteTile(
+                    id = itemId,
+                    sourceX = entry.x(),
+                    sourceY = entry.y(),
+                    sourceWidth = entry.size(),
+                    sourceHeight = entry.size()
+                )
+            }
+        }
+    }
+
+    val displayedImage = if (isStudioItems) studioAtlasImage else nativeAtlasImage
+    val displayedSprites = if (isStudioItems) studioSprites else nativeSprites
+    val loading = if (isStudioItems) displayedImage == null else !snapshotReady
 
     val title = when {
         isStudioItems -> I18n.get("debug:render.title", filteredItems.size)
-        snapshotReady -> I18n.get("debug:render.atlas.title", selectedOption.label, filteredSprites.size)
+        snapshotReady -> I18n.get("debug:render.atlas.title", selectedOption.label, nativeSprites.size)
         else -> ""
     }
 
@@ -128,15 +157,26 @@ fun DebugRenderPage() {
                 )
             }
 
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isStudioItems) {
-                    filteredItems.forEach { itemId -> ItemCell(itemId) }
-                } else if (snapshotReady) {
-                    filteredSprites.forEach { (_, sprite) -> SpriteCell(atlasImage!!, sprite) }
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val rowHeight = (maxWidth / 16).coerceIn(40.dp, 110.dp)
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (displayedImage != null && (isStudioItems || snapshotReady)) {
+                        displayedSprites.forEach { sprite ->
+                            SpriteCell(
+                                atlasImage = displayedImage,
+                                sourceX = sprite.sourceX,
+                                sourceY = sprite.sourceY,
+                                sourceWidth = sprite.sourceWidth,
+                                sourceHeight = sprite.sourceHeight,
+                                rowHeight = rowHeight
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -166,4 +206,14 @@ private fun buildAtlasOptions(): List<AtlasOption> {
     }
 
     return options
+}
+
+private fun toTile(sprite: NativeAtlasSnapshotService.SpriteRegion): AtlasSpriteTile {
+    return AtlasSpriteTile(
+        id = sprite.spriteId(),
+        sourceX = sprite.sourceX(),
+        sourceY = sprite.sourceY(),
+        sourceWidth = sprite.sourceWidth(),
+        sourceHeight = sprite.sourceHeight()
+    )
 }
