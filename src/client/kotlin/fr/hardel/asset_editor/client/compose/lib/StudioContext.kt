@@ -20,6 +20,7 @@ import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.data.concept.StudioRegistryResolver
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition
+import fr.hardel.asset_editor.workspace.WorkspaceDefinitions
 import java.util.Optional
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
@@ -191,7 +192,7 @@ class StudioContext(
 
     private fun snapshotRegistries() {
         val connection = Minecraft.getInstance().connection ?: return
-        for (binding in WorkspaceDefinition.all()) {
+        for (binding in WorkspaceDefinitions.all()) {
             binding.snapshotClientRegistry(connection.registryAccess(), registries.asSnapshotConsumer())
         }
     }
@@ -201,23 +202,23 @@ class StudioContext(
         issues.clear()
         val pack = packSelection.selectedPack() ?: return
 
-        for (binding in WorkspaceDefinition.all()) {
-            requestWorkspaceRefresh(pack.packId(), binding.registryKey())
+        for (binding in WorkspaceDefinitions.all()) {
+            requestWorkspaceRefresh(pack.packId(), binding)
         }
     }
 
     private fun requestWorkspaceRefresh(
         packId: String,
-        registry: ResourceKey<out Registry<*>>
+        definition: WorkspaceDefinition<*>
     ) {
         ClientDebugTelemetry.sync(
             I18n.get("debug:telemetry.requested_workspace_refresh"),
             mapOf(
                 "packId" to packId,
-                "registry" to registry.identifier().toString()
+                "registry" to definition.registryId().toString()
             )
         )
 
-        gateway.requestPackWorkspace(registry)
+        gateway.requestPackWorkspace(definition)
     }
 }

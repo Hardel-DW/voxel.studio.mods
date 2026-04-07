@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -58,7 +59,7 @@ fun EnchantmentFindPage(context: StudioContext) {
                             active = entry.tags().contains(tag.tagId),
                             onActiveChange = {
                                 context.dispatchRegistryAction(
-                                    registry = Registries.ENCHANTMENT,
+                                    definition = Workspaces.ENCHANTMENT,
                                     target = entry.id(),
                                     action = ToggleTagAction(tag.tagId),
                                     dialogs = dialogs

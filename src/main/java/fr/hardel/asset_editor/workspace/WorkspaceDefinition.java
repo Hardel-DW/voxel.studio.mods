@@ -16,13 +16,11 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 public final class WorkspaceDefinition<T> {
-
-    private static final Map<String, WorkspaceDefinition<?>> DEFINITIONS = new ConcurrentHashMap<>();
 
     private final ResourceKey<Registry<T>> registryKey;
     private final Codec<T> codec;
@@ -116,43 +114,17 @@ public final class WorkspaceDefinition<T> {
         return workspaces.computeIfAbsent(packId, ignored -> loader.get());
     }
 
-    private void clearState() {
+    void clearState() {
         baseline = Map.of();
         workspaces.clear();
-    }
-
-    public static void clearAllState() {
-        DEFINITIONS.values().forEach(WorkspaceDefinition::clearState);
     }
 
     public static <T> WorkspaceDefinition<T> of(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> flushAdapter) {
         return new WorkspaceDefinition<>(registryKey, codec, flushAdapter, entry -> CustomFields.EMPTY);
     }
 
-    public static <T> void register(ResourceKey<Registry<T>> registryKey, Codec<T> codec,
+    public static <T> WorkspaceDefinition<T> of(ResourceKey<Registry<T>> registryKey, Codec<T> codec,
         FlushAdapter<T> flushAdapter, Function<ElementEntry<T>, CustomFields> customInitializer) {
-        var definition = new WorkspaceDefinition<>(registryKey, codec, flushAdapter, customInitializer);
-        WorkspaceDefinition<?> previous = DEFINITIONS.putIfAbsent(definition.registryId().toString(), definition);
-        if (previous != null)
-            throw new IllegalStateException("Duplicate workspace definition: " + definition.registryId());
-    }
-
-    public static <T> void register(ResourceKey<Registry<T>> registryKey, Codec<T> codec, FlushAdapter<T> flushAdapter) {
-        register(registryKey, codec, flushAdapter, entry -> CustomFields.EMPTY);
-    }
-
-    public static WorkspaceDefinition<?> get(Identifier registryId) {
-        if (registryId == null)
-            return null;
-        return DEFINITIONS.get(registryId.toString());
-    }
-
-    @SuppressWarnings("unchecked") // Safe: register() stores definitions keyed by registryKey, so the T always matches (Effective Java Item 33)
-    public static <T> WorkspaceDefinition<T> get(ResourceKey<Registry<T>> registryKey) {
-        return (WorkspaceDefinition<T>) DEFINITIONS.get(registryKey.identifier().toString());
-    }
-
-    public static Collection<WorkspaceDefinition<?>> all() {
-        return Collections.unmodifiableCollection(DEFINITIONS.values());
+        return new WorkspaceDefinition<>(registryKey, codec, flushAdapter, customInitializer);
     }
 }

@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.workspace.action;
 import com.mojang.serialization.Lifecycle;
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinitions;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
@@ -36,14 +37,13 @@ public final class EditorActionRegistry {
             return type.decode(buffer);
         });
 
-    public static <T, A extends EditorAction<T>> Action<T, A> register(ResourceKey<Registry<T>> registryKey, String path, StreamCodec<ByteBuf, A> codec, Class<A> actionClass) {
-        return register(registryKey, Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, path), codec, actionClass);
+    public static <T, A extends EditorAction<T>> Action<T, A> register(WorkspaceDefinition<T> definition, String path, StreamCodec<ByteBuf, A> codec, Class<A> actionClass) {
+        return register(definition, Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, path), codec, actionClass);
     }
 
-    public static <T, A extends EditorAction<T>> Action<T, A> register(ResourceKey<Registry<T>> registryKey, Identifier id, StreamCodec<ByteBuf, A> codec, Class<A> actionClass) {
-        WorkspaceDefinition<T> definition = WorkspaceDefinition.get(registryKey);
-        if (definition == null)
-            throw new IllegalStateException("Workspace definition must be registered before actions for " + registryKey.identifier());
+    public static <T, A extends EditorAction<T>> Action<T, A> register(WorkspaceDefinition<T> definition, Identifier id, StreamCodec<ByteBuf, A> codec, Class<A> actionClass) {
+        if (!WorkspaceDefinitions.contains(definition))
+            throw new IllegalStateException("Workspace definition must be registered before actions for " + definition.registryId());
 
         if (BY_CLASS.containsKey(actionClass))
             throw new IllegalStateException("Duplicate action class: " + actionClass.getName());

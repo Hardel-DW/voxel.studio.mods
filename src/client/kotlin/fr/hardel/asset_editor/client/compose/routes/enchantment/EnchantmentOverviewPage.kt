@@ -43,6 +43,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction
 import java.util.Locale
@@ -188,7 +189,7 @@ private fun OverviewRow(
                     checked = enabled,
                     onCheckedChange = {
                         context.dispatchRegistryAction(
-                            registry = Registries.ENCHANTMENT,
+                            definition = Workspaces.ENCHANTMENT,
                             target = entry.id(),
                             action = ToggleDisabledAction(),
                             dialogs = dialogs

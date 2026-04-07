@@ -17,6 +17,7 @@ import fr.hardel.asset_editor.client.compose.VoxelTypography
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectAction
@@ -84,7 +85,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                             checked = entry.tags().contains(field.tagId),
                             onCheckedChange = {
                                 context.dispatchRegistryAction(
-                                    registry = Registries.ENCHANTMENT,
+                                    definition = Workspaces.ENCHANTMENT,
                                     target = entry.id(),
                                     action = ToggleTagAction(field.tagId),
                                     dialogs = dialogs
@@ -112,7 +113,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                             value = field.value(entry.data()),
                             onValueChange = { value ->
                                 context.dispatchRegistryAction(
-                                    registry = Registries.ENCHANTMENT,
+                                    definition = Workspaces.ENCHANTMENT,
                                     target = entry.id(),
                                     action = field.action(value),
                                     dialogs = dialogs
@@ -156,7 +157,7 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                                 checked = !EnchantmentFlushAdapter.isEffectDisabled(entry, effectId),
                                 onCheckedChange = {
                                     context.dispatchRegistryAction(
-                                        registry = Registries.ENCHANTMENT,
+                                        definition = Workspaces.ENCHANTMENT,
                                         target = entry.id(),
                                         action = ToggleDisabledEffectAction(effectId),
                                         dialogs = dialogs

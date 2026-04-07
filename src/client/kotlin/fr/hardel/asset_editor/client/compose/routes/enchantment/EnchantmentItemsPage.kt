@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentTreeData
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.action.enchantment.SetPrimaryItemsAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction
 import net.minecraft.client.resources.language.I18n
@@ -85,7 +86,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                         SetSupportedItemsAction(tag.tagId.toString(), tag.seed)
                                     }
                                     context.dispatchRegistryAction(
-                                        registry = Registries.ENCHANTMENT,
+                                        definition = Workspaces.ENCHANTMENT,
                                         target = entry.id(),
                                         action = action,
                                         dialogs = dialogs
@@ -103,7 +104,7 @@ fun EnchantmentItemsPage(context: StudioContext) {
                                 active = primaryTag == null,
                                 onActiveChange = {
                                     context.dispatchRegistryAction(
-                                        registry = Registries.ENCHANTMENT,
+                                        definition = Workspaces.ENCHANTMENT,
                                         target = entry.id(),
                                         action = SetPrimaryItemsAction("", null),
                                         dialogs = dialogs

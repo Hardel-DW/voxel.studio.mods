@@ -24,7 +24,7 @@ public final class WorkspaceAccessResolver {
         if (repository == null || packManager == null)
             return new Resolution.Failure("error:server_unavailable");
 
-        var definition = WorkspaceDefinition.get(registryId);
+        var definition = WorkspaceDefinitions.get(registryId);
         if (definition == null)
             return new Resolution.Failure("error:invalid_registry");
 

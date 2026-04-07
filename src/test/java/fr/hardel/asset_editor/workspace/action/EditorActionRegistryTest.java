@@ -7,6 +7,7 @@ import fr.hardel.asset_editor.workspace.flush.CustomFields;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
+import fr.hardel.asset_editor.workspace.WorkspaceDefinitions;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -29,6 +30,8 @@ class EditorActionRegistryTest {
 
     private static final ResourceKey<Registry<String>> TEST_REGISTRY_KEY = ResourceKey.createRegistryKey(
         Identifier.fromNamespaceAndPath("asset_editor", "test_registry"));
+    private static final WorkspaceDefinition<String> TEST_DEFINITION = WorkspaceDefinition.of(
+        TEST_REGISTRY_KEY, Codec.STRING, FlushAdapter.identity());
     private static final Identifier TEST_ACTION_ID = Identifier.fromNamespaceAndPath("asset_editor", "test/action");
     private static final StreamCodec<ByteBuf, TestAction> TEST_CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, TestAction::value, TestAction::new);
@@ -36,11 +39,11 @@ class EditorActionRegistryTest {
     @BeforeAll
     static void registerBuiltIns() {
         try {
-            WorkspaceDefinition.register(TEST_REGISTRY_KEY, Codec.STRING, FlushAdapter.identity());
+            WorkspaceDefinitions.register(TEST_DEFINITION);
         } catch (IllegalStateException ignored) {
         }
         try {
-            EditorActionRegistry.register(TEST_REGISTRY_KEY, TEST_ACTION_ID, TEST_CODEC, TestAction.class);
+            EditorActionRegistry.register(TEST_DEFINITION, TEST_ACTION_ID, TEST_CODEC, TestAction.class);
         } catch (IllegalStateException ignored) {
         }
     }
@@ -96,7 +99,7 @@ class EditorActionRegistryTest {
         Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "test/" + UUID.randomUUID());
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> EditorActionRegistry.register(registryKey, id, TEST_CODEC, TestAction.class));
+            () -> EditorActionRegistry.register(WorkspaceDefinition.of(registryKey, Codec.STRING, FlushAdapter.identity()), id, TEST_CODEC, TestAction.class));
         assertEquals("Workspace definition must be registered before actions for " + registryKey.identifier(), exception.getMessage());
     }
 
@@ -122,10 +125,8 @@ class EditorActionRegistryTest {
 
     @Test
     void workspaceApplyUsesRegisteredAction() {
-        WorkspaceDefinition<String> definition = WorkspaceDefinition.get(TEST_REGISTRY_KEY);
-
         ElementEntry<String> entry = new ElementEntry<>(Identifier.withDefaultNamespace("target"), "before", Set.of(), CustomFields.EMPTY);
-        ElementEntry<String> updated = definition.apply(entry, new TestAction("after"), null);
+        ElementEntry<String> updated = TEST_DEFINITION.apply(entry, new TestAction("after"), null);
 
         assertEquals("after", updated.data());
     }

@@ -23,6 +23,7 @@ import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultItemAction
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
@@ -47,7 +48,7 @@ fun RecipeMainPage(context: StudioContext) {
     LaunchedEffect(editor?.elementId, workspaceEntry, context.sessionMemory().worldSessionKey()) {
         if (editor?.elementId == null || workspaceEntry != null) return@LaunchedEffect
         val elementId = Identifier.tryParse(editor.elementId) ?: return@LaunchedEffect
-        context.gateway.requestElementSeed(Registries.RECIPE, elementId)
+        context.gateway.requestElementSeed(Workspaces.RECIPE, elementId)
     }
 
     val recipeCounts = remember(entries) {
@@ -77,7 +78,7 @@ fun RecipeMainPage(context: StudioContext) {
 
             if (nextType != model.type && targetId != null && workspaceEntry != null) {
                 context.dispatchRegistryAction(
-                    registry = Registries.RECIPE,
+                    definition = Workspaces.RECIPE,
                     target = targetId,
                     action = ConvertRecipeTypeAction(Identifier.parse(nextType), true),
                     dialogs = dialogs
@@ -87,7 +88,7 @@ fun RecipeMainPage(context: StudioContext) {
         onResultCountChange = { value ->
             if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeEditorState
             context.dispatchRegistryAction(
-                registry = Registries.RECIPE,
+                definition = Workspaces.RECIPE,
                 target = targetId,
                 action = SetResultCountAction(value),
                 dialogs = dialogs
@@ -97,7 +98,7 @@ fun RecipeMainPage(context: StudioContext) {
             val itemId = selectedItemId?.let(Identifier::tryParse) ?: return@RecipeEditorState
             if (targetId == null || workspaceEntry == null || !resultItemEditable) return@RecipeEditorState
             context.dispatchRegistryAction(
-                registry = Registries.RECIPE,
+                definition = Workspaces.RECIPE,
                 target = targetId,
                 action = SetResultItemAction(itemId),
                 dialogs = dialogs
@@ -112,7 +113,7 @@ fun RecipeMainPage(context: StudioContext) {
                 paintMode = PaintMode.ERASING
             }
             context.dispatchRegistryAction(
-                registry = Registries.RECIPE,
+                definition = Workspaces.RECIPE,
                 target = targetId,
                 action = action,
                 dialogs = dialogs

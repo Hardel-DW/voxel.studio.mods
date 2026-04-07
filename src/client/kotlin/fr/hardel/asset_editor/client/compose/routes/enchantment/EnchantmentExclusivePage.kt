@@ -13,6 +13,7 @@ import fr.hardel.asset_editor.client.compose.components.page.enchantment.Exclusi
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveSingleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.*
+import fr.hardel.asset_editor.workspace.flush.Workspaces
 import fr.hardel.asset_editor.workspace.action.enchantment.SetExclusiveSetAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleExclusiveAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
@@ -64,7 +65,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                     directExclusiveIds = directExclusiveIds,
                     onToggleExclusive = { enchantmentId ->
                         context.dispatchRegistryAction(
-                            registry = Registries.ENCHANTMENT,
+                            definition = Workspaces.ENCHANTMENT,
                             target = entry.id(),
                             action = ToggleExclusiveAction(enchantmentId),
                             dialogs = dialogs
@@ -78,7 +79,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                     currentTags = entry.tags(),
                     onTargetToggle = { tagId, checked ->
                         context.dispatchRegistryAction(
-                            registry = Registries.ENCHANTMENT,
+                            definition = Workspaces.ENCHANTMENT,
                             target = entry.id(),
                             action = SetExclusiveSetAction(if (checked) tagId.toString() else ""),
                             dialogs = dialogs
@@ -86,7 +87,7 @@ fun EnchantmentExclusivePage(context: StudioContext) {
                     },
                     onMembershipToggle = { tagId, _ ->
                         context.dispatchRegistryAction(
-                            registry = Registries.ENCHANTMENT,
+                            definition = Workspaces.ENCHANTMENT,
                             target = entry.id(),
                             action = ToggleTagAction(tagId),
                             dialogs = dialogs

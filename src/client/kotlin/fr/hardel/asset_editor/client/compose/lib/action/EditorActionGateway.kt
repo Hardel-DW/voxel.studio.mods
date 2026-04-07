@@ -18,6 +18,7 @@ import fr.hardel.asset_editor.workspace.action.EditorAction
 
 import fr.hardel.asset_editor.workspace.io.RegistryMutationContexts
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition
+import fr.hardel.asset_editor.workspace.WorkspaceDefinitions
 import java.util.Objects
 import java.util.UUID
 import net.minecraft.client.Minecraft
@@ -52,7 +53,7 @@ class EditorActionGateway(
     }
 
     fun <T : Any> dispatch(
-        registry: ResourceKey<Registry<T>>,
+        definition: WorkspaceDefinition<T>,
         target: Identifier?,
         action: EditorAction<*>
     ): EditorActionResult {
@@ -64,6 +65,7 @@ class EditorActionGateway(
         val pack = packSelection.selectedPack()
             ?: return EditorActionResult.packRequired()
         val resolvedTarget = target ?: return EditorActionResult.error("error:workspace_sync_pending")
+        val registry = definition.registryKey()
         val entry = registryMemory.get(registry, resolvedTarget)
             ?: return EditorActionResult.error("error:workspace_sync_pending")
 
@@ -73,29 +75,29 @@ class EditorActionGateway(
             PendingClientAction(actionId, pack.packId(), registry, resolvedTarget, entry)
         )
 
-        projectOptimistic(registry, resolvedTarget, entry, action)
+        projectOptimistic(definition, resolvedTarget, entry, action)
         val payload = WorkspaceMutationRequestPayload(
             actionId,
             pack.packId(),
-            registry.identifier(),
+            definition.registryId(),
             resolvedTarget,
             action
         )
-        ClientDebugTelemetry.actionDispatched(pack.packId(), registry.identifier(), resolvedTarget, action, actionId)
+        ClientDebugTelemetry.actionDispatched(pack.packId(), definition.registryId(), resolvedTarget, action, actionId)
         ClientPayloadSender.send(payload)
         return EditorActionResult.applied()
     }
 
-    fun requestPackWorkspace(registry: ResourceKey<*>) {
+    fun requestPackWorkspace(definition: WorkspaceDefinition<*>) {
         val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
-        ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), registry.identifier()))
+        ClientPayloadSender.send(PackWorkspaceRequestPayload(pack.packId(), definition.registryId()))
     }
 
-    fun requestElementSeed(registry: ResourceKey<*>, elementId: Identifier) {
+    fun requestElementSeed(definition: WorkspaceDefinition<*>, elementId: Identifier) {
         val pack = packSelection.selectedPack()
         if (pack == null || pack.packId().isBlank()) return
-        ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), registry.identifier(), elementId))
+        ClientPayloadSender.send(ElementSeedRequestPayload(pack.packId(), definition.registryId(), elementId))
     }
 
     override fun handleWorkspaceSync(payload: WorkspaceSyncPayload) {
@@ -125,29 +127,28 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinition.get(registryId) ?: return
+        val definition = WorkspaceDefinitions.get(registryId) ?: return
         val registries = clientRegistries() ?: return
         replaceAll(definition, snapshots, registries)
     }
 
     private fun <T : Any> projectOptimistic(
-        registry: ResourceKey<Registry<T>>,
+        definition: WorkspaceDefinition<T>,
         target: Identifier,
         entry: ElementEntry<T>,
         action: EditorAction<*>
     ) {
-        val definition = WorkspaceDefinition.get(registry) ?: return
         val registries = clientRegistries() ?: return
 
         try {
             val context = RegistryMutationContexts.client(registries)
             val projected = definition.apply(entry, action, context)
             if (!Objects.equals(projected, entry)) {
-                registryMemory.put(registry, target, projected)
+                registryMemory.put(definition.registryKey(), target, projected)
             }
         } catch (exception: Exception) {
             LOGGER.warn("Optimistic projection failed for {}: {}", target, exception.message)
-            ClientDebugTelemetry.optimisticFailed(registry.identifier(), target, action, exception.message ?: "unknown")
+            ClientDebugTelemetry.optimisticFailed(definition.registryId(), target, action, exception.message ?: "unknown")
         }
     }
 
@@ -166,7 +167,7 @@ class EditorActionGateway(
             return
         }
 
-        val definition = WorkspaceDefinition.get(snapshot.registryId()) ?: return
+        val definition = WorkspaceDefinitions.get(snapshot.registryId()) ?: return
         val registries = clientRegistries() ?: return
         applySnapshot(definition, snapshot, registries)
     }

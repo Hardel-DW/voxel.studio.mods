@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionResult
+import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import net.minecraft.client.resources.language.I18n
@@ -63,12 +64,12 @@ fun <T : Any> rememberCurrentRegistryEntry(
 }
 
 fun <T : Any> StudioContext.dispatchRegistryAction(
-    registry: ResourceKey<Registry<T>>,
+    definition: WorkspaceDefinition<T>,
     target: Identifier?,
     action: EditorAction<*>,
     dialogs: RegistryDialogState
 ): EditorActionResult {
-    val result = gateway.dispatch(registry, target, action)
+    val result = gateway.dispatch(definition, target, action)
     dialogs.handle(result)
     return result
 }

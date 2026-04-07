@@ -26,7 +26,7 @@ public final class WorkspaceRepository {
     }
 
     public static void shutdown() {
-        WorkspaceDefinition.clearAllState();
+        WorkspaceDefinitions.clearAllState();
         instance = null;
     }
 
@@ -40,7 +40,7 @@ public final class WorkspaceRepository {
     }
 
     public void snapshotAllBaselines(ResourceManager resourceManager, RegistryAccess registryAccess) {
-        for (var definition : WorkspaceDefinition.all())
+        for (var definition : WorkspaceDefinitions.all())
             snapshotBaseline(definition, resourceManager, registryAccess);
     }
 
