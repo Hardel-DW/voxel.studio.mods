@@ -78,6 +78,5 @@ public final class CustomFieldsJson {
         return null;
     }
 
-    private CustomFieldsJson() {
-    }
+    private CustomFieldsJson() {}
 }

@@ -62,6 +62,7 @@ public final class WorkspaceMutationService {
 
     public sealed interface MutationResult permits MutationResult.Success, MutationResult.Failure {
         record Success(String packId, WorkspaceElementSnapshot snapshot) implements MutationResult {}
+
         record Failure(String errorCode) implements MutationResult {}
     }
 }

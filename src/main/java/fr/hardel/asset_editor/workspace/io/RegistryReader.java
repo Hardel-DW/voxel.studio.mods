@@ -55,8 +55,7 @@ public final class RegistryReader {
         Map<Identifier, Set<Identifier>> tagsByElement = new HashMap<>();
         loader.build(loader.load(resourceManager)).forEach((tagId, holders) -> {
             for (H holder : holders) {
-                holder.unwrapKey().ifPresent(key ->
-                    tagsByElement.computeIfAbsent(key.identifier(), ignored -> new java.util.HashSet<>()).add(tagId));
+                holder.unwrapKey().ifPresent(key -> tagsByElement.computeIfAbsent(key.identifier(), ignored -> new java.util.HashSet<>()).add(tagId));
             }
         });
         return tagsByElement;

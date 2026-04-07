@@ -53,7 +53,7 @@ public final class WorkspaceRepository {
     }
 
     public <T> ElementEntry<T> get(String packId, WorkspaceDefinition<T> definition,
-                                   Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
+        Path packRoot, HolderLookup.Provider registries, Identifier elementId) {
         return workspace(packId, definition, packRoot, registries).get(elementId);
     }
 
@@ -83,7 +83,7 @@ public final class WorkspaceRepository {
     }
 
     private <T> WorkspaceRegistry<T> workspace(String packId, WorkspaceDefinition<T> definition,
-                                               Path packRoot, HolderLookup.Provider registries) {
+        Path packRoot, HolderLookup.Provider registries) {
         return definition.workspaceOrLoad(packId,
             () -> overlayManager.loadWorkspace(packId, packRoot, definition, registries, definition.baseline()));
     }

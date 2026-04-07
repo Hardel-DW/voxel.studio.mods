@@ -16,7 +16,7 @@ public final class WorkspaceRegistry<T> {
     private final Set<Identifier> dirtyTags = new java.util.LinkedHashSet<>();
 
     public WorkspaceRegistry(Map<Identifier, ElementEntry<T>> referenceEntries,
-                             Map<Identifier, ElementEntry<T>> currentEntries) {
+        Map<Identifier, ElementEntry<T>> currentEntries) {
         this.referenceEntries = new LinkedHashMap<>(referenceEntries);
         this.currentEntries = new LinkedHashMap<>(currentEntries);
     }
