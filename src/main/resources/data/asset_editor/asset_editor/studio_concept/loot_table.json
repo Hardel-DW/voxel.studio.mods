@@ -1,0 +1,5 @@
+{
+  "registry": "minecraft:loot_table",
+  "default_editor_tab": "asset_editor:main",
+  "tabs": "asset_editor:loot_table"
+}

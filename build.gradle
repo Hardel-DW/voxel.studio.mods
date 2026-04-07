@@ -1,5 +1,8 @@
 plugins {
     id 'fabric-loom' version '1.15-SNAPSHOT'
+    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
+    id 'org.jetbrains.kotlin.plugin.compose' version '2.3.10'
+    id 'org.jetbrains.compose' version '1.9.1'
     id 'maven-publish'
 }
 
@@ -14,6 +17,12 @@ loom {
     accessWidenerPath = file("src/main/resources/asset_editor.accesswidener")
     splitEnvironmentSourceSets()
 
+    runs {
+        client {
+            vmArg "-Djava.awt.headless=false"
+        }
+    }
+
     mods {
         "asset_editor" {
             sourceSet sourceSets.main
@@ -22,16 +31,22 @@ loom {
     }
 }
 
-repositories {}
+repositories {
+    google()
+    mavenCentral()
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    implementation "org.openjfx:javafx-base:21.0.7:win"
-    implementation "org.openjfx:javafx-graphics:21.0.7:win"
-    implementation "org.openjfx:javafx-controls:21.0.7:win"
+    implementation compose.desktop.currentOs
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8"
+    testImplementation platform("org.junit:junit-bom:5.10.2")
+    testImplementation "org.junit.jupiter:junit-jupiter"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 processResources {
@@ -68,6 +83,14 @@ java {
     // if it is present.
     // If you remove this line, sources will not be generated.
     withSourcesJar()
+}
+
+kotlin {
+    jvmToolchain(targetJavaVersion)
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
 }
 
 jar {

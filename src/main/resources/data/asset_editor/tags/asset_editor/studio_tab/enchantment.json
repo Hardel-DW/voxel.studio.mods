@@ -1,0 +1,10 @@
+{
+  "values": [
+    "asset_editor:main",
+    "asset_editor:find",
+    "asset_editor:slots",
+    "asset_editor:items",
+    "asset_editor:exclusive",
+    "asset_editor:technical"
+  ]
+}

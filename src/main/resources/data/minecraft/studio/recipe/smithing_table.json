@@ -1,0 +1,8 @@
+{
+  "recipe_types": [
+    "minecraft:smithing_transform",
+    "minecraft:smithing_trim"
+  ],
+  "template_kind": "minecraft:smithing",
+  "show_recipe_types_in_advanced": true
+}

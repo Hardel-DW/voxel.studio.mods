@@ -1,0 +1,19 @@
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
+
+import net.minecraft.resources.Identifier
+
+data class RecipeVisualModel(
+    val type: String,
+    val slots: Map<String, List<String>>,
+    val resultItemId: String,
+    val resultCount: Int = 1,
+    val resultCountEditable: Boolean = true,
+    val resultCountMax: Int = 64
+)
+
+data class RecipeRuntimeEntry(
+    val id: Identifier,
+    val type: String,
+    val serializer: String,
+    val visual: RecipeVisualModel
+)

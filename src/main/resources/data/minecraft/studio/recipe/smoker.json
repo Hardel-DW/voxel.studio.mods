@@ -1,0 +1,4 @@
+{
+  "recipe_types": ["minecraft:smoking"],
+  "template_kind": "minecraft:smelting"
+}

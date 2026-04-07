@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.debug;
 
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -43,7 +45,7 @@ public final class RecordIntrospector {
                 Object value = accessor.invoke(obj);
                 fields.add(new Field(component.getName(), resolve(value, depth)));
             } catch (ReflectiveOperationException e) {
-                DebugLogStore.log(DebugLogStore.Level.ERROR, DebugLogStore.Category.LIFECYCLE,
+                ClientMemoryHolder.debug().logs().log(DebugLogMemory.Level.ERROR, DebugLogMemory.Category.LIFECYCLE,
                     I18n.get("debug:introspect.field_read_failed", component.getName(), obj.getClass().getSimpleName()),
                     Map.of("exception", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
             }

@@ -1,0 +1,27 @@
+{
+  "values": [
+    { "id": "voxel:enchantable/swords", "default": ["#minecraft:swords"] },
+    "minecraft:enchantable/trident",
+    "minecraft:enchantable/mace",
+    "minecraft:enchantable/bow",
+    "minecraft:enchantable/crossbow",
+    { "id": "voxel:enchantable/range", "default": ["#minecraft:enchantable/crossbow", "#minecraft:enchantable/bow"] },
+    "minecraft:enchantable/fishing",
+    { "id": "voxel:enchantable/shield", "default": ["minecraft:shield"] },
+    "minecraft:enchantable/weapon",
+    { "id": "voxel:enchantable/melee", "default": ["#minecraft:enchantable/weapon", "#minecraft:enchantable/trident"] },
+    "minecraft:enchantable/head_armor",
+    "minecraft:enchantable/chest_armor",
+    "minecraft:enchantable/leg_armor",
+    "minecraft:enchantable/foot_armor",
+    { "id": "voxel:enchantable/elytra", "default": ["minecraft:elytra"] },
+    "minecraft:enchantable/armor",
+    "minecraft:enchantable/equippable",
+    { "id": "voxel:enchantable/axes", "default": ["#minecraft:axes"] },
+    { "id": "voxel:enchantable/shovels", "default": ["#minecraft:shovels"] },
+    { "id": "voxel:enchantable/hoes", "default": ["#minecraft:hoes"] },
+    { "id": "voxel:enchantable/pickaxes", "default": ["#minecraft:pickaxes"] },
+    "minecraft:enchantable/durability",
+    "minecraft:enchantable/mining_loot"
+  ]
+}

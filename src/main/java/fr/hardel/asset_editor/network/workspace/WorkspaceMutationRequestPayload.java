@@ -12,7 +12,7 @@ import fr.hardel.asset_editor.AssetEditor;
 
 import java.util.UUID;
 
-public record WorkspaceMutationRequestPayload(UUID actionId, String packId, Identifier registryId, Identifier targetId, EditorAction action) implements CustomPacketPayload {
+public record WorkspaceMutationRequestPayload(UUID actionId, String packId, Identifier registryId, Identifier targetId, EditorAction<?> action) implements CustomPacketPayload {
 
     public static final Type<WorkspaceMutationRequestPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "workspace_mutation_request"));

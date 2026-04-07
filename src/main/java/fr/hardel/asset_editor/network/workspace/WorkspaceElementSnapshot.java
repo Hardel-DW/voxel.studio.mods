@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.network.workspace;
 
-import fr.hardel.asset_editor.store.CustomFields;
-import fr.hardel.asset_editor.store.CustomFieldsJson;
+import fr.hardel.asset_editor.workspace.flush.CustomFields;
+import fr.hardel.asset_editor.workspace.flush.CustomFieldsJson;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,14 +17,8 @@ public record WorkspaceElementSnapshot(Identifier registryId, Identifier targetI
         custom = custom == null ? CustomFields.EMPTY : custom;
     }
 
-    private static final StreamCodec<ByteBuf, Set<Identifier>> TAG_SET_CODEC = Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()).map(
-        identifiers -> Set.copyOf(identifiers == null ? List.of() : identifiers),
-        identifiers -> List.copyOf(identifiers == null ? Set.of() : identifiers));
-
-    private static final StreamCodec<ByteBuf, CustomFields> CUSTOM_FIELDS_CODEC = ByteBufCodecs.STRING_UTF8.map(
-        CustomFieldsJson::fromJson,
-        CustomFieldsJson::toJson);
-
+    private static final StreamCodec<ByteBuf, Set<Identifier>> TAG_SET_CODEC = Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()).map(Set::copyOf, List::copyOf);
+    private static final StreamCodec<ByteBuf, CustomFields> CUSTOM_FIELDS_CODEC = ByteBufCodecs.STRING_UTF8.map(CustomFieldsJson::fromJson, CustomFieldsJson::toJson);
     public static final StreamCodec<ByteBuf, WorkspaceElementSnapshot> STREAM_CODEC = StreamCodec.composite(
         Identifier.STREAM_CODEC, WorkspaceElementSnapshot::registryId,
         Identifier.STREAM_CODEC, WorkspaceElementSnapshot::targetId,

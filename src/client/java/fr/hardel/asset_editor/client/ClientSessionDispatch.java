@@ -1,54 +1,56 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.javafx.window.VoxelStudioWindow;
-import fr.hardel.asset_editor.client.javafx.lib.action.EditorActionGateway;
-import fr.hardel.asset_editor.client.state.ClientSessionState;
+import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.memory.session.server.ServerDataStore;
+import fr.hardel.asset_editor.client.memory.session.SessionMemory;
+import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
-import fr.hardel.asset_editor.network.session.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.PermissionSyncPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
-import javafx.application.Platform;
+
+import javax.swing.SwingUtilities;
 
 public final class ClientSessionDispatch {
 
-    private final ClientSessionState sessionState;
-    private EditorActionGateway activeGateway;
+    private final SessionMemory sessionMemory;
+    private WorkspaceSyncGateway activeGateway;
 
-    public ClientSessionDispatch(ClientSessionState sessionState) {
-        this.sessionState = sessionState;
+    public ClientSessionDispatch(SessionMemory sessionMemory) {
+        this.sessionMemory = sessionMemory;
     }
 
-    public void setGateway(EditorActionGateway gateway) {
+    public void setGateway(WorkspaceSyncGateway gateway) {
         activeGateway = gateway;
     }
 
-    public void clearGateway() {
-        clearGateway(activeGateway);
-    }
-
-    public void clearGateway(EditorActionGateway gateway) {
+    public void clearGateway(WorkspaceSyncGateway gateway) {
         if (activeGateway == gateway)
             activeGateway = null;
     }
 
     public void handlePermissionSync(PermissionSyncPayload payload) {
-        runSessionUpdate(() -> sessionState.updatePermissions(payload.permissions()));
+        runSessionUpdate(() -> sessionMemory.updatePermissions(payload.permissions()));
     }
 
     public void handlePackListSync(PackListSyncPayload payload) {
-        runSessionUpdate(() -> sessionState.updatePacks(payload.packs()));
+        runSessionUpdate(() -> sessionMemory.updatePacks(payload.packs()));
+    }
+
+    public void handleServerDataSync(ServerDataSyncPayload payload) {
+        runSessionUpdate(() -> ServerDataStore.applyRaw(payload.key(), payload.rawData()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handleWorkspaceSync(payload));
+            runOnUiThread(() -> gateway.handleWorkspaceSync(payload));
     }
 
     public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            Platform.runLater(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
+            runOnUiThread(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
     }
 
     private void runSessionUpdate(Runnable update) {
@@ -57,11 +59,15 @@ public final class ClientSessionDispatch {
             return;
         }
 
-        if (Platform.isFxApplicationThread()) {
+        runOnUiThread(update);
+    }
+
+    private void runOnUiThread(Runnable update) {
+        if (SwingUtilities.isEventDispatchThread()) {
             update.run();
             return;
         }
 
-        Platform.runLater(update);
+        SwingUtilities.invokeLater(update);
     }
 }

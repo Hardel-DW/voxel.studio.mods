@@ -1,0 +1,83 @@
+package fr.hardel.asset_editor.client.compose.routes.enchantment
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.StudioBreakpoint
+import fr.hardel.asset_editor.client.compose.components.ui.*
+import fr.hardel.asset_editor.client.compose.lib.*
+import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
+import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.registries.Registries
+import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.AssetEditor
+
+private data class FindTag(val tagId: Identifier) {
+    fun titleKey(): String = "enchantment_tag:$tagId"
+    fun descKey(): String = "enchantment_tag:$tagId.desc"
+    fun image(): Identifier = tagId.withPath("textures/studio/enchantment/${tagId.path}.png")
+}
+
+private val FIND_TAGS = listOf(
+    FindTag(Identifier.withDefaultNamespace("in_enchanting_table")),
+    FindTag(Identifier.withDefaultNamespace("on_mob_spawn_equipment")),
+    FindTag(Identifier.withDefaultNamespace("on_random_loot")),
+    FindTag(Identifier.withDefaultNamespace("tradeable")),
+    FindTag(Identifier.withDefaultNamespace("on_traded_equipment")),
+    FindTag(Identifier.withDefaultNamespace("curse")),
+    FindTag(Identifier.withDefaultNamespace("non_treasure")),
+    FindTag(Identifier.withDefaultNamespace("treasure"))
+)
+
+@Composable
+fun EnchantmentFindPage(context: StudioContext) {
+    val dialogs = rememberRegistryDialogState()
+    val entry = rememberCurrentRegistryEntry(context, ClientWorkspaceRegistries.ENCHANTMENT) ?: return
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp)
+    ) {
+        Section(I18n.get("enchantment:section.find")) {
+            ResponsiveGrid(
+                items = FIND_TAGS.map { tag ->
+                    {
+                        Card(
+                            imageId = tag.image(),
+                            title = I18n.get(tag.titleKey()),
+                            description = I18n.get(tag.descKey()),
+                            active = entry.tags().contains(tag.tagId),
+                            onActiveChange = {
+                                context.dispatchRegistryAction(
+                                    workspace = ClientWorkspaceRegistries.ENCHANTMENT,
+                                    target = entry.id(),
+                                    action = ToggleTagAction(tag.tagId),
+                                    dialogs = dialogs
+                                )
+                            }
+                        )
+                    }
+                },
+                defaultSpec = LayoutSpec.AutoFit(368.dp),
+                rules = listOf(
+                    BreakpointRule(
+                        maxWidth = StudioBreakpoint.XL.px.dp,
+                        spec = LayoutSpec.Fixed(floatArrayOf(1f))
+                    )
+                )
+            )
+        }
+    }
+
+    RegistryPageDialogs(context, dialogs)
+}

@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.debug;
 
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.Identifier;
@@ -10,26 +12,41 @@ import java.util.UUID;
 
 public final class ClientDebugTelemetry {
 
-    public static void actionDispatched(String packId, Identifier registryId, Identifier targetId,
-        EditorAction action, UUID actionId) {
-        log(DebugLogStore.Level.INFO, DebugLogStore.Category.ACTION,
+    public static void actionDispatched(String packId, Identifier registryId, Identifier targetId, EditorAction action, UUID actionId) {
+        log(DebugLogMemory.Category.ACTION,
             I18n.get("debug:telemetry.dispatched_editor_action"),
             Map.of("packId", packId, "registryId", registryId.toString(),
                 "targetId", targetId.toString(), "action", action.toString(), "actionId", actionId.toString()));
     }
 
+    public static void optimisticFailed(Identifier registryId, Identifier targetId, EditorAction action, String reason) {
+        logLevel(DebugLogMemory.Level.ERROR, DebugLogMemory.Category.ACTION,
+            I18n.get("debug:telemetry.optimistic_failed"),
+            Map.of("registryId", registryId.toString(), "targetId", targetId.toString(),
+                "action", action.toString(), "reason", reason));
+    }
+
+    public static void actionRejected(UUID actionId, String errorCode) {
+        logLevel(DebugLogMemory.Level.WARN, DebugLogMemory.Category.ACTION,
+            I18n.get("debug:telemetry.action_rejected"),
+            Map.of("actionId", actionId.toString(), "errorCode", errorCode));
+    }
+
     public static void sync(String message, Map<String, ?> data) {
-        log(DebugLogStore.Level.INFO, DebugLogStore.Category.SYNC, message, data);
+        log(DebugLogMemory.Category.SYNC, message, data);
     }
 
     public static void lifecycle(String message, Map<String, ?> data) {
-        log(DebugLogStore.Level.INFO, DebugLogStore.Category.LIFECYCLE, message, data);
+        log(DebugLogMemory.Category.LIFECYCLE, message, data);
     }
 
-    private static void log(DebugLogStore.Level level, DebugLogStore.Category category, String message,
-        Map<String, ?> data) {
+    private static void log(DebugLogMemory.Category category, String message, Map<String, ?> data) {
+        logLevel(DebugLogMemory.Level.INFO, category, message, data);
+    }
+
+    private static void logLevel(DebugLogMemory.Level level, DebugLogMemory.Category category, String message, Map<String, ?> data) {
         if (data == null) {
-            DebugLogStore.log(level, category, message);
+            ClientMemoryHolder.debug().logs().log(level, category, message);
             return;
         }
 
@@ -43,7 +60,7 @@ public final class ClientDebugTelemetry {
                 normalized.put(entry.getKey(), text);
         }
 
-        DebugLogStore.log(level, category, message, normalized);
+        ClientMemoryHolder.debug().logs().log(level, category, message, normalized);
     }
 
     private ClientDebugTelemetry() {}

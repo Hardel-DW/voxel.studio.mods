@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.network.pack;
 
-import fr.hardel.asset_editor.store.ServerPackManager.PackEntry;
+import fr.hardel.asset_editor.workspace.io.DataPackManager.PackEntry;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
