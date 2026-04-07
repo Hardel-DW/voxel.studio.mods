@@ -26,30 +26,35 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction;
 
 public final class Actions {
 
+    // Enchantment
+    public static final Action<?> SET_INT_FIELD = EditorActionRegistry.register("enchantment/set_int_field", SetIntFieldAction.CODEC, SetIntFieldAction.class);
+    public static final Action<?> SET_MODE = EditorActionRegistry.register("enchantment/set_mode", SetModeAction.CODEC, SetModeAction.class);
+    public static final Action<?> TOGGLE_DISABLED = EditorActionRegistry.register("enchantment/toggle_disabled", ToggleDisabledAction.CODEC, ToggleDisabledAction.class);
+    public static final Action<?> TOGGLE_DISABLED_EFFECT = EditorActionRegistry.register("enchantment/toggle_disabled_effect", ToggleDisabledEffectAction.CODEC, ToggleDisabledEffectAction.class);
+    public static final Action<?> TOGGLE_SLOT = EditorActionRegistry.register("enchantment/toggle_slot", ToggleSlotAction.CODEC, ToggleSlotAction.class);
+    public static final Action<?> TOGGLE_TAG = EditorActionRegistry.register("enchantment/toggle_tag", ToggleTagAction.CODEC, ToggleTagAction.class);
+    public static final Action<?> TOGGLE_EXCLUSIVE = EditorActionRegistry.register("enchantment/toggle_exclusive", ToggleExclusiveAction.CODEC, ToggleExclusiveAction.class);
+    public static final Action<?> SET_SUPPORTED_ITEMS = EditorActionRegistry.register("enchantment/set_supported_items", SetSupportedItemsAction.CODEC, SetSupportedItemsAction.class);
+    public static final Action<?> SET_PRIMARY_ITEMS = EditorActionRegistry.register("enchantment/set_primary_items", SetPrimaryItemsAction.CODEC, SetPrimaryItemsAction.class);
+    public static final Action<?> SET_EXCLUSIVE_SET = EditorActionRegistry.register("enchantment/set_exclusive_set", SetExclusiveSetAction.CODEC, SetExclusiveSetAction.class);
+
+    // Recipe
+    public static final Action<?> ADD_INGREDIENT = EditorActionRegistry.register("recipe/add_ingredient", AddIngredientAction.CODEC, AddIngredientAction.class);
+    public static final Action<?> ADD_SHAPELESS_INGREDIENT = EditorActionRegistry.register("recipe/add_shapeless_ingredient", AddShapelessIngredientAction.CODEC, AddShapelessIngredientAction.class);
+    public static final Action<?> REMOVE_INGREDIENT = EditorActionRegistry.register("recipe/remove_ingredient", RemoveIngredientAction.CODEC, RemoveIngredientAction.class);
+    public static final Action<?> REMOVE_ITEM_EVERYWHERE = EditorActionRegistry.register("recipe/remove_item_everywhere", RemoveItemEverywhereAction.CODEC, RemoveItemEverywhereAction.class);
+    public static final Action<?> REPLACE_ITEM_EVERYWHERE = EditorActionRegistry.register("recipe/replace_item_everywhere", ReplaceItemEverywhereAction.CODEC, ReplaceItemEverywhereAction.class);
+    public static final Action<?> CONVERT_RECIPE_TYPE = EditorActionRegistry.register("recipe/convert_recipe_type", ConvertRecipeTypeAction.CODEC, ConvertRecipeTypeAction.class);
+    public static final Action<?> SET_RESULT_COUNT = EditorActionRegistry.register("recipe/set_result_count", SetResultCountAction.CODEC, SetResultCountAction.class);
+    public static final Action<?> SET_RESULT_ITEM = EditorActionRegistry.register("recipe/set_result_item", SetResultItemAction.CODEC, SetResultItemAction.class);
+    public static final Action<?> SET_GROUP = EditorActionRegistry.register("recipe/set_group", SetGroupAction.CODEC, SetGroupAction.class);
+    public static final Action<?> SET_CATEGORY = EditorActionRegistry.register("recipe/set_category", SetCategoryAction.CODEC, SetCategoryAction.class);
+    public static final Action<?> SET_COOKING_EXPERIENCE = EditorActionRegistry.register("recipe/set_cooking_experience", SetCookingExperienceAction.CODEC, SetCookingExperienceAction.class);
+    public static final Action<?> SET_COOKING_TIME = EditorActionRegistry.register("recipe/set_cooking_time", SetCookingTimeAction.CODEC, SetCookingTimeAction.class);
+    public static final Action<?> SET_SHOW_NOTIFICATION = EditorActionRegistry.register("recipe/set_show_notification", SetShowNotificationAction.CODEC, SetShowNotificationAction.class);
+
     public static void register() {
-        EditorActionRegistry.register(SetIntFieldAction.TYPE);
-        EditorActionRegistry.register(SetModeAction.TYPE);
-        EditorActionRegistry.register(ToggleDisabledAction.TYPE);
-        EditorActionRegistry.register(ToggleDisabledEffectAction.TYPE);
-        EditorActionRegistry.register(ToggleSlotAction.TYPE);
-        EditorActionRegistry.register(ToggleTagAction.TYPE);
-        EditorActionRegistry.register(ToggleExclusiveAction.TYPE);
-        EditorActionRegistry.register(SetSupportedItemsAction.TYPE);
-        EditorActionRegistry.register(SetPrimaryItemsAction.TYPE);
-        EditorActionRegistry.register(SetExclusiveSetAction.TYPE);
-        EditorActionRegistry.register(AddIngredientAction.TYPE);
-        EditorActionRegistry.register(AddShapelessIngredientAction.TYPE);
-        EditorActionRegistry.register(RemoveIngredientAction.TYPE);
-        EditorActionRegistry.register(RemoveItemEverywhereAction.TYPE);
-        EditorActionRegistry.register(ReplaceItemEverywhereAction.TYPE);
-        EditorActionRegistry.register(ConvertRecipeTypeAction.TYPE);
-        EditorActionRegistry.register(SetResultCountAction.TYPE);
-        EditorActionRegistry.register(SetResultItemAction.TYPE);
-        EditorActionRegistry.register(SetGroupAction.TYPE);
-        EditorActionRegistry.register(SetCategoryAction.TYPE);
-        EditorActionRegistry.register(SetCookingExperienceAction.TYPE);
-        EditorActionRegistry.register(SetCookingTimeAction.TYPE);
-        EditorActionRegistry.register(SetShowNotificationAction.TYPE);
+        // Static fields are initialized on class load — this method triggers that.
     }
 
     private Actions() {}

@@ -23,6 +23,7 @@ import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectA
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
+import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.resources.Identifier
 
 private data class BehaviourTag(val tagId: Identifier) {
@@ -30,7 +31,7 @@ private data class BehaviourTag(val tagId: Identifier) {
     fun descKey(): String = "enchantment_tag:$tagId.desc"
 }
 
-private data class CostField(val key: String, val value: (net.minecraft.world.item.enchantment.Enchantment) -> Int, val action: (Int) -> EditorAction)
+private data class CostField(val key: String, val value: (Enchantment) -> Int, val action: (Int) -> EditorAction<*>)
 
 private val BEHAVIOUR_TAGS = listOf(
     BehaviourTag(EnchantmentFlushAdapter.SMELTS_LOOT_TAG),
@@ -42,10 +43,22 @@ private val BEHAVIOUR_TAGS = listOf(
 )
 
 private val COST_FIELDS = listOf(
-    CostField("minCostBase", { enchantment -> enchantment.definition().minCost().base() }, { value -> SetIntFieldAction("min_cost_base", value) }),
-    CostField("minCostPerLevelAboveFirst", { enchantment -> enchantment.definition().minCost().perLevelAboveFirst() }, { value -> SetIntFieldAction("min_cost_per_level", value) }),
-    CostField("maxCostBase", { enchantment -> enchantment.definition().maxCost().base() }, { value -> SetIntFieldAction("max_cost_base", value) }),
-    CostField("maxCostPerLevelAboveFirst", { enchantment -> enchantment.definition().maxCost().perLevelAboveFirst() }, { value -> SetIntFieldAction("max_cost_per_level", value) })
+    CostField(
+        "minCostBase",
+        { enchantment -> enchantment.definition().minCost().base() },
+        { value -> SetIntFieldAction("min_cost_base", value) }),
+    CostField(
+        "minCostPerLevelAboveFirst",
+        { enchantment -> enchantment.definition().minCost().perLevelAboveFirst() },
+        { value -> SetIntFieldAction("min_cost_per_level", value) }),
+    CostField(
+        "maxCostBase",
+        { enchantment -> enchantment.definition().maxCost().base() },
+        { value -> SetIntFieldAction("max_cost_base", value) }),
+    CostField(
+        "maxCostPerLevelAboveFirst",
+        { enchantment -> enchantment.definition().maxCost().perLevelAboveFirst() },
+        { value -> SetIntFieldAction("max_cost_per_level", value) })
 )
 
 @Composable
@@ -81,7 +94,12 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                     }
                 },
                 defaultSpec = LayoutSpec.Fixed(floatArrayOf(1f)),
-                rules = listOf(BreakpointRule(minWidth = StudioBreakpoint.LG.px.dp, spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))))
+                rules = listOf(
+                    BreakpointRule(
+                        minWidth = StudioBreakpoint.LG.px.dp,
+                        spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))
+                    )
+                )
             )
         }
 
@@ -107,7 +125,12 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                     }
                 },
                 defaultSpec = LayoutSpec.Fixed(floatArrayOf(1f)),
-                rules = listOf(BreakpointRule(minWidth = StudioBreakpoint.LG.px.dp, spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))))
+                rules = listOf(
+                    BreakpointRule(
+                        minWidth = StudioBreakpoint.LG.px.dp,
+                        spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))
+                    )
+                )
             )
         }
 
@@ -124,7 +147,8 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                     items = effects.map { effectId ->
                         {
                             val effectKey = Identifier.tryParse(effectId)
-                            val effectLabel = if (effectKey != null) StudioText.resolve("effect", effectKey) else effectId
+                            val effectLabel =
+                                if (effectKey != null) StudioText.resolve("effect", effectKey) else effectId
                             val descKey = if (effectKey != null) "effect:$effectKey.desc" else ""
                             SwitchCard(
                                 title = effectLabel,
@@ -142,7 +166,12 @@ fun EnchantmentTechnicalPage(context: StudioContext) {
                         }
                     },
                     defaultSpec = LayoutSpec.Fixed(floatArrayOf(1f)),
-                    rules = listOf(BreakpointRule(minWidth = StudioBreakpoint.LG.px.dp, spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))))
+                    rules = listOf(
+                        BreakpointRule(
+                            minWidth = StudioBreakpoint.LG.px.dp,
+                            spec = LayoutSpec.Fixed(floatArrayOf(1f, 1f))
+                        )
+                    )
                 )
             }
         }

@@ -3,9 +3,12 @@ package fr.hardel.asset_editor.workspace.action;
 import com.mojang.serialization.Lifecycle;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.tag.TagSeed;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction;
 import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction;
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
@@ -33,27 +36,25 @@ class EditorActionRegistryTest {
 
     @Test
     void streamCodecRoundTripPreservesSimpleAction() {
-        EditorAction action = new SetModeAction("disable");
+        EditorAction<?> action = new SetModeAction("disable");
 
         var buffer = Unpooled.buffer();
         EditorAction.STREAM_CODEC.encode(buffer, action);
-        EditorAction decoded = EditorAction.STREAM_CODEC.decode(buffer);
+        EditorAction<?> decoded = EditorAction.STREAM_CODEC.decode(buffer);
 
         assertEquals(action, decoded);
-        assertEquals(action.typeId(), decoded.typeId());
     }
 
     @Test
     void streamCodecRoundTripPreservesActionWithTagSeed() {
         TagSeed seed = TagSeed.fromValueLiterals(List.of("#minecraft:axes", "minecraft:diamond_sword?"));
-        EditorAction action = new SetSupportedItemsAction("voxel:enchantable/axes", seed);
+        EditorAction<?> action = new SetSupportedItemsAction("voxel:enchantable/axes", seed);
 
         var buffer = Unpooled.buffer();
         EditorAction.STREAM_CODEC.encode(buffer, action);
-        EditorAction decoded = EditorAction.STREAM_CODEC.decode(buffer);
+        EditorAction<?> decoded = EditorAction.STREAM_CODEC.decode(buffer);
 
         assertEquals(action, decoded);
-        assertEquals(action.typeId(), decoded.typeId());
     }
 
     @Test
@@ -68,14 +69,10 @@ class EditorActionRegistryTest {
     @Test
     void duplicateActionTypeRegistrationIsRejected() {
         Identifier id = Identifier.fromNamespaceAndPath("asset_editor", "test/" + UUID.randomUUID());
-        Registry<EditorActionType<?, ?>> registry = new MappedRegistry<>(EditorActionRegistry.REGISTRY_KEY, Lifecycle.stable());
-        EditorActionType<Object, TestAction> type = new EditorActionType<>(
-            id,
-            TestAction.class,
-            StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8, TestAction::value,
-                TestAction::new),
-            (entry, action, ctx) -> entry);
+        Registry<Action<?>> registry = new MappedRegistry<>(EditorActionRegistry.REGISTRY_KEY, Lifecycle.stable());
+        StreamCodec<ByteBuf, TestAction> codec = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, TestAction::value, TestAction::new);
+        Action<TestAction> type = new Action<>(id, codec);
 
         Registry.register(registry, id, type);
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> Registry.register(registry, id, type));
@@ -104,10 +101,10 @@ class EditorActionRegistryTest {
         assertEquals(payload.action(), decoded.action());
     }
 
-    private record TestAction(String value) implements EditorAction {
+    private record TestAction(String value) implements EditorAction<Object> {
         @Override
-        public EditorActionType<?, TestAction> type() {
-            throw new UnsupportedOperationException("Not used in duplicate-registration test");
+        public ElementEntry<Object> apply(ElementEntry<Object> entry, RegistryMutationContext ctx) {
+            return entry;
         }
     }
 }

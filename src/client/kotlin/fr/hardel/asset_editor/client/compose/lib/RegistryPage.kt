@@ -65,7 +65,7 @@ fun <T : Any> rememberCurrentRegistryEntry(
 fun <T : Any> StudioContext.dispatchRegistryAction(
     registry: ResourceKey<Registry<T>>,
     target: Identifier?,
-    action: EditorAction,
+    action: EditorAction<*>,
     dialogs: RegistryDialogState
 ): EditorActionResult {
     val result = gateway.dispatch(registry, target, action)

@@ -17,7 +17,7 @@ import fr.hardel.asset_editor.workspace.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 
 import fr.hardel.asset_editor.workspace.RegistryMutationContexts
-import fr.hardel.asset_editor.workspace.action.EditorActionType
+import fr.hardel.asset_editor.workspace.action.Action
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition
 import java.util.Objects
 import java.util.UUID
@@ -55,7 +55,7 @@ class EditorActionGateway(
     fun <T : Any> dispatch(
         registry: ResourceKey<Registry<T>>,
         target: Identifier?,
-        action: EditorAction
+        action: EditorAction<*>
     ): EditorActionResult {
         val check = validate(target)
         if (check != null) {
@@ -135,14 +135,14 @@ class EditorActionGateway(
         registry: ResourceKey<Registry<T>>,
         target: Identifier,
         entry: ElementEntry<T>,
-        action: EditorAction
+        action: EditorAction<*>
     ) {
         val definition = WorkspaceDefinition.get(registry) ?: return
         val registries = clientRegistries() ?: return
 
         try {
             val context = RegistryMutationContexts.client(registries)
-            val projected = EditorActionType.dispatch(entry, action, context)
+            val projected = Action.dispatch(entry, action, context)
             if (!Objects.equals(projected, entry)) {
                 registryMemory.put(registry, target, projected)
             }

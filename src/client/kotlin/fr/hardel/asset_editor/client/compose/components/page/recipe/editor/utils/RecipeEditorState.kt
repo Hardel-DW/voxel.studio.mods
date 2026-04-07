@@ -15,5 +15,5 @@ data class RecipeEditorState(
     val onSelectionChange: (String) -> Unit,
     val onResultCountChange: (Int) -> Unit,
     val onResultItemChange: () -> Unit,
-    val onAction: (EditorAction) -> Unit
+    val onAction: (EditorAction<*>) -> Unit
 )

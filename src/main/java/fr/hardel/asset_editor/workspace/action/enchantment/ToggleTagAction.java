@@ -1,22 +1,19 @@
 package fr.hardel.asset_editor.workspace.action.enchantment;
 
-import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.workspace.ElementEntry;
+import fr.hardel.asset_editor.workspace.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
-import fr.hardel.asset_editor.workspace.action.EditorActionType;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-public record ToggleTagAction(Identifier tagId) implements EditorAction {
+public record ToggleTagAction(Identifier tagId) implements EditorAction<Enchantment> {
 
-    public static final EditorActionType<Enchantment, ToggleTagAction> TYPE = new EditorActionType<>(
-        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "enchantment/toggle_tag"),
-        ToggleTagAction.class,
-        StreamCodec.composite(Identifier.STREAM_CODEC, ToggleTagAction::tagId, ToggleTagAction::new),
-        (entry, action, ctx) -> entry.toggleTag(action.tagId()));
+    public static final StreamCodec<ByteBuf, ToggleTagAction> CODEC = StreamCodec.composite(Identifier.STREAM_CODEC, ToggleTagAction::tagId, ToggleTagAction::new);
 
     @Override
-    public EditorActionType<Enchantment, ToggleTagAction> type() {
-        return TYPE;
+    public ElementEntry<Enchantment> apply(ElementEntry<Enchantment> entry, RegistryMutationContext ctx) {
+        return entry.toggleTag(tagId);
     }
 }
