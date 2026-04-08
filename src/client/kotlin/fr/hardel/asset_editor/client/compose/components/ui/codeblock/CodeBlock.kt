@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
@@ -31,9 +32,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -53,7 +52,6 @@ import fr.hardel.asset_editor.client.compose.lib.highlight.Highlight
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightPalette
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRange
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
-import kotlin.math.ceil
 
 private val CODE_BLOCK_SHAPE = RoundedCornerShape(10.dp)
 private val LINE_NUMBER_COLOR = StudioColors.Zinc600
@@ -140,6 +138,29 @@ fun CodeBlock(
     val paintEntries = remember(renderVersion) {
         buildPaintEntries(state.highlights, state.palette)
     }
+    val highlightedAnnotated = remember(text, foregroundRanges, state.textFill) {
+        buildHighlightedText(text, foregroundRanges, state.textFill)
+    }
+    val transformation = remember(highlightedAnnotated) {
+        CachedHighlightTransformation(highlightedAnnotated)
+    }
+    val lineNumberText = remember(visibleLineCount, state.showLineNumbers) {
+        if (!state.showLineNumbers) null
+        else buildLineNumberText(visibleLineCount)
+    }
+
+    var textFieldValue by remember(text) { mutableStateOf(TextFieldValue(text)) }
+    LaunchedEffect(text) {
+        if (textFieldValue.text != text) {
+            val sel = TextRange(
+                textFieldValue.selection.start.coerceIn(0, text.length),
+                textFieldValue.selection.end.coerceIn(0, text.length)
+            )
+            textFieldValue = textFieldValue.copy(text = text, selection = sel)
+        }
+    }
+
+    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     BoxWithConstraints(
         modifier = modifier
@@ -148,96 +169,66 @@ fun CodeBlock(
             .border(1.dp, state.borderFill, CODE_BLOCK_SHAPE)
             .heightIn(min = state.minHeight)
     ) {
-        val density = LocalDensity.current
-        val viewportHeightPx = with(density) {
-            (maxHeight.toPx() - (CODE_BLOCK_CONTENT_PADDING * 2).toPx()).coerceAtLeast(0f)
-        }
-        val lineHeightPx = with(density) { resolvedTextStyle.lineHeight.toPx() }.coerceAtLeast(1f)
-        val maxVisibleLines = ceil(viewportHeightPx / lineHeightPx).toInt().coerceAtLeast(1)
-        val paddingLines = (maxVisibleLines - visibleLineCount).coerceAtLeast(0)
-
-        val paddedText = remember(text, paddingLines) {
-            if (paddingLines == 0) text else buildString {
-                append(text)
-                repeat(paddingLines) { append('\n') }
-            }
-        }
-
-        val highlightedAnnotated = remember(paddedText, foregroundRanges, state.textFill) {
-            buildHighlightedText(paddedText, foregroundRanges, state.textFill)
-        }
-        val transformation = remember(highlightedAnnotated) {
-            CachedHighlightTransformation(highlightedAnnotated)
-        }
-
-        val lineNumberText = remember(visibleLineCount, paddingLines, state.showLineNumbers) {
-            if (!state.showLineNumbers) null
-            else buildLineNumberText(visibleLineCount, paddingLines)
-        }
-
-        var textFieldValue by remember(text) { mutableStateOf(TextFieldValue(paddedText)) }
-        LaunchedEffect(paddedText) {
-            if (textFieldValue.text != paddedText) {
-                val sel = TextRange(
-                    textFieldValue.selection.start.coerceIn(0, paddedText.length),
-                    textFieldValue.selection.end.coerceIn(0, paddedText.length)
-                )
-                textFieldValue = textFieldValue.copy(text = paddedText, selection = sel)
-            }
-        }
-
-        var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-        Row(
+        val viewportHeight = maxHeight
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            if (state.showLineNumbers && lineNumberText != null) {
-                Box(
-                    modifier = Modifier.drawBehind {
-                        drawRect(
-                            color = LINE_GUTTER_BORDER,
-                            topLeft = Offset(size.width - 1.dp.toPx(), 0f),
-                            size = Size(1.dp.toPx(), size.height)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                if (state.showLineNumbers && lineNumberText != null) {
+                    Box(
+                        modifier = Modifier
+                            .heightIn(min = viewportHeight)
+                            .drawBehind {
+                                drawRect(
+                                    color = LINE_GUTTER_BORDER,
+                                    topLeft = Offset(size.width - 1.dp.toPx(), 0f),
+                                    size = Size(1.dp.toPx(), size.height)
+                                )
+                            }
+                    ) {
+                        BasicText(
+                            text = lineNumberText,
+                            style = resolvedTextStyle.copy(color = LINE_NUMBER_COLOR),
+                            modifier = Modifier.padding(CODE_BLOCK_GUTTER_PADDING)
                         )
                     }
-                ) {
-                    BasicText(
-                        text = lineNumberText,
-                        style = resolvedTextStyle.copy(color = LINE_NUMBER_COLOR),
-                        modifier = Modifier.padding(CODE_BLOCK_GUTTER_PADDING)
-                    )
                 }
-            }
 
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .then(if (state.wrapText) Modifier else Modifier.horizontalScroll(rememberScrollState()))
-            ) {
-                BasicTextField(
-                    value = textFieldValue,
-                    onValueChange = { updated ->
-                        textFieldValue = if (updated.text == paddedText) updated else updated.copy(text = paddedText)
-                    },
-                    readOnly = true,
-                    textStyle = resolvedTextStyle,
-                    cursorBrush = SolidColor(Color.Transparent),
-                    visualTransformation = transformation,
-                    onTextLayout = { layoutResult = it },
-                    modifier = Modifier
-                        .padding(CODE_BLOCK_CONTENT_PADDING)
-                        .drawWithContent {
-                            val layout = layoutResult ?: run {
-                                drawContent()
-                                return@drawWithContent
-                            }
-                            drawHighlightBackgrounds(paddedText, layout, paintEntries)
-                            drawContent()
-                            drawHighlightUnderlines(paddedText, layout, paintEntries)
-                        }
-                )
+                BoxWithConstraints(modifier = Modifier.weight(1f)) {
+                    val contentMinWidth = (maxWidth - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
+                    val contentMinHeight = (viewportHeight - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
+                    Box(
+                        modifier = Modifier
+                            .then(if (state.wrapText) Modifier.fillMaxWidth() else Modifier.horizontalScroll(rememberScrollState()))
+                    ) {
+                        BasicTextField(
+                            value = textFieldValue,
+                            onValueChange = { updated ->
+                                textFieldValue = if (updated.text == text) updated else updated.copy(text = text)
+                            },
+                            readOnly = true,
+                            textStyle = resolvedTextStyle,
+                            cursorBrush = SolidColor(Color.Transparent),
+                            visualTransformation = transformation,
+                            onTextLayout = { layoutResult = it },
+                            modifier = Modifier
+                                .widthIn(min = contentMinWidth)
+                                .heightIn(min = contentMinHeight)
+                                .padding(CODE_BLOCK_CONTENT_PADDING)
+                                .drawWithContent {
+                                    val layout = layoutResult ?: run {
+                                        drawContent()
+                                        return@drawWithContent
+                                    }
+                                    drawHighlightBackgrounds(text, layout, paintEntries)
+                                    drawContent()
+                                    drawHighlightUnderlines(text, layout, paintEntries)
+                                }
+                        )
+                    }
+                }
             }
         }
     }
@@ -254,14 +245,13 @@ internal class CachedHighlightTransformation(
     }
 }
 
-private fun buildLineNumberText(visibleLineCount: Int, paddingLines: Int): AnnotatedString {
-    val maxDigits = visibleLineCount.toString().length
+private fun buildLineNumberText(lineCount: Int): AnnotatedString {
+    val maxDigits = lineCount.toString().length
     return buildAnnotatedString {
-        for (i in 1..visibleLineCount) {
+        for (i in 1..lineCount) {
             if (i > 1) append("\n")
             append(i.toString().padStart(maxDigits))
         }
-        repeat(paddingLines) { append("\n") }
     }
 }
 

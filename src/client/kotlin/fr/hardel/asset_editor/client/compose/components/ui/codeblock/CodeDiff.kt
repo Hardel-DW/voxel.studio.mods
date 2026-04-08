@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -29,7 +30,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -47,7 +47,6 @@ import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
 import fr.hardel.asset_editor.client.compose.lib.utils.DiffComputer
 import fr.hardel.asset_editor.client.compose.lib.utils.DiffLine
 import fr.hardel.asset_editor.client.compose.lib.utils.DiffLineType
-import kotlin.math.ceil
 
 enum class DiffStatus { ADDED, DELETED, UPDATED }
 
@@ -99,6 +98,27 @@ fun CodeDiff(
     val paintEntries = remember(highlightRegistry, palette) {
         buildPaintEntries(highlightRegistry, palette)
     }
+    val highlightedAnnotated = remember(fullText, foregroundRanges, resolvedStyle.color) {
+        buildHighlightedText(fullText, foregroundRanges, resolvedStyle.color)
+    }
+    val transformation = remember(highlightedAnnotated) {
+        CachedHighlightTransformation(highlightedAnnotated)
+    }
+    val gutterText = remember(diffLines) { buildGutterText(diffLines) }
+
+    var textFieldValue by remember(fullText) { mutableStateOf(TextFieldValue(fullText)) }
+    LaunchedEffect(fullText) {
+        if (textFieldValue.text != fullText) {
+            val sel = TextRange(
+                textFieldValue.selection.start.coerceIn(0, fullText.length),
+                textFieldValue.selection.end.coerceIn(0, fullText.length)
+            )
+            textFieldValue = textFieldValue.copy(text = fullText, selection = sel)
+        }
+    }
+
+    var contentLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    var gutterLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     BoxWithConstraints(
         modifier = modifier
@@ -106,70 +126,37 @@ fun CodeDiff(
             .background(StudioColors.Zinc950)
             .border(1.dp, StudioColors.Zinc800, DIFF_SHAPE)
     ) {
-        val density = LocalDensity.current
-        val viewportHeightPx = with(density) {
-            (maxHeight.toPx() - (CODE_BLOCK_CONTENT_PADDING * 2).toPx()).coerceAtLeast(0f)
-        }
-        val lineHeightPx = with(density) { resolvedStyle.lineHeight.toPx() }.coerceAtLeast(1f)
-        val maxVisibleLines = ceil(viewportHeightPx / lineHeightPx).toInt().coerceAtLeast(1)
-        val paddingLines = (maxVisibleLines - diffLines.size).coerceAtLeast(0)
-
-        val paddedText = remember(fullText, paddingLines) {
-            if (paddingLines == 0) fullText else buildString {
-                append(fullText)
-                repeat(paddingLines) { append('\n') }
-            }
-        }
-        val highlightedAnnotated = remember(paddedText, foregroundRanges, resolvedStyle.color) {
-            buildHighlightedText(paddedText, foregroundRanges, resolvedStyle.color)
-        }
-        val transformation = remember(highlightedAnnotated) {
-            CachedHighlightTransformation(highlightedAnnotated)
-        }
-        val gutterText = remember(diffLines, paddingLines) {
-            buildGutterText(diffLines, paddingLines)
-        }
-
-        var textFieldValue by remember(fullText) { mutableStateOf(TextFieldValue(paddedText)) }
-        LaunchedEffect(paddedText) {
-            if (textFieldValue.text != paddedText) {
-                val sel = TextRange(
-                    textFieldValue.selection.start.coerceIn(0, paddedText.length),
-                    textFieldValue.selection.end.coerceIn(0, paddedText.length)
-                )
-                textFieldValue = textFieldValue.copy(text = paddedText, selection = sel)
-            }
-        }
-
-        var contentLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-        var gutterLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-        Row(
+        val viewportHeight = maxHeight
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            DiffGutter(
-                lines = diffLines,
-                gutterText = gutterText,
-                textStyle = resolvedStyle,
-                layoutResult = gutterLayoutResult,
-                onLayoutResult = { gutterLayoutResult = it }
-            )
-            DiffContent(
-                lines = diffLines,
-                paddedText = paddedText,
-                paintEntries = paintEntries,
-                textStyle = resolvedStyle,
-                transformation = transformation,
-                textFieldValue = textFieldValue,
-                onTextFieldValueChange = { updated ->
-                    textFieldValue = if (updated.text == paddedText) updated else updated.copy(text = paddedText)
-                },
-                layoutResult = contentLayoutResult,
-                onLayoutResult = { contentLayoutResult = it },
-                modifier = Modifier.weight(1f)
-            )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                DiffGutter(
+                    lines = diffLines,
+                    gutterText = gutterText,
+                    textStyle = resolvedStyle,
+                    viewportHeight = viewportHeight,
+                    layoutResult = gutterLayoutResult,
+                    onLayoutResult = { gutterLayoutResult = it }
+                )
+                DiffContent(
+                    lines = diffLines,
+                    fullText = fullText,
+                    paintEntries = paintEntries,
+                    textStyle = resolvedStyle,
+                    transformation = transformation,
+                    textFieldValue = textFieldValue,
+                    onTextFieldValueChange = { updated ->
+                        textFieldValue = if (updated.text == fullText) updated else updated.copy(text = fullText)
+                    },
+                    viewportHeight = viewportHeight,
+                    layoutResult = contentLayoutResult,
+                    onLayoutResult = { contentLayoutResult = it },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
@@ -179,29 +166,32 @@ private fun DiffGutter(
     lines: List<DiffLine>,
     gutterText: AnnotatedString,
     textStyle: TextStyle,
+    viewportHeight: Dp,
     layoutResult: TextLayoutResult?,
     onLayoutResult: (TextLayoutResult) -> Unit
 ) {
     Box(
-        modifier = Modifier.drawBehind {
-            drawRect(
-                color = GUTTER_BORDER,
-                topLeft = Offset(size.width - 1.dp.toPx(), 0f),
-                size = Size(1.dp.toPx(), size.height)
-            )
-            val layout = layoutResult ?: return@drawBehind
-            val padTopPx = GUTTER_VERTICAL_PADDING.toPx()
-            for (i in lines.indices) {
-                val bg = when (lines[i].type) {
-                    DiffLineType.ADDED -> ADDED_GUTTER_BG
-                    DiffLineType.REMOVED -> REMOVED_GUTTER_BG
-                    DiffLineType.UNCHANGED -> continue
+        modifier = Modifier
+            .heightIn(min = viewportHeight)
+            .drawBehind {
+                drawRect(
+                    color = GUTTER_BORDER,
+                    topLeft = Offset(size.width - 1.dp.toPx(), 0f),
+                    size = Size(1.dp.toPx(), size.height)
+                )
+                val layout = layoutResult ?: return@drawBehind
+                val padTopPx = GUTTER_VERTICAL_PADDING.toPx()
+                for (i in lines.indices) {
+                    val bg = when (lines[i].type) {
+                        DiffLineType.ADDED -> ADDED_GUTTER_BG
+                        DiffLineType.REMOVED -> REMOVED_GUTTER_BG
+                        DiffLineType.UNCHANGED -> continue
+                    }
+                    val top = padTopPx + layout.getLineTop(i)
+                    val bottom = padTopPx + layout.getLineBottom(i)
+                    drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
                 }
-                val top = padTopPx + layout.getLineTop(i)
-                val bottom = padTopPx + layout.getLineBottom(i)
-                drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
             }
-        }
     ) {
         BasicText(
             text = gutterText,
@@ -220,18 +210,20 @@ private fun DiffGutter(
 @Composable
 private fun DiffContent(
     lines: List<DiffLine>,
-    paddedText: String,
+    fullText: String,
     paintEntries: List<PaintHighlightEntry>,
     textStyle: TextStyle,
     transformation: VisualTransformation,
     textFieldValue: TextFieldValue,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
+    viewportHeight: Dp,
     layoutResult: TextLayoutResult?,
     onLayoutResult: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val contentMinWidth: Dp = maxWidth
+        val contentMinWidth: Dp = (maxWidth - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
+        val contentMinHeight: Dp = (viewportHeight - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
         Box(
             modifier = Modifier.horizontalScroll(rememberScrollState())
         ) {
@@ -245,6 +237,8 @@ private fun DiffContent(
                 onTextLayout = onLayoutResult,
                 modifier = Modifier
                     .widthIn(min = contentMinWidth)
+                    .heightIn(min = contentMinHeight)
+                    .padding(CODE_BLOCK_CONTENT_PADDING)
                     .drawWithContent {
                         val layout = layoutResult ?: run {
                             drawContent()
@@ -262,20 +256,19 @@ private fun DiffContent(
                             drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
                         }
                         translate(left = padPx, top = padPx) {
-                            drawHighlightBackgrounds(paddedText, layout, paintEntries)
+                            drawHighlightBackgrounds(fullText, layout, paintEntries)
                         }
                         drawContent()
                         translate(left = padPx, top = padPx) {
-                            drawHighlightUnderlines(paddedText, layout, paintEntries)
+                            drawHighlightUnderlines(fullText, layout, paintEntries)
                         }
                     }
-                    .padding(CODE_BLOCK_CONTENT_PADDING)
             )
         }
     }
 }
 
-private fun buildGutterText(lines: List<DiffLine>, paddingLines: Int): AnnotatedString {
+private fun buildGutterText(lines: List<DiffLine>): AnnotatedString {
     val maxDigits = lines.mapNotNull { it.lineNumber }.maxOrNull()?.toString()?.length ?: 1
 
     return buildAnnotatedString {
@@ -297,6 +290,5 @@ private fun buildGutterText(lines: List<DiffLine>, paddingLines: Int): Annotated
             append(label)
             pop()
         }
-        repeat(paddingLines) { append("\n") }
     }
 }
