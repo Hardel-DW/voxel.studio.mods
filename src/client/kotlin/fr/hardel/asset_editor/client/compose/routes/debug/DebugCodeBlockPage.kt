@@ -7,12 +7,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.gson.GsonBuilder
@@ -22,8 +29,14 @@ import com.mojang.serialization.JsonOps
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.ui.Button
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
+import fr.hardel.asset_editor.client.compose.components.ui.DataTable
+import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.Section
+import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlockState
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeDiff
@@ -33,12 +46,16 @@ import java.util.concurrent.atomic.AtomicReference
 import net.minecraft.client.resources.language.I18n
 
 private val PRETTY_GSON = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+private val MONO_STYLE = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
 
 @Composable
 fun DebugCodeBlockPage() {
-    val sampleJson = remember { encodeSampleJson() }
-    val modifiedJson = remember { encodeModifiedJson() }
-    val state = remember(sampleJson) { debugCodeBlockState(sampleJson) }
+    var lineCountInput by remember { mutableStateOf("256") }
+    var generation by remember { mutableStateOf(generateSample(256)) }
+
+    val state = remember(generation) {
+        debugCodeBlockState(generation.original)
+    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -48,10 +65,11 @@ fun DebugCodeBlockPage() {
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
             Section(I18n.get("debug:code.title")) {
-                androidx.compose.material.Text(
+                Text(
                     text = I18n.get("debug:code.description"),
                     style = StudioTypography.regular(13),
                     color = StudioColors.Zinc400
@@ -61,30 +79,97 @@ fun DebugCodeBlockPage() {
         }
 
         Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            InputText(
+                value = lineCountInput,
+                onValueChange = { lineCountInput = it.filter { c -> c.isDigit() }.take(7) },
+                placeholder = "lines",
+                showSearchIcon = false,
+                modifier = Modifier.widthIn(max = 140.dp)
+            )
+            Button(
+                onClick = {
+                    val n = lineCountInput.toIntOrNull()?.coerceAtLeast(1) ?: 1
+                    generation = generateSample(n)
+                },
+                text = "Generate",
+                variant = ButtonVariant.GHOST_BORDER,
+                size = ButtonSize.SM
+            )
+            Text(
+                text = "${generation.lineCount} lines · ${generation.charCount} chars · gen ${generation.genMillis}ms · diff ${generation.diffMillis}ms",
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
+            )
+        }
+
+        Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            CodeBlock(
-                state = state,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CodeBlock(
+                    state = state,
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
+                BenchPanel(
+                    title = "CodeBlock",
+                    entries = generation.codeBlockBench
+                )
+            }
 
-            CodeDiff(
-                original = sampleJson,
-                compiled = modifiedJson,
-                status = DiffStatus.UPDATED,
-                textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
-                lineSpacing = 5f,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
+            Column(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CodeDiff(
+                    original = generation.original,
+                    compiled = generation.modified,
+                    status = DiffStatus.UPDATED,
+                    textStyle = MONO_STYLE,
+                    lineSpacing = 5f,
+                    modifier = Modifier.fillMaxWidth().weight(1f)
+                )
+                BenchPanel(
+                    title = "CodeDiff",
+                    entries = generation.codeDiffBench
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun BenchPanel(title: String, entries: List<BenchEntry>) {
+    val rows = remember(entries) { entries }
+    DataTable(
+        items = rows,
+        columns = listOf(
+            TableColumn<BenchEntry>(header = "$title stage", weight = 2f) { entry ->
+                Text(
+                    text = entry.stage,
+                    style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
+                    color = StudioColors.Zinc400
+                )
+            },
+            TableColumn<BenchEntry>(header = "ms", weight = 1f) { entry ->
+                Text(
+                    text = "${entry.millis} ms",
+                    style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
+                    color = if (entry.millis > 50) StudioColors.Zinc200 else StudioColors.Zinc500
+                )
+            }
+        ),
+        modifier = Modifier.fillMaxWidth().height(140.dp)
+    )
 }
 
 private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
@@ -94,7 +179,7 @@ private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
         textFill = StudioColors.Zinc300
         backgroundFill = StudioColors.Zinc950
         borderFill = StudioColors.Zinc800
-        textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
+        textStyle = MONO_STYLE
         lineSpacing = 5.sp
         wrapText = false
         minHeight = 360.dp
@@ -102,24 +187,86 @@ private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
         text = sampleJson
     }
 
-private fun encodeSampleJson(): String {
+private data class SampleGeneration(
+    val original: String,
+    val modified: String,
+    val lineCount: Int,
+    val charCount: Int,
+    val genMillis: Long,
+    val diffMillis: Long,
+    val codeBlockBench: List<BenchEntry>,
+    val codeDiffBench: List<BenchEntry>
+)
+
+/**
+ * Builds an `original` / `modified` JSON pair of approximately [targetLines] lines
+ * each and pre-warms a histogram diff so the header can surface the raw cost.
+ * The actual diff used by the visible [CodeDiff] still runs through `remember`.
+ */
+private fun generateSample(targetLines: Int): SampleGeneration {
+    val gen = BenchTimings()
+    val original = gen.measure("encode original") { encodeSampleJson(targetLines, modified = false) }
+    val modified = gen.measure("encode modified") { encodeSampleJson(targetLines, modified = true) }
+    val lineCount = original.count { it == '\n' } + 1
+
+    val diffBench = BenchTimings()
+    diffBench.measure("histogram diff") {
+        fr.hardel.asset_editor.client.compose.lib.utils.DiffComputer
+            .computeUnifiedDiff(original, modified)
+    }
+
+    val genStages = gen.snapshot()
+    val diffStages = diffBench.snapshot()
+
+    return SampleGeneration(
+        original = original,
+        modified = modified,
+        lineCount = lineCount,
+        charCount = original.length,
+        genMillis = genStages.sumOf { it.millis },
+        diffMillis = diffStages.sumOf { it.millis },
+        codeBlockBench = genStages,
+        codeDiffBench = diffStages
+    )
+}
+
+private fun encodeSampleJson(targetLines: Int, modified: Boolean): String {
+    val payload = buildSamplePayload(targetLines, modified)
     val encoded = AtomicReference("{}")
-    SamplePayload.CODEC.encodeStart(JsonOps.INSTANCE, SAMPLE_PAYLOAD).ifSuccess { json ->
+    SamplePayload.CODEC.encodeStart(JsonOps.INSTANCE, payload).ifSuccess { json ->
         encoded.set(prettyPrint(json))
     }
     return encoded.get()
 }
 
-private fun encodeModifiedJson(): String {
-    val encoded = AtomicReference("{}")
-    SamplePayload.CODEC.encodeStart(JsonOps.INSTANCE, MODIFIED_PAYLOAD).ifSuccess { json ->
-        encoded.set(prettyPrint(json))
-    }
-    return encoded.get()
-}
+private fun prettyPrint(json: JsonElement): String = PRETTY_GSON.toJson(json)
 
-private fun prettyPrint(json: JsonElement): String =
-    PRETTY_GSON.toJson(json)
+/**
+ * A pretty-printed [SamplePayload] with N projects is roughly `(N * 4) + 15` lines,
+ * so we invert that to hit the requested line count.
+ */
+private fun buildSamplePayload(targetLines: Int, modified: Boolean): SamplePayload {
+    val projectCount = ((targetLines - 15).coerceAtLeast(0) / 4).coerceAtLeast(1)
+    val projects = (1..projectCount).map { idx ->
+        val name = if (modified && idx % 7 == 0) "Project $idx (renamed)" else "Project $idx"
+        Project(idx, name)
+    }
+    val baseRoles = listOf("admin", "user")
+    val roles = if (modified) baseRoles + "moderator" else baseRoles
+    return SamplePayload(
+        name = "John Doe",
+        email = if (modified) "john.doe@company.com" else "john@example.com",
+        age = if (modified) 31 else 30,
+        active = true,
+        roles = roles,
+        address = Address(
+            street = if (modified) "456 Oak Ave" else "123 Main St",
+            city = if (modified) "San Francisco" else "New York",
+            country = "USA"
+        ),
+        projects = projects
+    )
+}
 
 private data class Address(val street: String, val city: String, val country: String) {
     companion object {
@@ -167,23 +314,3 @@ private data class SamplePayload(
         }
     }
 }
-
-private val SAMPLE_PAYLOAD = SamplePayload(
-    name = "John Doe",
-    email = "john@example.com",
-    age = 30,
-    active = true,
-    roles = listOf("admin", "user"),
-    address = Address("123 Main St", "New York", "USA"),
-    projects = listOf(Project(1, "Website Redesign"), Project(2, "Mobile App"))
-)
-
-private val MODIFIED_PAYLOAD = SamplePayload(
-    name = "John Doe",
-    email = "john.doe@company.com",
-    age = 31,
-    active = true,
-    roles = listOf("admin", "user", "moderator"),
-    address = Address("456 Oak Ave", "San Francisco", "USA"),
-    projects = listOf(Project(1, "Website Redesign"), Project(3, "API Gateway"))
-)

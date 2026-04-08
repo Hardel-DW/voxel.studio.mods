@@ -1,48 +1,10 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -54,17 +16,12 @@ import fr.hardel.asset_editor.client.compose.lib.utils.DiffLineType
 
 enum class DiffStatus { ADDED, DELETED, UPDATED }
 
-private val DIFF_SHAPE = RoundedCornerShape(10.dp)
 private val ADDED_BG = Color(0xFF22C55E).copy(alpha = 0.10f)
 private val ADDED_GUTTER_BG = Color(0xFF22C55E).copy(alpha = 0.05f)
 private val ADDED_GUTTER_TEXT = Color(0xFF22C55E)
 private val REMOVED_BG = Color(0xFFEF4444).copy(alpha = 0.10f)
 private val REMOVED_GUTTER_BG = Color(0xFFEF4444).copy(alpha = 0.05f)
 private val REMOVED_GUTTER_TEXT = Color(0xFFEF4444)
-private val GUTTER_BORDER = StudioColors.Zinc800.copy(alpha = 0.5f)
-private val LINE_NUMBER_COLOR = StudioColors.Zinc600
-private val GUTTER_VERTICAL_PADDING = 16.dp
-private val GUTTER_HORIZONTAL_PADDING = 12.dp
 
 @Composable
 fun CodeDiff(
@@ -85,10 +42,12 @@ fun CodeDiff(
     val fullText = remember(diffLines) {
         diffLines.joinToString("\n") { it.content.ifEmpty { "\u00A0" } }
     }
+    val markers = remember(diffLines) { buildDiffMarkers(diffLines) }
+    val source = remember(fullText, markers) { CodeSource(fullText, markers) }
+
     val palette = remember { HighlightPalette().also { JsonCodeBlockHighlighter.installDefaultPalette(it) } }
-    val highlighter = remember { JsonCodeBlockHighlighter() }
-    val highlightRegistry = remember(fullText, highlighter) {
-        HighlightRegistry().also { highlighter.apply(fullText, it) }
+    val highlightRegistry = remember(fullText) {
+        HighlightRegistry().also { JsonCodeBlockHighlighter().apply(fullText, it) }
     }
     val resolvedStyle = textStyle.merge(
         TextStyle(
@@ -102,211 +61,44 @@ fun CodeDiff(
     val paintEntries = remember(highlightRegistry, palette) {
         buildPaintEntries(highlightRegistry, palette)
     }
-    val highlightedAnnotated = remember(fullText, foregroundRanges, resolvedStyle.color) {
+    val annotated = remember(fullText, foregroundRanges, resolvedStyle.color) {
         buildHighlightedText(fullText, foregroundRanges, resolvedStyle.color)
     }
-    val gutterText = remember(diffLines) { buildGutterText(diffLines) }
 
-    var selection by remember(fullText) { mutableStateOf(TextRange.Zero) }
-    var contentLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    var gutterLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val tapState = remember { TapState() }
-    val clipboard = LocalClipboardManager.current
-    val focusRequester = remember { FocusRequester() }
-    val density = LocalDensity.current
-    val paddingPx = remember(density) { with(density) { CODE_BLOCK_CONTENT_PADDING.toPx() } }
-
-    BoxWithConstraints(
+    CodeChunkView(
+        source = source,
+        annotated = annotated,
+        paintEntries = paintEntries,
+        textStyle = resolvedStyle,
+        showGutter = true,
+        backgroundFill = StudioColors.Zinc950,
+        borderFill = StudioColors.Zinc800,
+        minHeight = 0.dp,
         modifier = modifier
-            .clip(DIFF_SHAPE)
-            .background(StudioColors.Zinc950)
-            .border(1.dp, StudioColors.Zinc800, DIFF_SHAPE)
-    ) {
-        val viewportHeight = maxHeight
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-        ) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                DiffGutter(
-                    lines = diffLines,
-                    gutterText = gutterText,
-                    textStyle = resolvedStyle,
-                    viewportHeight = viewportHeight,
-                    layoutResult = gutterLayoutResult,
-                    onLayoutResult = { gutterLayoutResult = it }
-                )
-                DiffContent(
-                    lines = diffLines,
-                    fullText = fullText,
-                    highlightedText = highlightedAnnotated,
-                    paintEntries = paintEntries,
-                    textStyle = resolvedStyle,
-                    viewportHeight = viewportHeight,
-                    selection = selection,
-                    onSelectionChange = { selection = it },
-                    tapState = tapState,
-                    clipboard = clipboard,
-                    focusRequester = focusRequester,
-                    paddingPx = paddingPx,
-                    layoutResult = contentLayoutResult,
-                    onLayoutResult = { contentLayoutResult = it },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
+    )
 }
 
-@Composable
-private fun DiffGutter(
-    lines: List<DiffLine>,
-    gutterText: AnnotatedString,
-    textStyle: TextStyle,
-    viewportHeight: Dp,
-    layoutResult: TextLayoutResult?,
-    onLayoutResult: (TextLayoutResult) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .heightIn(min = viewportHeight)
-            .drawBehind {
-                drawRect(
-                    color = GUTTER_BORDER,
-                    topLeft = Offset(size.width - 1.dp.toPx(), 0f),
-                    size = Size(1.dp.toPx(), size.height)
-                )
-                val layout = layoutResult ?: return@drawBehind
-                val padTopPx = GUTTER_VERTICAL_PADDING.toPx()
-                for (i in lines.indices) {
-                    val bg = when (lines[i].type) {
-                        DiffLineType.ADDED -> ADDED_GUTTER_BG
-                        DiffLineType.REMOVED -> REMOVED_GUTTER_BG
-                        DiffLineType.UNCHANGED -> continue
-                    }
-                    val top = padTopPx + layout.getLineTop(i)
-                    val bottom = padTopPx + layout.getLineBottom(i)
-                    drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
-                }
-            }
-    ) {
-        BasicText(
-            text = gutterText,
-            style = textStyle.copy(color = LINE_NUMBER_COLOR),
-            onTextLayout = onLayoutResult,
-            modifier = Modifier.padding(
-                top = GUTTER_VERTICAL_PADDING,
-                bottom = GUTTER_VERTICAL_PADDING,
-                start = GUTTER_HORIZONTAL_PADDING,
-                end = GUTTER_HORIZONTAL_PADDING
+private fun buildDiffMarkers(lines: List<DiffLine>): List<CodeLineMarker> {
+    val maxNumber = lines.mapNotNull { it.lineNumber }.maxOrNull() ?: 1
+    val maxDigits = maxNumber.toString().length
+    return lines.map { line ->
+        when (line.type) {
+            DiffLineType.ADDED -> CodeLineMarker(
+                gutterLabel = "+".padStart(maxDigits),
+                gutterColor = ADDED_GUTTER_TEXT,
+                lineBackground = ADDED_BG,
+                gutterBackground = ADDED_GUTTER_BG
             )
-        )
-    }
-}
-
-@Composable
-private fun DiffContent(
-    lines: List<DiffLine>,
-    fullText: String,
-    highlightedText: AnnotatedString,
-    paintEntries: List<PaintHighlightEntry>,
-    textStyle: TextStyle,
-    viewportHeight: Dp,
-    selection: TextRange,
-    onSelectionChange: (TextRange) -> Unit,
-    tapState: TapState,
-    clipboard: androidx.compose.ui.platform.ClipboardManager,
-    focusRequester: FocusRequester,
-    paddingPx: Float,
-    layoutResult: TextLayoutResult?,
-    onLayoutResult: (TextLayoutResult) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    BoxWithConstraints(modifier = modifier) {
-        val viewportContentWidth = maxWidth
-        Box(
-            modifier = Modifier.horizontalScroll(rememberScrollState())
-        ) {
-            Box(
-                modifier = Modifier
-                    .widthIn(min = viewportContentWidth)
-                    .heightIn(min = viewportHeight)
-                    .pointerHoverIcon(PointerIcon.Text)
-                    .focusRequester(focusRequester)
-                    .focusable()
-                    .onKeyEvent { event ->
-                        handleKeyEvent(event, fullText, selection, clipboard, onSelectionChange)
-                    }
-                    .pointerInput(fullText) {
-                        handleCodeSelectionGestures(
-                            text = fullText,
-                            paddingPx = paddingPx,
-                            tapState = tapState,
-                            layoutProvider = { layoutResult },
-                            onSelectionChange = onSelectionChange,
-                            onRequestFocus = { runCatching { focusRequester.requestFocus() } }
-                        )
-                    }
-                    .drawWithContent {
-                        val layout = layoutResult
-                        if (layout != null) {
-                            for (i in lines.indices) {
-                                val bg = when (lines[i].type) {
-                                    DiffLineType.ADDED -> ADDED_BG
-                                    DiffLineType.REMOVED -> REMOVED_BG
-                                    DiffLineType.UNCHANGED -> continue
-                                }
-                                val top = paddingPx + layout.getLineTop(i)
-                                val bottom = paddingPx + layout.getLineBottom(i)
-                                drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
-                            }
-                            translate(left = paddingPx, top = paddingPx) {
-                                drawHighlightBackgrounds(fullText, layout, paintEntries)
-                            }
-                            drawSelectionRectangles(layout, selection, fullText.length, paddingPx)
-                        }
-                        drawContent()
-                        if (layout != null) {
-                            translate(left = paddingPx, top = paddingPx) {
-                                drawHighlightUnderlines(fullText, layout, paintEntries)
-                            }
-                        }
-                    }
-            ) {
-                BasicText(
-                    text = highlightedText,
-                    style = textStyle,
-                    softWrap = false,
-                    onTextLayout = onLayoutResult,
-                    modifier = Modifier.padding(CODE_BLOCK_CONTENT_PADDING)
-                )
-            }
-        }
-    }
-}
-
-private fun buildGutterText(lines: List<DiffLine>): AnnotatedString {
-    val maxDigits = lines.mapNotNull { it.lineNumber }.maxOrNull()?.toString()?.length ?: 1
-
-    return buildAnnotatedString {
-        for ((index, line) in lines.withIndex()) {
-            if (index > 0) append("\n")
-
-            val color = when (line.type) {
-                DiffLineType.ADDED -> ADDED_GUTTER_TEXT
-                DiffLineType.REMOVED -> REMOVED_GUTTER_TEXT
-                DiffLineType.UNCHANGED -> LINE_NUMBER_COLOR
-            }
-            val label = when (line.type) {
-                DiffLineType.ADDED -> "+".padStart(maxDigits)
-                DiffLineType.REMOVED -> "-".padStart(maxDigits)
-                DiffLineType.UNCHANGED -> (line.lineNumber?.toString() ?: "").padStart(maxDigits)
-            }
-
-            pushStyle(SpanStyle(color = color))
-            append(label)
-            pop()
+            DiffLineType.REMOVED -> CodeLineMarker(
+                gutterLabel = "-".padStart(maxDigits),
+                gutterColor = REMOVED_GUTTER_TEXT,
+                lineBackground = REMOVED_BG,
+                gutterBackground = REMOVED_GUTTER_BG
+            )
+            DiffLineType.UNCHANGED -> CodeLineMarker(
+                gutterLabel = (line.lineNumber?.toString() ?: "").padStart(maxDigits),
+                gutterColor = CODE_LINE_NUMBER_COLOR
+            )
         }
     }
 }
