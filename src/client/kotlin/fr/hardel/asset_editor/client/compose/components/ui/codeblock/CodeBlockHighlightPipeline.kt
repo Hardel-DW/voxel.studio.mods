@@ -192,6 +192,21 @@ private fun underlineSegments(
 }
 
 /**
+ * Slices a global [AnnotatedString] down to a single chunk's range. Used by the
+ * static viewer path ([CodeBlock] / [CodeDiff]) to feed [CodeChunkView]'s
+ * `chunkAnnotated` lambda from a single pre-built annotated string.
+ */
+internal fun sliceAnnotatedToChunk(
+    annotated: AnnotatedString,
+    source: CodeSource,
+    chunkIndex: Int
+): AnnotatedString {
+    val s = source.chunkCharStarts[chunkIndex]
+    val e = source.chunkCharEnds[chunkIndex]
+    return if (e <= s) AnnotatedString("") else annotated.subSequence(s, e)
+}
+
+/**
  * Slices a list of highlights covering the full text into entries containing only
  * the ranges intersecting `[chunkStart, chunkEnd)`, with offsets re-based to 0.
  * Empty entries are dropped so chunks with no highlights skip drawing entirely.

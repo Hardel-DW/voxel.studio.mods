@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -21,8 +22,18 @@ class CodeBlockState {
         get() = textState
         set(value) {
             textState = value
+            precomputedAnnotated = null
             refreshHighlights()
         }
+
+    /**
+     * Optional pre-built [AnnotatedString] for the current [text]. When set,
+     * [CodeBlock] uses it instead of running [buildHighlightedText] on the
+     * main thread. Cleared automatically whenever [text] changes so it can't
+     * go stale. The async preparation helper [prepareCodeBlockAsync] is the
+     * intended way to populate this.
+     */
+    internal var precomputedAnnotated: AnnotatedString? = null
 
     private var highlighterState by mutableStateOf<CodeBlockHighlighter?>(null)
     var highlighter: CodeBlockHighlighter?

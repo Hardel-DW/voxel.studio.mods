@@ -3,18 +3,20 @@ package fr.hardel.asset_editor.client.compose.routes.debug
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +24,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.mojang.serialization.Codec
@@ -35,6 +40,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
+import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
@@ -42,25 +48,39 @@ import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlockSt
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeDiff
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.DiffStatus
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.JsonCodeBlockHighlighter
+import fr.hardel.asset_editor.client.compose.components.ui.codeblock.prepareCodeBlockAsync
+import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditor
+import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditorState
 import java.util.concurrent.atomic.AtomicReference
 import net.minecraft.client.resources.language.I18n
 
 private val PRETTY_GSON = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
 private val MONO_STYLE = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
 
+/** Gson's default pretty printer uses two-space indent — match it in the editor. */
+private const val GSON_INDENT = "  "
+
 @Composable
 fun DebugCodeBlockPage() {
     var lineCountInput by remember { mutableStateOf("256") }
-    var generation by remember { mutableStateOf(generateSample(256)) }
+    var prepared by remember { mutableStateOf<PreparedDebugSample?>(null) }
+    var isGenerating by remember { mutableStateOf(true) }
+    val coroutineScope = rememberCoroutineScope()
 
-    val state = remember(generation) {
-        debugCodeBlockState(generation.original)
+    LaunchedEffect(Unit) {
+        prepared = prepareDebugSample(256)
+        isGenerating = false
     }
+
+    val generation = prepared?.generation
+    val state = prepared?.codeBlockState
+    val editorState = prepared?.editorState
 
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(32.dp)
     ) {
         Row(
@@ -75,7 +95,7 @@ fun DebugCodeBlockPage() {
                     color = StudioColors.Zinc400
                 )
             }
-            CopyButton(textProvider = { state.text })
+            CopyButton(textProvider = { state?.text.orEmpty() })
         }
 
         Row(
@@ -86,21 +106,43 @@ fun DebugCodeBlockPage() {
             InputText(
                 value = lineCountInput,
                 onValueChange = { lineCountInput = it.filter { c -> c.isDigit() }.take(7) },
-                placeholder = "lines",
+                placeholder = I18n.get("debug:code.input.placeholder"),
                 showSearchIcon = false,
                 modifier = Modifier.widthIn(max = 140.dp)
             )
             Button(
                 onClick = {
+                    if (isGenerating) return@Button
                     val n = lineCountInput.toIntOrNull()?.coerceAtLeast(1) ?: 1
-                    generation = generateSample(n)
+                    isGenerating = true
+                    coroutineScope.launch {
+                        prepared = prepareDebugSample(n)
+                        isGenerating = false
+                    }
                 },
-                text = "Generate",
+                text = I18n.get(
+                    if (isGenerating) "debug:code.action.generating" else "debug:code.action.generate"
+                ),
                 variant = ButtonVariant.GHOST_BORDER,
-                size = ButtonSize.SM
+                size = ButtonSize.SM,
+                enabled = !isGenerating
             )
+            val statusText = when {
+                isGenerating && generation == null -> I18n.get("debug:code.status.preparing")
+                generation != null -> {
+                    val summary = I18n.get(
+                        "debug:code.status.summary",
+                        generation.lineCount,
+                        generation.charCount,
+                        generation.genMillis,
+                        generation.diffMillis
+                    )
+                    if (isGenerating) summary + I18n.get("debug:code.status.regenerating") else summary
+                }
+                else -> ""
+            }
             Text(
-                text = "${generation.lineCount} lines · ${generation.charCount} chars · gen ${generation.genMillis}ms · diff ${generation.diffMillis}ms",
+                text = statusText,
                 style = StudioTypography.regular(12),
                 color = StudioColors.Zinc500
             )
@@ -110,42 +152,83 @@ fun DebugCodeBlockPage() {
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)
+                .height(VIEWER_ROW_HEIGHT)
         ) {
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CodeBlock(
-                    state = state,
-                    modifier = Modifier.fillMaxWidth().weight(1f)
-                )
-                BenchPanel(
-                    title = "CodeBlock",
-                    entries = generation.codeBlockBench
-                )
+                if (state != null && generation != null) {
+                    CodeBlock(
+                        state = state,
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    )
+                    BenchPanel(
+                        title = "CodeBlock",
+                        entries = generation.codeBlockBench
+                    )
+                } else {
+                    LoadingPlaceholder(
+                        message = I18n.get("debug:code.placeholder.codeblock"),
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    )
+                }
             }
 
             Column(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CodeDiff(
-                    original = generation.original,
-                    compiled = generation.modified,
-                    status = DiffStatus.UPDATED,
-                    textStyle = MONO_STYLE,
-                    lineSpacing = 5f,
+                if (generation != null) {
+                    CodeDiff(
+                        original = generation.original,
+                        compiled = generation.modified,
+                        status = DiffStatus.UPDATED,
+                        textStyle = MONO_STYLE,
+                        lineSpacing = 5f,
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    )
+                    BenchPanel(
+                        title = "CodeDiff",
+                        entries = generation.codeDiffBench
+                    )
+                } else {
+                    LoadingPlaceholder(
+                        message = I18n.get("debug:code.placeholder.diff"),
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    )
+                }
+            }
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(EDITOR_ROW_HEIGHT)
+        ) {
+            Text(
+                text = I18n.get("debug:code.editor.title"),
+                style = StudioTypography.medium(11),
+                color = StudioColors.Zinc500
+            )
+            if (editorState != null) {
+                CodeEditor(
+                    state = editorState,
                     modifier = Modifier.fillMaxWidth().weight(1f)
                 )
-                BenchPanel(
-                    title = "CodeDiff",
-                    entries = generation.codeDiffBench
+            } else {
+                LoadingPlaceholder(
+                    message = I18n.get("debug:code.placeholder.editor"),
+                    modifier = Modifier.fillMaxWidth().weight(1f)
                 )
             }
         }
     }
 }
+
+private val VIEWER_ROW_HEIGHT = 520.dp
+private val EDITOR_ROW_HEIGHT = 640.dp
 
 @Composable
 private fun BenchPanel(title: String, entries: List<BenchEntry>) {
@@ -153,16 +236,16 @@ private fun BenchPanel(title: String, entries: List<BenchEntry>) {
     DataTable(
         items = rows,
         columns = listOf(
-            TableColumn<BenchEntry>(header = "$title stage", weight = 2f) { entry ->
+            TableColumn<BenchEntry>(header = I18n.get("debug:code.bench.column.stage", title), weight = 2f) { entry ->
                 Text(
                     text = entry.stage,
                     style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
                     color = StudioColors.Zinc400
                 )
             },
-            TableColumn<BenchEntry>(header = "ms", weight = 1f) { entry ->
+            TableColumn<BenchEntry>(header = I18n.get("debug:code.bench.column.ms"), weight = 1f) { entry ->
                 Text(
-                    text = "${entry.millis} ms",
+                    text = I18n.get("debug:code.bench.value", entry.millis),
                     style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
                     color = if (entry.millis > 50) StudioColors.Zinc200 else StudioColors.Zinc500
                 )
@@ -172,19 +255,43 @@ private fun BenchPanel(title: String, entries: List<BenchEntry>) {
     )
 }
 
-private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
-    CodeBlockState().apply {
-        JsonCodeBlockHighlighter.installDefaultPalette(palette)
-        highlighter = JsonCodeBlockHighlighter()
-        textFill = StudioColors.Zinc300
-        backgroundFill = StudioColors.Zinc950
-        borderFill = StudioColors.Zinc800
-        textStyle = MONO_STYLE
-        lineSpacing = 5.sp
-        wrapText = false
-        minHeight = 360.dp
-        showLineNumbers = true
-        text = sampleJson
+private fun configureDebugCodeBlock(state: CodeBlockState) {
+    JsonCodeBlockHighlighter.installDefaultPalette(state.palette)
+    state.highlighter = JsonCodeBlockHighlighter()
+    state.textFill = StudioColors.Zinc300
+    state.backgroundFill = StudioColors.Zinc950
+    state.borderFill = StudioColors.Zinc800
+    state.textStyle = MONO_STYLE
+    state.lineSpacing = 5.sp
+    state.wrapText = false
+    state.minHeight = 360.dp
+    state.showLineNumbers = true
+}
+
+private data class PreparedDebugSample(
+    val generation: SampleGeneration,
+    val codeBlockState: CodeBlockState,
+    val editorState: CodeEditorState
+)
+
+/**
+ * Builds the entire debug sample — JSON encode, histogram pre-warm,
+ * [CodeBlockState] tokenization + global `AnnotatedString`, [CodeEditorState]
+ * with a pre-warmed line cache — on a background dispatcher so the main
+ * thread only sees a single state swap when it's done.
+ */
+private suspend fun prepareDebugSample(targetLines: Int): PreparedDebugSample =
+    withContext(Dispatchers.Default) {
+        val gen = generateSample(targetLines)
+        val codeBlockState = prepareCodeBlockAsync(gen.original) {
+            configureDebugCodeBlock(this)
+        }
+        val editorState = CodeEditorState(gen.original).apply {
+            minHeight = 360.dp
+            indentUnit = GSON_INDENT
+            prewarmCache(maxLines = 256)
+        }
+        PreparedDebugSample(gen, codeBlockState, editorState)
     }
 
 private data class SampleGeneration(

@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +38,8 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -51,6 +55,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 /**
  * Virtualized code viewer used by both [CodeBlock] and [CodeDiff].
@@ -68,22 +73,30 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun CodeChunkView(
     source: CodeSource,
-    annotated: AnnotatedString,
+    chunkAnnotated: (Int) -> AnnotatedString,
+    chunkVersion: (Int) -> Long,
     paintEntries: List<PaintHighlightEntry>,
     textStyle: TextStyle,
     showGutter: Boolean,
     backgroundFill: Color,
     borderFill: Color,
     minHeight: Dp,
+    selection: TextRange,
+    onSelectionChange: (TextRange) -> Unit,
+    lazyListState: LazyListState,
+    horizontalScrollState: ScrollState,
+    focusRequester: FocusRequester,
+    caretOffset: Int? = null,
+    caretAlphaProvider: () -> Float = { 1f },
+    onPreviewKeyEvent: ((androidx.compose.ui.input.key.KeyEvent) -> Boolean)? = null,
     modifier: Modifier = Modifier
 ) {
     val text = source.text
     val clipboard = LocalClipboardManager.current
     val density = LocalDensity.current
     val paddingPx = remember(density) { with(density) { CODE_BLOCK_CONTENT_PADDING.toPx() } }
+    val coroutineScope = rememberCoroutineScope()
 
-    var selection by remember(text) { mutableStateOf(TextRange.Zero) }
-    val focusRequester = remember(text) { FocusRequester() }
     val tapState = remember(text) { TapState() }
     val chunkLayouts = remember(text) { HashMap<Int, TextLayoutResult>() }
 
@@ -103,8 +116,13 @@ internal fun CodeChunkView(
         }
     }
 
-    val horizontalScroll = rememberScrollState()
-    val lazyState = rememberLazyListState()
+    val keyEventModifier = if (onPreviewKeyEvent != null) {
+        Modifier.onPreviewKeyEvent(onPreviewKeyEvent)
+    } else {
+        Modifier.onKeyEvent { event ->
+            handleKeyEvent(event, text, selection, clipboard, onSelectionChange)
+        }
+    }
 
     BoxWithConstraints(
         modifier = modifier
@@ -112,9 +130,7 @@ internal fun CodeChunkView(
             .background(backgroundFill)
             .border(1.dp, borderFill, CODE_BLOCK_SHAPE)
             .heightIn(min = minHeight)
-            .onKeyEvent { event ->
-                handleKeyEvent(event, text, selection, clipboard) { selection = it }
-            }
+            .then(keyEventModifier)
             .focusRequester(focusRequester)
             .focusable()
     ) {
@@ -127,24 +143,39 @@ internal fun CodeChunkView(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerHoverIcon(PointerIcon.Text)
+                .pointerInput(lazyListState) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type != PointerEventType.Scroll) continue
+                            val change = event.changes.firstOrNull() ?: continue
+                            val deltaY = change.scrollDelta.y
+                            if (deltaY == 0f) continue
+                            coroutineScope.launch {
+                                lazyListState.scrollBy(deltaY * WHEEL_PIXELS_PER_TICK)
+                            }
+                            change.consume()
+                        }
+                    }
+                }
                 .pointerInput(text) {
                     handleContainerSelection(
                         text = text,
                         source = source,
                         chunkLayouts = chunkLayouts,
-                        lazyState = lazyState,
-                        horizontalScrollState = horizontalScroll,
+                        lazyState = lazyListState,
+                        horizontalScrollState = horizontalScrollState,
                         gutterWidthPx = gutterWidthPx,
                         paddingLeftPx = paddingPx,
                         paddingTopPx = paddingPx,
                         tapState = tapState,
-                        onSelectionChange = { selection = it },
+                        onSelectionChange = onSelectionChange,
                         onRequestFocus = { runCatching { focusRequester.requestFocus() } }
                     )
                 }
         ) {
             LazyColumn(
-                state = lazyState,
+                state = lazyListState,
                 modifier = Modifier.fillMaxWidth().heightIn(min = viewportHeight)
             ) {
                 items(
@@ -154,14 +185,17 @@ internal fun CodeChunkView(
                     ChunkRow(
                         source = source,
                         chunkIndex = chunkIndex,
-                        annotated = annotated,
+                        chunkAnnotated = chunkAnnotated,
+                        chunkVersion = chunkVersion,
                         paintEntries = paintEntries,
                         textStyle = textStyle,
                         showGutter = showGutter,
                         gutterWidthDp = gutterWidthDp,
                         contentMinWidthDp = rowContentMinWidth,
-                        horizontalScrollState = horizontalScroll,
+                        horizontalScrollState = horizontalScrollState,
                         selection = selection,
+                        caretOffset = caretOffset,
+                        caretAlphaProvider = caretAlphaProvider,
                         paddingPx = paddingPx,
                         onChunkLayout = { layout -> chunkLayouts[chunkIndex] = layout }
                     )
@@ -175,7 +209,8 @@ internal fun CodeChunkView(
 private fun ChunkRow(
     source: CodeSource,
     chunkIndex: Int,
-    annotated: AnnotatedString,
+    chunkAnnotated: (Int) -> AnnotatedString,
+    chunkVersion: (Int) -> Long,
     paintEntries: List<PaintHighlightEntry>,
     textStyle: TextStyle,
     showGutter: Boolean,
@@ -183,6 +218,8 @@ private fun ChunkRow(
     contentMinWidthDp: Dp,
     horizontalScrollState: ScrollState,
     selection: TextRange,
+    caretOffset: Int?,
+    caretAlphaProvider: () -> Float,
     paddingPx: Float,
     onChunkLayout: (TextLayoutResult) -> Unit
 ) {
@@ -196,10 +233,8 @@ private fun ChunkRow(
     val verticalPadTop = if (isFirstChunk) CODE_BLOCK_CONTENT_PADDING else 0.dp
     val verticalPadBottom = if (isLastChunk) CODE_BLOCK_CONTENT_PADDING else 0.dp
 
-    val chunkAnnotated = remember(annotated, charStart, charEnd) {
-        if (charEnd <= charStart) AnnotatedString("")
-        else annotated.subSequence(charStart, charEnd)
-    }
+    val versionKey = chunkVersion(chunkIndex)
+    val annotated = remember(versionKey, chunkIndex) { chunkAnnotated(chunkIndex) }
     val chunkPaintEntries = remember(paintEntries, charStart, charEnd) {
         sliceHighlightsToChunk(paintEntries, charStart, charEnd)
     }
@@ -226,12 +261,14 @@ private fun ChunkRow(
             chunkLength = chunkLength,
             lineStart = lineStart,
             lineEnd = lineEnd,
-            annotated = chunkAnnotated,
+            annotated = annotated,
             paintEntries = chunkPaintEntries,
             textStyle = textStyle,
             contentMinWidthDp = contentMinWidthDp,
             horizontalScrollState = horizontalScrollState,
             selection = selection,
+            caretOffset = caretOffset,
+            caretAlphaProvider = caretAlphaProvider,
             paddingPx = paddingPx,
             topPad = verticalPadTop,
             bottomPad = verticalPadBottom,
@@ -301,6 +338,8 @@ private fun ChunkContent(
     contentMinWidthDp: Dp,
     horizontalScrollState: ScrollState,
     selection: TextRange,
+    caretOffset: Int?,
+    caretAlphaProvider: () -> Float,
     paddingPx: Float,
     topPad: Dp,
     bottomPad: Dp,
@@ -341,6 +380,18 @@ private fun ChunkContent(
                         val padTopPx = topPad.toPx()
                         translate(left = paddingPx, top = padTopPx) {
                             drawHighlightUnderlines(annotated.text, layout, paintEntries)
+                        }
+                        if (caretOffset != null && caretOffset in charStart..(charStart + chunkLength)) {
+                            val alpha = caretAlphaProvider()
+                            if (alpha > 0f) {
+                                val localOffset = caretOffset - charStart
+                                val cursorRect = layout.getCursorRect(localOffset)
+                                drawRect(
+                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = alpha),
+                                    topLeft = Offset(paddingPx + cursorRect.left, padTopPx + cursorRect.top),
+                                    size = Size(1.5.dp.toPx(), cursorRect.height)
+                                )
+                            }
                         }
                     }
                 }
@@ -479,6 +530,14 @@ private fun PointerInputScope.hitTestToGlobalOffset(
         .coerceIn(0, chunkLength)
     return chunkCharStart + localOffset
 }
+
+/**
+ * Pixels of vertical scroll per mouse-wheel "notch". Compose Desktop emits a
+ * normalised `scrollDelta.y` of ±1 per wheel tick, so we multiply to get a
+ * comfortable scroll speed roughly matching what `Modifier.scrollable` would
+ * produce on its own.
+ */
+private const val WHEEL_PIXELS_PER_TICK = 64f
 
 private fun buildChunkGutter(
     markers: List<CodeLineMarker>,
