@@ -97,6 +97,8 @@
     "debug:render.atlas.minecraft.celestials": "Celestials",
     "debug:code.title": "JSON CodeBlock",
     "debug:code.description": "Test page for CodeBlock rendering with component-driven JSON highlighting.",
+    "debug:code.diff.title": "JSON Diff",
+    "debug:code.diff.description": "Unified diff view with LCS-based line comparison and syntax highlighting.",
     "debug:code.action.regenerate": "Regenerate JSON",
     "debug:logs.column.time": "Time",
     "debug:logs.column.level": "Level",

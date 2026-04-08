@@ -97,6 +97,8 @@
     "debug:render.atlas.minecraft.celestials": "Corps celestes",
     "debug:code.title": "JSON CodeBlock",
     "debug:code.description": "Page de test pour le rendu du CodeBlock avec surbrillance JSON native au composant.",
+    "debug:code.diff.title": "JSON Diff",
+    "debug:code.diff.description": "Vue diff unifiee avec comparaison par ligne LCS et coloration syntaxique.",
     "debug:code.action.regenerate": "Regenerer le JSON",
     "debug:logs.column.time": "Heure",
     "debug:logs.column.level": "Niveau",

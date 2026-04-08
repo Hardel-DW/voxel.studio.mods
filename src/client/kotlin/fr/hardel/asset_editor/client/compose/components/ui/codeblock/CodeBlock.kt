@@ -1,23 +1,50 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.*
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.text.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,9 +53,20 @@ import fr.hardel.asset_editor.client.compose.lib.highlight.Highlight
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightPalette
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRange
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
+import kotlin.math.ceil
 
 private val CODE_BLOCK_SHAPE = RoundedCornerShape(10.dp)
-private val DEFAULT_TEXT_STYLE = TextStyle(
+private val LINE_NUMBER_COLOR = StudioColors.Zinc600
+private val LINE_GUTTER_BORDER = StudioColors.Zinc800.copy(alpha = 0.5f)
+internal val CODE_BLOCK_CONTENT_PADDING = 16.dp
+private val CODE_BLOCK_GUTTER_PADDING = PaddingValues(
+    start = 12.dp,
+    top = 16.dp,
+    end = 12.dp,
+    bottom = 16.dp
+)
+
+val CODE_TEXT_STYLE = TextStyle(
     fontFamily = FontFamily.Monospace,
     fontSize = 13.sp
 )
@@ -58,14 +96,14 @@ class CodeBlockState {
             }
         }
 
-    var textStyle by mutableStateOf(DEFAULT_TEXT_STYLE)
+    var textStyle by mutableStateOf(CODE_TEXT_STYLE)
     var textFill by mutableStateOf(StudioColors.Zinc300)
     var backgroundFill by mutableStateOf(StudioColors.Zinc950)
     var borderFill by mutableStateOf(StudioColors.Zinc800)
-    var contentPadding by mutableStateOf(PaddingValues(14.dp))
     var lineSpacing by mutableStateOf(4.sp)
     var wrapText by mutableStateOf(false)
     var minHeight by mutableStateOf(0.dp)
+    var showLineNumbers by mutableStateOf(true)
 
     internal var renderVersion by mutableIntStateOf(0)
         private set
@@ -89,58 +127,141 @@ fun CodeBlock(
 ) {
     val text = state.text
     val renderVersion = state.renderVersion
-    val annotatedText = remember(text, renderVersion, state.textFill) {
-        buildVisibleText(text, state.highlights, state.palette, state.textFill)
-    }
-    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val resolvedTextStyle = state.textStyle.merge(
         TextStyle(
             color = state.textFill,
             lineHeight = resolveLineHeight(state.textStyle, state.lineSpacing)
         )
     )
+    val visibleLineCount = remember(text) { text.count { it == '\n' } + 1 }
+    val foregroundRanges = remember(text, renderVersion) {
+        buildForegroundHighlightRanges(text, state.highlights, state.palette)
+    }
+    val paintEntries = remember(renderVersion) {
+        buildPaintEntries(state.highlights, state.palette)
+    }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .clip(CODE_BLOCK_SHAPE)
             .background(state.backgroundFill)
             .border(1.dp, state.borderFill, CODE_BLOCK_SHAPE)
             .heightIn(min = state.minHeight)
-            .verticalScroll(rememberScrollState())
-            .then(if (state.wrapText) Modifier else Modifier.horizontalScroll(rememberScrollState()))
     ) {
-        Box(
-            modifier = Modifier
-                .padding(state.contentPadding)
-        ) {
-            BasicText(
-                text = annotatedText,
-                style = resolvedTextStyle,
-                softWrap = state.wrapText,
-                onTextLayout = { layoutResult = it },
-                modifier = Modifier.drawWithContent {
-                    val currentLayout = layoutResult
-                    if (currentLayout != null) {
-                        drawHighlightBackgrounds(
-                            text = text,
-                            layoutResult = currentLayout,
-                            registry = state.highlights,
-                            palette = state.palette
-                        )
-                    }
-                    drawContent()
-                    val currentLayoutAfterDraw = layoutResult
-                    if (currentLayoutAfterDraw != null) {
-                        drawHighlightUnderlines(
-                            text = text,
-                            layoutResult = currentLayoutAfterDraw,
-                            registry = state.highlights,
-                            palette = state.palette
-                        )
-                    }
-                }
-            )
+        val density = LocalDensity.current
+        val viewportHeightPx = with(density) {
+            (maxHeight.toPx() - (CODE_BLOCK_CONTENT_PADDING * 2).toPx()).coerceAtLeast(0f)
         }
+        val lineHeightPx = with(density) { resolvedTextStyle.lineHeight.toPx() }.coerceAtLeast(1f)
+        val maxVisibleLines = ceil(viewportHeightPx / lineHeightPx).toInt().coerceAtLeast(1)
+        val paddingLines = (maxVisibleLines - visibleLineCount).coerceAtLeast(0)
+
+        val paddedText = remember(text, paddingLines) {
+            if (paddingLines == 0) text else buildString {
+                append(text)
+                repeat(paddingLines) { append('\n') }
+            }
+        }
+
+        val highlightedAnnotated = remember(paddedText, foregroundRanges, state.textFill) {
+            buildHighlightedText(paddedText, foregroundRanges, state.textFill)
+        }
+        val transformation = remember(highlightedAnnotated) {
+            CachedHighlightTransformation(highlightedAnnotated)
+        }
+
+        val lineNumberText = remember(visibleLineCount, paddingLines, state.showLineNumbers) {
+            if (!state.showLineNumbers) null
+            else buildLineNumberText(visibleLineCount, paddingLines)
+        }
+
+        var textFieldValue by remember(text) { mutableStateOf(TextFieldValue(paddedText)) }
+        LaunchedEffect(paddedText) {
+            if (textFieldValue.text != paddedText) {
+                val sel = TextRange(
+                    textFieldValue.selection.start.coerceIn(0, paddedText.length),
+                    textFieldValue.selection.end.coerceIn(0, paddedText.length)
+                )
+                textFieldValue = textFieldValue.copy(text = paddedText, selection = sel)
+            }
+        }
+
+        var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+        ) {
+            if (state.showLineNumbers && lineNumberText != null) {
+                Box(
+                    modifier = Modifier.drawBehind {
+                        drawRect(
+                            color = LINE_GUTTER_BORDER,
+                            topLeft = Offset(size.width - 1.dp.toPx(), 0f),
+                            size = Size(1.dp.toPx(), size.height)
+                        )
+                    }
+                ) {
+                    BasicText(
+                        text = lineNumberText,
+                        style = resolvedTextStyle.copy(color = LINE_NUMBER_COLOR),
+                        modifier = Modifier.padding(CODE_BLOCK_GUTTER_PADDING)
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .then(if (state.wrapText) Modifier else Modifier.horizontalScroll(rememberScrollState()))
+            ) {
+                BasicTextField(
+                    value = textFieldValue,
+                    onValueChange = { updated ->
+                        textFieldValue = if (updated.text == paddedText) updated else updated.copy(text = paddedText)
+                    },
+                    readOnly = true,
+                    textStyle = resolvedTextStyle,
+                    cursorBrush = SolidColor(Color.Transparent),
+                    visualTransformation = transformation,
+                    onTextLayout = { layoutResult = it },
+                    modifier = Modifier
+                        .padding(CODE_BLOCK_CONTENT_PADDING)
+                        .drawWithContent {
+                            val layout = layoutResult ?: run {
+                                drawContent()
+                                return@drawWithContent
+                            }
+                            drawHighlightBackgrounds(paddedText, layout, paintEntries)
+                            drawContent()
+                            drawHighlightUnderlines(paddedText, layout, paintEntries)
+                        }
+                )
+            }
+        }
+    }
+}
+
+internal class CachedHighlightTransformation(
+    private val cached: AnnotatedString
+) : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        if (text.text == cached.text) {
+            return TransformedText(cached, OffsetMapping.Identity)
+        }
+        return TransformedText(text, OffsetMapping.Identity)
+    }
+}
+
+private fun buildLineNumberText(visibleLineCount: Int, paddingLines: Int): AnnotatedString {
+    val maxDigits = visibleLineCount.toString().length
+    return buildAnnotatedString {
+        for (i in 1..visibleLineCount) {
+            if (i > 1) append("\n")
+            append(i.toString().padStart(maxDigits))
+        }
+        repeat(paddingLines) { append("\n") }
     }
 }
 
@@ -154,37 +275,89 @@ private fun resolveLineHeight(textStyle: TextStyle, lineSpacing: TextUnit): Text
     return (textStyle.fontSize.value + lineSpacing.value).sp
 }
 
-private fun buildVisibleText(
+internal data class ForegroundHighlightRange(
+    val start: Int,
+    val end: Int,
+    val color: Color,
+    val priority: Int,
+    val order: Int
+)
+
+internal data class PaintHighlightEntry(
+    val highlight: Highlight,
+    val background: Color?,
+    val underline: Color?
+)
+
+internal fun buildForegroundHighlightRanges(
     text: String,
     highlights: HighlightRegistry,
-    palette: HighlightPalette,
+    palette: HighlightPalette
+): List<ForegroundHighlightRange> {
+    if (text.isEmpty()) {
+        return emptyList()
+    }
+
+    val entries = highlights.entries()
+    val ranges = ArrayList<ForegroundHighlightRange>()
+    for ((order, entry) in entries.withIndex()) {
+        val style = palette.get(entry.name) ?: continue
+        val foreground = style.foreground() ?: continue
+        for (range in entry.highlight.ranges()) {
+            val clamped = range.clampToLength(text.length)
+            if (clamped.isCollapsed()) {
+                continue
+            }
+            ranges += ForegroundHighlightRange(
+                start = clamped.start(),
+                end = clamped.end(),
+                color = foreground,
+                priority = entry.highlight.priority(),
+                order = order
+            )
+        }
+    }
+    return ranges
+}
+
+internal fun buildPaintEntries(
+    highlights: HighlightRegistry,
+    palette: HighlightPalette
+): List<PaintHighlightEntry> =
+    highlights.entriesInPaintOrder().mapNotNull { entry ->
+        val style = palette.get(entry.name) ?: return@mapNotNull null
+        if (style.background() == null && style.underline() == null) {
+            return@mapNotNull null
+        }
+        PaintHighlightEntry(
+            highlight = entry.highlight,
+            background = style.background(),
+            underline = style.underline()
+        )
+    }
+
+internal fun buildHighlightedText(
+    text: String,
+    foregroundRanges: List<ForegroundHighlightRange>,
     defaultFill: Color
 ): AnnotatedString = buildAnnotatedString {
     if (text.isEmpty()) {
         return@buildAnnotatedString
     }
 
-    val boundaries = ArrayList<Int>()
-    boundaries += 0
-    boundaries += text.length
+    val boundaries = linkedSetOf(0, text.length)
+    val rangesByStart = HashMap<Int, MutableList<ForegroundHighlightRange>>()
+    val rangesByEnd = HashMap<Int, MutableList<ForegroundHighlightRange>>()
 
-    for (entry in highlights.entries()) {
-        val style = palette.get(entry.name) ?: continue
-        if (!style.hasForeground()) {
-            continue
-        }
-
-        for (range in entry.highlight.ranges()) {
-            val clamped = range.clampToLength(text.length)
-            if (clamped.isCollapsed()) {
-                continue
-            }
-            boundaries += clamped.start()
-            boundaries += clamped.end()
-        }
+    for (range in foregroundRanges) {
+        boundaries += range.start
+        boundaries += range.end
+        rangesByStart.getOrPut(range.start) { ArrayList() } += range
+        rangesByEnd.getOrPut(range.end) { ArrayList() } += range
     }
 
-    val uniqueBoundaries = boundaries.distinct().sorted()
+    val uniqueBoundaries = boundaries.sorted()
+    val activeRanges = ArrayList<ForegroundHighlightRange>()
     for (index in 0 until uniqueBoundaries.lastIndex) {
         val start = uniqueBoundaries[index]
         val end = uniqueBoundaries[index + 1]
@@ -192,82 +365,35 @@ private fun buildVisibleText(
             continue
         }
 
-        val fill = resolveForegroundFill(start, end, defaultFill, highlights, palette)
+        rangesByEnd[start]?.let(activeRanges::removeAll)
+        rangesByStart[start]?.let(activeRanges::addAll)
+        val fill = activeRanges.maxWithOrNull(
+            compareBy<ForegroundHighlightRange>({ it.priority }, { it.order })
+        )?.color ?: defaultFill
         pushStyle(SpanStyle(color = fill))
         append(text.substring(start, end))
         pop()
     }
 }
 
-private fun resolveForegroundFill(
-    start: Int,
-    end: Int,
-    defaultFill: Color,
-    highlights: HighlightRegistry,
-    palette: HighlightPalette
-): Color {
-    var winner: HighlightRegistry.Entry? = null
-
-    for (entry in highlights.entries()) {
-        val style = palette.get(entry.name) ?: continue
-        if (!style.hasForeground() || !covers(entry.highlight, start, end)) {
-            continue
-        }
-
-        if (winner == null) {
-            winner = entry
-            continue
-        }
-
-        val compare = highlights.compareOverlayStackingPosition(
-            winner.name,
-            winner.highlight,
-            entry.name,
-            entry.highlight
-        )
-        if (compare < 0) {
-            winner = entry
-        }
-    }
-
-    if (winner == null) {
-        return defaultFill
-    }
-
-    return palette.get(winner.name)?.foreground() ?: defaultFill
-}
-
-private fun covers(highlight: Highlight, start: Int, end: Int): Boolean {
-    for (range in highlight.ranges()) {
-        if (range.start() <= start && range.end() >= end) {
-            return true
-        }
-    }
-    return false
-}
-
-private fun ContentDrawScope.drawHighlightBackgrounds(
+internal fun DrawScope.drawHighlightBackgrounds(
     text: String,
     layoutResult: TextLayoutResult,
-    registry: HighlightRegistry,
-    palette: HighlightPalette
+    entries: List<PaintHighlightEntry>
 ) {
-    for (entry in registry.entriesInPaintOrder()) {
-        val style = palette.get(entry.name) ?: continue
-        val background = style.background() ?: continue
+    for (entry in entries) {
+        val background = entry.background ?: continue
         drawHighlightPath(text, layoutResult, entry.highlight, background)
     }
 }
 
-private fun ContentDrawScope.drawHighlightUnderlines(
+internal fun DrawScope.drawHighlightUnderlines(
     text: String,
     layoutResult: TextLayoutResult,
-    registry: HighlightRegistry,
-    palette: HighlightPalette
+    entries: List<PaintHighlightEntry>
 ) {
-    for (entry in registry.entriesInPaintOrder()) {
-        val style = palette.get(entry.name) ?: continue
-        val underline = style.underline() ?: continue
+    for (entry in entries) {
+        val underline = entry.underline ?: continue
         drawHighlightUnderline(text, layoutResult, entry.highlight, underline)
     }
 }

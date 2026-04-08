@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,8 @@ import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlockState
+import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeDiff
+import fr.hardel.asset_editor.client.compose.components.ui.codeblock.DiffStatus
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.JsonCodeBlockHighlighter
 import java.util.concurrent.atomic.AtomicReference
 import net.minecraft.client.resources.language.I18n
@@ -34,33 +37,53 @@ private val PRETTY_GSON = GsonBuilder().setPrettyPrinting().disableHtmlEscaping(
 @Composable
 fun DebugCodeBlockPage() {
     val sampleJson = remember { encodeSampleJson() }
+    val modifiedJson = remember { encodeModifiedJson() }
     val state = remember(sampleJson) { debugCodeBlockState(sampleJson) }
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp)
     ) {
-        Section(I18n.get("debug:code.title")) {
-            androidx.compose.material.Text(
-                text = I18n.get("debug:code.description"),
-                style = StudioTypography.regular(13),
-                color = StudioColors.Zinc400
-            )
-
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Spacer(modifier = Modifier.weight(1f))
-                CopyButton(textProvider = { state.text })
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Section(I18n.get("debug:code.title")) {
+                androidx.compose.material.Text(
+                    text = I18n.get("debug:code.description"),
+                    style = StudioTypography.regular(13),
+                    color = StudioColors.Zinc400
+                )
             }
+            CopyButton(textProvider = { state.text })
         }
 
-        CodeBlock(
-            state = state,
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-        )
+        ) {
+            CodeBlock(
+                state = state,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+
+            CodeDiff(
+                original = sampleJson,
+                compiled = modifiedJson,
+                status = DiffStatus.UPDATED,
+                textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp),
+                lineSpacing = 5f,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            )
+        }
     }
 }
 
@@ -72,16 +95,24 @@ private fun debugCodeBlockState(sampleJson: String): CodeBlockState =
         backgroundFill = StudioColors.Zinc950
         borderFill = StudioColors.Zinc800
         textStyle = TextStyle(fontFamily = FontFamily.Monospace, fontSize = 14.sp)
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)
         lineSpacing = 5.sp
         wrapText = false
         minHeight = 360.dp
+        showLineNumbers = true
         text = sampleJson
     }
 
 private fun encodeSampleJson(): String {
     val encoded = AtomicReference("{}")
     SamplePayload.CODEC.encodeStart(JsonOps.INSTANCE, SAMPLE_PAYLOAD).ifSuccess { json ->
+        encoded.set(prettyPrint(json))
+    }
+    return encoded.get()
+}
+
+private fun encodeModifiedJson(): String {
+    val encoded = AtomicReference("{}")
+    SamplePayload.CODEC.encodeStart(JsonOps.INSTANCE, MODIFIED_PAYLOAD).ifSuccess { json ->
         encoded.set(prettyPrint(json))
     }
     return encoded.get()
@@ -145,4 +176,14 @@ private val SAMPLE_PAYLOAD = SamplePayload(
     roles = listOf("admin", "user"),
     address = Address("123 Main St", "New York", "USA"),
     projects = listOf(Project(1, "Website Redesign"), Project(2, "Mobile App"))
+)
+
+private val MODIFIED_PAYLOAD = SamplePayload(
+    name = "John Doe",
+    email = "john.doe@company.com",
+    age = 31,
+    active = true,
+    roles = listOf("admin", "user", "moderator"),
+    address = Address("456 Oak Ave", "San Francisco", "USA"),
+    projects = listOf(Project(1, "Website Redesign"), Project(3, "API Gateway"))
 )
