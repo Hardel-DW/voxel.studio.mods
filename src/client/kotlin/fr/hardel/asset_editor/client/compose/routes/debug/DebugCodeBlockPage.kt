@@ -116,7 +116,7 @@ fun DebugCodeBlockPage() {
                     val n = lineCountInput.toIntOrNull()?.coerceAtLeast(1) ?: 1
                     isGenerating = true
                     coroutineScope.launch {
-                        prepared = prepareDebugSample(n)
+                        prepareDebugSample(n)
                         isGenerating = false
                     }
                 },
@@ -236,14 +236,14 @@ private fun BenchPanel(title: String, entries: List<BenchEntry>) {
     DataTable(
         items = rows,
         columns = listOf(
-            TableColumn<BenchEntry>(header = I18n.get("debug:code.bench.column.stage", title), weight = 2f) { entry ->
+            TableColumn(header = I18n.get("debug:code.bench.column.stage", title), weight = 2f) { entry ->
                 Text(
                     text = entry.stage,
                     style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
                     color = StudioColors.Zinc400
                 )
             },
-            TableColumn<BenchEntry>(header = I18n.get("debug:code.bench.column.ms"), weight = 1f) { entry ->
+            TableColumn(header = I18n.get("debug:code.bench.column.ms"), weight = 1f) { entry ->
                 Text(
                     text = I18n.get("debug:code.bench.value", entry.millis),
                     style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),

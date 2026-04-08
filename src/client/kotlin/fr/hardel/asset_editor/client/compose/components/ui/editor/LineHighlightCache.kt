@@ -9,7 +9,7 @@ import androidx.compose.ui.text.AnnotatedString
  * across insertions, deletions and reorderings of *other* lines.
  *
  * The cache grows monotonically as the user edits. A naive cap is enforced
- * via [trimIfTooLarge] which clears the whole map once it exceeds the limit;
+ * via trimIfTooLarge which clears the whole map once it exceeds the limit;
  * an LRU is overkill for the JSON sizes the editor targets.
  */
 class LineHighlightCache(

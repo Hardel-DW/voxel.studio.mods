@@ -9,8 +9,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import fr.hardel.asset_editor.client.compose.components.ui.codeblock.SystemClipboard
 
 /**
  * Translates a [KeyEvent] into a mutation on [state]. Returns `true` if the
@@ -20,7 +19,7 @@ import androidx.compose.ui.text.AnnotatedString
  * Modifier policy:
  * - Pure `Ctrl` and pure `Alt` shortcuts go through their dedicated branches.
  * - `Ctrl + Alt` is treated as **Alt-Gr** (the right-Alt convention used by
- *   Windows for special characters like `@`, `#`, `[`, `]` on AZERTY layouts)
+ *   Windows for special characters like `@`, `#`, `,` on AZERTY layouts)
  *   and is allowed to fall through to text input.
  * - Text input is rejected when exactly one of `Ctrl` / `Alt` is held — this
  *   is what stops Ctrl+letter / Alt+letter from inserting a stray `?`
@@ -29,7 +28,6 @@ import androidx.compose.ui.text.AnnotatedString
 internal fun handleEditorKeyEvent(
     event: KeyEvent,
     state: CodeEditorState,
-    clipboard: ClipboardManager,
     requestScrollToCaret: () -> Unit
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
@@ -43,9 +41,9 @@ internal fun handleEditorKeyEvent(
     if (ctrl && !isAltGr) {
         when (event.key) {
             Key.A -> { state.selectAll(); return true }
-            Key.C -> { copy(state, clipboard); return true }
-            Key.X -> { cut(state, clipboard); requestScrollToCaret(); return true }
-            Key.V -> { paste(state, clipboard); requestScrollToCaret(); return true }
+            Key.C -> { copy(state); return true }
+            Key.X -> { cut(state); requestScrollToCaret(); return true }
+            Key.V -> { paste(state); requestScrollToCaret(); return true }
             Key.Z -> {
                 if (shift) state.redo() else state.undo()
                 requestScrollToCaret()
@@ -117,19 +115,19 @@ private val MODIFIER_KEYS = setOf(
     Key.Function
 )
 
-private fun copy(state: CodeEditorState, clipboard: ClipboardManager) {
+private fun copy(state: CodeEditorState) {
     val text = if (state.selection.collapsed) state.fullText() else state.selectionText()
-    if (text.isNotEmpty()) clipboard.setText(AnnotatedString(text))
+    if (text.isNotEmpty()) SystemClipboard.setText(text)
 }
 
-private fun cut(state: CodeEditorState, clipboard: ClipboardManager) {
+private fun cut(state: CodeEditorState) {
     if (state.selection.collapsed) return
-    clipboard.setText(AnnotatedString(state.selectionText()))
+    SystemClipboard.setText(state.selectionText())
     state.insert("")
 }
 
-private fun paste(state: CodeEditorState, clipboard: ClipboardManager) {
-    val text = clipboard.getText()?.text ?: return
+private fun paste(state: CodeEditorState) {
+    val text = SystemClipboard.getText() ?: return
     if (text.isEmpty()) return
     state.insert(text)
 }

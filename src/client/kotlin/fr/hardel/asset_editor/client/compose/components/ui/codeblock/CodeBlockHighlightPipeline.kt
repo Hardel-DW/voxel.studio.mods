@@ -96,7 +96,7 @@ internal fun buildHighlightedText(
         rangesByEnd[start]?.let(activeRanges::removeAll)
         rangesByStart[start]?.let(activeRanges::addAll)
         val fill = activeRanges.maxWithOrNull(
-            compareBy<ForegroundHighlightRange>({ it.priority }, { it.order })
+            compareBy({ it.priority }, { it.order })
         )?.color ?: defaultFill
         pushStyle(SpanStyle(color = fill))
         append(text.substring(start, end))

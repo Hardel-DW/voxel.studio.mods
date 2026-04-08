@@ -9,8 +9,6 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 
@@ -80,7 +78,6 @@ internal fun handleKeyEvent(
     event: KeyEvent,
     text: String,
     selection: TextRange,
-    clipboard: ClipboardManager,
     setSelection: (TextRange) -> Unit
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
@@ -89,7 +86,7 @@ internal fun handleKeyEvent(
             if (!selection.collapsed) {
                 val s = minOf(selection.start, selection.end).coerceIn(0, text.length)
                 val e = maxOf(selection.start, selection.end).coerceIn(0, text.length)
-                clipboard.setText(AnnotatedString(text.substring(s, e)))
+                SystemClipboard.setText(text.substring(s, e))
             }
             true
         }

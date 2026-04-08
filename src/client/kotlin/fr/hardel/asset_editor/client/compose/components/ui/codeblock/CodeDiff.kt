@@ -1,16 +1,9 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,31 +64,16 @@ fun CodeDiff(
     val annotated = remember(fullText, foregroundRanges, resolvedStyle.color) {
         buildHighlightedText(fullText, foregroundRanges, resolvedStyle.color)
     }
-    val chunkAnnotated = remember(annotated, source) {
-        { chunkIndex: Int -> sliceAnnotatedToChunk(annotated, source, chunkIndex) }
-    }
-    val chunkVersion = remember { { _: Int -> 0L } }
 
-    var selection by remember(fullText) { mutableStateOf(TextRange.Zero) }
-    val lazyListState = rememberLazyListState()
-    val horizontalScroll = rememberScrollState()
-    val focusRequester = remember(fullText) { FocusRequester() }
-
-    CodeChunkView(
+    CodeChunkViewStatic(
         source = source,
-        chunkAnnotated = chunkAnnotated,
-        chunkVersion = chunkVersion,
+        annotated = annotated,
         paintEntries = paintEntries,
         textStyle = resolvedStyle,
         showGutter = true,
         backgroundFill = StudioColors.Zinc950,
         borderFill = StudioColors.Zinc800,
         minHeight = 0.dp,
-        selection = selection,
-        onSelectionChange = { selection = it },
-        lazyListState = lazyListState,
-        horizontalScrollState = horizontalScroll,
-        focusRequester = focusRequester,
         modifier = modifier
     )
 }

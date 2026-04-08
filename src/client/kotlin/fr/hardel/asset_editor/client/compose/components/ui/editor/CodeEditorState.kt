@@ -43,7 +43,6 @@ class CodeEditorState(initialText: String = "") {
     )
     var backgroundFill by mutableStateOf(StudioColors.Zinc950)
     var borderFill by mutableStateOf(StudioColors.Zinc800)
-    var lineSpacing by mutableStateOf(5.sp)
     var minHeight by mutableStateOf(0.dp)
 
     /**
@@ -57,7 +56,6 @@ class CodeEditorState(initialText: String = "") {
     val lineCount: Int get() = buffer.lineCount
 
     fun lineAt(index: Int): EditableLineBuffer.Line = buffer.lineAt(index)
-    fun contentAt(index: Int): String = buffer.contentAt(index)
 
     /** Builds the full text on demand (used by copy-all and external consumers). */
     fun fullText(): String = buffer.toText()
@@ -119,7 +117,7 @@ class CodeEditorState(initialText: String = "") {
      * the current line that lives **before the caret**. Using only the prefix
      * (not the full line) avoids double-indenting when the caret sits before
      * or inside the existing leading whitespace — the existing content already
-     * carries that whitespace and we'd otherwise prepend a second copy.
+     * carries that whitespace, and we'd otherwise prepend a second copy.
      *
      * Smart-indent rules:
      * - If the last non-whitespace character before the caret is `{` or `[`,
@@ -127,8 +125,8 @@ class CodeEditorState(initialText: String = "") {
      * - If that opener is **immediately matched** by a closer (`}` or `]`)
      *   right after the caret — i.e. the caret sits between `{|}` or `[|]` —
      *   a *second* newline is inserted with the closing brace pushed onto
-     *   its own line at the original indent, and the caret lands on the
-     *   middle (indented) line. This is the VS Code / IntelliJ behaviour
+     *   its own line at the original indent, and the caret lands in the
+     *   middle (indented) line. This is the VS Code / IntelliJ behavior
      *   for "Enter inside an empty block".
      */
     fun insertNewlineWithIndent() {
@@ -261,7 +259,7 @@ class CodeEditorState(initialText: String = "") {
      *
      * VS Code-style boundary convention: a selection that ends right at
      * column 0 of a line (i.e. `Shift+Down` from the previous line) does not
-     * include that trailing line in the block. This keeps the behaviour
+     * include that trailing line in the block. This keeps the behavior
      * intuitive when the user extended the selection one line too far.
      *
      * The move is recorded as a single [EditOp.Replace] so a single Ctrl+Z

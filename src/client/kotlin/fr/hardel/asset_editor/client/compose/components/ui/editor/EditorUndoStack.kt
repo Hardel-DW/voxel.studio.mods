@@ -62,9 +62,6 @@ internal class EditorUndoStack(
         return op
     }
 
-    fun canUndo(): Boolean = undoStack.isNotEmpty()
-    fun canRedo(): Boolean = redoStack.isNotEmpty()
-
     /**
      * Forces the next [record] call to start a new group instead of merging
      * with the previous one. Call this on caret motion / pointer click /
@@ -91,28 +88,29 @@ internal class EditorUndoStack(
      */
     private fun tryMerge(op: EditOp): Boolean {
         val last = undoStack.lastOrNull() ?: return false
-        return when {
-            last is EditOp.Insert && op is EditOp.Insert &&
-                op.offset == last.offset + last.text.length &&
-                !op.text.contains('\n') && !last.text.contains('\n') -> {
+        return when (last) {
+            is EditOp.Insert if op is EditOp.Insert &&
+                    op.offset == last.offset + last.text.length &&
+                    !op.text.contains('\n') && !last.text.contains('\n') -> {
                 undoStack.removeLast()
                 undoStack.addLast(EditOp.Insert(last.offset, last.text + op.text))
                 true
             }
-            last is EditOp.Delete && op is EditOp.Delete &&
-                op.offset + op.text.length == last.offset &&
-                !op.text.contains('\n') && !last.text.contains('\n') -> {
+            is EditOp.Delete if op is EditOp.Delete &&
+                    op.offset + op.text.length == last.offset &&
+                    !op.text.contains('\n') && !last.text.contains('\n') -> {
                 undoStack.removeLast()
                 undoStack.addLast(EditOp.Delete(op.offset, op.text + last.text))
                 true
             }
-            last is EditOp.Delete && op is EditOp.Delete &&
-                op.offset == last.offset &&
-                !op.text.contains('\n') && !last.text.contains('\n') -> {
+            is EditOp.Delete if op is EditOp.Delete &&
+                    op.offset == last.offset &&
+                    !op.text.contains('\n') && !last.text.contains('\n') -> {
                 undoStack.removeLast()
                 undoStack.addLast(EditOp.Delete(last.offset, last.text + op.text))
                 true
             }
+
             else -> false
         }
     }

@@ -14,11 +14,11 @@ import fr.hardel.asset_editor.client.compose.lib.utils.JsonTokenizer
  *
  * Strict JSON has no multi-line tokens — strings, numbers and literals all
  * stay on a single line — so each line can be highlighted independently of
- * its neighbours, which is what enables [LineHighlightCache] to work.
+ * its neighbors, which is what enables [LineHighlightCache] to work.
  *
- * Token → colour mapping is resolved once at construction from the same
+ * Token → color mapping is resolved once at construction from the same
  * [JsonCodeBlockHighlighter.installDefaultPalette] used by the read-only viewer
- * so the editor stays visually identical to [CodeBlock].
+ * so the editor stays visually identical to CodeBlock.
  */
 class JsonLineHighlighter(
     val defaultColor: Color = StudioColors.Zinc300

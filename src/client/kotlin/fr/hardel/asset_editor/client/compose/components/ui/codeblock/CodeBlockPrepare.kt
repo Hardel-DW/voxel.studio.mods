@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 /**
  * Builds a fully prepared [CodeBlockState] for [text] on a background
  * dispatcher: tokenization (`highlighter.apply`) and the global
- * [AnnotatedString] are computed off the main thread, leaving only cheap
+ * AnnotatedString are computed off the main thread, leaving only cheap
  * Compose state writes for the UI to absorb on first render.
  *
  * Use this from a `LaunchedEffect` / coroutine when loading large documents

@@ -5,7 +5,7 @@ package fr.hardel.asset_editor.client.compose.components.ui.editor
  *
  * Storage is an `ArrayList<Line>` where each [Line] carries a stable [Line.id]:
  * editing a line allocates a fresh id for that line, but inserting or removing
- * other lines does **not** disturb the ids of unmodified neighbours. The UI
+ * other lines does **not** disturb the ids of unmodified neighbors. The UI
  * layer can therefore cache derived state (highlighted `AnnotatedString`,
  * tokenization results, …) keyed by [Line.id] and trust the cache to survive
  * insertions, deletions and reorderings elsewhere in the document.
@@ -60,10 +60,6 @@ class EditableLineBuffer(initialText: String) {
 
     fun lineAt(index: Int): Line = _lines[index]
     fun contentAt(index: Int): String = _lines[index].content
-    fun idAt(index: Int): Long = _lines[index].id
-
-    /** Returns a defensive snapshot copy of the lines (debug / tests). */
-    fun lineSnapshot(): List<Line> = _lines.toList()
 
     /** Concatenates every line with `\n` separators. Allocates a single [String]. */
     fun toText(): String {

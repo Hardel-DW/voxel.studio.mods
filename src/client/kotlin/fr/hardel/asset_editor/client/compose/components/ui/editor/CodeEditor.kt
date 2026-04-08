@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CODE_LINE_NUMBER_COLOR
@@ -50,7 +49,6 @@ fun CodeEditor(
     modifier: Modifier = Modifier
 ) {
     val docVersion = state.documentVersion
-    val clipboard = LocalClipboardManager.current
     val coroutineScope = rememberCoroutineScope()
 
     val markers = remember(docVersion) { buildLineNumberMarkers(state.lineCount) }
@@ -109,7 +107,6 @@ fun CodeEditor(
             handleEditorKeyEvent(
                 event = event,
                 state = state,
-                clipboard = clipboard,
                 requestScrollToCaret = {
                     coroutineScope.launch {
                         scrollCaretIntoView(lazyListState, source, state.caretLine(), state.selection.end)
@@ -162,16 +159,6 @@ private fun hashChunkLines(
     return h
 }
 
-private fun chunkIndexForOffset(source: CodeSource, offset: Int): Int {
-    if (source.chunkCount == 0) return 0
-    for (i in 0 until source.chunkCount) {
-        val s = source.chunkCharStarts[i]
-        val e = source.chunkCharEnds[i]
-        if (offset in s..e) return i
-    }
-    return source.chunkCount - 1
-}
-
 /**
  * Scrolls [lazyListState] just enough to keep the caret line visible inside
  * the viewport, with a two-line breathing margin top and bottom.
@@ -179,7 +166,7 @@ private fun chunkIndexForOffset(source: CodeSource, offset: Int): Int {
  * Strategy:
  *  1. If the caret's chunk isn't composed at all, jump to it via
  *     `animateScrollToItem(chunkIndex)`. The next pass refines the offset.
- *  2. Otherwise approximate the caret's pixel Y by interpolating inside the
+ *  2. Otherwise, approximate the caret's pixel Y by interpolating inside the
  *     visible chunk: `chunkTop + (lineWithinChunk / linesInChunk) * chunkHeight`.
  *     This relies on the monospace assumption that all lines in a chunk have
  *     the same height — true in practice for our text styles.

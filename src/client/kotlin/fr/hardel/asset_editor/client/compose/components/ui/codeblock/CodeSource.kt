@@ -22,7 +22,7 @@ internal data class CodeLineMarker(
  * - [lineStarts] holds the char offset of the start of each line (size = [lineCount]).
  * - [chunkCharStarts] / [chunkCharEnds] are the inclusive/exclusive global char
  *   bounds of each chunk; the end excludes the newline that terminates the
- *   chunk's last line so [text.subSequence] yields a slice without a trailing `\n`.
+ *   chunk's last line so text.subSequence yields a slice without a trailing `\n`.
  */
 internal class CodeSource(
     val text: String,

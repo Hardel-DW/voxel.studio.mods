@@ -1,32 +1,15 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -36,23 +19,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.PointerInputScope
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -62,7 +35,7 @@ import kotlinx.coroutines.launch
  *
  * Source text is split into fixed-line chunks ([CodeSource]); a [LazyColumn]
  * composes only the visible chunks. Each chunk owns its own [TextLayoutResult]
- * (registered into [chunkLayouts] so the parent can hit-test against it).
+ * (registered into chunkLayouts so the parent can hit-test against it).
  *
  * Selection is handled at the container level, not per chunk: a single
  * pointerInput at the top hit-tests against the visible chunks via
@@ -92,7 +65,6 @@ internal fun CodeChunkView(
     modifier: Modifier = Modifier
 ) {
     val text = source.text
-    val clipboard = LocalClipboardManager.current
     val density = LocalDensity.current
     val paddingPx = remember(density) { with(density) { CODE_BLOCK_CONTENT_PADDING.toPx() } }
     val coroutineScope = rememberCoroutineScope()
@@ -120,7 +92,7 @@ internal fun CodeChunkView(
         Modifier.onPreviewKeyEvent(onPreviewKeyEvent)
     } else {
         Modifier.onKeyEvent { event ->
-            handleKeyEvent(event, text, selection, clipboard, onSelectionChange)
+            handleKeyEvent(event, text, selection, onSelectionChange)
         }
     }
 
@@ -278,6 +250,59 @@ private fun ChunkRow(
     }
 }
 
+/**
+ * Read-only convenience wrapper around [CodeChunkView] that creates and owns
+ * the selection / focus / scroll / lazy-list state internally so the simple
+ * viewer call sites ([CodeBlock], [CodeDiff]) don't have to repeat the same
+ * `remember { … }` boilerplate. Builds the static `chunkAnnotated` lambda by
+ * slicing [annotated] through [sliceAnnotatedToChunk]; the version key is
+ * fixed at `0L` because the source is immutable.
+ *
+ * Editable callers ([fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditor])
+ * still talk to [CodeChunkView] directly so they can hoist selection,
+ * provide a caret and supply per-line cached annotated strings.
+ */
+@Composable
+internal fun CodeChunkViewStatic(
+    source: CodeSource,
+    annotated: AnnotatedString,
+    paintEntries: List<PaintHighlightEntry>,
+    textStyle: TextStyle,
+    showGutter: Boolean,
+    backgroundFill: Color,
+    borderFill: Color,
+    minHeight: Dp,
+    modifier: Modifier = Modifier
+) {
+    val text = source.text
+    var selection by remember(text) { mutableStateOf(TextRange.Zero) }
+    val lazyListState = rememberLazyListState()
+    val horizontalScroll = rememberScrollState()
+    val focusRequester = remember(text) { FocusRequester() }
+    val chunkAnnotated = remember(annotated, source) {
+        { chunkIndex: Int -> sliceAnnotatedToChunk(annotated, source, chunkIndex) }
+    }
+    val chunkVersion = remember { { _: Int -> 0L } }
+
+    CodeChunkView(
+        source = source,
+        chunkAnnotated = chunkAnnotated,
+        chunkVersion = chunkVersion,
+        paintEntries = paintEntries,
+        textStyle = textStyle,
+        showGutter = showGutter,
+        backgroundFill = backgroundFill,
+        borderFill = borderFill,
+        minHeight = minHeight,
+        selection = selection,
+        onSelectionChange = { },
+        lazyListState = lazyListState,
+        horizontalScrollState = horizontalScroll,
+        focusRequester = focusRequester,
+        modifier = modifier
+    )
+}
+
 @Composable
 private fun ChunkGutter(
     source: CodeSource,
@@ -301,13 +326,8 @@ private fun ChunkGutter(
                     size = Size(1.dp.toPx(), size.height)
                 )
                 val layout = layoutResult ?: return@drawBehind
-                val padTopPx = topPad.toPx()
-                for (line in lineStart until lineEnd) {
-                    val bg = source.markers[line].gutterBackground ?: continue
-                    val localLine = line - lineStart
-                    val top = padTopPx + layout.getLineTop(localLine)
-                    val bottom = padTopPx + layout.getLineBottom(localLine)
-                    drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
+                drawPerLineBackgrounds(layout, lineStart, lineEnd, topPad.toPx()) { line ->
+                    source.markers[line].gutterBackground
                 }
             }
     ) {
@@ -356,12 +376,8 @@ private fun ChunkContent(
                     val layout = layoutResult
                     if (layout != null) {
                         val padTopPx = topPad.toPx()
-                        for (line in lineStart until lineEnd) {
-                            val bg = source.markers[line].lineBackground ?: continue
-                            val localLine = line - lineStart
-                            val top = padTopPx + layout.getLineTop(localLine)
-                            val bottom = padTopPx + layout.getLineBottom(localLine)
-                            drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
+                        drawPerLineBackgrounds(layout, lineStart, lineEnd, padTopPx) { line ->
+                            source.markers[line].lineBackground
                         }
                         translate(left = paddingPx, top = padTopPx) {
                             drawHighlightBackgrounds(annotated.text, layout, paintEntries)
@@ -387,7 +403,7 @@ private fun ChunkContent(
                                 val localOffset = caretOffset - charStart
                                 val cursorRect = layout.getCursorRect(localOffset)
                                 drawRect(
-                                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = alpha),
+                                    color = Color.White.copy(alpha = alpha),
                                     topLeft = Offset(paddingPx + cursorRect.left, padTopPx + cursorRect.top),
                                     size = Size(1.5.dp.toPx(), cursorRect.height)
                                 )
@@ -494,7 +510,7 @@ private suspend fun PointerInputScope.handleContainerSelection(
  * visible chunk snap to its end. This makes empty space inside the container —
  * gutter, dead area below short documents, etc. — fully clickable.
  */
-private fun PointerInputScope.hitTestToGlobalOffset(
+private fun hitTestToGlobalOffset(
     position: Offset,
     source: CodeSource,
     chunkLayouts: Map<Int, TextLayoutResult>,
@@ -538,6 +554,29 @@ private fun PointerInputScope.hitTestToGlobalOffset(
  * produce on its own.
  */
 private const val WHEEL_PIXELS_PER_TICK = 64f
+
+/**
+ * Draws a full-width background rectangle for every line in `[lineStart, lineEnd)`
+ * whose [colorFor] returns a non-null color, using [layout] to position each line
+ * vertically. Shared by [ChunkContent] (line backgrounds for diff additions /
+ * removals) and [ChunkGutter] (gutter backgrounds for the same), where the only
+ * difference is which marker color is consulted.
+ */
+private fun DrawScope.drawPerLineBackgrounds(
+    layout: TextLayoutResult,
+    lineStart: Int,
+    lineEnd: Int,
+    padTopPx: Float,
+    colorFor: (lineIndex: Int) -> Color?
+) {
+    for (line in lineStart until lineEnd) {
+        val bg = colorFor(line) ?: continue
+        val localLine = line - lineStart
+        val top = padTopPx + layout.getLineTop(localLine)
+        val bottom = padTopPx + layout.getLineBottom(localLine)
+        drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
+    }
+}
 
 private fun buildChunkGutter(
     markers: List<CodeLineMarker>,

@@ -1,23 +1,16 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 
 /**
  * Read-only code viewer with syntax highlighting and selection.
  *
- * Uses [CodeChunkView] under the hood: the source is split into fixed-line
- * chunks composed lazily, so layout cost is bounded by the viewport rather
- * than the document size.
+ * Uses [CodeChunkViewStatic] under the hood: the source is split into
+ * fixed-line chunks composed lazily, so layout cost is bounded by the
+ * viewport rather than the document size.
  */
 @Composable
 fun CodeBlock(
@@ -46,31 +39,16 @@ fun CodeBlock(
     val annotated = remember(text, foregroundRanges, state.textFill) {
         state.precomputedAnnotated ?: buildHighlightedText(text, foregroundRanges, state.textFill)
     }
-    val chunkAnnotated = remember(annotated, source) {
-        { chunkIndex: Int -> sliceAnnotatedToChunk(annotated, source, chunkIndex) }
-    }
-    val chunkVersion = remember { { _: Int -> 0L } }
 
-    var selection by remember(text) { mutableStateOf(TextRange.Zero) }
-    val lazyListState = rememberLazyListState()
-    val horizontalScroll = rememberScrollState()
-    val focusRequester = remember(text) { FocusRequester() }
-
-    CodeChunkView(
+    CodeChunkViewStatic(
         source = source,
-        chunkAnnotated = chunkAnnotated,
-        chunkVersion = chunkVersion,
+        annotated = annotated,
         paintEntries = paintEntries,
         textStyle = resolvedTextStyle,
         showGutter = state.showLineNumbers,
         backgroundFill = state.backgroundFill,
         borderFill = state.borderFill,
         minHeight = state.minHeight,
-        selection = selection,
-        onSelectionChange = { selection = it },
-        lazyListState = lazyListState,
-        horizontalScrollState = horizontalScroll,
-        focusRequester = focusRequester,
         modifier = modifier
     )
 }
