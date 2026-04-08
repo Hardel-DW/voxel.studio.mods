@@ -26,4 +26,3 @@ public class AssetEditorClient implements ClientModInitializer {
         StudioReloadListener.register();
     }
 }
-

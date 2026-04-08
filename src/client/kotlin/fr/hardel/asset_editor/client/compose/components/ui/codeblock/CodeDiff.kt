@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -13,10 +14,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,19 +24,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,24 +105,16 @@ fun CodeDiff(
     val highlightedAnnotated = remember(fullText, foregroundRanges, resolvedStyle.color) {
         buildHighlightedText(fullText, foregroundRanges, resolvedStyle.color)
     }
-    val transformation = remember(highlightedAnnotated) {
-        CachedHighlightTransformation(highlightedAnnotated)
-    }
     val gutterText = remember(diffLines) { buildGutterText(diffLines) }
 
-    var textFieldValue by remember(fullText) { mutableStateOf(TextFieldValue(fullText)) }
-    LaunchedEffect(fullText) {
-        if (textFieldValue.text != fullText) {
-            val sel = TextRange(
-                textFieldValue.selection.start.coerceIn(0, fullText.length),
-                textFieldValue.selection.end.coerceIn(0, fullText.length)
-            )
-            textFieldValue = textFieldValue.copy(text = fullText, selection = sel)
-        }
-    }
-
+    var selection by remember(fullText) { mutableStateOf(TextRange.Zero) }
     var contentLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     var gutterLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val tapState = remember { TapState() }
+    val clipboard = LocalClipboardManager.current
+    val focusRequester = remember { FocusRequester() }
+    val density = LocalDensity.current
+    val paddingPx = remember(density) { with(density) { CODE_BLOCK_CONTENT_PADDING.toPx() } }
 
     BoxWithConstraints(
         modifier = modifier
@@ -144,14 +140,16 @@ fun CodeDiff(
                 DiffContent(
                     lines = diffLines,
                     fullText = fullText,
+                    highlightedText = highlightedAnnotated,
                     paintEntries = paintEntries,
                     textStyle = resolvedStyle,
-                    transformation = transformation,
-                    textFieldValue = textFieldValue,
-                    onTextFieldValueChange = { updated ->
-                        textFieldValue = if (updated.text == fullText) updated else updated.copy(text = fullText)
-                    },
                     viewportHeight = viewportHeight,
+                    selection = selection,
+                    onSelectionChange = { selection = it },
+                    tapState = tapState,
+                    clipboard = clipboard,
+                    focusRequester = focusRequester,
+                    paddingPx = paddingPx,
                     layoutResult = contentLayoutResult,
                     onLayoutResult = { contentLayoutResult = it },
                     modifier = Modifier.weight(1f)
@@ -211,59 +209,79 @@ private fun DiffGutter(
 private fun DiffContent(
     lines: List<DiffLine>,
     fullText: String,
+    highlightedText: AnnotatedString,
     paintEntries: List<PaintHighlightEntry>,
     textStyle: TextStyle,
-    transformation: VisualTransformation,
-    textFieldValue: TextFieldValue,
-    onTextFieldValueChange: (TextFieldValue) -> Unit,
     viewportHeight: Dp,
+    selection: TextRange,
+    onSelectionChange: (TextRange) -> Unit,
+    tapState: TapState,
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    focusRequester: FocusRequester,
+    paddingPx: Float,
     layoutResult: TextLayoutResult?,
     onLayoutResult: (TextLayoutResult) -> Unit,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val contentMinWidth: Dp = (maxWidth - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
-        val contentMinHeight: Dp = (viewportHeight - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
+        val viewportContentWidth = maxWidth
         Box(
             modifier = Modifier.horizontalScroll(rememberScrollState())
         ) {
-            BasicTextField(
-                value = textFieldValue,
-                onValueChange = onTextFieldValueChange,
-                readOnly = true,
-                textStyle = textStyle,
-                cursorBrush = SolidColor(Color.Transparent),
-                visualTransformation = transformation,
-                onTextLayout = onLayoutResult,
+            Box(
                 modifier = Modifier
-                    .widthIn(min = contentMinWidth)
-                    .heightIn(min = contentMinHeight)
-                    .padding(CODE_BLOCK_CONTENT_PADDING)
+                    .widthIn(min = viewportContentWidth)
+                    .heightIn(min = viewportHeight)
+                    .pointerHoverIcon(PointerIcon.Text)
+                    .focusRequester(focusRequester)
+                    .focusable()
+                    .onKeyEvent { event ->
+                        handleKeyEvent(event, fullText, selection, clipboard, onSelectionChange)
+                    }
+                    .pointerInput(fullText) {
+                        handleCodeSelectionGestures(
+                            text = fullText,
+                            paddingPx = paddingPx,
+                            tapState = tapState,
+                            layoutProvider = { layoutResult },
+                            onSelectionChange = onSelectionChange,
+                            onRequestFocus = { runCatching { focusRequester.requestFocus() } }
+                        )
+                    }
                     .drawWithContent {
-                        val layout = layoutResult ?: run {
-                            drawContent()
-                            return@drawWithContent
-                        }
-                        val padPx = CODE_BLOCK_CONTENT_PADDING.toPx()
-                        for (i in lines.indices) {
-                            val bg = when (lines[i].type) {
-                                DiffLineType.ADDED -> ADDED_BG
-                                DiffLineType.REMOVED -> REMOVED_BG
-                                DiffLineType.UNCHANGED -> continue
+                        val layout = layoutResult
+                        if (layout != null) {
+                            for (i in lines.indices) {
+                                val bg = when (lines[i].type) {
+                                    DiffLineType.ADDED -> ADDED_BG
+                                    DiffLineType.REMOVED -> REMOVED_BG
+                                    DiffLineType.UNCHANGED -> continue
+                                }
+                                val top = paddingPx + layout.getLineTop(i)
+                                val bottom = paddingPx + layout.getLineBottom(i)
+                                drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
                             }
-                            val top = padPx + layout.getLineTop(i)
-                            val bottom = padPx + layout.getLineBottom(i)
-                            drawRect(bg, topLeft = Offset(0f, top), size = Size(size.width, bottom - top))
-                        }
-                        translate(left = padPx, top = padPx) {
-                            drawHighlightBackgrounds(fullText, layout, paintEntries)
+                            translate(left = paddingPx, top = paddingPx) {
+                                drawHighlightBackgrounds(fullText, layout, paintEntries)
+                            }
+                            drawSelectionRectangles(layout, selection, fullText.length, paddingPx)
                         }
                         drawContent()
-                        translate(left = padPx, top = padPx) {
-                            drawHighlightUnderlines(fullText, layout, paintEntries)
+                        if (layout != null) {
+                            translate(left = paddingPx, top = paddingPx) {
+                                drawHighlightUnderlines(fullText, layout, paintEntries)
+                            }
                         }
                     }
-            )
+            ) {
+                BasicText(
+                    text = highlightedText,
+                    style = textStyle,
+                    softWrap = false,
+                    onTextLayout = onLayoutResult,
+                    modifier = Modifier.padding(CODE_BLOCK_CONTENT_PADDING)
+                )
+            }
         }
     }
 }

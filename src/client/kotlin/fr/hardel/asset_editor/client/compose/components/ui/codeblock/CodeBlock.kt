@@ -2,7 +2,11 @@ package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,10 +18,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -28,11 +30,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -40,10 +55,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +67,7 @@ import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
 private val CODE_BLOCK_SHAPE = RoundedCornerShape(10.dp)
 private val LINE_NUMBER_COLOR = StudioColors.Zinc600
 private val LINE_GUTTER_BORDER = StudioColors.Zinc800.copy(alpha = 0.5f)
+internal val SELECTION_BG = Color(0xFF3B82F6).copy(alpha = 0.35f)
 internal val CODE_BLOCK_CONTENT_PADDING = 16.dp
 private val CODE_BLOCK_GUTTER_PADDING = PaddingValues(
     start = 12.dp,
@@ -141,26 +153,18 @@ fun CodeBlock(
     val highlightedAnnotated = remember(text, foregroundRanges, state.textFill) {
         buildHighlightedText(text, foregroundRanges, state.textFill)
     }
-    val transformation = remember(highlightedAnnotated) {
-        CachedHighlightTransformation(highlightedAnnotated)
-    }
     val lineNumberText = remember(visibleLineCount, state.showLineNumbers) {
         if (!state.showLineNumbers) null
         else buildLineNumberText(visibleLineCount)
     }
 
-    var textFieldValue by remember(text) { mutableStateOf(TextFieldValue(text)) }
-    LaunchedEffect(text) {
-        if (textFieldValue.text != text) {
-            val sel = TextRange(
-                textFieldValue.selection.start.coerceIn(0, text.length),
-                textFieldValue.selection.end.coerceIn(0, text.length)
-            )
-            textFieldValue = textFieldValue.copy(text = text, selection = sel)
-        }
-    }
-
+    var selection by remember(text) { mutableStateOf(TextRange.Zero) }
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val tapState = remember { TapState() }
+    val clipboard = LocalClipboardManager.current
+    val focusRequester = remember { FocusRequester() }
+    val density = LocalDensity.current
+    val paddingPx = remember(density) { with(density) { CODE_BLOCK_CONTENT_PADDING.toPx() } }
 
     BoxWithConstraints(
         modifier = modifier
@@ -197,36 +201,57 @@ fun CodeBlock(
                 }
 
                 BoxWithConstraints(modifier = Modifier.weight(1f)) {
-                    val contentMinWidth = (maxWidth - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
-                    val contentMinHeight = (viewportHeight - CODE_BLOCK_CONTENT_PADDING * 2).coerceAtLeast(0.dp)
+                    val viewportContentWidth = maxWidth
                     Box(
-                        modifier = Modifier
-                            .then(if (state.wrapText) Modifier.fillMaxWidth() else Modifier.horizontalScroll(rememberScrollState()))
+                        modifier = if (state.wrapText) Modifier.fillMaxWidth()
+                        else Modifier.horizontalScroll(rememberScrollState())
                     ) {
-                        BasicTextField(
-                            value = textFieldValue,
-                            onValueChange = { updated ->
-                                textFieldValue = if (updated.text == text) updated else updated.copy(text = text)
-                            },
-                            readOnly = true,
-                            textStyle = resolvedTextStyle,
-                            cursorBrush = SolidColor(Color.Transparent),
-                            visualTransformation = transformation,
-                            onTextLayout = { layoutResult = it },
+                        Box(
                             modifier = Modifier
-                                .widthIn(min = contentMinWidth)
-                                .heightIn(min = contentMinHeight)
-                                .padding(CODE_BLOCK_CONTENT_PADDING)
-                                .drawWithContent {
-                                    val layout = layoutResult ?: run {
-                                        drawContent()
-                                        return@drawWithContent
+                                .widthIn(min = viewportContentWidth)
+                                .heightIn(min = viewportHeight)
+                                .pointerHoverIcon(PointerIcon.Text)
+                                .focusRequester(focusRequester)
+                                .focusable()
+                                .onKeyEvent { event ->
+                                    handleKeyEvent(event, text, selection, clipboard) { newSelection ->
+                                        selection = newSelection
                                     }
-                                    drawHighlightBackgrounds(text, layout, paintEntries)
-                                    drawContent()
-                                    drawHighlightUnderlines(text, layout, paintEntries)
                                 }
-                        )
+                                .pointerInput(text) {
+                                    handleCodeSelectionGestures(
+                                        text = text,
+                                        paddingPx = paddingPx,
+                                        tapState = tapState,
+                                        layoutProvider = { layoutResult },
+                                        onSelectionChange = { selection = it },
+                                        onRequestFocus = { runCatching { focusRequester.requestFocus() } }
+                                    )
+                                }
+                                .drawWithContent {
+                                    val layout = layoutResult
+                                    if (layout != null) {
+                                        translate(left = paddingPx, top = paddingPx) {
+                                            drawHighlightBackgrounds(text, layout, paintEntries)
+                                        }
+                                        drawSelectionRectangles(layout, selection, text.length, paddingPx)
+                                    }
+                                    drawContent()
+                                    if (layout != null) {
+                                        translate(left = paddingPx, top = paddingPx) {
+                                            drawHighlightUnderlines(text, layout, paintEntries)
+                                        }
+                                    }
+                                }
+                        ) {
+                            BasicText(
+                                text = highlightedAnnotated,
+                                style = resolvedTextStyle,
+                                softWrap = state.wrapText,
+                                onTextLayout = { layoutResult = it },
+                                modifier = Modifier.padding(CODE_BLOCK_CONTENT_PADDING)
+                            )
+                        }
                     }
                 }
             }
@@ -234,14 +259,175 @@ fun CodeBlock(
     }
 }
 
-internal class CachedHighlightTransformation(
-    private val cached: AnnotatedString
-) : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        if (text.text == cached.text) {
-            return TransformedText(cached, OffsetMapping.Identity)
+internal class TapState(
+    var count: Int = 0,
+    var lastTime: Long = 0L,
+    var lastPos: Offset = Offset.Zero
+)
+
+private const val MULTI_TAP_TIMEOUT_MS = 350L
+private const val MULTI_TAP_DISTANCE_THRESHOLD_PX_SQ = 100f
+
+internal suspend fun PointerInputScope.handleCodeSelectionGestures(
+    text: String,
+    paddingPx: Float,
+    tapState: TapState,
+    layoutProvider: () -> TextLayoutResult?,
+    onSelectionChange: (TextRange) -> Unit,
+    onRequestFocus: () -> Unit
+) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val initLayout = layoutProvider() ?: return@awaitEachGesture
+
+        val now = down.uptimeMillis
+        val withinTime = (now - tapState.lastTime) < MULTI_TAP_TIMEOUT_MS
+        val deltaSquared = (down.position - tapState.lastPos).getDistanceSquared()
+        val withinDistance = deltaSquared < MULTI_TAP_DISTANCE_THRESHOLD_PX_SQ
+        tapState.count = when {
+            !withinTime || !withinDistance -> 1
+            tapState.count >= 3 -> 1
+            else -> tapState.count + 1
         }
-        return TransformedText(text, OffsetMapping.Identity)
+        tapState.lastTime = now
+        tapState.lastPos = down.position
+
+        val downPosTextSpace = down.position - Offset(paddingPx, paddingPx)
+        val downOffset = initLayout.getOffsetForPosition(downPosTextSpace)
+        val initialSelection = when (tapState.count) {
+            2 -> wordRangeAt(text, downOffset)
+            3 -> lineRangeAt(text, downOffset)
+            else -> TextRange(downOffset, downOffset)
+        }
+        onSelectionChange(initialSelection)
+        onRequestFocus()
+        down.consume()
+
+        val isSingleTap = tapState.count == 1
+        while (true) {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+            if (!change.pressed) {
+                change.consume()
+                break
+            }
+            if (isSingleTap) {
+                val layout = layoutProvider()
+                if (layout != null) {
+                    val movePos = change.position - Offset(paddingPx, paddingPx)
+                    val moveOffset = layout.getOffsetForPosition(movePos)
+                    onSelectionChange(TextRange(downOffset, moveOffset))
+                }
+            }
+            change.consume()
+        }
+    }
+}
+
+internal fun wordRangeAt(text: String, offset: Int): TextRange {
+    if (text.isEmpty()) return TextRange.Zero
+    val safeOffset = offset.coerceIn(0, text.length)
+    val pos = if (safeOffset >= text.length) safeOffset - 1 else safeOffset
+    if (pos < 0) return TextRange(0, 0)
+
+    val char = text[pos]
+    return when {
+        isWordChar(char) -> {
+            var start = pos
+            while (start > 0 && isWordChar(text[start - 1])) start--
+            var end = pos + 1
+            while (end < text.length && isWordChar(text[end])) end++
+            TextRange(start, end)
+        }
+        char.isWhitespace() && char != '\n' -> {
+            var start = pos
+            while (start > 0 && text[start - 1].isWhitespace() && text[start - 1] != '\n') start--
+            var end = pos + 1
+            while (end < text.length && text[end].isWhitespace() && text[end] != '\n') end++
+            TextRange(start, end)
+        }
+        else -> TextRange(pos, pos + 1)
+    }
+}
+
+private fun isWordChar(c: Char): Boolean = c.isLetterOrDigit() || c == '_'
+
+internal fun lineRangeAt(text: String, offset: Int): TextRange {
+    if (text.isEmpty()) return TextRange.Zero
+    val safeOffset = offset.coerceIn(0, text.length)
+
+    var start = safeOffset
+    while (start > 0 && text[start - 1] != '\n') start--
+
+    var end = safeOffset
+    while (end < text.length && text[end] != '\n') end++
+    if (end < text.length) end++
+
+    return TextRange(start, end)
+}
+
+internal fun handleKeyEvent(
+    event: androidx.compose.ui.input.key.KeyEvent,
+    text: String,
+    selection: TextRange,
+    clipboard: androidx.compose.ui.platform.ClipboardManager,
+    setSelection: (TextRange) -> Unit
+): Boolean {
+    if (event.type != KeyEventType.KeyDown) return false
+    return when {
+        event.isCtrlPressed && event.key == Key.C -> {
+            if (!selection.collapsed) {
+                val s = minOf(selection.start, selection.end).coerceIn(0, text.length)
+                val e = maxOf(selection.start, selection.end).coerceIn(0, text.length)
+                clipboard.setText(AnnotatedString(text.substring(s, e)))
+            }
+            true
+        }
+        event.isCtrlPressed && event.key == Key.A -> {
+            setSelection(TextRange(0, text.length))
+            true
+        }
+        else -> false
+    }
+}
+
+internal fun DrawScope.drawSelectionRectangles(
+    layout: TextLayoutResult,
+    selection: TextRange,
+    textLength: Int,
+    paddingPx: Float
+) {
+    if (selection.collapsed) return
+    val s = minOf(selection.start, selection.end).coerceIn(0, textLength)
+    val e = maxOf(selection.start, selection.end).coerceIn(0, textLength)
+    if (e <= s) return
+
+    val firstLine = layout.getLineForOffset(s)
+    val lastLine = layout.getLineForOffset(e)
+
+    for (line in firstLine..lastLine) {
+        val top = paddingPx + layout.getLineTop(line)
+        val bottom = paddingPx + layout.getLineBottom(line)
+
+        val left = if (line == firstLine) {
+            paddingPx + layout.getHorizontalPosition(s, usePrimaryDirection = true)
+        } else {
+            paddingPx + layout.getLineLeft(line)
+        }
+
+        val right = if (line == lastLine) {
+            paddingPx + layout.getHorizontalPosition(e, usePrimaryDirection = true)
+        } else {
+            paddingPx + layout.getLineRight(line)
+        }
+
+        if (right > left) {
+            drawRect(
+                color = SELECTION_BG,
+                topLeft = Offset(left, top),
+                size = Size(right - left, bottom - top)
+            )
+        }
     }
 }
 
