@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,10 +43,6 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import java.util.Locale
 
-private const val ITEMS_PER_PAGE = 150
-
-// TSX: grid grid-rows-[auto_1fr_auto] h-full overflow-hidden
-// Header (pb-4 border-b), Body (overflow-y-auto py-4), Footer (pt-4 border-t)
 @Composable
 fun ItemSelector(
     currentItem: String = "",
@@ -56,20 +51,16 @@ fun ItemSelector(
     items: List<Identifier>? = null
 ) {
     var search by remember { mutableStateOf("") }
-    var visibleCount by remember { mutableIntStateOf(ITEMS_PER_PAGE) }
     val allItems = remember(items) {
         items ?: BuiltInRegistries.ITEM.keySet()
             .filter { it.path != "air" }
             .sortedBy { it.toString() }
     }
     val filtered = remember(allItems, search) {
-        visibleCount = ITEMS_PER_PAGE
         val query = search.trim().lowercase(Locale.ROOT)
         if (query.isBlank()) allItems
         else allItems.filter { it.toString().lowercase(Locale.ROOT).contains(query) }
     }
-    val visible = filtered.take(visibleCount)
-    val hasMore = visibleCount < filtered.size
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Header — pb-4 border-b border-zinc-800/50
@@ -82,33 +73,19 @@ fun ItemSelector(
         }
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(StudioColors.Zinc800.copy(alpha = 0.5f)))
 
-        // Body — overflow-y-auto py-4 min-h-0, grid gap-2
+        // Body — Compose LazyVerticalGrid handles virtualization natively
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(52.dp), // grid-cols-items: repeat(auto-fill, minmax(52px, 1fr))
-            horizontalArrangement = Arrangement.spacedBy(8.dp), // gap-2
+            columns = GridCells.Adaptive(52.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(vertical = 16.dp) // py-4
+                .padding(vertical = 16.dp)
         ) {
-            items(items = visible, key = { it.toString() }) { itemId ->
+            items(items = filtered, key = { it.toString() }) { itemId ->
                 ItemCell(itemId, currentItem == itemId.toString()) {
                     onItemSelect(itemId)
-                }
-            }
-
-            // Load more trigger
-            if (hasMore) {
-                item {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clickable { visibleCount += ITEMS_PER_PAGE }
-                    ) {
-                        Text("...", style = StudioTypography.medium(14), color = StudioColors.Zinc500)
-                    }
                 }
             }
         }
@@ -118,12 +95,12 @@ fun ItemSelector(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp) // pt-4
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
         ) {
             Text(
                 text = I18n.get("item_selector.select"),
-                style = StudioTypography.medium(12), // text-xs font-medium
-                color = StudioColors.Zinc400 // text-zinc-400
+                style = StudioTypography.medium(12),
+                color = StudioColors.Zinc400
             )
             Button(
                 text = I18n.get("item_selector.cancel"),
@@ -135,25 +112,25 @@ fun ItemSelector(
     }
 }
 
-// TSX: size-14 (56px), border-2 rounded (8px), cursor-pointer, transition-colors
 @Composable
 private fun ItemCell(itemId: Identifier, selected: Boolean, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val borderColor = when {
-        selected -> StudioColors.Zinc600 // border-zinc-600
-        hovered -> StudioColors.Zinc600 // hover:border-zinc-600
-        else -> StudioColors.Zinc800 // border-zinc-800
+        selected -> StudioColors.Zinc600
+        hovered -> StudioColors.Zinc600
+        else -> StudioColors.Zinc800
     }
-    val bgColor = if (selected) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.05f) else androidx.compose.ui.graphics.Color.Transparent // bg-white/5 when selected
+    val bgColor = if (selected) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.05f)
+        else androidx.compose.ui.graphics.Color.Transparent
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(56.dp) // size-14
-            .clip(RoundedCornerShape(8.dp)) // rounded
+            .size(56.dp)
+            .clip(RoundedCornerShape(8.dp))
             .background(bgColor)
-            .border(2.dp, borderColor, RoundedCornerShape(8.dp)) // border-2
+            .border(2.dp, borderColor, RoundedCornerShape(8.dp))
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(

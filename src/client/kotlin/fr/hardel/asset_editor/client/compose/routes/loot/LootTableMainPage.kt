@@ -30,6 +30,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -89,7 +92,13 @@ fun LootTableMainPage(context: StudioContext) {
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val focusManager = LocalFocusManager.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

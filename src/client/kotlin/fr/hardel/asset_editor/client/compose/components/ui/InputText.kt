@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,10 +20,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
@@ -44,6 +46,7 @@ fun InputText(
     showSearchIcon: Boolean = true
 ) {
     var focused by remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
     val shape = RoundedCornerShape(20.dp)
     val textStyle = StudioTypography.regular(13).copy(color = StudioColors.Zinc100)
 
@@ -69,7 +72,7 @@ fun InputText(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .focusable()
+                .focusRequester(focusRequester)
                 .onFocusChanged { focused = it.isFocused },
             decorationBox = { innerTextField ->
                 Row(

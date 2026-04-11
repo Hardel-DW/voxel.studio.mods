@@ -2,12 +2,12 @@ package fr.hardel.asset_editor.client.compose.components.ui.floatingbar
 
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,13 +29,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Size
@@ -46,6 +49,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -56,8 +61,18 @@ private const val ANIM_DURATION = 400
 private val ISLAND_EASING = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 private fun <T> islandTween() = tween<T>(ANIM_DURATION, easing = ISLAND_EASING)
 private const val SNAP_THRESHOLD = 100f
-
 private val COLLAPSED_HEIGHT = 60.dp
+
+/**
+ * Snapshot of the expansion target for the transition.
+ * Using a data class as transition target batches all [updateTransition] animations
+ * into a single invalidation per frame instead of one per animated value.
+ */
+private data class IslandTarget(
+    val expanded: Boolean,
+    val width: Dp,
+    val height: Dp
+)
 
 @Composable
 fun Toolbar(
@@ -68,29 +83,48 @@ fun Toolbar(
     val expansion = floatingBar.expansion
     val isExpanded = expansion is FloatingBarExpansion.Expanded
 
-    // Animated border-radius: 48dp (collapsed rounded-4xl) → 32dp (expanded rounded-3xl)
-    val cornerRadius by animateDpAsState(
-        if (isExpanded) 32.dp else 48.dp, islandTween()
-    )
-    val shape = RoundedCornerShape(cornerRadius)
+    // Single transition batches all animations — one invalidation per frame (Skill §1.5 / §4)
+    val target = remember(expansion) {
+        when (expansion) {
+            is FloatingBarExpansion.Expanded -> IslandTarget(true, expansion.size.width, expansion.size.height)
+            FloatingBarExpansion.Collapsed -> IslandTarget(false, 700.dp, COLLAPSED_HEIGHT)
+        }
+    }
+    val transition = updateTransition(target, label = "island")
 
-    // Animated size — the core dynamic island morph effect
-    // Height always animates between collapsed (60dp) and expanded target
-    // Width only animates when expanded (collapsed = wrap-content, not animatable)
-    val targetHeight = if (isExpanded && expansion is FloatingBarExpansion.Expanded) expansion.size.height else COLLAPSED_HEIGHT
-    val animatedHeight by animateDpAsState(targetHeight, islandTween())
-    val expandedWidth = if (expansion is FloatingBarExpansion.Expanded) expansion.size.width else 700.dp
-    val animatedWidth by animateDpAsState(expandedWidth, islandTween())
+    val cornerRadius by transition.animateDp(transitionSpec = { islandTween() }, label = "radius") { t ->
+        if (t.expanded) 32.dp else 48.dp
+    }
+    val animatedHeight by transition.animateDp(transitionSpec = { islandTween() }, label = "height") { it.height }
+    val animatedWidth by transition.animateDp(transitionSpec = { islandTween() }, label = "width") { it.width }
+    val contentAlpha by transition.animateFloat(transitionSpec = { islandTween() }, label = "alpha") { t ->
+        if (t.expanded) 1f else 0f
+    }
+    val contentScale by transition.animateFloat(transitionSpec = { islandTween() }, label = "scale") { t ->
+        if (t.expanded) 1f else 0.98f
+    }
 
-    // Content animations: opacity 0→1, scale 0.98→1 (island-content-in)
-    val contentAlpha by animateFloatAsState(if (isExpanded) 1f else 0f, islandTween())
-    val contentScale by animateFloatAsState(if (isExpanded) 1f else 0.98f, islandTween())
+    // Cache shape — avoid recreating RoundedCornerShape every frame
+    val shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
 
+    // Defer heavy content composition by ~2 frames so the size animation starts first
+    var contentReady by remember { mutableStateOf(false) }
+    LaunchedEffect(isExpanded) {
+        if (isExpanded) {
+            delay(32) // ~2 frames at 60fps — lets the morph animation start before composing content
+            contentReady = true
+        } else {
+            contentReady = false
+        }
+    }
+
+    val focusManager = LocalFocusManager.current
     var isDragging by remember { mutableStateOf(false) }
     var showSnapZone by remember { mutableStateOf(false) }
 
     val dragModifier = Modifier.pointerInput(Unit) {
         detectDragGestures(
+            onDragStart = { focusManager.clearFocus() },
             onDrag = { change, dragAmount ->
                 change.consume()
                 floatingBar.offsetX += dragAmount.x
@@ -126,11 +160,14 @@ fun Toolbar(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
-                    ) { floatingBar.collapse() }
+                    ) {
+                        focusManager.clearFocus()
+                        floatingBar.collapse()
+                    }
             )
         }
 
-        // Snap zone indicator — border-2 border-dashed border-zinc-400/50 bg-zinc-400/10 rounded-full animate-pulse
+        // Snap zone indicator
         if (isDragging) {
             SnapZoneIndicator(showSnapZone)
         }
@@ -138,18 +175,18 @@ fun Toolbar(
         // Dynamic island container
         Box(
             modifier = Modifier
+                // Offset in lambda — reads in Layout phase, skips Composition (Skill §1.5)
                 .offset { IntOffset(floatingBar.offsetX.roundToInt(), floatingBar.offsetY.roundToInt()) }
                 .padding(bottom = 32.dp)
                 .height(animatedHeight)
-                .then(
-                    if (isExpanded) Modifier.width(animatedWidth) else Modifier
-                )
+                .then(if (isExpanded) Modifier.width(animatedWidth) else Modifier)
                 .shadow(24.dp, shape)
                 .clip(shape)
                 .background(StudioColors.Zinc950.copy(alpha = 0.5f))
                 .border(1.dp, StudioColors.Zinc800, shape)
         ) {
             if (isExpanded && expansion is FloatingBarExpansion.Expanded) {
+                // Content reads alpha/scale in Draw phase via graphicsLayer (Skill §1.5)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -159,7 +196,6 @@ fun Toolbar(
                             scaleY = contentScale
                         }
                 ) {
-                    // Top grab handle — h-6, cursor-move
                     GrabHandle(
                         modifier = dragModifier
                             .fillMaxWidth()
@@ -167,7 +203,6 @@ fun Toolbar(
                             .pointerHoverIcon(PointerIcon.Hand)
                     )
 
-                    // Content — px-6 pb-2
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -175,19 +210,19 @@ fun Toolbar(
                             .padding(horizontal = 24.dp)
                             .padding(bottom = 8.dp)
                     ) {
-                        expansion.content()
+                        if (contentReady) {
+                            expansion.content()
+                        }
                     }
 
-                    // Bottom grab handle — h-4, cursor-move, hover:bg-white/5
                     BottomGrabHandle(dragModifier)
                 }
             } else {
-                // Collapsed — p-2, gap-4, cursor-move, items-center h-full
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = dragModifier
-                        .fillMaxHeight() // h-full — ensures vertical centering works
+                        .fillMaxHeight()
                         .pointerHoverIcon(PointerIcon.Hand)
                         .padding(8.dp)
                 ) {
@@ -200,17 +235,18 @@ fun Toolbar(
 
 @Composable
 private fun SnapZoneIndicator(isNearSnap: Boolean) {
-    // TSX: animate-pulse = opacity pulse 0.5→1.0 over 2s cubic-bezier(0.4, 0, 0.6, 1)
-    val pulseTransition = rememberInfiniteTransition()
+    val pulseTransition = rememberInfiniteTransition(label = "snapPulse")
     val pulseOpacity by pulseTransition.animateFloat(
         initialValue = 1f,
         targetValue = 0.5f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000, easing = CubicBezierEasing(0.4f, 0f, 0.6f, 1f)),
             repeatMode = RepeatMode.Reverse
-        )
+        ),
+        label = "pulseAlpha"
     )
 
+    // Read pulseOpacity in Draw phase only via graphicsLayer (Skill §1.5)
     Box(
         modifier = Modifier
             .padding(bottom = 32.dp)
@@ -218,14 +254,13 @@ private fun SnapZoneIndicator(isNearSnap: Boolean) {
             .height(60.dp)
             .graphicsLayer { alpha = if (isNearSnap) pulseOpacity else 0.5f }
     ) {
+        // Static Canvas — drawn once, opacity handled by parent graphicsLayer
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // bg-zinc-400/10
             drawRoundRect(
                 color = StudioColors.Zinc400.copy(alpha = 0.1f),
                 size = Size(size.width, size.height),
                 cornerRadius = CornerRadius(30.dp.toPx())
             )
-            // border-2 border-dashed border-zinc-400/50
             drawRoundRect(
                 color = StudioColors.Zinc400.copy(alpha = 0.5f),
                 size = Size(size.width, size.height),
@@ -248,13 +283,14 @@ private fun GrabHandle(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
         modifier = modifier.hoverable(interaction)
     ) {
-        // w-10 h-1 bg-zinc-700 rounded-full group-hover:bg-zinc-400 transition-colors
         Box(
             modifier = Modifier
                 .width(40.dp)
                 .height(4.dp)
                 .clip(RoundedCornerShape(2.dp))
-                .background(if (hovered) StudioColors.Zinc400 else StudioColors.Zinc700)
+                .drawBehind {
+                    drawRect(if (hovered) StudioColors.Zinc400 else StudioColors.Zinc700)
+                }
         )
     }
 }
@@ -264,13 +300,14 @@ private fun BottomGrabHandle(dragModifier: Modifier) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
 
-    // h-4 cursor-move shrink-0 rounded-b-3xl hover:bg-white/5 transition-colors
     Box(
         modifier = dragModifier
             .fillMaxWidth()
             .height(16.dp)
             .hoverable(interaction)
-            .background(if (hovered) Color.White.copy(alpha = 0.05f) else Color.Transparent)
+            .drawBehind {
+                drawRect(if (hovered) Color.White.copy(alpha = 0.05f) else Color.Transparent)
+            }
             .pointerHoverIcon(PointerIcon.Hand)
     )
 }
