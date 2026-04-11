@@ -20,7 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.Checkbox
@@ -34,6 +35,7 @@ internal fun <T> DataTableRow(
     columns: List<TableColumn<T>>,
     rowId: Long,
     allRowIds: List<Long>,
+    rowBoundsById: Map<Long, DataTableRowBounds>,
     isEven: Boolean,
     isSelected: Boolean,
     isExpanded: Boolean,
@@ -42,12 +44,11 @@ internal fun <T> DataTableRow(
     selectedIds: Set<Long>,
     onSelectionChange: ((Set<Long>) -> Unit)?,
     onToggleExpand: ((Long) -> Unit)?,
+    onRowBoundsChange: (DataTableRowBounds) -> Unit,
     expandContent: (@Composable (T) -> Unit)?
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
-    val density = LocalDensity.current
-    val rowHeightPx = with(density) { (ROW_HEIGHT + 1.dp).toPx() }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         if (index > 0) {
@@ -66,8 +67,28 @@ internal fun <T> DataTableRow(
                 .heightIn(min = ROW_HEIGHT)
                 .background(rowBackground(isSelected, isHovered, isEven))
                 .hoverable(interactionSource)
+                .onGloballyPositioned { coordinates ->
+                    val bounds = coordinates.boundsInRoot()
+                    onRowBoundsChange(
+                        DataTableRowBounds(
+                            topInRoot = bounds.top,
+                            bottomInRoot = bounds.bottom
+                        )
+                    )
+                }
                 .padding(horizontal = 16.dp)
-                .then(rowInteraction(selectionMode, selectable, rowId, index, allRowIds, rowHeightPx, selectedIds, onSelectionChange, onToggleExpand))
+                .then(
+                    rowInteraction(
+                        selectionMode = selectionMode,
+                        selectable = selectable,
+                        rowId = rowId,
+                        allRowIds = allRowIds,
+                        rowBoundsById = rowBoundsById,
+                        selectedIds = selectedIds,
+                        onSelectionChange = onSelectionChange,
+                        onToggleExpand = onToggleExpand
+                    )
+                )
         ) {
             if (selectionMode) {
                 Box(
@@ -110,9 +131,8 @@ private fun rowInteraction(
     selectionMode: Boolean,
     selectable: Boolean,
     rowId: Long,
-    index: Int,
     allRowIds: List<Long>,
-    rowHeightPx: Float,
+    rowBoundsById: Map<Long, DataTableRowBounds>,
     selectedIds: Set<Long>,
     onSelectionChange: ((Set<Long>) -> Unit)?,
     onToggleExpand: ((Long) -> Unit)?
@@ -130,12 +150,11 @@ private fun rowInteraction(
         .pointerHoverIcon(PointerIcon.Hand)
         .selectionGesture(
             rowId = rowId,
-            rowIndex = index,
             allRowIds = allRowIds,
-            rowHeightPx = rowHeightPx,
+            rowBoundsById = rowBoundsById,
             selectedIds = selectedIds,
             selectionMode = selectionMode,
-            onToggleExpand = { onToggleExpand?.invoke(rowId) },
+            onToggleExpand = onToggleExpand?.let { { it(rowId) } },
             onToggleSelect = {
                 val isSelected = selectedIds.contains(rowId)
                 onSelectionChange(if (isSelected) selectedIds - rowId else selectedIds + rowId)
