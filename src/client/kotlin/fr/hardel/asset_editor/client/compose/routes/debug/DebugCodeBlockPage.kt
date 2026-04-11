@@ -38,11 +38,11 @@ import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
-import fr.hardel.asset_editor.client.compose.components.ui.DataTable
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.ui.Section
-import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.TableColumn
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlock
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeBlockState
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeDiff

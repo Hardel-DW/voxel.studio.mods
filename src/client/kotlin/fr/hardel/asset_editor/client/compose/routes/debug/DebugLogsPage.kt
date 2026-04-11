@@ -24,8 +24,8 @@ import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
-import fr.hardel.asset_editor.client.compose.components.ui.DataTable
-import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.DataTable
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.asFlow
 import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory

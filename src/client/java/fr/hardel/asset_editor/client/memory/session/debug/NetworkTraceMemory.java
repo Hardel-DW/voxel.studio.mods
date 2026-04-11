@@ -75,6 +75,13 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
         }
     }
 
+    public void removeByIds(java.util.Set<Long> ids) {
+        synchronized (this) {
+            entries.removeIf(entry -> ids.contains(entry.id()));
+            publishSnapshot();
+        }
+    }
+
     public void clear() {
         synchronized (this) {
             entries.clear();

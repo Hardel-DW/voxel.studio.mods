@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -29,13 +30,15 @@ import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
-import fr.hardel.asset_editor.client.compose.components.ui.DataTable
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.Dropdown
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
-import fr.hardel.asset_editor.client.compose.components.ui.TableColumn
+import fr.hardel.asset_editor.client.compose.components.ui.datatable.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.asFlow
 import fr.hardel.asset_editor.client.memory.session.debug.NetworkTraceMemory
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -47,11 +50,13 @@ private val NETWORK_TIME_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern
 fun DebugNetworkPage(context: StudioContext) {
     var currentPage by remember { mutableStateOf(0) }
     var expandedIds by remember { mutableStateOf(emptySet<Long>()) }
+    var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     val flow = remember(context) { context.debugMemory().network().asFlow() }
     val snapshot by flow.collectAsState(context.debugMemory().network().snapshot())
     val allLabel = I18n.get("generic:all")
     val selectedNamespace = snapshot.selectedNamespace ?: allLabel
     val entries = snapshot.entries
+    val selectionMode = selectedIds.isNotEmpty()
     val namespaces = remember(snapshot.availableNamespaces, allLabel) {
         buildList {
             add(allLabel)
@@ -64,30 +69,30 @@ fun DebugNetworkPage(context: StudioContext) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = I18n.get("debug:network.count", entries.size),
-                style = StudioTypography.regular(12),
-                color = StudioColors.Zinc500
-            )
-            Dropdown(
-                items = namespaces,
-                selected = selectedNamespace,
-                labelExtractor = { value -> value },
-                onSelect = { namespace ->
-                    context.debugMemory().network().selectNamespace(if (namespace == allLabel) null else namespace)
+        if (selectionMode) {
+            SelectionActionBar(
+                selectedCount = selectedIds.size,
+                onCopySelected = {
+                    val selectedEntries = entries.filter { selectedIds.contains(it.id()) }
+                    copyEntriesToClipboard(selectedEntries)
+                },
+                onSelectAll = { selectedIds = entries.map { it.id() }.toSet() },
+                onDeselectAll = { selectedIds = emptySet() },
+                onDeleteSelected = {
+                    context.debugMemory().network().removeByIds(selectedIds)
+                    selectedIds = emptySet()
                 }
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Button(
-                onClick = context.debugMemory().network()::clear,
-                variant = ButtonVariant.GHOST_BORDER,
-                size = ButtonSize.SM,
-                text = I18n.get("debug:action.clear")
+        } else {
+            NormalActionBar(
+                entryCount = entries.size,
+                namespaces = namespaces,
+                selectedNamespace = selectedNamespace,
+                onNamespaceChange = { namespace ->
+                    context.debugMemory().network().selectNamespace(if (namespace == allLabel) null else namespace)
+                },
+                onCopyAll = { copyEntriesToClipboard(entries) },
+                onClear = context.debugMemory().network()::clear
             )
         }
 
@@ -114,9 +119,7 @@ fun DebugNetworkPage(context: StudioContext) {
                 TableColumn("", weight = 0.35f) { entry ->
                     CopyButton(
                         iconSize = 14.dp,
-                        textProvider = {
-                            "{\"id\":${entry.id()},\"timestamp\":${entry.timestamp()},\"direction\":\"${entry.direction()}\",\"payloadId\":\"${entry.payloadId()}\"}"
-                        }
+                        textProvider = { serializeEntry(entry) }
                     )
                 }
             ),
@@ -130,6 +133,8 @@ fun DebugNetworkPage(context: StudioContext) {
                 expandedIds = if (expandedIds.contains(id)) expandedIds - id else expandedIds + id
             },
             expandContent = { entry -> TraceExpandContent(entry) },
+            selectedIds = selectedIds,
+            onSelectionChange = { newSelection -> selectedIds = newSelection },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
@@ -138,9 +143,95 @@ fun DebugNetworkPage(context: StudioContext) {
 }
 
 @Composable
+private fun NormalActionBar(
+    entryCount: Int,
+    namespaces: List<String>,
+    selectedNamespace: String,
+    onNamespaceChange: (String) -> Unit,
+    onCopyAll: () -> Unit,
+    onClear: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp)
+    ) {
+        Text(
+            text = I18n.get("debug:network.count", entryCount),
+            style = StudioTypography.regular(12),
+            color = StudioColors.Zinc500
+        )
+        Dropdown(
+            items = namespaces,
+            selected = selectedNamespace,
+            labelExtractor = { value -> value },
+            onSelect = onNamespaceChange
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Button(
+            onClick = onCopyAll,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.copy_all")
+        )
+        Button(
+            onClick = onClear,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.clear")
+        )
+    }
+}
+
+@Composable
+private fun SelectionActionBar(
+    selectedCount: Int,
+    onCopySelected: () -> Unit,
+    onSelectAll: () -> Unit,
+    onDeselectAll: () -> Unit,
+    onDeleteSelected: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 40.dp)
+    ) {
+        Text(
+            text = I18n.get("debug:network.selected", selectedCount),
+            style = StudioTypography.medium(12),
+            color = StudioColors.Zinc300
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Button(
+            onClick = onCopySelected,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.copy_selected")
+        )
+        Button(
+            onClick = onSelectAll,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.select_all")
+        )
+        Button(
+            onClick = onDeselectAll,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.deselect_all")
+        )
+        Button(
+            onClick = onDeleteSelected,
+            variant = ButtonVariant.GHOST_BORDER,
+            size = ButtonSize.SM,
+            text = I18n.get("debug:action.delete_selected")
+        )
+    }
+}
+
+@Composable
 private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
     val inbound = direction == NetworkTraceMemory.Direction.INBOUND
-    if (inbound) StudioColors.Red400 else StudioColors.Emerald400
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -201,9 +292,7 @@ private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
             )
             CopyButton(
                 iconSize = 14.dp,
-                textProvider = {
-                    "{\"id\":${entry.id()},\"timestamp\":${entry.timestamp()},\"direction\":\"${entry.direction()}\",\"payloadId\":\"${entry.payloadId()}\"}"
-                }
+                textProvider = { serializeEntry(entry) }
             )
         }
 
@@ -225,4 +314,46 @@ private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
             KeyValueGrid(payload)
         }
     }
+}
+
+private fun copyEntriesToClipboard(entries: List<NetworkTraceMemory.TraceEntry>) {
+    val json = entries.joinToString(",\n  ", "[\n  ", "\n]") { serializeEntry(it) }
+    val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+    clipboard.setContents(StringSelection(json), null)
+}
+
+private fun serializeEntry(entry: NetworkTraceMemory.TraceEntry): String {
+    val payloadJson = serializePayload(entry.payload())
+    return buildString {
+        append("{\"id\":").append(entry.id())
+        append(",\"timestamp\":").append(entry.timestamp())
+        append(",\"direction\":\"").append(entry.direction()).append('"')
+        append(",\"payloadId\":\"").append(entry.payloadId()).append('"')
+        if (payloadJson != null) {
+            append(",\"payload\":").append(payloadJson)
+        }
+        append('}')
+    }
+}
+
+private fun serializePayload(payload: Any?): String? {
+    if (payload == null || !payload.javaClass.isRecord) return null
+    val components = payload.javaClass.recordComponents ?: return null
+    if (components.isEmpty()) return null
+
+    val fields = components.mapNotNull { component ->
+        val value = component.accessor.invoke(payload)
+        if (value is Collection<*> || (value != null && value.javaClass.isArray)) return@mapNotNull null
+        "\"${component.name}\":${serializeValue(value)}"
+    }.joinToString(",")
+    return "{$fields}"
+}
+
+private fun serializeValue(value: Any?): String = when {
+    value == null -> "null"
+    value is String -> "\"${value.replace("\"", "\\\"")}\""
+    value is Number || value is Boolean -> value.toString()
+    value.javaClass.isRecord -> serializePayload(value) ?: "\"${value}\""
+    value.javaClass.isEnum -> "\"${value}\""
+    else -> "\"${value}\""
 }
