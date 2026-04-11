@@ -29,6 +29,7 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import net.minecraft.world.level.storage.loot.entries.EmptyLootItem
 import net.minecraft.world.level.storage.loot.entries.LootItem
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer
@@ -232,8 +233,13 @@ private fun extractEntryInfo(entry: LootPoolEntryContainer): EntryInfo {
                 isNested = true
             )
         }
+        is EmptyLootItem -> EntryInfo(
+            typeName = "Empty",
+            displayName = I18n.get("loot:card.empty"),
+            identifier = "minecraft:empty"
+        )
         else -> EntryInfo(
-            typeName = entry.type.toString(),
+            typeName = "Unknown",
             displayName = "Unknown",
             identifier = ""
         )

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -155,6 +156,7 @@ private fun OverviewRow(
     val hovered by interaction.collectIsHoveredAsState()
     val resourceName = remember(entry.id()) { humanizeLeaf(entry.id()) }
     val parentPath = remember(entry.id()) { parentPath(entry.id()) }
+    val color = remember(entry.id()) { pathColor(entry.id()) }
     val openEntry = {
         context.navigationMemory().openElement(
             ElementEditorDestination(conceptId, entry.id().toString(), context.studioDefaultEditorTab(conceptId))
@@ -166,6 +168,15 @@ private fun OverviewRow(
             .fillMaxWidth()
             .background(if (hovered) StudioColors.Zinc900.copy(alpha = 0.6f) else StudioColors.Zinc950.copy(alpha = 0.3f))
             .drawBehind {
+                // Colored top line — TSX: h-0.5 opacity-35 linear-gradient(transparent, color, transparent)
+                val lineHeight = 2.dp.toPx()
+                drawRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(Color.Transparent, color.copy(alpha = 0.35f), Color.Transparent)
+                    ),
+                    size = androidx.compose.ui.geometry.Size(size.width, lineHeight)
+                )
+                // Bottom separator
                 val stroke = 1.dp.toPx()
                 drawLine(
                     color = StudioColors.Zinc800.copy(alpha = 0.3f),
@@ -252,4 +263,20 @@ private fun parentPath(id: Identifier): String {
             if (word.isEmpty()) word else word.replaceFirstChar { it.titlecase(Locale.ROOT) }
         }
     }
+}
+
+/**
+ * Deterministic hue from a string key — port of TSX stringToColor.
+ * hash = charCode + ((hash << 5) - hash), then abs(hash) % 360
+ */
+private fun pathColor(id: Identifier): Color {
+    val parts = id.path.split("/")
+    val firstFolder = if (parts.size > 1) parts[0] else ""
+    val colorKey = if (firstFolder.isNotEmpty()) "${id.namespace}:$firstFolder" else id.namespace
+    var hash = 0
+    for (c in colorKey) {
+        hash = c.code + ((hash shl 5) - hash)
+    }
+    val hue = (kotlin.math.abs(hash) % 360).toFloat()
+    return Color.hsl(hue, 0.5f, 0.5f)
 }

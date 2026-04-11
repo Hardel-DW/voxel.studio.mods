@@ -9,6 +9,9 @@ import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer
 import net.minecraft.world.level.storage.loot.entries.NestedLootTable
 import net.minecraft.world.level.storage.loot.entries.TagEntry
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator
 
 enum class RewardKind { ITEM, TAG, LOOT_TABLE, UNRESOLVED }
 
@@ -19,7 +22,9 @@ data class FlattenedReward(
     val probability: Double,
     val poolIndex: Int,
     val entryPath: EntryPath,
-    val nestedSource: Identifier? = null
+    val nestedSource: Identifier? = null,
+    val countMin: Int = 1,
+    val countMax: Int = 1
 )
 
 object LootTableFlattener {
@@ -62,19 +67,20 @@ object LootTableFlattener {
         path: EntryPath,
         output: MutableList<FlattenedReward>
     ) {
+        val (cMin, cMax) = countRange(entry)
         when (entry) {
             is LootItem -> {
                 val id = entry.item.unwrapKey().orElse(null)?.identifier()
                     ?: Identifier.withDefaultNamespace("unknown")
-                output.add(FlattenedReward(id, RewardKind.ITEM, weight, probability, poolIndex, path))
+                output.add(FlattenedReward(id, RewardKind.ITEM, weight, probability, poolIndex, path, countMin = cMin, countMax = cMax))
             }
             is TagEntry -> {
-                output.add(FlattenedReward(entry.tag.location(), RewardKind.TAG, weight, probability, poolIndex, path))
+                output.add(FlattenedReward(entry.tag.location(), RewardKind.TAG, weight, probability, poolIndex, path, countMin = cMin, countMax = cMax))
             }
             is NestedLootTable -> {
                 val ref = entry.contents.left().orElse(null)?.identifier()
                 val name = ref ?: Identifier.withDefaultNamespace("inline_table")
-                output.add(FlattenedReward(name, RewardKind.LOOT_TABLE, weight, probability, poolIndex, path, nestedSource = ref))
+                output.add(FlattenedReward(name, RewardKind.LOOT_TABLE, weight, probability, poolIndex, path, nestedSource = ref, countMin = cMin, countMax = cMax))
             }
             is CompositeEntryBase -> flattenComposite(entry, poolIndex, probability, path, output)
         }
@@ -96,6 +102,23 @@ object LootTableFlattener {
             flattenEntry(child, poolIndex, probability * childWeights[idx] / totalChild, childWeights[idx], childPath, output)
         }
     }
+
+    private fun countRange(entry: LootPoolEntryContainer): Pair<Int, Int> {
+        if (entry !is LootPoolSingletonContainer) return 1 to 1
+        val setCount = entry.functions.filterIsInstance<SetItemCountFunction>().firstOrNull() ?: return 1 to 1
+        return extractRange(setCount)
+    }
+
+    private fun extractRange(func: SetItemCountFunction): Pair<Int, Int> =
+        when (val provider = func.value) {
+            is ConstantValue -> provider.value().toInt().let { it to it }
+            is UniformGenerator -> {
+                val min = if (provider.min() is ConstantValue) (provider.min() as ConstantValue).value().toInt() else 1
+                val max = if (provider.max() is ConstantValue) (provider.max() as ConstantValue).value().toInt() else 1
+                min to max
+            }
+            else -> 1 to 1
+        }
 
     private fun entryWeight(entry: LootPoolEntryContainer): Int =
         if (entry is LootPoolSingletonContainer) entry.weight else 1

@@ -209,6 +209,8 @@
     "loot:card.weight_label": "Weight",
     "loot:card.configure": "Configure",
     "loot:card.see_details": "See Details",
+    "loot:card.empty": "Empty",
+    "loot:card.go_to": "Go to",
     "loot:editor.title": "Edit Loot Item",
     "loot:editor.change_item": "Change",
     "loot:editor.weight_label": "Weight",

@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.FlattenedReward
@@ -43,6 +44,7 @@ import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTabl
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.RewardKind
 import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryWeightAction
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
+import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -57,11 +59,15 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import net.minecraft.core.registries.Registries
 import fr.hardel.asset_editor.workspace.action.loot_table.RemoveEntryAction
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import java.util.Locale
+
+private val EXTERNAL_LINK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/external-link.svg")
 
 @Composable
 fun LootTableMainPage(context: StudioContext) {
@@ -71,6 +77,16 @@ fun LootTableMainPage(context: StudioContext) {
     val totalProbability = remember(rewards) { rewards.sumOf { it.probability } }
     val floatingBar = remember { FloatingBarState() }
     var searchValue by remember { mutableStateOf("") }
+    val conceptId = context.studioConceptId(Registries.LOOT_TABLE)
+    val defaultTab = remember(conceptId) { if (conceptId != null) context.studioDefaultEditorTab(conceptId) else null }
+
+    val navigateToLootTable: (Identifier) -> Unit = { targetId ->
+        if (conceptId != null && defaultTab != null) {
+            context.navigationMemory().openElement(
+                ElementEditorDestination(conceptId, targetId.toString(), defaultTab)
+            )
+        }
+    }
 
     val filtered = remember(rewards, searchValue) {
         val query = searchValue.trim().lowercase(Locale.ROOT)
@@ -152,6 +168,8 @@ fun LootTableMainPage(context: StudioContext) {
                             Box(modifier = Modifier.weight(1f)) {
                                 RewardItemCard(
                                     reward = reward,
+                                    totalProbability = totalProbability,
+                                    onNavigate = navigateToLootTable,
                                     onDelete = {
                                         context.dispatchRegistryAction(
                                             workspace = ClientWorkspaceRegistries.LOOT_TABLE,
@@ -213,8 +231,15 @@ fun LootTableMainPage(context: StudioContext) {
 }
 
 @Composable
-private fun RewardItemCard(reward: FlattenedReward, onDelete: () -> Unit, onEdit: (() -> Unit)? = null) {
-    val probabilityPercent = "%.1f".format(reward.probability * 100)
+private fun RewardItemCard(
+    reward: FlattenedReward,
+    totalProbability: Double,
+    onDelete: () -> Unit,
+    onNavigate: ((Identifier) -> Unit)? = null,
+    onEdit: (() -> Unit)? = null
+) {
+    val normalizedProbability = if (totalProbability > 0) reward.probability / totalProbability else 0.0
+    val probabilityPercent = "%.1f".format(normalizedProbability * 100)
     val displayName = remember(reward.name) { humanizeIdentifier(reward.name) }
     val isNested = reward.kind == RewardKind.LOOT_TABLE
     val borderColor = if (isNested) StudioColors.Zinc700.copy(alpha = 0.5f) else StudioColors.Zinc900
@@ -245,19 +270,31 @@ private fun RewardItemCard(reward: FlattenedReward, onDelete: () -> Unit, onEdit
         if (isNested && reward.nestedSource != null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = I18n.get("loot:reward.from"),
-                    style = StudioTypography.regular(10),
-                    color = StudioColors.Zinc500.copy(alpha = 0.6f)
-                )
-                Text(
-                    text = reward.nestedSource.toString(),
-                    style = StudioTypography.medium(10),
-                    color = StudioColors.Zinc500
-                )
-                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon.Hand)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { onNavigate?.invoke(reward.nestedSource) }
+                ) {
+                    SvgIcon(EXTERNAL_LINK_ICON, 12.dp, StudioColors.Zinc500)
+                    Text(
+                        text = I18n.get("loot:reward.from"),
+                        style = StudioTypography.regular(10),
+                        color = StudioColors.Zinc500.copy(alpha = 0.6f)
+                    )
+                    Text(
+                        text = reward.nestedSource.toString(),
+                        style = StudioTypography.medium(10),
+                        color = StudioColors.Zinc500
+                    )
+                }
                 Text(
                     text = I18n.get("loot:reward.not_editable"),
                     style = StudioTypography.medium(10),
@@ -311,7 +348,8 @@ private fun RewardItemCard(reward: FlattenedReward, onDelete: () -> Unit, onEdit
                 ) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "\u00D7${reward.weight}",
+                            text = if (reward.countMin == reward.countMax) "\u00D7${reward.countMin}"
+                                   else "\u00D7${reward.countMin}-${reward.countMax}",
                             style = StudioTypography.bold(18),
                             color = Color.White
                         )
@@ -357,7 +395,7 @@ private fun RewardIcon(reward: FlattenedReward) {
         when (reward.kind) {
             RewardKind.ITEM -> ItemSprite(reward.name, 40.dp)
             RewardKind.TAG -> Text("#", style = StudioTypography.bold(18), color = StudioColors.Zinc500)
-            RewardKind.LOOT_TABLE -> Text("\u21B3", style = StudioTypography.bold(18), color = StudioColors.Zinc500)
+            RewardKind.LOOT_TABLE -> Text("\u21BB", style = StudioTypography.bold(18), color = StudioColors.Zinc500)
             RewardKind.UNRESOLVED -> Text("?", style = StudioTypography.bold(18), color = StudioColors.Zinc500)
         }
     }
