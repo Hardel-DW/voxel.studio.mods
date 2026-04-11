@@ -23,9 +23,14 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultItemAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.AddEntryAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.BalancePoolWeightsAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.RemoveEntryAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryWeightAction;
 import fr.hardel.asset_editor.workspace.flush.Workspaces;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 public final class Actions {
 
@@ -89,6 +94,37 @@ public final class Actions {
         "enchantment/set_exclusive_set",
         SetExclusiveSetAction.CODEC,
         SetExclusiveSetAction.class);
+
+    // Loot Table
+    public static final Action<LootTable, fr.hardel.asset_editor.workspace.action.loot_table.ToggleDisabledAction> LOOT_TOGGLE_DISABLED = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/toggle_disabled",
+        fr.hardel.asset_editor.workspace.action.loot_table.ToggleDisabledAction.CODEC,
+        fr.hardel.asset_editor.workspace.action.loot_table.ToggleDisabledAction.class);
+
+    public static final Action<LootTable, AddEntryAction> LOOT_ADD_ENTRY = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/add_entry",
+        AddEntryAction.CODEC,
+        AddEntryAction.class);
+
+    public static final Action<LootTable, RemoveEntryAction> LOOT_REMOVE_ENTRY = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/remove_entry",
+        RemoveEntryAction.CODEC,
+        RemoveEntryAction.class);
+
+    public static final Action<LootTable, SetEntryWeightAction> LOOT_SET_ENTRY_WEIGHT = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/set_entry_weight",
+        SetEntryWeightAction.CODEC,
+        SetEntryWeightAction.class);
+
+    public static final Action<LootTable, BalancePoolWeightsAction> LOOT_BALANCE_POOL_WEIGHTS = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/balance_pool_weights",
+        BalancePoolWeightsAction.CODEC,
+        BalancePoolWeightsAction.class);
 
     // Recipe
     public static final Action<Recipe<?>, AddIngredientAction> ADD_INGREDIENT = EditorActionRegistry.register(

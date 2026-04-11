@@ -77,7 +77,7 @@ public final class WorkspaceRepository {
         var ops = registries.createSerializationContext(JsonOps.INSTANCE);
         RegistryDiffPlan<T> plan = diffPlanner.plan(packRoot, definition, workspace, ops);
         if (!plan.isEmpty())
-            diskWriter.write(plan, definition.codec(), ops);
+            diskWriter.write(plan, definition, ops);
 
         workspace.clearDirty();
     }

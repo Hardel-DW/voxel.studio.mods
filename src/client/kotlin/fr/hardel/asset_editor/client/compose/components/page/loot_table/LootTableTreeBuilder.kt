@@ -2,16 +2,17 @@ package fr.hardel.asset_editor.client.compose.components.page.loot_table
 
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeUtils
-import net.minecraft.resources.Identifier
+import fr.hardel.asset_editor.workspace.flush.ElementEntry
+import net.minecraft.world.level.storage.loot.LootTable
 
 object LootTableTreeBuilder {
 
-    fun build(elementIds: List<String>): TreeNodeModel {
+    fun build(entries: List<ElementEntry<LootTable>>): TreeNodeModel {
         val root = TreeNodeModel()
-        root.count = elementIds.size
+        root.count = entries.size
 
-        elementIds.forEach { elementId ->
-            val identifier = Identifier.tryParse(elementId) ?: return@forEach
+        for (entry in entries) {
+            val identifier = entry.id()
             val parts = identifier.path.split("/")
 
             var current = ensureFolder(root, identifier.namespace)
@@ -22,6 +23,7 @@ object LootTableTreeBuilder {
             val leaf = TreeNodeModel()
             leaf.count = 1
             leaf.elementId = identifier.toString()
+            leaf.label = parts.lastOrNull() ?: identifier.path
             current.children[parts.lastOrNull() ?: identifier.path] = leaf
         }
 
@@ -31,6 +33,9 @@ object LootTableTreeBuilder {
 
     private fun ensureFolder(parent: TreeNodeModel, name: String): TreeNodeModel =
         parent.children.getOrPut(name) {
-            TreeNodeModel().also { it.folder = true }
+            TreeNodeModel().also {
+                it.folder = true
+                it.label = name
+            }
         }
 }

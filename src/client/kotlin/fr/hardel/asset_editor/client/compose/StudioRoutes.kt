@@ -13,6 +13,7 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentMainP
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlotsPage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
+import fr.hardel.asset_editor.client.compose.routes.loot.LootTablePoolsPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import net.minecraft.core.registries.Registries
@@ -69,7 +70,12 @@ fun registerStudioRoutes() {
     StudioUiRegistry.registerPage(
         registryId = Registries.LOOT_TABLE.identifier(),
         tabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"),
-        render = { LootTableMainPage() }
+        render = { context -> LootTableMainPage(context) }
+    )
+    StudioUiRegistry.registerPage(
+        registryId = Registries.LOOT_TABLE.identifier(),
+        tabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "pools"),
+        render = { context -> LootTablePoolsPage(context) }
     )
     StudioUiRegistry.registerPage(
         registryId = Registries.RECIPE.identifier(),

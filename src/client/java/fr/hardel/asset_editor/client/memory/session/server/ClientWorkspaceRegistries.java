@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.workspace.flush.Workspaces;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +17,7 @@ public final class ClientWorkspaceRegistries {
     private static final Map<String, ClientWorkspaceRegistry<?>> REGISTRIES = new LinkedHashMap<>();
 
     public static final ClientWorkspaceRegistry<Enchantment> ENCHANTMENT = register(Workspaces.ENCHANTMENT);
+    public static final ClientWorkspaceRegistry<LootTable> LOOT_TABLE = register(Workspaces.LOOT_TABLE);
     public static final ClientWorkspaceRegistry<Recipe<?>> RECIPE = register(Workspaces.RECIPE);
 
     private static <T> ClientWorkspaceRegistry<T> register(WorkspaceDefinition<T> definition) {

@@ -42,6 +42,11 @@ public record CustomFields(Map<String, Object> values) {
         return value instanceof String string ? string : fallback;
     }
 
+    public boolean getBoolean(String key, boolean fallback) {
+        Object value = values.get(key);
+        return value instanceof Boolean bool ? bool : fallback;
+    }
+
     public Set<String> getStringSet(String key) {
         Object value = values.get(key);
         if (!(value instanceof Set<?> set))

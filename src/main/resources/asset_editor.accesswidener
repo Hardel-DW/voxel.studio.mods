@@ -13,3 +13,26 @@ accessible field net/minecraft/world/item/crafting/TransmuteRecipe input Lnet/mi
 accessible field net/minecraft/world/item/crafting/TransmuteRecipe material Lnet/minecraft/world/item/crafting/Ingredient;
 accessible field net/minecraft/world/item/crafting/TransmuteRecipe result Lnet/minecraft/world/item/crafting/TransmuteResult;
 accessible method net/minecraft/world/item/crafting/SingleItemRecipe result ()Lnet/minecraft/world/item/ItemStack;
+
+# Loot table mutation support
+accessible field net/minecraft/world/level/storage/loot/LootTable pools Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/LootTable randomSequence Ljava/util/Optional;
+accessible field net/minecraft/world/level/storage/loot/LootTable functions Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/LootPool entries Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/LootPool conditions Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/LootPool functions Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/LootPool rolls Lnet/minecraft/world/level/storage/loot/providers/number/NumberProvider;
+accessible field net/minecraft/world/level/storage/loot/LootPool bonusRolls Lnet/minecraft/world/level/storage/loot/providers/number/NumberProvider;
+accessible field net/minecraft/world/level/storage/loot/entries/LootPoolSingletonContainer weight I
+accessible field net/minecraft/world/level/storage/loot/entries/LootPoolSingletonContainer quality I
+accessible field net/minecraft/world/level/storage/loot/entries/LootPoolSingletonContainer functions Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/entries/CompositeEntryBase children Ljava/util/List;
+accessible field net/minecraft/world/level/storage/loot/entries/LootItem item Lnet/minecraft/core/Holder;
+accessible field net/minecraft/world/level/storage/loot/entries/TagEntry tag Lnet/minecraft/tags/TagKey;
+accessible field net/minecraft/world/level/storage/loot/entries/NestedLootTable contents Lcom/mojang/datafixers/util/Either;
+accessible field net/minecraft/world/level/storage/loot/entries/LootPoolEntryContainer conditions Ljava/util/List;
+accessible method net/minecraft/world/level/storage/loot/LootTable <init> (Lnet/minecraft/util/context/ContextKeySet;Ljava/util/Optional;Ljava/util/List;Ljava/util/List;)V
+accessible method net/minecraft/world/level/storage/loot/LootPool <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;Lnet/minecraft/world/level/storage/loot/providers/number/NumberProvider;Lnet/minecraft/world/level/storage/loot/providers/number/NumberProvider;)V
+accessible method net/minecraft/world/level/storage/loot/entries/AlternativesEntry <init> (Ljava/util/List;Ljava/util/List;)V
+accessible method net/minecraft/world/level/storage/loot/entries/SequentialEntry <init> (Ljava/util/List;Ljava/util/List;)V
+accessible method net/minecraft/world/level/storage/loot/entries/EntryGroup <init> (Ljava/util/List;Ljava/util/List;)V
