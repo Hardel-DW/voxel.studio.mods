@@ -1,6 +1,9 @@
 package fr.hardel.asset_editor.client.compose.window
 
+import com.formdev.flatlaf.FlatDarkLaf
+import java.awt.Color
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 
 abstract class MinecraftStageWindow(
     minWidth: Int,
@@ -65,6 +68,10 @@ abstract class MinecraftStageWindow(
             synchronized(this) {
                 if (runtimePrepared) return
                 System.setProperty("java.awt.headless", "false")
+                System.setProperty("sun.awt.noerasebackground", "true")
+                FlatDarkLaf.setup()
+                UIManager.put("Panel.background", Color.BLACK)
+                UIManager.put("RootPane.background", Color.BLACK)
                 runtimePrepared = true
             }
         }

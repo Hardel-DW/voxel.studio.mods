@@ -1,8 +1,6 @@
 package fr.hardel.asset_editor.client.compose.window
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -15,20 +13,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.composed
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.memory.core.Subscription
-import java.awt.Component
+import java.awt.Rectangle
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.delay
 import net.minecraft.client.resources.language.I18n
+import kotlin.math.roundToInt
 
 object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
@@ -39,7 +38,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private var splashVersion by mutableIntStateOf(0)
     private var editorVersion by mutableIntStateOf(0)
     private var permissionSubscription: Subscription? = null
-    private var contentPanel: ComposePanel? = null
     private var activeContext: StudioContext? = null
 
     @JvmStatic
@@ -80,36 +78,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         fireResourceReload()
     }
 
-    @JvmStatic
-    fun requestBindDragArea(component: Component?) {
-        if (component == null) return
-        SwingUtilities.invokeLater { bindDragArea(component) }
-    }
-
-    internal fun onDragStart() {
-        SwingUtilities.invokeLater { beginFrameDrag() }
-    }
-
-    internal fun onDragMove() {
-        SwingUtilities.invokeLater { performFrameDrag() }
-    }
-
-    internal fun onDragEnd() {
-        SwingUtilities.invokeLater { endFrameDrag() }
-    }
-
-    internal fun onDragDoubleClick() {
-        SwingUtilities.invokeLater { toggleMaximize() }
-    }
-
     override fun onCreated() {
-        frame?.title = I18n.get("app:title")
-
-        if (contentPanel == null) {
-            contentPanel = ComposePanel().apply {
-                setContent { WindowContent() }
-            }
-        }
+        composeWindow?.title = I18n.get("app:title")
 
         permissionSubscription?.unsubscribe()
         permissionSubscription = ClientMemoryHolder.session().subscribe {
@@ -119,7 +89,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         SwingUtilities.invokeLater(::tryTransitionFromSplash)
 
         enterSplashState()
-        contentPanel?.let(::setRoot)
+        setComposeContent { WindowContent() }
     }
 
     override fun onWindowFocused() {
@@ -202,43 +172,23 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     }
 }
 
-fun Modifier.windowDragArea(id: String): Modifier = this
-    .pointerInput(id) {
-        awaitEachGesture {
-            val down = awaitFirstDown(requireUnconsumed = false)
-            var moved = false
-            var clickCount = 0
-
-            VoxelStudioWindow.onDragStart()
-
-            while (true) {
-                val event = awaitPointerEvent()
-
-                when (event.type) {
-                    PointerEventType.Move -> {
-                        if (!moved) moved = true
-                        event.changes.forEach { it.consume() }
-                        VoxelStudioWindow.onDragMove()
-                    }
-
-                    PointerEventType.Release -> {
-                        if (moved) {
-                            VoxelStudioWindow.onDragEnd()
-                        } else {
-                            VoxelStudioWindow.onDragEnd()
-                            clickCount++
-                            if (down.pressed && clickCount == 2) {
-                                VoxelStudioWindow.onDragDoubleClick()
-                            }
-                        }
-                        return@awaitEachGesture
-                    }
-                }
-            }
-        }
+fun Modifier.windowDragArea(id: String): Modifier = composed {
+    DisposableEffect(id) {
+        onDispose { VoxelStudioWindow.unregisterDragRegion(id) }
     }
 
-@Composable
-fun RememberWindowDragArea(id: String) {
-    // Kept for backward compatibility - drag is now handled via pointerInput
+    onGloballyPositioned { coordinates ->
+        val origin = coordinates.positionInWindow()
+        val size = coordinates.size
+
+        VoxelStudioWindow.registerDragRegion(
+            id,
+            Rectangle(
+                origin.x.roundToInt(),
+                origin.y.roundToInt(),
+                size.width,
+                size.height
+            )
+        )
+    }
 }
