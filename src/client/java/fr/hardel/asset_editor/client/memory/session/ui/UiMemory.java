@@ -8,9 +8,7 @@ import fr.hardel.asset_editor.client.memory.core.Subscription;
 import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
@@ -43,26 +41,21 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
     }
 
     public void updateSearch(Identifier conceptId, String value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.expandedTreePaths()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.treeExpansion()));
     }
 
     public void updateFilterPath(Identifier conceptId, String value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.expandedTreePaths()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.treeExpansion()));
     }
 
     public void updateSidebarView(Identifier conceptId, StudioSidebarView value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), "", value, Set.of()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), "", value, Map.of()));
     }
 
     public void setTreeExpanded(Identifier conceptId, String path, boolean expanded) {
         updateConcept(conceptId, current -> {
-            LinkedHashSet<String> next = new LinkedHashSet<>(current.expandedTreePaths());
-            if (expanded) {
-                next.add(path);
-            } else {
-                next.remove(path);
-            }
-
+            LinkedHashMap<String, Boolean> next = new LinkedHashMap<>(current.treeExpansion());
+            next.put(path, expanded);
             return new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), next);
         });
     }

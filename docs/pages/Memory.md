@@ -41,4 +41,4 @@ Each Memory encapsulates a `SimpleMemory<Snapshot>` and exposes typed methods, l
 ## Shared Types
 - **StudioConcept**: ENCHANTMENT | LOOT_TABLE | RECIPE | STRUCTURE.
 - **ElementEditorDestination**: contains `concept`, `elementId` and `tab`, with `tab` in MAIN | FIND | SLOTS | ITEMS | EXCLUSIVE | TECHNICAL | POOLS.
-- **ConceptUiSnapshot**: contains `search`, `filterPath`, `sidebarView` and `expandedTreePaths`.
+- **ConceptUiSnapshot**: contains `search`, `filterPath`, `sidebarView` and `treeExpansion` (map `path → Boolean` of user overrides; missing entries fall back to auto-expand).

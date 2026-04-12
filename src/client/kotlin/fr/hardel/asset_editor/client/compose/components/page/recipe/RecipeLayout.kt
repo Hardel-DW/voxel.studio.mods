@@ -19,7 +19,7 @@ import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeOverviewPage
-import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toImmutableMap
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 
@@ -41,7 +41,7 @@ fun RecipeLayout(context: StudioContext) {
         tree = tree,
         filterPath = conceptUi.filterPath,
         selectedElementId = currentEditor?.elementId,
-        expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
+        treeExpansion = conceptUi.treeExpansion.toImmutableMap(),
         elementIcon = conceptIcon,
         folderIcons = RecipeTreeBuilder.folderIcons(),
         disableAutoExpand = false,

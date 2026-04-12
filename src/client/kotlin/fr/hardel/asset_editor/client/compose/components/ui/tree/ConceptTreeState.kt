@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.ui.tree
 
 import fr.hardel.asset_editor.AssetEditor
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.ImmutableSet
+import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
 import net.minecraft.resources.Identifier
 
@@ -48,7 +48,7 @@ fun buildConceptTreeState(
     tree: TreeNodeModel?,
     filterPath: String,
     selectedElementId: String?,
-    expandedTreePaths: ImmutableSet<String>,
+    treeExpansion: ImmutableMap<String, Boolean>,
     elementIcon: Identifier,
     folderIcons: Map<String, Identifier>,
     disableAutoExpand: Boolean,
@@ -64,7 +64,7 @@ fun buildConceptTreeState(
     } else {
         buildRows(
             root = tree,
-            expandedTreePaths = expandedTreePaths,
+            treeExpansion = treeExpansion,
             selectedElementId = selectedElementId,
             filterPath = filterPath,
             elementIcon = elementIcon,
@@ -91,7 +91,7 @@ fun buildConceptTreeState(
 
 private fun buildRows(
     root: TreeNodeModel,
-    expandedTreePaths: ImmutableSet<String>,
+    treeExpansion: Map<String, Boolean>,
     selectedElementId: String?,
     filterPath: String,
     elementIcon: Identifier,
@@ -107,7 +107,7 @@ private fun buildRows(
             node = child,
             depth = 0,
             forceOpen = false,
-            expandedTreePaths = expandedTreePaths,
+            treeExpansion = treeExpansion,
             selectedElementId = selectedElementId,
             filterPath = filterPath,
             elementIcon = elementIcon,
@@ -125,7 +125,7 @@ private fun appendRows(
     node: TreeNodeModel,
     depth: Int,
     forceOpen: Boolean,
-    expandedTreePaths: ImmutableSet<String>,
+    treeExpansion: Map<String, Boolean>,
     selectedElementId: String?,
     filterPath: String,
     elementIcon: Identifier,
@@ -136,7 +136,8 @@ private fun appendRows(
     val hasChildren = node.children.isNotEmpty()
     val hasActiveChild = !disableAutoExpand && TreeUtils.hasActiveDescendant(node, selectedElementId)
     val defaultExpanded = forceOpen || hasActiveChild
-    val isExpanded = hasChildren && (defaultExpanded || path in expandedTreePaths)
+    val userOverride = treeExpansion[path]
+    val isExpanded = hasChildren && (userOverride ?: defaultExpanded)
     val isHighlighted = if (isElement) {
         node.elementId == selectedElementId
     } else {
@@ -176,7 +177,7 @@ private fun appendRows(
             node = childNode,
             depth = depth + 1,
             forceOpen = node.children.size == 1,
-            expandedTreePaths = expandedTreePaths,
+            treeExpansion = treeExpansion,
             selectedElementId = selectedElementId,
             filterPath = filterPath,
             elementIcon = elementIcon,

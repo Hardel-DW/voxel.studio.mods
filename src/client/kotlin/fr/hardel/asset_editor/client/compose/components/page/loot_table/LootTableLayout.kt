@@ -18,7 +18,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import net.minecraft.core.registries.Registries
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableOverviewPage
-import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toImmutableMap
 
 @Composable
 fun LootTableLayout(context: StudioContext) {
@@ -32,7 +32,7 @@ fun LootTableLayout(context: StudioContext) {
     val treeState = remember(
         tree,
         conceptUi.filterPath,
-        conceptUi.expandedTreePaths,
+        conceptUi.treeExpansion,
         currentEditor?.elementId
     ) {
         buildConceptTreeState(
@@ -40,7 +40,7 @@ fun LootTableLayout(context: StudioContext) {
             tree = tree,
             filterPath = conceptUi.filterPath,
             selectedElementId = currentEditor?.elementId,
-            expandedTreePaths = conceptUi.expandedTreePaths.toImmutableSet(),
+            treeExpansion = conceptUi.treeExpansion.toImmutableMap(),
             elementIcon = conceptIcon,
             folderIcons = emptyMap(),
             disableAutoExpand = false,
