@@ -12,12 +12,10 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.components.ui.*
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
-import fr.hardel.asset_editor.AssetEditor
 
 private data class FindTag(val tagId: Identifier) {
     fun titleKey(): String = "enchantment_tag:$tagId"

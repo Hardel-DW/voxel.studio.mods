@@ -43,7 +43,7 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.loot_table.ToggleDisabledAction
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.flush.adapter.LootTableFlushAdapter

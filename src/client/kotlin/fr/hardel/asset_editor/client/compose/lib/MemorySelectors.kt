@@ -5,7 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory
-import fr.hardel.asset_editor.client.memory.session.server.ServerDataStore
+import fr.hardel.asset_editor.client.memory.core.ServerDataStore
 
 @Composable
 fun <S, T> rememberMemoryValue(

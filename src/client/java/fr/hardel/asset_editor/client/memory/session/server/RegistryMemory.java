@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.memory.session.server;
 
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries;
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;

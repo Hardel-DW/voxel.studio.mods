@@ -12,8 +12,8 @@ import fr.hardel.asset_editor.client.memory.session.debug.DebugMemory
 import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory
 
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
 import fr.hardel.asset_editor.client.ClientPreferences
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory

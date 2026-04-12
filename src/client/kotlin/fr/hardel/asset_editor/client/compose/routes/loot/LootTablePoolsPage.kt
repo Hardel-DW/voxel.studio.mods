@@ -33,7 +33,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.loot_table.AddEntryAction
 import fr.hardel.asset_editor.workspace.action.loot_table.BalancePoolWeightsAction
 import fr.hardel.asset_editor.workspace.action.loot_table.EntryPath

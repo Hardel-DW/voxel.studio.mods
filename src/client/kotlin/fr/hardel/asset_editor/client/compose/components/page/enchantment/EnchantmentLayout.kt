@@ -20,8 +20,8 @@ import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
-import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination

@@ -16,7 +16,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction

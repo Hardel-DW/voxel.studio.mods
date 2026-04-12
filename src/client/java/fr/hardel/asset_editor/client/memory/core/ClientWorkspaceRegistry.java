@@ -1,7 +1,5 @@
-package fr.hardel.asset_editor.client.memory.session.server;
+package fr.hardel.asset_editor.client.memory.core;
 
-import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
-import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import net.minecraft.core.Registry;
@@ -45,16 +43,16 @@ public final class ClientWorkspaceRegistry<T> {
         return memory.snapshot();
     }
 
-    Map<Identifier, ElementEntry<?>> wildcardSnapshot() {
+    public Map<Identifier, ElementEntry<?>> wildcardSnapshot() {
         LinkedHashMap<Identifier, ElementEntry<?>> result = new LinkedHashMap<>(memory.snapshot());
         return Collections.unmodifiableMap(result);
     }
 
-    void publish(Map<Identifier, ElementEntry<T>> entries) {
+    public void publish(Map<Identifier, ElementEntry<T>> entries) {
         memory.setSnapshot(entries);
     }
 
-    void clear() {
+    public void clear() {
         memory.setSnapshot(Map.of());
     }
 }

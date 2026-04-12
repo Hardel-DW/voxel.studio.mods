@@ -27,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentTreeData
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.SetPrimaryItemsAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetSupportedItemsAction
 import net.minecraft.client.resources.language.I18n

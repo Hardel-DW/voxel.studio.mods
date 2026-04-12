@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment
 
-import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
 import fr.hardel.asset_editor.data.compendium.CompendiumTagEntry
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup
 import fr.hardel.asset_editor.tag.TagSeed

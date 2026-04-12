@@ -66,6 +66,8 @@ fun Counter(
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val hoverActive = enabled && isHovered
+    val canDecrement = enabled && value > min
+    val canIncrement = enabled && value < max
 
     val animatedWidth by animateDpAsState(
         targetValue = if (hoverActive) WIDTH_HOVER else WIDTH_DEFAULT,
@@ -102,12 +104,12 @@ fun Counter(
                 .padding(start = 16.dp)
                 .width(12.dp)
                 .height(12.dp)
-                .alpha(arrowAlpha)
-                .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
+                .alpha(arrowAlpha * if (canDecrement) 1f else 0.3f)
+                .then(if (canDecrement) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { if (enabled) onValueChange(maxOf(min, value - step)) }
+                ) { if (canDecrement) onValueChange(maxOf(min, value - step)) }
                 .drawBehind {
                     val cx = size.width / 2
                     val cy = size.height / 2
@@ -164,12 +166,12 @@ fun Counter(
                 .padding(end = 16.dp)
                 .width(12.dp)
                 .height(12.dp)
-                .alpha(arrowAlpha)
-                .then(if (enabled) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
+                .alpha(arrowAlpha * if (canIncrement) 1f else 0.3f)
+                .then(if (canIncrement) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null
-                ) { if (enabled) onValueChange(minOf(max, value + step)) }
+                ) { if (canIncrement) onValueChange(minOf(max, value + step)) }
                 .drawBehind {
                     val cx = size.width / 2
                     val cy = size.height / 2

@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client;
 
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
-import fr.hardel.asset_editor.client.memory.session.server.ServerDataStore;
+import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;

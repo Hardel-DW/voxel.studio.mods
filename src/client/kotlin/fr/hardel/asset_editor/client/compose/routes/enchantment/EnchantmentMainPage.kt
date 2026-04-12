@@ -25,13 +25,12 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter.EnchantmentMode
 import fr.hardel.asset_editor.workspace.action.enchantment.SetIntFieldAction
 import fr.hardel.asset_editor.workspace.action.enchantment.SetModeAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
 private val MAX_LEVEL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/tools/max_level.svg")

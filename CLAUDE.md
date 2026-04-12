@@ -1,7 +1,7 @@
 # Project Overview
 Fabric 1.21.11 "Voxel Studio" mod in Java 21.
 ALWAYS USE MOJMAP! Not Yarn. There is client and main folder.
-The documentation in the docs\SUMMARY.md for TOC.
+The documentation in the docs\SUMMARY.md for TOC, It's important to always read this documentation, it contains the rules and important files you need to know about.
 
 # Decompiled Code
 Important: if you need knowledge, search in the directory: 
@@ -28,6 +28,8 @@ Important: if you need knowledge, search in the directory:
 - Don't just create full static files all the time; it's useless, unreadable, and counterproductive.
 - Prioritize the OOP approach. Don't make everything in a static class. Use a correct Pattern. (Static is good but not for everything)
 - Avoid unchecked, UNCHECKED_CAST find good architectural solutions that avoid them as much as possible.
+- We must avoid duplicating truth sources.
+
 # Studio Project :
 - Unlike Studio Web, we don't have to manage all versions of Minecraft, just the current e.g 1.21.11
 - You can use Minecraft/Mixins registries and codecs and everything.
@@ -37,3 +39,5 @@ Important: if you need knowledge, search in the directory:
 - We work by component; each Kotlin File constitutes a component.
 - SVGs/Asset should not be rewritten. Copy from tsx.
 - Avoid adding too many unnecessary comments that serve no purpose.
+- AssetEditorClient and AssetEditor must contains "register" methods.
+- AssetEditor Contains MOD_ID, use it instead of hardcoding string.

@@ -1,17 +1,25 @@
 package fr.hardel.asset_editor.workspace.action.loot_table;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.serialization.DynamicOps;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.AlternativesEntry;
 import net.minecraft.world.level.storage.loot.entries.CompositeEntryBase;
 import net.minecraft.world.level.storage.loot.entries.EntryGroup;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntries;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
 import net.minecraft.world.level.storage.loot.entries.SequentialEntry;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.NumberProvider;
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +65,76 @@ public final class LootTableMutator {
         json.getAsJsonObject().addProperty("weight", weight);
         return LootPoolEntries.CODEC.parse(ops, json)
             .getOrThrow(msg -> new IllegalStateException("Failed to decode entry: " + msg));
+    }
+
+    public static LootPoolEntryContainer withItem(LootPoolEntryContainer entry, Identifier itemId, DynamicOps<JsonElement> ops) {
+        if (!(entry instanceof LootItem))
+            return entry;
+        JsonElement json = LootPoolEntries.CODEC.encodeStart(ops, entry)
+            .getOrThrow(msg -> new IllegalStateException("Failed to encode entry: " + msg));
+        json.getAsJsonObject().addProperty("name", itemId.toString());
+        return LootPoolEntries.CODEC.parse(ops, json)
+            .getOrThrow(msg -> new IllegalStateException("Failed to decode entry: " + msg));
+    }
+
+    public static LootPoolEntryContainer withCount(LootPoolEntryContainer entry, int min, int max, DynamicOps<JsonElement> ops) {
+        if (!(entry instanceof LootPoolSingletonContainer))
+            return entry;
+        JsonElement json = LootPoolEntries.CODEC.encodeStart(ops, entry)
+            .getOrThrow(msg -> new IllegalStateException("Failed to encode entry: " + msg));
+        JsonObject obj = json.getAsJsonObject();
+        JsonArray functions = obj.has("functions") ? obj.getAsJsonArray("functions") : new JsonArray();
+
+        boolean found = false;
+        for (int i = 0; i < functions.size(); i++) {
+            JsonObject func = functions.get(i).getAsJsonObject();
+            String type = func.has("function") ? func.get("function").getAsString() : "";
+            if ("minecraft:set_count".equals(type)) {
+                func.add("count", countProviderJson(min, max));
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            JsonObject func = new JsonObject();
+            func.addProperty("function", "minecraft:set_count");
+            func.add("count", countProviderJson(min, max));
+            functions.add(func);
+        }
+
+        obj.add("functions", functions);
+        return LootPoolEntries.CODEC.parse(ops, json)
+            .getOrThrow(msg -> new IllegalStateException("Failed to decode entry: " + msg));
+    }
+
+    public static int[] currentCountRange(LootPoolSingletonContainer entry) {
+        for (LootItemFunction func : entry.functions) {
+            if (!(func instanceof SetItemCountFunction setCount))
+                continue;
+            NumberProvider provider = setCount.value;
+            if (provider instanceof ConstantValue c) {
+                int v = (int) c.value();
+                return new int[]{v, v};
+            }
+            if (provider instanceof UniformGenerator u) {
+                int lo = u.min() instanceof ConstantValue cv ? (int) cv.value() : 1;
+                int hi = u.max() instanceof ConstantValue cv ? (int) cv.value() : 1;
+                return new int[]{lo, hi};
+            }
+        }
+        return new int[]{1, 1};
+    }
+
+    private static JsonElement countProviderJson(int min, int max) {
+        if (min == max) {
+            return new com.google.gson.JsonPrimitive((float) min);
+        }
+        JsonObject uniform = new JsonObject();
+        uniform.addProperty("type", "minecraft:uniform");
+        uniform.addProperty("min", (float) min);
+        uniform.addProperty("max", (float) max);
+        return uniform;
     }
 
     private static List<LootPoolEntryContainer> removeAtDepth(

@@ -26,6 +26,9 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction;
 import fr.hardel.asset_editor.workspace.action.loot_table.AddEntryAction;
 import fr.hardel.asset_editor.workspace.action.loot_table.BalancePoolWeightsAction;
 import fr.hardel.asset_editor.workspace.action.loot_table.RemoveEntryAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.ReplaceEntryItemAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMaxAction;
+import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMinAction;
 import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryWeightAction;
 import fr.hardel.asset_editor.workspace.flush.Workspaces;
 import net.minecraft.world.item.crafting.Recipe;
@@ -125,6 +128,24 @@ public final class Actions {
         "loot_table/balance_pool_weights",
         BalancePoolWeightsAction.CODEC,
         BalancePoolWeightsAction.class);
+
+    public static final Action<LootTable, ReplaceEntryItemAction> LOOT_REPLACE_ENTRY_ITEM = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/replace_entry_item",
+        ReplaceEntryItemAction.CODEC,
+        ReplaceEntryItemAction.class);
+
+    public static final Action<LootTable, SetEntryCountMinAction> LOOT_SET_ENTRY_COUNT_MIN = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/set_entry_count_min",
+        SetEntryCountMinAction.CODEC,
+        SetEntryCountMinAction.class);
+
+    public static final Action<LootTable, SetEntryCountMaxAction> LOOT_SET_ENTRY_COUNT_MAX = EditorActionRegistry.register(
+        Workspaces.LOOT_TABLE,
+        "loot_table/set_entry_count_max",
+        SetEntryCountMaxAction.CODEC,
+        SetEntryCountMaxAction.class);
 
     // Recipe
     public static final Action<Recipe<?>, AddIngredientAction> ADD_INGREDIENT = EditorActionRegistry.register(

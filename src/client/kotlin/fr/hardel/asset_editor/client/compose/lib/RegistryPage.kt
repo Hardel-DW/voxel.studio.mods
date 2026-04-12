@@ -16,7 +16,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.lib.action.EditorActionResult
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import net.minecraft.client.resources.language.I18n

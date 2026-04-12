@@ -1,38 +1,44 @@
-Memory Name and what it contains
+# Module Memory
+The truth source on the client for display. Reactive architecture based on immutable snapshots.
+Each Memory encapsulates a `SimpleMemory<Snapshot>` and exposes typed methods, listeners are notified only if the snapshot changes (`Objects.equals` check).
 
-**StudioConcept**: can be ENCHANTMENT | LOOT_TABLE | RECIPE | STRUCTURE.
+## Core (`memory/core/`)
+- `ReadableMemory<S>` — Readable interface: `snapshot()` + `subscribe(Runnable)`
+- `MutableMemory<S>` — Extends ReadableMemory: `setSnapshot(S)` + `update(UnaryOperator<S>)`
+- `SimpleMemory<S>` — Concrete thread-safe implementation with CopyOnWriteArrayList for listeners
+- `Subscription` — Functional interface to unsubscribe
+- `ClientWorkspaceRegistry<T>` — Typed registry wrapper exposing `ReadableMemory<Map<Identifier, ElementEntry<T>>>`
+- `ClientWorkspaceRegistries` — Static registry of all workspaces (ENCHANTMENT, LOOT_TABLE, RECIPE)
+- `ServerDataStore` — Generic server data storage
+- `StudioDataSlots` — Typed slots for server data
 
-**ElementEditorDestination**: contains `concept`, `elementId` and `tab`, with `tab` in MAIN | FIND | SLOTS | ITEMS | EXCLUSIVE | TECHNICAL | POOLS.
+## Access Points
+`ClientMemoryHolder` exposes the singletons:
+`ClientMemoryHolder` exposes `session()` (SessionMemory), `debug()` (DebugMemory), and `dispatch()` (ClientSessionDispatch).
 
-## Session-scoped (created/destroyed with world connection)
+## Session-scoped (`memory/session/`) — Destroyed on disconnect
+- **SessionMemory**: Contains `permissions` (ADMIN | CONTRIBUTOR | NONE), `availablePacks`, `worldSessionKey`, `permissionsReceived` and `packListReceived`.
+- **UiMemory** (`ui/`): Contains `concepts`, a map `conceptId -> ConceptUiSnapshot`.
+- **PackSelectionMemory** (`ui/`): Contains `selectedPack`.
+- **NavigationMemory** (`ui/`): Contains `current`, `tabs` and `activeTabId`.
+    *current*: can be `NoPermissionDestination`, `DebugDestination`, `ConceptOverviewDestination`, `ConceptChangesDestination`, `ConceptSimulationDestination` or `ElementEditorDestination`.
+    *tabs*: list of `StudioTabEntry(tabId, destination)` where destination is always an `ElementEditorDestination`.
 
-**SessionMemory**: Contains `permissions` (ADMIN | CONTRIBUTOR | NONE), `availablePacks`, `worldSessionKey`, `permissionsReceived` and `packListReceived`.
+- **RegistryMemory** (`server/`): Contains `registries`, a map `registryId -> (elementId -> ElementEntry<?>)`.
+- **DebugMemory** (`debug/`): Container that exposes `logs()` and `network()`.
+- **DebugLogMemory** (`debug/`): Contains `entries`, a list of log entries.
+    *Entry*: contains `id`, `timestamp`, `level`, `category`, `message` and `data`.
+    *level*: INFO | WARN | ERROR | SUCCESS.
+    *category*: SYNC | LIFECYCLE | ACTION.
 
-**PackSelectionMemory**: Contains `selectedPack`
+- **NetworkTraceMemory** (`debug/`): Contains `entries`, `availableNamespaces` and `selectedNamespace`.
+    *TraceEntry*: contains `id`, `timestamp`, `direction`, `payloadId` and `payload`.
+    *direction*: INBOUND | OUTBOUND.
 
-## Persistent (lives for client lifetime)
+## Persistent (`memory/persistent/`) — Survives between worlds
+- **IssueMemory**: Contains `warnings` and `errors`, two lists of String.
 
-**IssueMemory**: Contains `warnings` and `errors`, two lists of String.
-
-**RegistryMemory**: Contains `registries`, a map `registryId -> (elementId -> ElementEntry<?>)`
-
-**UIMemory**: Contains `concepts`, a map `StudioConcept -> ConceptUiSnapshot`.
-
-**DebugMemory**: does not have a proper snapshot, it is just a container that exposes `logs()` and `network()`.
-
-**NavigationMemory**: Contains `current`, `tabs` and `activeTabId`.
-- *NavigationMemory.current*: can be `NoPermissionDestination`, `DebugDestination`, `ConceptOverviewDestination`, `ConceptChangesDestination`, `ConceptSimulationDestination` or `ElementEditorDestination`.
-- *NavigationMemory.tabs*: is a list of `StudioTabEntry(tabId, destination)` where destination is always an `ElementEditorDestination`.
-
-**DebugLogMemory**: Contains `entries`, a list of log entries.
-- *DebugLogMemory.Entry*: contains `id`, `timestamp`, `level`, `category`, `message` and `data`.
-- *DebugLogMemory.level*: can be INFO | WARN | ERROR | SUCCESS.
-- *DebugLogMemory.category*: can be SYNC | LIFECYCLE | ACTION.
-
-**NetworkTraceMemory**: Contains `entries`, `availableNamespaces` and `selectedNamespace`.
-- *NetworkTraceMemory.TraceEntry*: contains `id`, `timestamp`, `direction`, `payloadId` and `payload`.
-- *NetworkTraceMemory.direction*: can be INBOUND or OUTBOUND.
-
-**ConceptUiSnapshot**: contains `search`, `filterPath`, `viewMode`, `sidebarView` and `expandedTreePaths`.
-- *ConceptUiSnapshot.viewMode*: can be GRID or LIST.
-- *ConceptUiSnapshot.sidebarView*: can be SLOTS, ITEMS or EXCLUSIVE.
+## Shared Types
+- **StudioConcept**: ENCHANTMENT | LOOT_TABLE | RECIPE | STRUCTURE.
+- **ElementEditorDestination**: contains `concept`, `elementId` and `tab`, with `tab` in MAIN | FIND | SLOTS | ITEMS | EXCLUSIVE | TECHNICAL | POOLS.
+- **ConceptUiSnapshot**: contains `search`, `filterPath`, `sidebarView` and `expandedTreePaths`.

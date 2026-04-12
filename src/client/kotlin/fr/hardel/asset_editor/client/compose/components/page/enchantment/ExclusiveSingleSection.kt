@@ -4,10 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
-import fr.hardel.asset_editor.AssetEditor
 
 @Composable
 fun ExclusiveSingleSection(

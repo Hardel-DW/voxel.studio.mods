@@ -182,7 +182,7 @@ fun Toolbar(
                 .then(if (isExpanded) Modifier.width(animatedWidth) else Modifier)
                 .shadow(24.dp, shape)
                 .clip(shape)
-                .background(StudioColors.Zinc950.copy(alpha = 0.5f))
+                .background(StudioColors.Zinc950)
                 .border(1.dp, StudioColors.Zinc800, shape)
         ) {
             if (isExpanded && expansion is FloatingBarExpansion.Expanded) {

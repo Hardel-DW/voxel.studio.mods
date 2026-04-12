@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.event;
 
 import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
-import fr.hardel.asset_editor.client.memory.session.server.ServerDataStore;
+import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;

@@ -42,12 +42,12 @@ import fr.hardel.asset_editor.client.compose.components.page.loot_table.Flattene
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootItemEditor
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableFlattener
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.RewardKind
+import fr.hardel.asset_editor.workspace.action.loot_table.ReplaceEntryItemAction
+import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMaxAction
+import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMinAction
 import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryWeightAction
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.components.ui.Button
-import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
-import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.floatingbar.FloatingBarState
 import fr.hardel.asset_editor.client.compose.components.ui.floatingbar.ToolGrab
 import fr.hardel.asset_editor.client.compose.components.ui.floatingbar.Toolbar
@@ -60,7 +60,7 @@ import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import net.minecraft.core.registries.Registries
 import fr.hardel.asset_editor.workspace.action.loot_table.RemoveEntryAction
 import net.minecraft.client.resources.language.I18n
@@ -189,6 +189,30 @@ fun LootTableMainPage(context: StudioContext) {
                                                             workspace = ClientWorkspaceRegistries.LOOT_TABLE,
                                                             target = entry.id(),
                                                             action = SetEntryWeightAction(reward.entryPath, newWeight),
+                                                            dialogs = dialogs
+                                                        )
+                                                    },
+                                                    onItemChange = { newItemId ->
+                                                        context.dispatchRegistryAction(
+                                                            workspace = ClientWorkspaceRegistries.LOOT_TABLE,
+                                                            target = entry.id(),
+                                                            action = ReplaceEntryItemAction(reward.entryPath, newItemId),
+                                                            dialogs = dialogs
+                                                        )
+                                                    },
+                                                    onCountMinChange = { newMin ->
+                                                        context.dispatchRegistryAction(
+                                                            workspace = ClientWorkspaceRegistries.LOOT_TABLE,
+                                                            target = entry.id(),
+                                                            action = SetEntryCountMinAction(reward.entryPath, newMin),
+                                                            dialogs = dialogs
+                                                        )
+                                                    },
+                                                    onCountMaxChange = { newMax ->
+                                                        context.dispatchRegistryAction(
+                                                            workspace = ClientWorkspaceRegistries.LOOT_TABLE,
+                                                            target = entry.id(),
+                                                            action = SetEntryCountMaxAction(reward.entryPath, newMax),
                                                             dialogs = dialogs
                                                         )
                                                     },

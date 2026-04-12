@@ -6,7 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
-import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -18,7 +18,7 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import java.util.ArrayList

@@ -10,7 +10,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.BreakpointRule
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioBreakpoint
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 

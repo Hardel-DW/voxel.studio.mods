@@ -6,7 +6,7 @@ import fr.hardel.asset_editor.client.memory.session.ui.NavigationMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import fr.hardel.asset_editor.client.memory.session.ui.UiMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.permission.StudioPermissions
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import net.minecraft.resources.Identifier

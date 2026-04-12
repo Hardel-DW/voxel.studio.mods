@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.memory.session;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Lifecycle;
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry;
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry;
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.flush.CustomFields;

@@ -5,8 +5,8 @@ import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistry
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.client.memory.session.ui.PackSelectionMemory
 import fr.hardel.asset_editor.client.memory.session.server.RegistryMemory
 import fr.hardel.asset_editor.client.network.ClientPayloadSender

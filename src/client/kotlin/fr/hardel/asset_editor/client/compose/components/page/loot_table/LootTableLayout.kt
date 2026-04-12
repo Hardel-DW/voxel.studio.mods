@@ -15,7 +15,7 @@ import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import net.minecraft.core.registries.Registries
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableOverviewPage
 import kotlinx.collections.immutable.toImmutableSet

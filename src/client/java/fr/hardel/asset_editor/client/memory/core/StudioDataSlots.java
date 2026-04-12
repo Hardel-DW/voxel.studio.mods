@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.memory.session.server;
+package fr.hardel.asset_editor.client.memory.core;
 
 import fr.hardel.asset_editor.network.data.StudioDataKeys;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;

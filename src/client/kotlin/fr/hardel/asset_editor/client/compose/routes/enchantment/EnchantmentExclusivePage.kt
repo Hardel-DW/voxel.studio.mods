@@ -13,12 +13,11 @@ import fr.hardel.asset_editor.client.compose.components.page.enchantment.Exclusi
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.ExclusiveSingleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SectionSelector
 import fr.hardel.asset_editor.client.compose.lib.*
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.enchantment.SetExclusiveSetAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleExclusiveAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.core.registries.Registries
 
 @Composable
 fun EnchantmentExclusivePage(context: StudioContext) {

@@ -42,7 +42,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
-import fr.hardel.asset_editor.client.memory.session.server.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledAction

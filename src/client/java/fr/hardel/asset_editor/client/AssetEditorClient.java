@@ -4,7 +4,7 @@ import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
 import fr.hardel.asset_editor.client.event.ClientTickHandler;
 import fr.hardel.asset_editor.client.event.StudioKeybinding;
 import fr.hardel.asset_editor.client.event.StudioReloadListener;
-import fr.hardel.asset_editor.client.memory.session.server.StudioDataSlots;
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import net.fabricmc.api.ClientModInitializer;
 

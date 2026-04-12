@@ -57,17 +57,23 @@ fun LootItemEditor(
     reward: FlattenedReward,
     floatingBar: FloatingBarState,
     onWeightChange: (Int) -> Unit,
+    onItemChange: (Identifier) -> Unit,
+    onCountMinChange: (Int) -> Unit,
+    onCountMaxChange: (Int) -> Unit,
     onDelete: () -> Unit,
     onClose: () -> Unit
 ) {
     val displayName = remember(reward.name) { humanizeName(reward.name) }
     var weight by remember(reward.weight) { mutableIntStateOf(reward.weight) }
+    var countMin by remember(reward.countMin) { mutableIntStateOf(reward.countMin) }
+    var countMax by remember(reward.countMax) { mutableIntStateOf(reward.countMax) }
     var selectingItem by remember { mutableStateOf(false) }
 
     if (selectingItem) {
         ItemSelector(
             currentItem = reward.name.toString(),
             onItemSelect = {
+                onItemChange(it)
                 selectingItem = false
                 floatingBar.resize(ToolbarSize.FIT)
             },
@@ -195,9 +201,27 @@ fun LootItemEditor(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp) // gap-2
                     ) {
-                        Counter(value = 1, min = 1, max = 64, step = 1, onValueChange = {})
+                        Counter(
+                            value = countMin,
+                            min = 1,
+                            max = countMax,
+                            step = 1,
+                            onValueChange = { newMin ->
+                                countMin = newMin
+                                onCountMinChange(newMin)
+                            }
+                        )
                         Text("\u2014", style = StudioTypography.regular(14), color = StudioColors.Zinc600) // —
-                        Counter(value = 1, min = 1, max = 64, step = 1, onValueChange = {})
+                        Counter(
+                            value = countMax,
+                            min = countMin,
+                            max = 64,
+                            step = 1,
+                            onValueChange = { newMax ->
+                                countMax = newMax
+                                onCountMaxChange(newMax)
+                            }
+                        )
                     }
                 }
             }
