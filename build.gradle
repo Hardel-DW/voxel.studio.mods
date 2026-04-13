@@ -42,6 +42,7 @@ configurations {
     composeRuntimeWindowsX64
     composeRuntimeLinuxX64
     composeRuntimeLinuxArm64
+    composeRuntimeMacosX64
     composeRuntimeMacosArm64
 }
 
@@ -55,6 +56,7 @@ dependencies {
     composeRuntimeWindowsX64 compose.desktop.windows_x64
     composeRuntimeLinuxX64 compose.desktop.linux_x64
     composeRuntimeLinuxArm64 compose.desktop.linux_arm64
+    composeRuntimeMacosX64 compose.desktop.macos_x64
     composeRuntimeMacosArm64 compose.desktop.macos_arm64
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
     implementation "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8"
@@ -63,38 +65,38 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
+def kotlinxModulesProvidedByFlk = [
+    'atomicfu', 'atomicfu-jvm',
+    'kotlinx-coroutines-bom',
+    'kotlinx-coroutines-core', 'kotlinx-coroutines-core-jvm',
+    'kotlinx-coroutines-jdk8',
+    'kotlinx-datetime', 'kotlinx-datetime-jvm',
+    'kotlinx-io-bytestring', 'kotlinx-io-bytestring-jvm',
+    'kotlinx-io-core', 'kotlinx-io-core-jvm',
+    'kotlinx-serialization-cbor', 'kotlinx-serialization-cbor-jvm',
+    'kotlinx-serialization-core', 'kotlinx-serialization-core-jvm',
+    'kotlinx-serialization-json', 'kotlinx-serialization-json-jvm'
+]
+
 configurations.matching { it.name.startsWith("composeRuntime") }.configureEach {
     exclude group: 'org.jetbrains.kotlin'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-jdk8'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-bom'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-core'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-core-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-json'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-json-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-cbor'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-cbor-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-datetime'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-datetime-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-core'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-core-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-bytestring'
-    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-bytestring-jvm'
-    exclude group: 'org.jetbrains.kotlinx', module: 'atomicfu'
-    exclude group: 'org.jetbrains.kotlinx', module: 'atomicfu-jvm'
+    kotlinxModulesProvidedByFlk.each { module ->
+        exclude group: 'org.jetbrains.kotlinx', module: module
+    }
 }
 
 def composeManifestFile = file("src/client/resources/asset_editor/compose-manifest.json")
 
 tasks.register("generateComposeManifest") {
+    def composeVersion = "1.9.1"
     def platforms = [
         "windows-x64": configurations.composeRuntimeWindowsX64,
         "linux-x64"  : configurations.composeRuntimeLinuxX64,
         "linux-arm64": configurations.composeRuntimeLinuxArm64,
+        "macos-x64"  : configurations.composeRuntimeMacosX64,
         "macos-arm64": configurations.composeRuntimeMacosArm64
     ]
-    def composeVersion = "1.9.1"
+    
     platforms.values().each { inputs.files(it) }
     inputs.property("composeVersion", composeVersion)
     outputs.file(composeManifestFile)
@@ -109,30 +111,18 @@ tasks.register("generateComposeManifest") {
                 def ext = artifact.extension ?: "jar"
                 def filename = "${id.name}-${id.version}${classifier ? '-' + classifier : ''}.${ext}"
                 def groupPath = id.group.replace('.', '/')
-                def repoBase = id.group.startsWith("androidx.")
-                    ? "https://maven.google.com"
-                    : "https://repo1.maven.org/maven2"
+                def repoBase = id.group.startsWith("androidx.") ? "https://maven.google.com" : "https://repo1.maven.org/maven2"
                 def url = "${repoBase}/${groupPath}/${id.name}/${id.version}/${filename}"
-
                 def md = MessageDigest.getInstance("SHA-256")
                 file.withInputStream { is ->
                     byte[] buf = new byte[8192]
                     int n
                     while ((n = is.read(buf)) > 0) md.update(buf, 0, n)
                 }
-                def sha256 = md.digest().encodeHex().toString()
 
+                def sha256 = md.digest().encodeHex().toString()
                 def key = "${id.group}:${id.name}:${id.version}:${classifier}".toString()
-                map[key] = [
-                    group    : id.group,
-                    name     : id.name,
-                    version  : id.version,
-                    classifier: classifier,
-                    filename : filename,
-                    url      : url,
-                    sha256   : sha256,
-                    size     : file.length()
-                ]
+                map[key] = [group: id.group, name: id.name, version: id.version, classifier: classifier, filename: filename, url: url, sha256: sha256, size: file.length()]
             }
             return map
         }
@@ -149,10 +139,7 @@ tasks.register("generateComposeManifest") {
         def common = commonKeys.collect { resolved.values().first()[it] }.sort { it.filename }
         def platformEntries = [:]
         resolved.each { name, map ->
-            platformEntries[name] = map.findAll { !commonKeys.contains(it.key) }
-                                       .values()
-                                       .toList()
-                                       .sort { it.filename }
+            platformEntries[name] = map.findAll { !commonKeys.contains(it.key) }.values().toList().sort { it.filename }
         }
 
         def manifest = [
@@ -181,18 +168,12 @@ processResources {
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version,
-                "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+        expand "version": project.version, "minecraft_version": project.minecraft_version,"loader_version": project.loader_version
     }
 }
 
 def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with special characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
         it.options.release.set(targetJavaVersion)
@@ -204,9 +185,7 @@ java {
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
-    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-    // if it is present.
-    // If you remove this line, sources will not be generated.
+
     withSourcesJar()
 }
 
@@ -224,7 +203,6 @@ jar {
     }
 }
 
-// configure the maven publication
 publishing {
     publications {
         create("mavenJava", MavenPublication) {
@@ -233,11 +211,6 @@ publishing {
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
     }
 }

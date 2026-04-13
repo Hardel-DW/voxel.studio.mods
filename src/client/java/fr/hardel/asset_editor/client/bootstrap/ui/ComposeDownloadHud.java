@@ -19,7 +19,8 @@ public final class ComposeDownloadHud {
     private static final int PANEL_HEIGHT = 44;
     private static final int PADDING = 6;
     private static final int BAR_HEIGHT = 4;
-    private static final int BAR_GAP_TOP = 4;
+    private static final int DETAIL_Y_OFFSET = 12;
+    private static final int TEXT_MAX_WIDTH = PANEL_WIDTH - PADDING * 2;
 
     private static final int COLOR_BG = 0xCC101217;
     private static final int COLOR_BORDER = 0xFF2A2F3A;
@@ -39,27 +40,37 @@ public final class ComposeDownloadHud {
         if (state != ComposeBootstrap.State.DOWNLOADING && state != ComposeBootstrap.State.FAILED)
             return;
 
-        Font font = Minecraft.getInstance().font;
-        int x = MARGIN;
-        int y = MARGIN;
-
-        graphics.fill(x, y, x + PANEL_WIDTH, y + PANEL_HEIGHT, COLOR_BG);
-        drawBorder(graphics, x, y, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BORDER);
-
         boolean failed = state == ComposeBootstrap.State.FAILED;
+        Font font = Minecraft.getInstance().font;
+        drawPanel(graphics);
+        drawTitle(graphics, font, failed);
+        drawDetail(graphics, font, failed);
+        drawProgressBar(graphics, failed);
+    }
+
+    private static void drawPanel(GuiGraphics graphics) {
+        graphics.fill(MARGIN, MARGIN, MARGIN + PANEL_WIDTH, MARGIN + PANEL_HEIGHT, COLOR_BG);
+        drawBorder(graphics, MARGIN, MARGIN, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BORDER);
+    }
+
+    private static void drawTitle(GuiGraphics graphics, Font font, boolean failed) {
         Component title = Component.translatable(failed
             ? "asset_editor.bootstrap.hud.failed"
             : "asset_editor.bootstrap.hud.title");
-        graphics.drawString(font, title, x + PADDING, y + PADDING, failed ? COLOR_TITLE_ERROR : COLOR_TITLE);
+        graphics.drawString(font, title, MARGIN + PADDING, MARGIN + PADDING, failed ? COLOR_TITLE_ERROR : COLOR_TITLE);
+    }
 
+    private static void drawDetail(GuiGraphics graphics, Font font, boolean failed) {
         Component detail = failed
-            ? truncate(font, ComposeBootstrap.errorMessage(), PANEL_WIDTH - PADDING * 2)
-            : buildProgressDetail(font);
-        graphics.drawString(font, detail, x + PADDING, y + PADDING + 12, COLOR_DETAIL);
+            ? truncate(font, ComposeBootstrap.errorMessage())
+            : buildProgressDetail();
+        graphics.drawString(font, detail, MARGIN + PADDING, MARGIN + PADDING + DETAIL_Y_OFFSET, COLOR_DETAIL);
+    }
 
-        int barX = x + PADDING;
-        int barY = y + PANEL_HEIGHT - PADDING - BAR_HEIGHT;
-        int barWidth = PANEL_WIDTH - PADDING * 2;
+    private static void drawProgressBar(GuiGraphics graphics, boolean failed) {
+        int barX = MARGIN + PADDING;
+        int barY = MARGIN + PANEL_HEIGHT - PADDING - BAR_HEIGHT;
+        int barWidth = TEXT_MAX_WIDTH;
         graphics.fill(barX, barY, barX + barWidth, barY + BAR_HEIGHT, COLOR_BAR_BG);
         float progress = failed ? 1f : ComposeBootstrap.progress();
         int fill = Math.round(barWidth * progress);
@@ -67,33 +78,30 @@ public final class ComposeDownloadHud {
             graphics.fill(barX, barY, barX + fill, barY + BAR_HEIGHT, failed ? COLOR_BAR_ERROR : COLOR_BAR_FILL);
     }
 
-    private static Component buildProgressDetail(Font font) {
-        long downloaded = ComposeBootstrap.downloadedBytes();
-        long total = ComposeBootstrap.totalBytes();
-        int index = ComposeBootstrap.currentIndex();
-        int count = ComposeBootstrap.totalArtifacts();
+    private static Component buildProgressDetail() {
         return Component.translatable(
             "asset_editor.bootstrap.hud.progress",
-            formatMb(downloaded),
-            formatMb(total),
-            index,
-            count);
+            formatMegabytes(ComposeBootstrap.downloadedBytes()),
+            formatMegabytes(ComposeBootstrap.totalBytes()),
+            ComposeBootstrap.currentIndex(),
+            ComposeBootstrap.totalArtifacts());
     }
 
-    private static String formatMb(long bytes) {
+    private static Component formatMegabytes(long bytes) {
         float mb = bytes / (1024f * 1024f);
-        return String.format("%.1f MB", mb);
+        return Component.translatable("asset_editor.bootstrap.unit.mb", String.format("%.1f", mb));
     }
 
-    private static Component truncate(Font font, String text, int maxWidth) {
-        if (text == null || text.isEmpty()) return Component.empty();
-        if (font.width(text) <= maxWidth) return Component.literal(text);
+    private static Component truncate(Font font, Component component) {
+        String text = component.getString();
+        if (text.isEmpty()) return Component.empty();
+        if (font.width(text) <= TEXT_MAX_WIDTH) return component;
+
         String suffix = "…";
-        int suffixWidth = font.width(suffix);
         StringBuilder cut = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
             String probe = cut.toString() + text.charAt(i) + suffix;
-            if (font.width(probe) > maxWidth) break;
+            if (font.width(probe) > TEXT_MAX_WIDTH) break;
             cut.append(text.charAt(i));
         }
         return Component.literal(cut.toString() + suffix);
