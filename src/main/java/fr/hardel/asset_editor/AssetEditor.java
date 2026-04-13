@@ -12,8 +12,6 @@ import net.fabricmc.api.ModInitializer;
 public class AssetEditor implements ModInitializer {
 
     public static final String MOD_ID = "asset_editor";
-    public static final boolean DEV_DISABLE_SINGLEPLAYER_ADMIN = false;
-    public static final boolean DEV_CLEAR_COMPOSE_CACHE = true;
 
     @Override
     public void onInitialize() {

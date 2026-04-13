@@ -6,7 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.DevFlags;
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.MinecraftServer;
@@ -57,7 +57,7 @@ public final class PermissionManager {
     }
 
     public boolean isHostAdmin(UUID playerId) {
-        if (AssetEditor.DEV_DISABLE_SINGLEPLAYER_ADMIN)
+        if (DevFlags.DISABLE_SINGLEPLAYER_ADMIN)
             return false;
         if (server.isDedicatedServer())
             return false;

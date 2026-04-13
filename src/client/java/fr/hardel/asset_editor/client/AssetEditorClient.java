@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.DevFlags;
 import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.event.ClientTickHandler;
@@ -23,7 +23,7 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientNetworkHandler.register();
         StudioReloadListener.register();
         ComposeDownloadHud.register();
-        if (AssetEditor.DEV_CLEAR_COMPOSE_CACHE) ComposeBootstrap.purgeCache();
+        if (DevFlags.CLEAR_COMPOSE_CACHE) ComposeBootstrap.purgeCache();
         ComposeBootstrap.tryLinkFromCache();
     }
 }

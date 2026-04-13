@@ -21,6 +21,9 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: verify dev flags
+        run: ./gradlew test --tests fr.hardel.asset_editor.DevFlagsTest
+
       - name: build
         run: ./gradlew build
 
