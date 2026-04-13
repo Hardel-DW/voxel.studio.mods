@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.client.compose.window
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -15,18 +17,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
-import com.jetbrains.JBR
-import com.jetbrains.WindowDecorations
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.components.layout.loading.Splash
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.memory.core.Subscription
-import java.awt.Frame
+import java.awt.Component
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
 import net.minecraft.client.resources.language.I18n
 
 object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
@@ -40,14 +41,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private var permissionSubscription: Subscription? = null
     private var contentPanel: ComposePanel? = null
     private var activeContext: StudioContext? = null
-    private var chromeState by mutableStateOf(WindowChromeState.nativeSystem())
-    private val titleBarClientAreas = TitleBarClientAreaRegistry()
-    private val titleBarHitTestBridge = TitleBarHitTestBridge(
-        chromeState = { chromeState },
-        customTitleBar = { customTitleBar },
-        registry = titleBarClientAreas
-    )
-    private var customTitleBar: WindowDecorations.CustomTitleBar? = null
 
     @JvmStatic
     fun initialize() {
@@ -87,6 +80,28 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         fireResourceReload()
     }
 
+    @JvmStatic
+    fun requestBindDragArea(component: Component?) {
+        if (component == null) return
+        SwingUtilities.invokeLater { bindDragArea(component) }
+    }
+
+    internal fun onDragStart() {
+        SwingUtilities.invokeLater { beginFrameDrag() }
+    }
+
+    internal fun onDragMove() {
+        SwingUtilities.invokeLater { performFrameDrag() }
+    }
+
+    internal fun onDragEnd() {
+        SwingUtilities.invokeLater { endFrameDrag() }
+    }
+
+    internal fun onDragDoubleClick() {
+        SwingUtilities.invokeLater { toggleMaximize() }
+    }
+
     override fun onCreated() {
         frame?.title = I18n.get("app:title")
 
@@ -94,7 +109,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
             contentPanel = ComposePanel().apply {
                 setContent { WindowContent() }
             }
-            contentPanel?.let(titleBarHitTestBridge::attach)
         }
 
         permissionSubscription?.unsubscribe()
@@ -106,21 +120,15 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
         enterSplashState()
         contentPanel?.let(::setRoot)
-        synchronizeChrome()
     }
 
     override fun onWindowFocused() {
         resync()
     }
 
-    override fun onFrameMetricsChanged() {
-        synchronizeChrome()
-    }
-
     override fun onWorldClosed() {
         activeContext?.resetForWorldClose()
         enterSplashState()
-        synchronizeChrome()
         hideWindow()
     }
 
@@ -134,7 +142,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         splashMinTimeElapsed = false
         splashVersion++
         editorVersion++
-        titleBarClientAreas.clear()
     }
 
     private fun tryTransitionFromSplash() {
@@ -143,8 +150,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
         state = State.EDITOR
         editorVersion++
-        titleBarClientAreas.clear()
-        synchronizeChrome()
         resync()
     }
 
@@ -154,15 +159,10 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     @Composable
     private fun WindowContent() {
-        CompositionLocalProvider(
-            LocalWindowChromeState provides chromeState,
-            LocalTitleBarClientAreaRegistry provides titleBarClientAreas
-        ) {
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                when (state) {
-                    State.SPLASH -> SplashContent(splashVersion)
-                    State.EDITOR -> EditorContent(editorVersion)
-                }
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+            when (state) {
+                State.SPLASH -> SplashContent(splashVersion)
+                State.EDITOR -> EditorContent(editorVersion)
             }
         }
     }
@@ -200,59 +200,45 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
             StudioEditorRoot(context = context)
         }
     }
+}
 
-    private fun synchronizeChrome() {
-        val currentFrame = frame ?: return
-        val environment = WindowChromeResolver.currentEnvironment()
-        when (WindowChromeResolver.resolve(environment)) {
-            WindowChromeMode.JBR_CUSTOM_TITLEBAR -> applyJbrChrome(currentFrame, environment.platform)
-            WindowChromeMode.NATIVE_SYSTEM -> applyNativeChrome(currentFrame)
+fun Modifier.windowDragArea(id: String): Modifier = this
+    .pointerInput(id) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var moved = false
+            var clickCount = 0
+
+            VoxelStudioWindow.onDragStart()
+
+            while (true) {
+                val event = awaitPointerEvent()
+
+                when (event.type) {
+                    PointerEventType.Move -> {
+                        if (!moved) moved = true
+                        event.changes.forEach { it.consume() }
+                        VoxelStudioWindow.onDragMove()
+                    }
+
+                    PointerEventType.Release -> {
+                        if (moved) {
+                            VoxelStudioWindow.onDragEnd()
+                        } else {
+                            VoxelStudioWindow.onDragEnd()
+                            clickCount++
+                            if (down.pressed && clickCount == 2) {
+                                VoxelStudioWindow.onDragDoubleClick()
+                            }
+                        }
+                        return@awaitEachGesture
+                    }
+                }
+            }
         }
     }
 
-    private fun applyJbrChrome(
-        currentFrame: Frame,
-        platform: WindowPlatform
-    ) {
-        val decorations = runCatching { JBR.getWindowDecorations() }.getOrNull() ?: run {
-            applyNativeChrome(currentFrame)
-            return
-        }
-        val titleBar = customTitleBar ?: decorations.createCustomTitleBar().also {
-            customTitleBar = it
-        }
-        val titleBarHeightPx = currentFrame.dpToPixels(currentTitleBarHeightDp())
-        titleBar.setHeight(titleBarHeightPx.toFloat())
-        titleBar.putProperty("controls.visible", true)
-        if (platform == WindowPlatform.WINDOWS) {
-            titleBar.putProperty("controls.dark", true)
-        }
-        decorations.setCustomTitleBar(currentFrame, titleBar)
-
-        chromeState = WindowChromeState.customTitleBar(
-            titleBarHeightPx = titleBarHeightPx,
-            leftInsetPx = titleBar.leftInset.roundToInt(),
-            rightInsetPx = titleBar.rightInset.roundToInt()
-        )
-    }
-
-    private fun applyNativeChrome(currentFrame: Frame) {
-        runCatching { JBR.getWindowDecorations() }
-            .getOrNull()
-            ?.setCustomTitleBar(currentFrame, null)
-        customTitleBar = null
-        chromeState = WindowChromeState.nativeSystem()
-    }
-
-    private fun currentTitleBarHeightDp(): Int {
-        return when (state) {
-            State.SPLASH -> WindowChromeDefaults.SPLASH_TITLE_BAR_HEIGHT_DP
-            State.EDITOR -> WindowChromeDefaults.EDITOR_TITLE_BAR_HEIGHT_DP
-        }
-    }
-
-    private fun Frame.dpToPixels(dp: Int): Int {
-        val scale = graphicsConfiguration?.defaultTransform?.scaleY ?: 1.0
-        return (dp * scale).roundToInt().coerceAtLeast(1)
-    }
+@Composable
+fun RememberWindowDragArea(id: String) {
+    // Kept for backward compatibility - drag is now handled via pointerInput
 }
