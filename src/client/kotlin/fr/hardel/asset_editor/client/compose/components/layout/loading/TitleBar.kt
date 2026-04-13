@@ -20,6 +20,7 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -29,6 +30,8 @@ private const val TITLE_BAR_DRAG_AREA = "splash_title_bar_drag"
 
 @Composable
 fun TitleBar(modifier: Modifier = Modifier) {
+    RememberWindowDragArea(TITLE_BAR_DRAG_AREA)
+
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

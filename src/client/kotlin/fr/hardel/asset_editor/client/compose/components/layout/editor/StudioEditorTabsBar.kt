@@ -40,6 +40,7 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
+import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.resources.Identifier
 
@@ -48,6 +49,7 @@ private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 
 @Composable
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
+    RememberWindowDragArea(EDITOR_TABS_DRAG_AREA)
     val openTabs = rememberOpenTabs(context)
     val activeTabId = rememberActiveTabId(context)
 
