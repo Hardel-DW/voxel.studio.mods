@@ -60,7 +60,6 @@ fun ConceptLayout(
     ) {
         // aside: EditorSidebar equivalent
         EditorSidebar(
-            context = context,
             treeState = config.treeState,
             titleKey = config.sidebarTitleKey,
             iconPath = config.icon,
