@@ -15,52 +15,50 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
-import fr.hardel.asset_editor.client.compose.window.windowDragArea
+import fr.hardel.asset_editor.client.compose.window.LocalWindowChromeState
+import fr.hardel.asset_editor.client.compose.window.WindowChromeDefaults
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
-private const val TITLE_BAR_DRAG_AREA = "splash_title_bar_drag"
 
 @Composable
 fun TitleBar(modifier: Modifier = Modifier) {
-    RememberWindowDragArea(TITLE_BAR_DRAG_AREA)
+    val chromeState = LocalWindowChromeState.current
+    val density = LocalDensity.current
+    val leftInset = with(density) { chromeState.leftInsetPx.toDp() }
+    val rightInset = with(density) { chromeState.rightInsetPx.toDp() }
 
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().height(32.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(WindowChromeDefaults.SPLASH_TITLE_BAR_HEIGHT_DP.dp)
+                .padding(start = 12.dp + leftInset, end = 12.dp + rightInset)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .windowDragArea(TITLE_BAR_DRAG_AREA)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 12.dp)
-                ) {
-                    SvgIcon(location = LOGO, size = 16.dp, tint = Color.White)
-                    Text(
-                        text = I18n.get("app:title"),
-                        style = StudioTypography.medium(12),
-                        color = StudioColors.Zinc400,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
+                SvgIcon(location = LOGO, size = 16.dp, tint = Color.White)
+                Text(
+                    text = I18n.get("app:title"),
+                    style = StudioTypography.medium(12),
+                    color = StudioColors.Zinc400,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
 
                 Spacer(Modifier.weight(1f))
             }
-
-            WindowControls()
         }
 
         Box(

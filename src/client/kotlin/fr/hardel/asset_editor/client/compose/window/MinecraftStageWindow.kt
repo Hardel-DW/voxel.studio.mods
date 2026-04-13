@@ -5,7 +5,7 @@ import javax.swing.SwingUtilities
 abstract class MinecraftStageWindow(
     minWidth: Int,
     minHeight: Int
-) : UndecoratedStageWindow(minWidth, minHeight) {
+) : StageWindowHost(minWidth, minHeight) {
 
     private var startupRequested = false
 

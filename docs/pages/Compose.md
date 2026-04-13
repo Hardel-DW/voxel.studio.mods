@@ -17,9 +17,10 @@ We use Compose in Kotlin for the rendering.
 
 - routes/ -> The routes. 1 page = 1 file. Each file is a single component. You can also add private methods for specific logic. Only put components here, nothing else.
 - window/ -> Manages the window, split across three files.
-    - UndecoratedStageWindow.kt -> A component that manages any undecorated window. Not tied to Minecraft or Studio.
-    - MinecraftStageWindow -> Inherits from UndecoratedStageWindow and integrates all communication logic with Minecraft. Not tied to Studio.
-    - VoxelStudioWindow -> Inherits from MinecraftStageWindow and configures it specifically for Studio.
+    - UndecoratedStageWindow.kt -> Hosts the native decorated `JFrame` lifecycle and common window actions. No manual drag/snap/resize logic.
+    - MinecraftStageWindow -> Inherits from `StageWindowHost` and integrates all communication logic with Minecraft. Not tied to Studio.
+    - VoxelStudioWindow -> Inherits from `MinecraftStageWindow`, owns JBR custom title bar integration on Windows/macOS, and falls back to system chrome elsewhere.
+    - WindowChrome*.kt -> Internal chrome support: mode resolution, Compose locals, and title bar client-area hit testing for JBR custom title bars.
     
 - components/ -> The components. 1 component = 1 file.
     - ui/     -> Generic components not tied to a page/concept, pure and 100% generic, no I18n inside, only "string" parameters - the page provides the context.

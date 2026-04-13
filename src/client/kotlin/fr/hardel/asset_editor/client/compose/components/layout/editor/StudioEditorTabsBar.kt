@@ -27,12 +27,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.layout.loading.WindowControls
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -40,31 +40,36 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
-import fr.hardel.asset_editor.client.compose.window.RememberWindowDragArea
-import fr.hardel.asset_editor.client.compose.window.windowDragArea
+import fr.hardel.asset_editor.client.compose.window.LocalWindowChromeState
+import fr.hardel.asset_editor.client.compose.window.WindowChromeDefaults
+import fr.hardel.asset_editor.client.compose.window.windowChromeClientArea
 import net.minecraft.resources.Identifier
 
 private val CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg")
-private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 
 @Composable
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
-    RememberWindowDragArea(EDITOR_TABS_DRAG_AREA)
     val openTabs = rememberOpenTabs(context)
     val activeTabId = rememberActiveTabId(context)
+    val chromeState = LocalWindowChromeState.current
+    val density = LocalDensity.current
+    val leftInset = with(density) { chromeState.leftInsetPx.toDp() }
+    val rightInset = with(density) { chromeState.rightInsetPx.toDp() }
 
     // header: shrink-0 h-12 select-none flex items-center gap-4 pl-4
-    // Compose-only extras: PackSelector + WindowControls around the tablist.
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .padding(start = 8.dp)
+            .height(WindowChromeDefaults.EDITOR_TITLE_BAR_HEIGHT_DP.dp)
+            .padding(start = 8.dp + leftInset, end = 8.dp + rightInset)
     ) {
         // Compose-only: pack switcher before the tab list.
-        PackSelector(context = context)
+        PackSelector(
+            context = context,
+            modifier = Modifier.windowChromeClientArea("editor_pack_selector")
+        )
         // div: vertical separator
         Box(
             modifier = Modifier
@@ -94,11 +99,7 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .windowDragArea(EDITOR_TABS_DRAG_AREA)
         )
-
-        // Compose-only: desktop window controls.
-        WindowControls(buttonWidth = 48.dp, buttonHeight = 48.dp)
     }
 }
 
@@ -146,6 +147,7 @@ private fun StudioEditorTabItem(
                 context.navigationMemory().switchTab(tab.tabId)
             }
             .padding(horizontal = 12.dp, vertical = 6.dp)
+            .windowChromeClientArea("editor_tab_${tab.tabId}")
     ) {
         ResourceImageIcon(
             location = context.studioIcon(conceptId),
