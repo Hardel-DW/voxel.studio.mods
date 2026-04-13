@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.event;
 
 import fr.hardel.asset_editor.AssetEditor;
-import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.bootstrap.StudioWindowFacade;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.resources.Identifier;
@@ -22,6 +22,6 @@ public final class StudioReloadListener implements ResourceManagerReloadListener
     @Override
     public void onResourceManagerReload(@NonNull ResourceManager manager) {
         ItemAtlasRenderer.requestGeneration();
-        VoxelStudioWindow.notifyResourceReload();
+        StudioWindowFacade.notifyResourceReload();
     }
 }

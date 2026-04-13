@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.bootstrap.StudioWindowFacade;
 import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
@@ -54,7 +54,7 @@ public final class ClientSessionDispatch {
     }
 
     private void runSessionUpdate(Runnable update) {
-        if (!VoxelStudioWindow.isUiThreadAvailable()) {
+        if (!StudioWindowFacade.isUiThreadAvailable()) {
             update.run();
             return;
         }

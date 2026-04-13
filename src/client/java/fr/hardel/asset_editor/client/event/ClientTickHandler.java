@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.client.event;
 
-import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
+import fr.hardel.asset_editor.client.bootstrap.StudioWindowFacade;
+import fr.hardel.asset_editor.client.bootstrap.ui.ComposeInstallConfirmScreen;
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
 import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
@@ -24,7 +26,7 @@ public final class ClientTickHandler {
             ClientMemoryHolder.session().clear();
             ServerDataStore.clearAll();
             ClientMemoryHolder.debug().resetForWorldClose();
-            VoxelStudioWindow.notifyWorldClosed();
+            StudioWindowFacade.notifyWorldClosed();
         }
 
         hadWorld = hasWorld;
@@ -51,7 +53,12 @@ public final class ClientTickHandler {
             return;
         }
 
-        VoxelStudioWindow.requestOpen();
+        if (ComposeBootstrap.isReady() || ComposeBootstrap.tryLinkFromCache()) {
+            StudioWindowFacade.requestOpen();
+            return;
+        }
+        if (ComposeBootstrap.isDownloading()) return;
+        client.setScreen(new ComposeInstallConfirmScreen());
     }
 
     private static String computeWorldSessionKey(Minecraft client) {

@@ -1,14 +1,13 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow;
+import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
+import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.event.ClientTickHandler;
 import fr.hardel.asset_editor.client.event.StudioKeybinding;
 import fr.hardel.asset_editor.client.event.StudioReloadListener;
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import net.fabricmc.api.ClientModInitializer;
-
-import static fr.hardel.asset_editor.client.compose.StudioRoutesKt.registerStudioRoutes;
 
 public class AssetEditorClient implements ClientModInitializer {
 
@@ -19,10 +18,10 @@ public class AssetEditorClient implements ClientModInitializer {
         StudioDataSlots.register();
         ClientPreferences.register();
         StudioKeybinding.register();
-        registerStudioRoutes();
-        VoxelStudioWindow.initialize();
         ClientTickHandler.register();
         ClientNetworkHandler.register();
         StudioReloadListener.register();
+        ComposeDownloadHud.register();
+        ComposeBootstrap.tryLinkFromCache();
     }
 }

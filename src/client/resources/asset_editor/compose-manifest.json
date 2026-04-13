@@ -1,0 +1,395 @@
+{
+    "composeVersion": "1.9.1",
+    "common": [
+        {
+            "group": "org.jetbrains.compose.animation",
+            "name": "animation-core-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "animation-core-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/animation/animation-core-desktop/1.9.1/animation-core-desktop-1.9.1.jar",
+            "sha256": "76cf4d09b5312f9a9e46e80a270c76a7157a93819493feb7076f9c8c98610605",
+            "size": 380643
+        },
+        {
+            "group": "org.jetbrains.compose.animation",
+            "name": "animation-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "animation-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/animation/animation-desktop/1.9.1/animation-desktop-1.9.1.jar",
+            "sha256": "bbc5e198f7b8159fa7170aff2efbc9c6124a6da9a7faab8889e922422a3b225b",
+            "size": 344776
+        },
+        {
+            "group": "androidx.annotation",
+            "name": "annotation-jvm",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "annotation-jvm-1.9.1.jar",
+            "url": "https://maven.google.com/androidx/annotation/annotation-jvm/1.9.1/annotation-jvm-1.9.1.jar",
+            "sha256": "1e343917ebf27ba96fe4dc52b1cad7fd32b738fbc6355bb6cd5b3b305d7212d0",
+            "size": 60577
+        },
+        {
+            "group": "androidx.collection",
+            "name": "collection-jvm",
+            "version": "1.5.0",
+            "classifier": "",
+            "filename": "collection-jvm-1.5.0.jar",
+            "url": "https://maven.google.com/androidx/collection/collection-jvm/1.5.0/collection-jvm-1.5.0.jar",
+            "sha256": "70b35924e4babcdffa37d0e575ee039c56a2d97123342624c48b603233704341",
+            "size": 877998
+        },
+        {
+            "group": "androidx.arch.core",
+            "name": "core-common",
+            "version": "2.2.0",
+            "classifier": "",
+            "filename": "core-common-2.2.0.jar",
+            "url": "https://maven.google.com/androidx/arch/core/core-common/2.2.0/core-common-2.2.0.jar",
+            "sha256": "65308a06b1c00ee186cb9e19321383f043b993813f1522c47f4a3e3303bdba41",
+            "size": 11657
+        },
+        {
+            "group": "org.jetbrains.compose.desktop",
+            "name": "desktop-jvm",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "desktop-jvm-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/desktop/desktop-jvm/1.9.1/desktop-jvm-1.9.1.jar",
+            "sha256": "c229c52c95b4c4d73984c88f40f8475c07d13d2908d34df029e424b6ba1a99b2",
+            "size": 6044
+        },
+        {
+            "group": "org.jetbrains.compose.foundation",
+            "name": "foundation-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "foundation-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/foundation/foundation-desktop/1.9.1/foundation-desktop-1.9.1.jar",
+            "sha256": "d3c57aa818c01233408eeef0734f51b0bc1687b71e4cf863ddf92b93a7cc8612",
+            "size": 4337862
+        },
+        {
+            "group": "org.jetbrains.compose.foundation",
+            "name": "foundation-layout-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "foundation-layout-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/foundation/foundation-layout-desktop/1.9.1/foundation-layout-desktop-1.9.1.jar",
+            "sha256": "5950ce1e10259ae2198a46e1681d959f16bcd64d8b5d0289e17c50863af3f8ed",
+            "size": 579726
+        },
+        {
+            "group": "org.jetbrains.runtime",
+            "name": "jbr-api",
+            "version": "1.5.0",
+            "classifier": "",
+            "filename": "jbr-api-1.5.0.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/runtime/jbr-api/1.5.0/jbr-api-1.5.0.jar",
+            "sha256": "657ede7d7f8e175c909b23caa10fcd4d4a511304fd938aa9cc8457b4378950d5",
+            "size": 44469
+        },
+        {
+            "group": "org.jspecify",
+            "name": "jspecify",
+            "version": "1.0.0",
+            "classifier": "",
+            "filename": "jspecify-1.0.0.jar",
+            "url": "https://repo1.maven.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.jar",
+            "sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+            "size": 3819
+        },
+        {
+            "group": "androidx.lifecycle",
+            "name": "lifecycle-common-jvm",
+            "version": "2.9.4",
+            "classifier": "",
+            "filename": "lifecycle-common-jvm-2.9.4.jar",
+            "url": "https://maven.google.com/androidx/lifecycle/lifecycle-common-jvm/2.9.4/lifecycle-common-jvm-2.9.4.jar",
+            "sha256": "37d89b2101f074ac6c260917dabb185607645ee200aa3018c7c5bde70edcf184",
+            "size": 60804
+        },
+        {
+            "group": "androidx.lifecycle",
+            "name": "lifecycle-runtime-compose-desktop",
+            "version": "2.9.4",
+            "classifier": "",
+            "filename": "lifecycle-runtime-compose-desktop-2.9.4.jar",
+            "url": "https://maven.google.com/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.9.4/lifecycle-runtime-compose-desktop-2.9.4.jar",
+            "sha256": "d25c083df93da718a1876a3293bd15f7dc7a811e998735943bce590683a57835",
+            "size": 43088
+        },
+        {
+            "group": "org.jetbrains.androidx.lifecycle",
+            "name": "lifecycle-runtime-compose-desktop",
+            "version": "2.9.5",
+            "classifier": "",
+            "filename": "lifecycle-runtime-compose-desktop-2.9.5.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/androidx/lifecycle/lifecycle-runtime-compose-desktop/2.9.5/lifecycle-runtime-compose-desktop-2.9.5.jar",
+            "sha256": "31c3c4b6dea38f078c46829dee2c43abba2bf8757b7ee8a0f660f31217364898",
+            "size": 452
+        },
+        {
+            "group": "androidx.lifecycle",
+            "name": "lifecycle-runtime-desktop",
+            "version": "2.9.4",
+            "classifier": "",
+            "filename": "lifecycle-runtime-desktop-2.9.4.jar",
+            "url": "https://maven.google.com/androidx/lifecycle/lifecycle-runtime-desktop/2.9.4/lifecycle-runtime-desktop-2.9.4.jar",
+            "sha256": "2fb49f76d1021792fb359e0a9246c1509f2f5b555f0a46591d24d58deb68bd5c",
+            "size": 47399
+        },
+        {
+            "group": "androidx.lifecycle",
+            "name": "lifecycle-viewmodel-desktop",
+            "version": "2.9.4",
+            "classifier": "",
+            "filename": "lifecycle-viewmodel-desktop-2.9.4.jar",
+            "url": "https://maven.google.com/androidx/lifecycle/lifecycle-viewmodel-desktop/2.9.4/lifecycle-viewmodel-desktop-2.9.4.jar",
+            "sha256": "98f816be6869407c87d46058756f97780fa6c6cf61acdba97216f413731af15d",
+            "size": 56060
+        },
+        {
+            "group": "androidx.lifecycle",
+            "name": "lifecycle-viewmodel-savedstate-desktop",
+            "version": "2.9.4",
+            "classifier": "",
+            "filename": "lifecycle-viewmodel-savedstate-desktop-2.9.4.jar",
+            "url": "https://maven.google.com/androidx/lifecycle/lifecycle-viewmodel-savedstate-desktop/2.9.4/lifecycle-viewmodel-savedstate-desktop-2.9.4.jar",
+            "sha256": "3e0b44e2514eafdd6938d5457d9f46e4785077c45d3b4364b5c23c4dcb93efd3",
+            "size": 36160
+        },
+        {
+            "group": "org.jetbrains.compose.material",
+            "name": "material-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "material-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-desktop/1.9.1/material-desktop-1.9.1.jar",
+            "sha256": "5a04d1e29596023fdd5cafdedb4510a4a6fa65122e8419b5a204a516dc894787",
+            "size": 1734600
+        },
+        {
+            "group": "org.jetbrains.compose.material",
+            "name": "material-ripple-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "material-ripple-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/material/material-ripple-desktop/1.9.1/material-ripple-desktop-1.9.1.jar",
+            "sha256": "2407d9e83c6fd84b90b123cc7ae6291fa7a18bb40938ad210f675e4c86425c8b",
+            "size": 72750
+        },
+        {
+            "group": "androidx.compose.runtime",
+            "name": "runtime-annotation-jvm",
+            "version": "1.9.3",
+            "classifier": "",
+            "filename": "runtime-annotation-jvm-1.9.3.jar",
+            "url": "https://maven.google.com/androidx/compose/runtime/runtime-annotation-jvm/1.9.3/runtime-annotation-jvm-1.9.3.jar",
+            "sha256": "989b2da28bf5ba7966c08ca2db3f48a607e684e4ab4ff0de80e9cd5ec663c076",
+            "size": 8670
+        },
+        {
+            "group": "org.jetbrains.compose.runtime",
+            "name": "runtime-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "runtime-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/runtime/runtime-desktop/1.9.1/runtime-desktop-1.9.1.jar",
+            "sha256": "05f5570c0a7ea8addd6fe9507a70f293efa7f1450d8b9b16dc3c8fee21cc6127",
+            "size": 416
+        },
+        {
+            "group": "androidx.compose.runtime",
+            "name": "runtime-desktop",
+            "version": "1.9.3",
+            "classifier": "",
+            "filename": "runtime-desktop-1.9.3.jar",
+            "url": "https://maven.google.com/androidx/compose/runtime/runtime-desktop/1.9.3/runtime-desktop-1.9.3.jar",
+            "sha256": "b5639b2df04087287b5886d47db1ef791c279c1074ee628481726ed90cff03e7",
+            "size": 1458303
+        },
+        {
+            "group": "org.jetbrains.compose.runtime",
+            "name": "runtime-saveable-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "runtime-saveable-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.9.1/runtime-saveable-desktop-1.9.1.jar",
+            "sha256": "eb7132b55de2b0913736fdff4705022803e455810f018efecc9eb3230936520a",
+            "size": 434
+        },
+        {
+            "group": "androidx.compose.runtime",
+            "name": "runtime-saveable-desktop",
+            "version": "1.9.3",
+            "classifier": "",
+            "filename": "runtime-saveable-desktop-1.9.3.jar",
+            "url": "https://maven.google.com/androidx/compose/runtime/runtime-saveable-desktop/1.9.3/runtime-saveable-desktop-1.9.3.jar",
+            "sha256": "df9907a3e672c3fa9da7e880313679cdb07e80a7f3141f54ac1ec8149d0c5be6",
+            "size": 54212
+        },
+        {
+            "group": "androidx.savedstate",
+            "name": "savedstate-compose-desktop",
+            "version": "1.3.3",
+            "classifier": "",
+            "filename": "savedstate-compose-desktop-1.3.3.jar",
+            "url": "https://maven.google.com/androidx/savedstate/savedstate-compose-desktop/1.3.3/savedstate-compose-desktop-1.3.3.jar",
+            "sha256": "4a94787a6e5bcfe143390a4f2737d4425d2ea867f2b34a847de6cda3c6ccc58a",
+            "size": 15498
+        },
+        {
+            "group": "androidx.savedstate",
+            "name": "savedstate-desktop",
+            "version": "1.3.3",
+            "classifier": "",
+            "filename": "savedstate-desktop-1.3.3.jar",
+            "url": "https://maven.google.com/androidx/savedstate/savedstate-desktop/1.3.3/savedstate-desktop-1.3.3.jar",
+            "sha256": "c5c89062ba8402b8f8657efd54db1ff192f91ca95fae59c3b418fbc477c3e3ea",
+            "size": 80175
+        },
+        {
+            "group": "org.jetbrains.skiko",
+            "name": "skiko-awt",
+            "version": "0.9.22.2",
+            "classifier": "",
+            "filename": "skiko-awt-0.9.22.2.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/skiko/skiko-awt/0.9.22.2/skiko-awt-0.9.22.2.jar",
+            "sha256": "8cc7ed6c4ae2934cddf6502d17df30f3d1c235898c820b5062b930fea4b9d63c",
+            "size": 1264701
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-backhandler-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-backhandler-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-backhandler-desktop/1.9.1/ui-backhandler-desktop-1.9.1.jar",
+            "sha256": "37d369737c68efbd27b14b835ce288ccae45693cc1502cb5eb5831a34f44a3d0",
+            "size": 28771
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-desktop/1.9.1/ui-desktop-1.9.1.jar",
+            "sha256": "72ad268b0aafe809fae0e4a620a5682890c94cdb80d9603f0c63456c257a3c14",
+            "size": 3310765
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-geometry-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-geometry-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-geometry-desktop/1.9.1/ui-geometry-desktop-1.9.1.jar",
+            "sha256": "dea0f67524e4349637c985e0fa2204ff354922f38c65cc8f810649d0d8e9faea",
+            "size": 56581
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-graphics-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-graphics-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-graphics-desktop/1.9.1/ui-graphics-desktop-1.9.1.jar",
+            "sha256": "0f8be5263684dd3ae03c23e8221a1e8e6972a508ec9aecd777f8984798f151f8",
+            "size": 607195
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-text-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-text-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-text-desktop/1.9.1/ui-text-desktop-1.9.1.jar",
+            "sha256": "3377200710146a353584eb73ebfeadd7d64100d356baf5bf860876e118228f42",
+            "size": 699960
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-tooling-preview-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-tooling-preview-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-tooling-preview-desktop/1.9.1/ui-tooling-preview-desktop-1.9.1.jar",
+            "sha256": "ab28211150cb87c46d6737e2c86c9bf44dac642a95ed26db2c200a0e2daf250d",
+            "size": 1864
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-unit-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-unit-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-unit-desktop/1.9.1/ui-unit-desktop-1.9.1.jar",
+            "sha256": "115f7d01367fe1d757f46f3e588257cc12d39a2222a6b3975487ca0eea8616e6",
+            "size": 83009
+        },
+        {
+            "group": "org.jetbrains.compose.ui",
+            "name": "ui-util-desktop",
+            "version": "1.9.1",
+            "classifier": "",
+            "filename": "ui-util-desktop-1.9.1.jar",
+            "url": "https://repo1.maven.org/maven2/org/jetbrains/compose/ui/ui-util-desktop/1.9.1/ui-util-desktop-1.9.1.jar",
+            "sha256": "9cb002b892372fa203097ea11d2173df3e2710f640ccf78ad8d05f3e9af1f716",
+            "size": 18476
+        }
+    ],
+    "platforms": {
+        "windows-x64": [
+            {
+                "group": "org.jetbrains.skiko",
+                "name": "skiko-awt-runtime-windows-x64",
+                "version": "0.9.22.2",
+                "classifier": "",
+                "filename": "skiko-awt-runtime-windows-x64-0.9.22.2.jar",
+                "url": "https://repo1.maven.org/maven2/org/jetbrains/skiko/skiko-awt-runtime-windows-x64/0.9.22.2/skiko-awt-runtime-windows-x64-0.9.22.2.jar",
+                "sha256": "2d9ada9b3f4809d2d8aa53593336b92ec8c4c6cd14d6803c5bc260db96aac6c8",
+                "size": 10068009
+            }
+        ],
+        "linux-x64": [
+            {
+                "group": "org.jetbrains.skiko",
+                "name": "skiko-awt-runtime-linux-x64",
+                "version": "0.9.22.2",
+                "classifier": "",
+                "filename": "skiko-awt-runtime-linux-x64-0.9.22.2.jar",
+                "url": "https://repo1.maven.org/maven2/org/jetbrains/skiko/skiko-awt-runtime-linux-x64/0.9.22.2/skiko-awt-runtime-linux-x64-0.9.22.2.jar",
+                "sha256": "4b3c75f6c8aa60b88362c3dfd8d73f85d923735f3b15bf675c4981c26efe85d4",
+                "size": 12838942
+            }
+        ],
+        "linux-arm64": [
+            {
+                "group": "org.jetbrains.skiko",
+                "name": "skiko-awt-runtime-linux-arm64",
+                "version": "0.9.22.2",
+                "classifier": "",
+                "filename": "skiko-awt-runtime-linux-arm64-0.9.22.2.jar",
+                "url": "https://repo1.maven.org/maven2/org/jetbrains/skiko/skiko-awt-runtime-linux-arm64/0.9.22.2/skiko-awt-runtime-linux-arm64-0.9.22.2.jar",
+                "sha256": "aa734fcefa0e8d47208172f270db15bd3dac1df21782ea8a201343ff711dee13",
+                "size": 10511988
+            }
+        ],
+        "macos-arm64": [
+            {
+                "group": "org.jetbrains.skiko",
+                "name": "skiko-awt-runtime-macos-arm64",
+                "version": "0.9.22.2",
+                "classifier": "",
+                "filename": "skiko-awt-runtime-macos-arm64-0.9.22.2.jar",
+                "url": "https://repo1.maven.org/maven2/org/jetbrains/skiko/skiko-awt-runtime-macos-arm64/0.9.22.2/skiko-awt-runtime-macos-arm64-0.9.22.2.jar",
+                "sha256": "89a31521faf9985bbd4858c863283d1c38ea5d78d177bdb39aa3203285f2fd04",
+                "size": 17914247
+            }
+        ]
+    }
+}

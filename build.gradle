@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 plugins {
     id 'fabric-loom' version '1.15-SNAPSHOT'
     id 'org.jetbrains.kotlin.jvm' version '2.3.10'
@@ -36,18 +38,140 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    composeRuntimeWindowsX64
+    composeRuntimeLinuxX64
+    composeRuntimeLinuxArm64
+    composeRuntimeMacosArm64
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
-    implementation compose.desktop.currentOs
+    compileOnly compose.desktop.currentOs
+    composeRuntimeWindowsX64 compose.desktop.windows_x64
+    composeRuntimeLinuxX64 compose.desktop.linux_x64
+    composeRuntimeLinuxArm64 compose.desktop.linux_arm64
+    composeRuntimeMacosArm64 compose.desktop.macos_arm64
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
     implementation "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8"
     testImplementation platform("org.junit:junit-bom:5.10.2")
     testImplementation "org.junit.jupiter:junit-jupiter"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+configurations.matching { it.name.startsWith("composeRuntime") }.configureEach {
+    exclude group: 'org.jetbrains.kotlin'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-jdk8'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-bom'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-core'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-core-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-json'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-json-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-cbor'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-serialization-cbor-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-datetime'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-datetime-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-core'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-core-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-bytestring'
+    exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-io-bytestring-jvm'
+    exclude group: 'org.jetbrains.kotlinx', module: 'atomicfu'
+    exclude group: 'org.jetbrains.kotlinx', module: 'atomicfu-jvm'
+}
+
+def composeManifestFile = file("src/client/resources/asset_editor/compose-manifest.json")
+
+tasks.register("generateComposeManifest") {
+    def platforms = [
+        "windows-x64": configurations.composeRuntimeWindowsX64,
+        "linux-x64"  : configurations.composeRuntimeLinuxX64,
+        "linux-arm64": configurations.composeRuntimeLinuxArm64,
+        "macos-arm64": configurations.composeRuntimeMacosArm64
+    ]
+    def composeVersion = "1.9.1"
+    platforms.values().each { inputs.files(it) }
+    inputs.property("composeVersion", composeVersion)
+    outputs.file(composeManifestFile)
+
+    doLast {
+        def resolvePlatform = { config ->
+            def map = [:]
+            config.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                def id = artifact.moduleVersion.id
+                def file = artifact.file
+                def classifier = artifact.classifier ?: ""
+                def ext = artifact.extension ?: "jar"
+                def filename = "${id.name}-${id.version}${classifier ? '-' + classifier : ''}.${ext}"
+                def groupPath = id.group.replace('.', '/')
+                def repoBase = id.group.startsWith("androidx.")
+                    ? "https://maven.google.com"
+                    : "https://repo1.maven.org/maven2"
+                def url = "${repoBase}/${groupPath}/${id.name}/${id.version}/${filename}"
+
+                def md = MessageDigest.getInstance("SHA-256")
+                file.withInputStream { is ->
+                    byte[] buf = new byte[8192]
+                    int n
+                    while ((n = is.read(buf)) > 0) md.update(buf, 0, n)
+                }
+                def sha256 = md.digest().encodeHex().toString()
+
+                def key = "${id.group}:${id.name}:${id.version}:${classifier}".toString()
+                map[key] = [
+                    group    : id.group,
+                    name     : id.name,
+                    version  : id.version,
+                    classifier: classifier,
+                    filename : filename,
+                    url      : url,
+                    sha256   : sha256,
+                    size     : file.length()
+                ]
+            }
+            return map
+        }
+
+        def resolved = [:]
+        platforms.each { name, config -> resolved[name] = resolvePlatform(config) }
+
+        def allKeys = resolved.values().collectMany { it.keySet() } as Set
+        def commonKeys = allKeys.findAll { key ->
+            resolved.values().every { it.containsKey(key) } &&
+                resolved.values().collect { it[key].sha256 }.toSet().size() == 1
+        }
+
+        def common = commonKeys.collect { resolved.values().first()[it] }.sort { it.filename }
+        def platformEntries = [:]
+        resolved.each { name, map ->
+            platformEntries[name] = map.findAll { !commonKeys.contains(it.key) }
+                                       .values()
+                                       .toList()
+                                       .sort { it.filename }
+        }
+
+        def manifest = [
+            composeVersion: composeVersion,
+            common        : common,
+            platforms     : platformEntries
+        ]
+
+        composeManifestFile.parentFile.mkdirs()
+        composeManifestFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(manifest))
+    }
+}
+
+tasks.named("processClientResources") {
+    dependsOn tasks.named("generateComposeManifest")
+}
+
+tasks.matching { it.name == "sourcesJar" }.configureEach {
+    dependsOn tasks.named("generateComposeManifest")
 }
 
 processResources {
