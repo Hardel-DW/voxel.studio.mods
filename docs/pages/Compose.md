@@ -7,6 +7,8 @@ We use Compose in Kotlin for the rendering.
 - Skills available in docs/skill are available on how to use Compose, reactivity, best practices, etc.
 - For static data, we use Minecraft's Data Driven approach. So through the datapack.
 - The server broadcasts or rollback what updates the selectors and updates the UI, and the selectors avoid re-rendering if the final state is identical.
+- We work by component; each Kotlin File constitutes a component.
+- SVGs/Asset should not be rewritten. Copy from tsx.
 
 ### Components
 - StudioColors.kt -> All colors must be centralized here.
