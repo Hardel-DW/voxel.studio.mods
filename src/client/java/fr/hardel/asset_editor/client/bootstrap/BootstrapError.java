@@ -21,6 +21,10 @@ public final class BootstrapError extends IOException {
         this.args = args;
     }
 
+    public String translationKey() {
+        return translationKey;
+    }
+
     public Component asComponent() {
         return Component.translatable(translationKey, args);
     }

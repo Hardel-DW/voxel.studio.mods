@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.event;
 
 import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
 import fr.hardel.asset_editor.client.bootstrap.StudioWindowFacade;
+import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeInstallConfirmScreen;
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
 import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
@@ -21,6 +22,9 @@ public final class ClientTickHandler {
     }
 
     private static void onEndTick(Minecraft client) {
+        if (StudioKeybinding.consumeToggleBootstrapHud())
+            ComposeDownloadHud.toggleHidden();
+
         boolean hasWorld = client.level != null && client.getConnection() != null;
         if (hadWorld && !hasWorld) {
             ClientMemoryHolder.session().clear();
@@ -39,6 +43,10 @@ public final class ClientTickHandler {
 
             session.setWorldSessionKey(nextWorldSessionKey);
         }
+
+        ComposeBootstrap.CompletionNotice completionNotice = ComposeBootstrap.consumeCompletionNotice();
+        if (completionNotice != null)
+            handleBootstrapCompletion(client, completionNotice);
 
         if (!StudioKeybinding.consumeOpenStudio())
             return;
@@ -59,6 +67,28 @@ public final class ClientTickHandler {
         }
         if (ComposeBootstrap.isDownloading()) return;
         client.setScreen(new ComposeInstallConfirmScreen());
+    }
+
+    private static void handleBootstrapCompletion(Minecraft client, ComposeBootstrap.CompletionNotice completionNotice) {
+        Component banner = Component.translatable(completionNotice.success()
+            ? "asset_editor.bootstrap.banner.complete"
+            : "asset_editor.bootstrap.banner.interrupted");
+        ComposeDownloadHud.showCompletionBanner(banner, completionNotice.success());
+        if (ComposeDownloadHud.isHidden() && completionNotice.success())
+            ComposeDownloadHud.playCompletionSound();
+
+        if (completionNotice.success() || client.player == null)
+            return;
+
+        if (completionNotice.networkIssue()) {
+            client.player.displayClientMessage(Component.translatable("asset_editor.bootstrap.chat.network_failed"), false);
+            return;
+        }
+
+        client.player.displayClientMessage(
+            Component.translatable("asset_editor.bootstrap.chat.failed", ComposeBootstrap.errorMessage()),
+            false);
+        client.player.displayClientMessage(Component.translatable("asset_editor.bootstrap.chat.report"), false);
     }
 
     private static String computeWorldSessionKey(Minecraft client) {

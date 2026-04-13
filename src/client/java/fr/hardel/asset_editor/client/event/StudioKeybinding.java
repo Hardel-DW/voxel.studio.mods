@@ -14,9 +14,15 @@ public final class StudioKeybinding {
 
     private static final KeyMapping OPEN_STUDIO = KeyBindingHelper.registerKeyBinding(
         new KeyMapping("key.asset_editor.open_studio", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F8, CATEGORY));
+    private static final KeyMapping TOGGLE_BOOTSTRAP_HUD = KeyBindingHelper.registerKeyBinding(
+        new KeyMapping("key.asset_editor.toggle_bootstrap_hud", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_F9, CATEGORY));
 
     public static boolean consumeOpenStudio() {
         return OPEN_STUDIO.consumeClick();
+    }
+
+    public static boolean consumeToggleBootstrapHud() {
+        return TOGGLE_BOOTSTRAP_HUD.consumeClick();
     }
 
     public static void register() {

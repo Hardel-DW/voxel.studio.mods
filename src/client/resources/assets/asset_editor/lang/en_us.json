@@ -1,5 +1,6 @@
 {
     "key.asset_editor.open_studio": "Open Voxel Studio",
+    "key.asset_editor.toggle_bootstrap_hud": "Toggle Runtime Download HUD",
     "key.category.asset_editor": "Asset Editor",
     "asset_editor.bootstrap.confirm.title": "Install Voxel Studio runtime",
     "asset_editor.bootstrap.confirm.description": "Voxel Studio relies on the Compose UI framework. Its runtime libraries are not bundled with the mod and will be downloaded on first use.",
@@ -12,6 +13,11 @@
     "asset_editor.bootstrap.hud.progress": "%1$s / %2$s  (%3$d / %4$d files)",
     "asset_editor.bootstrap.hud.failed": "Studio runtime install failed",
     "asset_editor.bootstrap.unit.mb": "%s MB",
+    "asset_editor.bootstrap.banner.complete": "Voxel Studio is ready",
+    "asset_editor.bootstrap.banner.interrupted": "Failed to install Voxel Studio",
+    "asset_editor.bootstrap.chat.network_failed": "Voxel Studio runtime download failed. Check your internet connection and try again.",
+    "asset_editor.bootstrap.chat.failed": "Voxel Studio runtime install failed: %s",
+    "asset_editor.bootstrap.chat.report": "If this keeps happening and it is not a simple connection issue, send your latest log on Discord.",
     "asset_editor.bootstrap.error.generic": "%s",
     "asset_editor.bootstrap.error.manifest_missing": "Compose manifest is missing from the mod resources.",
     "asset_editor.bootstrap.error.manifest_unreadable": "Compose manifest could not be read: %s",
@@ -152,7 +158,6 @@
     "debug:logs.level.error": "Error",
     "debug:logs.level.success": "Success",
     "debug:logs.category.sync": "Sync",
-
     "debug:logs.category.lifecycle": "Lifecycle",
     "debug:logs.category.action": "Action",
     "debug:network.column.time": "Time",
