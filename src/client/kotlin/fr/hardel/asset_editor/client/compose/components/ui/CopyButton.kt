@@ -61,7 +61,7 @@ fun CopyButton(
             }
     ) {
         if (showCheck) {
-            SvgIcon(CHECK_ICON, iconSize, StudioColors.Emerald400)
+            SvgIcon(CHECK_ICON, iconSize, StudioColors.Zinc100)
         } else {
             SvgIcon(COPY_ICON, iconSize, if (isHovered) StudioColors.Zinc300 else StudioColors.Zinc500)
         }

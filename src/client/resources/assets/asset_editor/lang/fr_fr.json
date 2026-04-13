@@ -193,6 +193,8 @@
     "debug:telemetry.optimistic_failed": "Projection optimiste echouee",
     "debug:telemetry.action_rejected": "Action rejetee par le serveur",
     "supports:help.discord": "Besoin d'aide ?",
+    "sidebar:reload.title": "Synchroniser avec le Jeu",
+    "sidebar:reload.subtitle": "Équivalent à /reload",
     "supports:title": "Soutenir Voxel",
     "supports:donate": "Faire un don",
     "supports:description": "Ces outils sont gratuits. Si tu aimes le projet, tu peux le soutenir.",

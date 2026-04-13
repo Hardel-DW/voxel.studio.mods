@@ -240,13 +240,13 @@ private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
         Text(
             text = if (inbound) "S" else "C",
             style = StudioTypography.semiBold(11),
-            color = if (inbound) StudioColors.Red400 else StudioColors.Emerald400
+            color = if (inbound) StudioColors.Red400 else StudioColors.Zinc300
         )
         Text("->", style = StudioTypography.medium(11), color = StudioColors.Zinc600)
         Text(
             text = if (inbound) "C" else "S",
             style = StudioTypography.semiBold(11),
-            color = if (inbound) StudioColors.Emerald400 else StudioColors.Red400
+            color = if (inbound) StudioColors.Zinc300 else StudioColors.Red400
         )
     }
 }
@@ -255,7 +255,7 @@ private fun DirectionBadge(direction: NetworkTraceMemory.Direction) {
 private fun TraceExpandContent(entry: NetworkTraceMemory.TraceEntry) {
     val inbound = entry.direction() == NetworkTraceMemory.Direction.INBOUND
     val directionLabel = if (inbound) "Server -> Client" else "Client -> Server"
-    val directionColor = if (inbound) StudioColors.Red400 else StudioColors.Emerald400
+    val directionColor = if (inbound) StudioColors.Red400 else StudioColors.Zinc300
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),

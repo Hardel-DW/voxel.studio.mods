@@ -37,7 +37,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeSidebarView
-import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -48,7 +47,6 @@ private val borderColor = StudioColors.Zinc800.copy(alpha = 0.5f)
 
 @Composable
 fun EditorSidebar(
-    context: StudioContext,
     treeState: ConceptTreeState,
     titleKey: String,
     iconPath: Identifier,
@@ -109,6 +107,10 @@ fun EditorSidebar(
         ) {
             topContent.forEach { it() }
             TreeSidebarView(treeState = treeState, modifier = Modifier.weight(1f))
+        }
+
+        Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            StudioReloadButton()
         }
 
         // div: p-4 border-t border-zinc-800/50 bg-zinc-950/90

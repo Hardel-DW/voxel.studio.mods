@@ -202,6 +202,8 @@
     "debug:telemetry.action_rejected": "Server rejected action",
     "changes:layout.title": "Changes",
     "supports:help.discord": "Need Help?",
+    "sidebar:reload.title": "Sync with game",
+    "sidebar:reload.subtitle": "Equivalent to /reload",
     "supports:donate": "Make a donation",
     "supports:become": "Become a Patreon",
     "supports:title": "Supports Voxel",

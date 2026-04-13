@@ -17,7 +17,6 @@ object StudioColors {
     val Zinc900 = Color(0xFF18181B)
     val Zinc950 = Color(0xFF09090B)
     val Red400 = Color(0xFFF87171)
-    val Emerald400 = Color(0xFF34D399)
     val Sky400 = Color(0xFF38BDF8)
     val Amber400 = Color(0xFFFBBF24)
 

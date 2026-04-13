@@ -16,6 +16,7 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
+import fr.hardel.asset_editor.permission.PermissionManager;
 import fr.hardel.asset_editor.permission.StudioPermissions;
 import fr.hardel.asset_editor.workspace.io.DataPackManager;
 import fr.hardel.asset_editor.workspace.io.ServerPackService;
@@ -64,6 +65,9 @@ public final class AssetEditorNetworking {
 
         PayloadTypeRegistry.playC2S().register(ServerDataRequestPayload.TYPE, ServerDataRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ServerDataRequestPayload.TYPE, AssetEditorNetworking::handleServerDataRequest);
+
+        PayloadTypeRegistry.playC2S().register(ReloadRequestPayload.TYPE, ReloadRequestPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ReloadRequestPayload.TYPE, AssetEditorNetworking::handleReloadRequest);
     }
 
     public static void sendPermissions(ServerPlayer player, StudioPermissions permissions) {
@@ -78,10 +82,6 @@ public final class AssetEditorNetworking {
         PackListSyncPayload payload = new PackListSyncPayload(packs);
         for (ServerPlayer player : server.getPlayerList().getPlayers())
             ServerPlayNetworking.send(player, payload);
-    }
-
-    public static <T> void sendServerData(ServerPlayer player, ServerDataKey<T> key, java.util.List<T> data) {
-        ServerPlayNetworking.send(player, ServerDataSyncPayload.create(key, data));
     }
 
     public static <T> void broadcastServerData(MinecraftServer server, ServerDataKey<T> key, java.util.List<T> data) {
@@ -152,6 +152,16 @@ public final class AssetEditorNetworking {
 
     private static void handleServerDataRequest(ServerDataRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key()));
+    }
+
+    private static void handleReloadRequest(ReloadRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            ServerPlayer player = context.player();
+            PermissionManager manager = PermissionManager.get();
+            if (manager == null || !manager.isAdmin(player.getUUID())) return;
+            MinecraftServer server = context.server();
+            server.reloadResources(server.getPackRepository().getSelectedIds());
+        });
     }
 
     private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key) {

@@ -155,5 +155,5 @@ private fun levelColor(level: DebugLogMemory.Level): Color =
         DebugLogMemory.Level.INFO -> StudioColors.Sky400
         DebugLogMemory.Level.WARN -> StudioColors.Amber400
         DebugLogMemory.Level.ERROR -> StudioColors.Red400
-        DebugLogMemory.Level.SUCCESS -> StudioColors.Emerald400
+        DebugLogMemory.Level.SUCCESS -> StudioColors.Zinc100
     }
