@@ -34,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
@@ -63,7 +64,7 @@ fun LootItemEditor(
     onDelete: () -> Unit,
     onClose: () -> Unit
 ) {
-    val displayName = remember(reward.name) { humanizeName(reward.name) }
+    val displayName = remember(reward) { rewardDisplayName(reward) }
     var weight by remember(reward.weight) { mutableIntStateOf(reward.weight) }
     var countMin by remember(reward.countMin) { mutableIntStateOf(reward.countMin) }
     var countMax by remember(reward.countMax) { mutableIntStateOf(reward.countMax) }
@@ -325,9 +326,11 @@ private fun DeleteButton(onClick: () -> Unit) {
     }
 }
 
-private fun humanizeName(id: Identifier): String {
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
+internal fun rewardDisplayName(reward: FlattenedReward): String {
+    val domain = when (reward.kind) {
+        RewardKind.TAG -> "item_tag"
+        RewardKind.LOOT_TABLE -> "loot_table"
+        else -> "item"
     }
+    return StudioTranslation.resolve(domain, reward.name)
 }

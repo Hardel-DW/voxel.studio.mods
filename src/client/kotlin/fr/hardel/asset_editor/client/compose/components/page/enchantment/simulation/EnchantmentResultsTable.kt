@@ -21,11 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.RomanNumerals.toRoman
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import kotlinx.collections.immutable.ImmutableList
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 import java.util.Locale
 
@@ -119,7 +120,7 @@ private fun ResultsRow(stat: SimulationStats, alternate: Boolean) {
     ) {
         Column(modifier = Modifier.weight(3f)) {
             Text(
-                text = humanizeIdentifier(stat.enchantmentId),
+                text = StudioTranslation.resolve(Registries.ENCHANTMENT, stat.enchantmentId),
                 style = StudioTypography.medium(14),
                 color = Color.White
             )
@@ -184,14 +185,7 @@ private fun EmptyResultsState() {
 }
 
 private fun formatLevelRange(min: Int, max: Int): String {
-    if (min == max) return toRoman(min)
+    if (min == max) return I18n.get("enchantment.level.$min")
     val separator = I18n.get("enchantment:simulation.results.level_range.to")
-    return "${toRoman(min)} $separator ${toRoman(max)}"
-}
-
-private fun humanizeIdentifier(id: Identifier): String {
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
-    }
+    return "${I18n.get("enchantment.level.$min")} $separator ${I18n.get("enchantment.level.$max")}"
 }

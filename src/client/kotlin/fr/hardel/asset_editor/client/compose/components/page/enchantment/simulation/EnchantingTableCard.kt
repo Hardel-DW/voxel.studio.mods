@@ -27,27 +27,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
+import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltip
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
-import fr.hardel.asset_editor.client.compose.routes.enchantment.simulation.EnchantmentSimulationState
-import java.util.Locale
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
 
 private val BOOK_OPEN = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/gui/book_open.webp")
 private val BOOK_CLOSED = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/gui/book_closed.webp")
-
-private fun humanizeIdentifier(id: Identifier): String {
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
-    }
-}
 
 @Composable
 fun EnchantingTableCard(
@@ -70,14 +67,7 @@ fun EnchantingTableCard(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     BookToggle(opened = state.showTooltip, onToggle = state::toggleTooltip)
-                    EnchantingItemSlot(itemId = state.itemId, onClick = onPickItem)
-                    val option = state.currentOption
-                    if (state.showTooltip && option != null && option.entries.isNotEmpty()) {
-                        EnchantmentItemTooltip(
-                            itemName = humanizeIdentifier(state.itemId),
-                            enchantments = option.entries
-                        )
-                    }
+                    SlotWithTooltip(state = state, onPickItem = onPickItem)
                 }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -145,6 +135,29 @@ private fun BookToggle(opened: Boolean, onToggle: () -> Unit) {
             location = if (opened) BOOK_OPEN else BOOK_CLOSED,
             size = 80.dp
         )
+    }
+}
+
+@Composable
+private fun SlotWithTooltip(state: EnchantmentSimulationState, onPickItem: () -> Unit) {
+    Box {
+        EnchantingItemSlot(itemId = state.itemId, onClick = onPickItem)
+        val option = state.currentOption
+        if (state.showTooltip && option != null && option.entries.isNotEmpty()) {
+            val density = LocalDensity.current
+            Popup(
+                alignment = Alignment.BottomStart,
+                offset = with(density) { IntOffset(16.dp.roundToPx(), 8.dp.roundToPx()) }
+            ) {
+                MinecraftTooltip(
+                    name = StudioTranslation.resolve("item", state.itemId),
+                    enchantments = option.entries.map { entry ->
+                        val name = StudioTranslation.resolve(Registries.ENCHANTMENT, entry.enchantmentId)
+                        "$name ${I18n.get("enchantment.level.${entry.level}")}"
+                    }
+                )
+            }
+        }
     }
 }
 

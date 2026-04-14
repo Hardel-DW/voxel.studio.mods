@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.enchantment.simula
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,16 +15,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,13 +32,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import androidx.compose.foundation.Image
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.ui.MultiStep
+import fr.hardel.asset_editor.client.compose.components.ui.MultiStepControl
+import fr.hardel.asset_editor.client.compose.components.ui.MultiStepState
+import fr.hardel.asset_editor.client.compose.components.ui.rememberMultiStepState
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -92,7 +93,7 @@ private val STEPS = listOf(
 @Composable
 fun SimulationWelcomeDialog(onDismiss: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
-    var stepIndex by remember { mutableIntStateOf(0) }
+    val multiStep = rememberMultiStepState(totalSteps = STEPS.size)
     val animProgress = remember { Animatable(0f) }
     LaunchedEffect(Unit) { animProgress.animateTo(1f, tween(200)) }
 
@@ -132,14 +133,15 @@ fun SimulationWelcomeDialog(onDismiss: () -> Unit) {
                     ) {}
             ) {
                 Column {
-                    val step = STEPS[stepIndex]
-                    HeroImage(step.image)
-                    StepBody(step)
+                    MultiStep(state = multiStep) { current ->
+                        val step = STEPS[current]
+                        Column {
+                            HeroImage(step.image)
+                            StepBody(step)
+                        }
+                    }
                     DialogFooter(
-                        currentStep = stepIndex,
-                        totalSteps = STEPS.size,
-                        onPrevious = { if (stepIndex > 0) stepIndex-- },
-                        onNext = { if (stepIndex < STEPS.size - 1) stepIndex++ else onDismiss() },
+                        multiStep = multiStep,
                         onClose = onDismiss
                     )
                 }
@@ -204,10 +206,7 @@ private fun StepBody(step: WelcomeStep) {
 
 @Composable
 private fun DialogFooter(
-    currentStep: Int,
-    totalSteps: Int,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
+    multiStep: MultiStepState,
     onClose: () -> Unit
 ) {
     Row(
@@ -223,39 +222,12 @@ private fun DialogFooter(
             size = ButtonSize.SM,
             onClick = onClose
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StepIndicator(currentStep = currentStep, totalSteps = totalSteps)
-            if (currentStep > 0) {
-                Button(
-                    text = I18n.get("enchantment:simulation.dialog.previous"),
-                    variant = ButtonVariant.GHOST_BORDER,
-                    size = ButtonSize.SM,
-                    onClick = onPrevious
-                )
-            }
-            Button(
-                text = if (currentStep < totalSteps - 1) I18n.get("enchantment:simulation.dialog.next") else I18n.get("enchantment:simulation.dialog.done"),
-                variant = ButtonVariant.DEFAULT,
-                size = ButtonSize.SM,
-                onClick = onNext
-            )
-        }
-    }
-}
-
-@Composable
-private fun StepIndicator(currentStep: Int, totalSteps: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        repeat(totalSteps) { index ->
-            Box(
-                modifier = Modifier
-                    .size(width = if (index == currentStep) 20.dp else 8.dp, height = 8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(if (index == currentStep) StudioColors.Zinc200 else StudioColors.Zinc700)
-            )
-        }
+        MultiStepControl(
+            state = multiStep,
+            onDone = onClose,
+            previousLabel = I18n.get("enchantment:simulation.dialog.previous"),
+            nextLabel = I18n.get("enchantment:simulation.dialog.next"),
+            doneLabel = I18n.get("enchantment:simulation.dialog.done")
+        )
     }
 }

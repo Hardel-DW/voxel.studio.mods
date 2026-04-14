@@ -42,6 +42,7 @@ import fr.hardel.asset_editor.client.compose.components.page.loot_table.Flattene
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootItemEditor
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableFlattener
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.RewardKind
+import fr.hardel.asset_editor.client.compose.components.page.loot_table.rewardDisplayName
 import fr.hardel.asset_editor.workspace.action.loot_table.ReplaceEntryItemAction
 import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMaxAction
 import fr.hardel.asset_editor.workspace.action.loot_table.SetEntryCountMinAction
@@ -264,7 +265,7 @@ private fun RewardItemCard(
 ) {
     val normalizedProbability = if (totalProbability > 0) reward.probability / totalProbability else 0.0
     val probabilityPercent = "%.1f".format(normalizedProbability * 100)
-    val displayName = remember(reward.name) { humanizeIdentifier(reward.name) }
+    val displayName = remember(reward) { rewardDisplayName(reward) }
     val isNested = reward.kind == RewardKind.LOOT_TABLE
     val borderColor = if (isNested) StudioColors.Zinc700.copy(alpha = 0.5f) else StudioColors.Zinc900
     val interaction = remember { MutableInteractionSource() }
@@ -425,9 +426,3 @@ private fun RewardIcon(reward: FlattenedReward) {
     }
 }
 
-private fun humanizeIdentifier(id: Identifier): String {
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
-    }
-}

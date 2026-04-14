@@ -27,7 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
-import fr.hardel.asset_editor.client.compose.routes.enchantment.simulation.EnchantmentSimulationPage
+import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSimulationPage
 import kotlinx.collections.immutable.toImmutableMap
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -78,7 +78,10 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             totalCount = entries.size,
             modifiedCount = modifiedIds.size,
             showAll = conceptUi.showAll,
-            onSelectAll = { context.uiMemory().setShowAll(conceptId, true) },
+            onSelectAll = {
+                context.uiMemory().setShowAll(conceptId, true)
+                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
+            },
             onSelectChanges = { context.uiMemory().setShowAll(conceptId, false) },
             onSelectFolder = { path ->
                 context.uiMemory().updateFilterPath(conceptId, path)

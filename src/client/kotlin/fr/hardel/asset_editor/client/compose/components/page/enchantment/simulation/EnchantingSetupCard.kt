@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,7 +24,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.Counter
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleSwitch
-import fr.hardel.asset_editor.client.compose.routes.enchantment.simulation.EnchantmentSimulationState
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -41,7 +41,7 @@ fun EnchantingSetupCard(
         Row(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxSize()
         ) {
             BookshelfPreviewColumn(
                 bookshelves = state.bookshelves,
@@ -49,8 +49,8 @@ fun EnchantingSetupCard(
             )
             VerticalDivider()
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                modifier = Modifier.weight(1f)
+                verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically),
+                modifier = Modifier.weight(1f).fillMaxHeight()
             ) {
                 SetupRow(
                     title = I18n.get("enchantment:simulation.enchantability.title"),

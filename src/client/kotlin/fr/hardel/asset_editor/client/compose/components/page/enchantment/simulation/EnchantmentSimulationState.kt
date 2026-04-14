@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.routes.enchantment.simulation
+package fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -8,11 +8,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.MojangEnchantmentSimulator
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.SimulationMode
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.SimulationOption
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.SimulationSlotRange
-import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.SimulationStats
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
