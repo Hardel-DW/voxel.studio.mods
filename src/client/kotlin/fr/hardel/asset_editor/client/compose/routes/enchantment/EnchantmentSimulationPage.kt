@@ -101,7 +101,7 @@ fun EnchantmentSimulationPage(@Suppress("UNUSED_PARAMETER") context: StudioConte
                     stats = state.stats,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 32.dp, vertical = 24.dp)
+                        .padding(horizontal = 32.dp, vertical = 48.dp)
                 )
             }
             item("spacer") {

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +27,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -37,8 +41,8 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltip
-import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
+import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -120,22 +124,22 @@ private fun CardHeader() {
 @Composable
 private fun BookToggle(opened: Boolean, onToggle: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
-    Box(
+    val location = if (opened) BOOK_OPEN else BOOK_CLOSED
+    val bitmap = LocalStudioAssetCache.current.bitmap(location) ?: return
+    Image(
+        bitmap = bitmap,
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        filterQuality = FilterQuality.None,
         modifier = Modifier
-            .size(80.dp)
+            .width(80.dp)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
                 indication = null
-            ) { onToggle() },
-        contentAlignment = Alignment.Center
-    ) {
-        ResourceImageIcon(
-            location = if (opened) BOOK_OPEN else BOOK_CLOSED,
-            size = 80.dp
-        )
-    }
+            ) { onToggle() }
+    )
 }
 
 @Composable

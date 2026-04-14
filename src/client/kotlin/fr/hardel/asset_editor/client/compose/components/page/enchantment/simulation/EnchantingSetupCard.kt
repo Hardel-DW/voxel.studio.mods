@@ -49,8 +49,11 @@ fun EnchantingSetupCard(
             )
             VerticalDivider()
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.CenterVertically),
-                modifier = Modifier.weight(1f).fillMaxHeight()
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 24.dp)
             ) {
                 SetupRow(
                     title = I18n.get("enchantment:simulation.enchantability.title"),
@@ -65,13 +68,13 @@ fun EnchantingSetupCard(
                     )
                 }
                 SetupRow(
-                    title = I18n.get("enchantment:simulation.mode.title"),
-                    description = I18n.get("enchantment:simulation.mode.description")
+                    title = I18n.get("enchantment:simulation.current_pack.title"),
+                    description = I18n.get("enchantment:simulation.current_pack.description")
                 ) {
                     ToggleSwitch(
-                        checked = state.mode == SimulationMode.WORKSPACE_ONLY,
-                        onCheckedChange = { workspaceOnly ->
-                            state.updateMode(if (workspaceOnly) SimulationMode.WORKSPACE_ONLY else SimulationMode.ALL_REGISTRIES)
+                        checked = state.mode == SimulationMode.CURRENT_PACK_ONLY,
+                        onCheckedChange = { currentPackOnly ->
+                            state.updateMode(if (currentPackOnly) SimulationMode.CURRENT_PACK_ONLY else SimulationMode.ALL_REGISTRIES)
                         }
                     )
                 }
@@ -126,21 +129,23 @@ private fun SetupRow(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.weight(1f).padding(end = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.weight(3f).padding(end = 16.dp)
         ) {
             Text(
                 text = title,
-                style = StudioTypography.medium(15),
+                style = StudioTypography.medium(18),
                 color = StudioColors.Zinc200
             )
             Text(
                 text = description,
-                style = StudioTypography.regular(12),
+                style = StudioTypography.regular(14),
                 color = StudioColors.Zinc500
             )
         }
-        control()
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            control()
+        }
     }
 }
 

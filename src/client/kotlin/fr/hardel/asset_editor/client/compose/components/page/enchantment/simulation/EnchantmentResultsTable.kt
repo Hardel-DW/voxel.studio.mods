@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -16,6 +18,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -91,7 +94,7 @@ private fun ResultsTableHeaderRow() {
             .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TableHeaderCell(I18n.get("enchantment:simulation.results.table.enchantment"), weight = 3f)
+        TableHeaderCell(I18n.get("enchantment:simulation.results.table.enchantment"), weight = 1f)
         TableHeaderCell(I18n.get("enchantment:simulation.results.table.probability"), weight = 1f)
         TableHeaderCell(I18n.get("enchantment:simulation.results.table.average_level"), weight = 1f)
         TableHeaderCell(I18n.get("enchantment:simulation.results.table.level_range"), weight = 1f)
@@ -118,7 +121,7 @@ private fun ResultsRow(stat: SimulationStats, alternate: Boolean) {
             .padding(horizontal = 24.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(3f)) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = StudioTranslation.resolve(Registries.ENCHANTMENT, stat.enchantmentId),
                 style = StudioTypography.medium(14),
@@ -169,8 +172,13 @@ private fun EmptyResultsState() {
                 .background(StudioColors.Zinc900.copy(alpha = 0.5f))
                 .border(1.dp, StudioColors.Zinc800, CircleShape)
         ) {
-            ItemSprite(itemId = EMPTY_BOOK_ITEM, displaySize = 40.dp)
+            ItemSprite(
+                itemId = EMPTY_BOOK_ITEM,
+                displaySize = 40.dp,
+                modifier = Modifier.alpha(0.4f)
+            )
         }
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = I18n.get("enchantment:simulation.results.empty.title"),
             style = StudioTypography.medium(17),

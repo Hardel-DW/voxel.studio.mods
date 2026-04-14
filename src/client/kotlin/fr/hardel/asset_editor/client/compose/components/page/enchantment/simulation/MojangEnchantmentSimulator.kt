@@ -17,7 +17,7 @@ import net.minecraft.world.item.enchantment.Enchantable
 import net.minecraft.world.item.enchantment.Enchantment
 import net.minecraft.world.item.enchantment.EnchantmentHelper
 
-enum class SimulationMode { ALL_REGISTRIES, WORKSPACE_ONLY }
+enum class SimulationMode { ALL_REGISTRIES, CURRENT_PACK_ONLY }
 
 data class SimulationSlotRange(val slot: Int, val minLevel: Int, val maxLevel: Int)
 
@@ -124,11 +124,11 @@ object MojangEnchantmentSimulator {
     fun availableItems(mode: SimulationMode): ImmutableList<Identifier> {
         val registryAccess = Minecraft.getInstance().connection?.registryAccess() ?: return persistentListOf()
         val enchantments = registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
-        val workspaceIds: Set<Identifier> = ClientWorkspaceRegistries.ENCHANTMENT.snapshot().keys
+        val editedIds: Set<Identifier> = ClientWorkspaceRegistries.ENCHANTMENT.modifiedIdsSnapshot()
         val items = sortedSetOf<Identifier>(compareBy(Identifier::toString))
         enchantments.listElements().forEach { holder ->
             val id = holderId(holder) ?: return@forEach
-            if (mode == SimulationMode.WORKSPACE_ONLY && id !in workspaceIds) return@forEach
+            if (mode == SimulationMode.CURRENT_PACK_ONLY && id !in editedIds) return@forEach
             val definition = holder.value().definition()
             val source = definition.primaryItems().orElse(definition.supportedItems())
             source.stream().forEach { itemHolder ->
@@ -149,9 +149,9 @@ object MojangEnchantmentSimulator {
         val tag = registry.get(EnchantmentTags.IN_ENCHANTING_TABLE).orElse(null) ?: return emptyList()
         val all = tag.stream().toList()
         if (mode == SimulationMode.ALL_REGISTRIES) return all
-        val workspaceIds: Set<Identifier> = ClientWorkspaceRegistries.ENCHANTMENT.snapshot().keys
+        val editedIds: Set<Identifier> = ClientWorkspaceRegistries.ENCHANTMENT.modifiedIdsSnapshot()
         return all.filter { holder ->
-            holder.unwrapKey().map { workspaceIds.contains(it.identifier()) }.orElse(false)
+            holder.unwrapKey().map { editedIds.contains(it.identifier()) }.orElse(false)
         }
     }
 
