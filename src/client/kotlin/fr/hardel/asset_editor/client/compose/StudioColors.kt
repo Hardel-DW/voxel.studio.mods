@@ -36,4 +36,13 @@ object StudioColors {
     val CheckedCircle = Color(0xFFFFFFFF)
     val UncheckedRail = Color(0xFF343434)
     val UncheckedCircle = Color(0xFFDFDFDF)
+
+    // Minecraft in-game tooltip / experience palette
+    val Experience = Color(0xFF80FF20)
+    val TooltipBackground = Color(0xF0100010)
+    val TooltipBorder = Color(0xFF2D0A63)
+    val TooltipName = Color(0xFFFAFAFA)
+    val TooltipEnchant = Color(0xFFA8A8A8)
+    val TooltipLore = Color(0xFF545454)
+    val TooltipAttribute = Color(0xFF5555FF)
 }

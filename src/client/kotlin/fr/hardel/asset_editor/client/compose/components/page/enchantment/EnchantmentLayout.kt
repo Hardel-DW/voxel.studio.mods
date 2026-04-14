@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentOverviewPage
+import fr.hardel.asset_editor.client.compose.routes.enchantment.simulation.EnchantmentSimulationPage
 import kotlinx.collections.immutable.toImmutableMap
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -105,7 +106,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
                     LoadingPlaceholder(I18n.get("studio:loading.server_data"))
                 } else when (destination) {
                     is ConceptOverviewDestination -> EnchantmentOverviewPage(context)
-                    is ConceptSimulationDestination -> EmptyPage()
+                    is ConceptSimulationDestination -> EnchantmentSimulationPage(context)
                     is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
                     else -> EmptyPage()
                 }
