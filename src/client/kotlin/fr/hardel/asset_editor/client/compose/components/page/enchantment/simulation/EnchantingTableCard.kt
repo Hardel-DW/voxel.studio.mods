@@ -33,8 +33,12 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTranslation
@@ -43,9 +47,13 @@ import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltip
 import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
+import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
+import net.minecraft.world.item.ItemStack
 
 private val BOOK_OPEN = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/gui/book_open.webp")
 private val BOOK_CLOSED = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/gui/book_closed.webp")
@@ -149,20 +157,35 @@ private fun SlotWithTooltip(state: EnchantmentSimulationState, onPickItem: () ->
         val option = state.currentOption
         if (state.showTooltip && option != null && option.entries.isNotEmpty()) {
             val density = LocalDensity.current
-            Popup(
-                alignment = Alignment.BottomStart,
-                offset = with(density) { IntOffset(16.dp.roundToPx(), 8.dp.roundToPx()) }
-            ) {
+            val marginPx = with(density) { 12.dp.roundToPx() }
+            Popup(popupPositionProvider = BelowAnchorPositionProvider(marginPx)) {
                 MinecraftTooltip(
                     name = StudioTranslation.resolve("item", state.itemId),
                     enchantments = option.entries.map { entry ->
                         val name = StudioTranslation.resolve(Registries.ENCHANTMENT, entry.enchantmentId)
                         "$name ${I18n.get("enchantment.level.${entry.level}")}"
-                    }
+                    },
+                    tooltipStyle = tooltipStyleOf(state.itemId)
                 )
             }
         }
     }
+}
+
+private class BelowAnchorPositionProvider(private val marginPx: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset = IntOffset(x = anchorBounds.left, y = anchorBounds.bottom + marginPx)
+}
+
+private fun tooltipStyleOf(itemId: Identifier): Identifier? {
+    val registryAccess = Minecraft.getInstance().connection?.registryAccess() ?: return null
+    val key = ResourceKey.create(Registries.ITEM, itemId)
+    val holder = registryAccess.lookupOrThrow(Registries.ITEM).get(key).orElse(null) ?: return null
+    return ItemStack(holder.value()).get(DataComponents.TOOLTIP_STYLE)
 }
 
 @Composable
