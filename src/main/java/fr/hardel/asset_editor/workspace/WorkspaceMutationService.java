@@ -57,11 +57,13 @@ public final class WorkspaceMutationService {
 
         access.repository().put(access.packId(), definition, access.packRoot(), access.registries(), payload.targetId(), updated);
         access.repository().flushDirty(access.packRoot(), access.packId(), definition, access.registries());
-        return new MutationResult.Success(access.packId(), snapshot);
+        boolean modifiedVsReference = access.repository().isModifiedVsReference(
+            access.packId(), definition, access.packRoot(), access.registries(), payload.targetId());
+        return new MutationResult.Success(access.packId(), snapshot, modifiedVsReference);
     }
 
     public sealed interface MutationResult permits MutationResult.Success, MutationResult.Failure {
-        record Success(String packId, WorkspaceElementSnapshot snapshot) implements MutationResult {}
+        record Success(String packId, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) implements MutationResult {}
 
         record Failure(String errorCode) implements MutationResult {}
     }

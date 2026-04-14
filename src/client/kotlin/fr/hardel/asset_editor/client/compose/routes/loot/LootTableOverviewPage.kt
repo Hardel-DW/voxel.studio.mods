@@ -41,6 +41,7 @@ import fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
@@ -59,12 +60,15 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 fun LootTableOverviewPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.LOOT_TABLE)
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.LOOT_TABLE)
     val conceptId = context.studioConceptId(Registries.LOOT_TABLE) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
     val filterPath = conceptUi.filterPath.trim()
-    val filtered = remember(entries, search, filterPath) {
+    val showAll = conceptUi.showAll
+    val filtered = remember(entries, search, filterPath, showAll, modifiedIds) {
         entries
+            .filter { entry -> showAll || entry.id() in modifiedIds }
             .filter { entry -> search.isEmpty() || entry.id().path.contains(search) }
             .filter { entry -> matchesFilterPath(entry, filterPath) }
             .sortedBy { entry -> entry.id().toString() }

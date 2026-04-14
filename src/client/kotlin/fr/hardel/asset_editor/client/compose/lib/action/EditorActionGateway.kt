@@ -99,13 +99,13 @@ class EditorActionGateway(
 
     override fun handleWorkspaceSync(payload: WorkspaceSyncPayload) {
         if (!payload.mutationResponse()) {
-            payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it) }
+            payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it, payload.modifiedVsReference()) }
             return
         }
 
         val pending = removePendingAction(payload.actionId()) ?: return
         if (payload.accepted()) {
-            payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it) }
+            payload.snapshot()?.let { applySnapshotIfCurrentPack(payload.packId(), it, payload.modifiedVsReference()) }
             return
         }
 
@@ -117,7 +117,8 @@ class EditorActionGateway(
     override fun handlePackWorkspaceSync(
         packId: String,
         registryId: Identifier,
-        snapshots: List<WorkspaceElementSnapshot>
+        snapshots: List<WorkspaceElementSnapshot>,
+        modifiedIds: Set<Identifier>
     ) {
         val selectedPack = packSelection.selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
@@ -127,6 +128,7 @@ class EditorActionGateway(
         val workspace = ClientWorkspaceRegistries.get(registryId) ?: return
         val registries = clientRegistries() ?: return
         replaceAll(workspace, snapshots, registries)
+        workspace.publishModifiedIds(modifiedIds)
     }
 
     private fun <T : Any> projectOptimistic(
@@ -158,7 +160,7 @@ class EditorActionGateway(
         pending.restoreInto(registryMemory)
     }
 
-    private fun applySnapshotIfCurrentPack(packId: String, snapshot: WorkspaceElementSnapshot) {
+    private fun applySnapshotIfCurrentPack(packId: String, snapshot: WorkspaceElementSnapshot, modifiedVsReference: Boolean) {
         val selectedPack = packSelection.selectedPack()
         if (selectedPack == null || selectedPack.packId() != packId) {
             return
@@ -167,6 +169,7 @@ class EditorActionGateway(
         val workspace = ClientWorkspaceRegistries.get(snapshot.registryId()) ?: return
         val registries = clientRegistries() ?: return
         applySnapshot(workspace, snapshot, registries)
+        workspace.markModified(snapshot.targetId(), modifiedVsReference)
     }
 
     private fun replaceAll(

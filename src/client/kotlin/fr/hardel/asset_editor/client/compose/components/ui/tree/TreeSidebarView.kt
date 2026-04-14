@@ -56,16 +56,16 @@ fun TreeSidebarView(
             label = I18n.get("generic:updated"),
             count = treeState.modifiedCount,
             colorKey = "updated",
-            active = false,
-            onClick = treeState.onNavigateChanges
+            active = !treeState.showAll,
+            onClick = treeState.onSelectChanges
         )
 
         SidebarActionRow(
             icon = SEARCH_ICON,
             label = I18n.get("generic:all"),
-            count = treeState.rootCount,
+            count = treeState.totalCount,
             colorKey = "all",
-            active = treeState.isAllActive(),
+            active = treeState.showAll,
             onClick = treeState.onSelectAll
         )
 

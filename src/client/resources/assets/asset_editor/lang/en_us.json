@@ -205,7 +205,6 @@
     "debug:telemetry.requested_workspace_refresh": "Requested workspace refresh for selected pack",
     "debug:telemetry.optimistic_failed": "Optimistic projection failed",
     "debug:telemetry.action_rejected": "Server rejected action",
-    "changes:layout.title": "Changes",
     "supports:help.discord": "Need Help?",
     "sidebar:reload.title": "Sync with game",
     "sidebar:reload.subtitle": "Equivalent to /reload",

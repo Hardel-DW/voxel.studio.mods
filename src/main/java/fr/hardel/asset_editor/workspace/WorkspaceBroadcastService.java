@@ -9,12 +9,12 @@ import net.minecraft.server.level.ServerPlayer;
 
 public final class WorkspaceBroadcastService {
 
-    public void broadcastMutation(MinecraftServer server, ServerPlayer sender, String packId, WorkspaceElementSnapshot snapshot) {
+    public void broadcastMutation(MinecraftServer server, ServerPlayer sender, String packId, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
         PermissionManager permissionManager = PermissionManager.get();
         if (permissionManager == null)
             return;
 
-        WorkspaceSyncPayload payload = WorkspaceSyncPayload.remoteSync(packId, snapshot);
+        WorkspaceSyncPayload payload = WorkspaceSyncPayload.remoteSync(packId, snapshot, modifiedVsReference);
         for (ServerPlayer other : server.getPlayerList().getPlayers()) {
             if (other == sender)
                 continue;

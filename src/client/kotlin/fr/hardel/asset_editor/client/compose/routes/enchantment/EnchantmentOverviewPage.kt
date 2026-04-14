@@ -38,6 +38,7 @@ import fr.hardel.asset_editor.client.compose.lib.RegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentViewMatchers
@@ -58,13 +59,16 @@ private val SEARCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 fun EnchantmentOverviewPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.ENCHANTMENT)
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.ENCHANTMENT)
     val conceptId = context.studioConceptId(Registries.ENCHANTMENT) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
     val filterPath = conceptUi.filterPath.trim().lowercase(Locale.ROOT)
     val sidebarView = conceptUi.sidebarView
-    val filtered = remember(entries, search, filterPath, sidebarView) {
+    val showAll = conceptUi.showAll
+    val filtered = remember(entries, search, filterPath, sidebarView, showAll, modifiedIds) {
         entries
+            .filter { entry -> showAll || entry.id() in modifiedIds }
             .filter { entry -> search.isEmpty() || entry.id().path.contains(search) }
             .filter { entry -> EnchantmentViewMatchers.matches(entry, filterPath, sidebarView) }
             .sortedBy { entry -> entry.data().description().string }

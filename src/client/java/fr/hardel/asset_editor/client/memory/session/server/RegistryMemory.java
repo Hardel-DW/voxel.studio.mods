@@ -75,6 +75,7 @@ public final class RegistryMemory implements ReadableMemory<RegistryMemory.Snaps
         });
 
         publishRegistry(registryHandle, entries);
+        registryHandle.publishModifiedIds(Set.of());
     }
 
     public <T> ElementEntry<T> get(ClientWorkspaceRegistry<T> registry, Identifier id) {

@@ -11,7 +11,8 @@ import fr.hardel.asset_editor.AssetEditor;
 
 import java.util.UUID;
 
-public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutationResponse, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot) implements CustomPacketPayload {
+public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutationResponse, boolean accepted,
+    String errorCode, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) implements CustomPacketPayload {
 
     public WorkspaceSyncPayload {
         packId = packId == null ? "" : packId;
@@ -40,6 +41,7 @@ public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutatio
             ByteBufCodecs.BOOL.encode(buf, payload.snapshot() != null);
             if (payload.snapshot() != null)
                 WorkspaceElementSnapshot.STREAM_CODEC.encode(buf, payload.snapshot());
+            ByteBufCodecs.BOOL.encode(buf, payload.modifiedVsReference());
         },
         buf -> {
             UUID actionId = ByteBufCodecs.BOOL.decode(buf) ? UUID_CODEC.decode(buf) : null;
@@ -50,16 +52,17 @@ public record WorkspaceSyncPayload(UUID actionId, String packId, boolean mutatio
             WorkspaceElementSnapshot snapshot = ByteBufCodecs.BOOL.decode(buf)
                 ? WorkspaceElementSnapshot.STREAM_CODEC.decode(buf)
                 : null;
-            return new WorkspaceSyncPayload(actionId, packId, mutationResponse, accepted, errorCode, snapshot);
+            boolean modifiedVsReference = ByteBufCodecs.BOOL.decode(buf);
+            return new WorkspaceSyncPayload(actionId, packId, mutationResponse, accepted, errorCode, snapshot, modifiedVsReference);
         });
 
     public static WorkspaceSyncPayload mutationResult(UUID actionId, String packId, boolean accepted,
-        String errorCode, WorkspaceElementSnapshot snapshot) {
-        return new WorkspaceSyncPayload(actionId, packId, true, accepted, errorCode, snapshot);
+        String errorCode, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
+        return new WorkspaceSyncPayload(actionId, packId, true, accepted, errorCode, snapshot, modifiedVsReference);
     }
 
-    public static WorkspaceSyncPayload remoteSync(String packId, WorkspaceElementSnapshot snapshot) {
-        return new WorkspaceSyncPayload(null, packId, false, true, "", snapshot);
+    public static WorkspaceSyncPayload remoteSync(String packId, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
+        return new WorkspaceSyncPayload(null, packId, false, true, "", snapshot, modifiedVsReference);
     }
 
     @Override

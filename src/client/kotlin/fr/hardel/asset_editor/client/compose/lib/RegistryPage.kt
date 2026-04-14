@@ -53,6 +53,13 @@ fun <T : Any> rememberRegistryEntries(
 }
 
 @Composable
+fun rememberModifiedIds(
+    workspace: ClientWorkspaceRegistry<*>
+): Set<Identifier> {
+    return rememberMemoryValue(workspace.modifiedIdsMemory(), workspace) { it }
+}
+
+@Composable
 fun <T : Any> rememberCurrentRegistryEntry(
     context: StudioContext,
     workspace: ClientWorkspaceRegistry<T>

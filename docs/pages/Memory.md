@@ -21,7 +21,7 @@ Each Memory encapsulates a `SimpleMemory<Snapshot>` and exposes typed methods, l
 - **UiMemory** (`ui/`): Contains `concepts`, a map `conceptId -> ConceptUiSnapshot`.
 - **PackSelectionMemory** (`ui/`): Contains `selectedPack`.
 - **NavigationMemory** (`ui/`): Contains `current`, `tabs` and `activeTabId`.
-    *current*: can be `NoPermissionDestination`, `DebugDestination`, `ConceptOverviewDestination`, `ConceptChangesDestination`, `ConceptSimulationDestination` or `ElementEditorDestination`.
+    *current*: can be `NoPermissionDestination`, `DebugDestination`, `ConceptOverviewDestination`, `ConceptSimulationDestination` or `ElementEditorDestination`.
     *tabs*: list of `StudioTabEntry(tabId, destination)` where destination is always an `ElementEditorDestination`.
 
 - **RegistryMemory** (`server/`): Contains `registries`, a map `registryId -> (elementId -> ElementEntry<?>)`.

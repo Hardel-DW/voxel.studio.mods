@@ -12,6 +12,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 public final class WorkspaceRepository {
 
@@ -66,6 +67,16 @@ public final class WorkspaceRepository {
     public <T> List<ElementEntry<T>> snapshotWorkspace(String packId, WorkspaceDefinition<T> definition,
         Path packRoot, HolderLookup.Provider registries) {
         return List.copyOf(workspace(packId, definition, packRoot, registries).entries());
+    }
+
+    public <T> Set<Identifier> modifiedIds(String packId, WorkspaceDefinition<T> definition,
+        Path packRoot, HolderLookup.Provider registries) {
+        return workspace(packId, definition, packRoot, registries).modifiedIds();
+    }
+
+    public <T> boolean isModifiedVsReference(String packId, WorkspaceDefinition<T> definition,
+        Path packRoot, HolderLookup.Provider registries, Identifier id) {
+        return workspace(packId, definition, packRoot, registries).isModifiedVsReference(id);
     }
 
     public <T> void flushDirty(Path packRoot, String packId, WorkspaceDefinition<T> definition,

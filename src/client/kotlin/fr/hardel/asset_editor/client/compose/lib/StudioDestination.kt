@@ -18,11 +18,6 @@ data class ConceptOverviewDestination(
 ) : StudioDestination
 
 @Immutable
-data class ConceptChangesDestination(
-    val conceptId: Identifier
-) : StudioDestination
-
-@Immutable
 data class ConceptSimulationDestination(
     val conceptId: Identifier
 ) : StudioDestination

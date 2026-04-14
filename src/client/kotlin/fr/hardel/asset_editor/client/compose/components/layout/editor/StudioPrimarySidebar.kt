@@ -32,7 +32,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.DebugDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
@@ -48,7 +47,6 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
     val permissions = rememberPermissions(context)
     val currentConcept = when (val destination = rememberCurrentDestination(context)) {
         is ConceptOverviewDestination -> destination.conceptId
-        is ConceptChangesDestination -> destination.conceptId
         is ElementEditorDestination -> destination.conceptId
         else -> null
     }

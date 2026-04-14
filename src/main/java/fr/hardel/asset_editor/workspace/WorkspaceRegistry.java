@@ -5,7 +5,9 @@ import net.minecraft.resources.Identifier;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public final class WorkspaceRegistry<T> {
@@ -45,6 +47,23 @@ public final class WorkspaceRegistry<T> {
 
     public Map<Identifier, ElementEntry<T>> currentEntries() {
         return currentEntries;
+    }
+
+    public Set<Identifier> modifiedIds() {
+        LinkedHashSet<Identifier> result = new LinkedHashSet<>();
+        for (Map.Entry<Identifier, ElementEntry<T>> entry : currentEntries.entrySet()) {
+            if (!Objects.equals(referenceEntries.get(entry.getKey()), entry.getValue()))
+                result.add(entry.getKey());
+        }
+        return result;
+    }
+
+    public boolean isModifiedVsReference(Identifier id) {
+        ElementEntry<T> current = currentEntries.get(id);
+        if (current == null)
+            return false;
+
+        return !Objects.equals(referenceEntries.get(id), current);
     }
 
     public Set<Identifier> dirty() {

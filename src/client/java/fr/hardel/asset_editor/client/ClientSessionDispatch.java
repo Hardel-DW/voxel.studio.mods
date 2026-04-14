@@ -50,7 +50,7 @@ public final class ClientSessionDispatch {
     public void handlePackWorkspaceSync(PackWorkspaceSyncPayload payload) {
         var gateway = activeGateway;
         if (gateway != null)
-            runOnUiThread(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries()));
+            runOnUiThread(() -> gateway.handlePackWorkspaceSync(payload.packId(), payload.registryId(), payload.entries(), payload.modifiedIds()));
     }
 
     private void runSessionUpdate(Runnable update) {

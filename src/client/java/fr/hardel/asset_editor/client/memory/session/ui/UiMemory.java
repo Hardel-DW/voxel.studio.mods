@@ -41,23 +41,27 @@ public final class UiMemory implements ReadableMemory<UiMemory.Snapshot> {
     }
 
     public void updateSearch(Identifier conceptId, String value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.treeExpansion()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(value, current.filterPath(), current.sidebarView(), current.treeExpansion(), current.showAll()));
     }
 
     public void updateFilterPath(Identifier conceptId, String value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.treeExpansion()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), value, current.sidebarView(), current.treeExpansion(), current.showAll()));
     }
 
     public void updateSidebarView(Identifier conceptId, StudioSidebarView value) {
-        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), "", value, Map.of()));
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), "", value, Map.of(), current.showAll()));
     }
 
     public void setTreeExpanded(Identifier conceptId, String path, boolean expanded) {
         updateConcept(conceptId, current -> {
             LinkedHashMap<String, Boolean> next = new LinkedHashMap<>(current.treeExpansion());
             next.put(path, expanded);
-            return new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), next);
+            return new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), next, current.showAll());
         });
+    }
+
+    public void setShowAll(Identifier conceptId, boolean showAll) {
+        updateConcept(conceptId, current -> new ConceptUiSnapshot(current.search(), current.filterPath(), current.sidebarView(), current.treeExpansion(), showAll));
     }
 
     public void reset() {

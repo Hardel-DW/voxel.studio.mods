@@ -9,9 +9,9 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
@@ -25,15 +25,21 @@ fun LootTableLayout(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.LOOT_TABLE) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.LOOT_TABLE)
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.LOOT_TABLE)
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
-    val tree = remember(entries) { LootTableTreeBuilder.build(entries) }
+    val filteredEntries = remember(entries, conceptUi.showAll, modifiedIds) {
+        if (conceptUi.showAll) entries else entries.filter { it.id() in modifiedIds }
+    }
+    val tree = remember(filteredEntries) { LootTableTreeBuilder.build(filteredEntries) }
     val treeState = remember(
         tree,
         conceptUi.filterPath,
         conceptUi.treeExpansion,
-        currentEditor?.elementId
+        currentEditor?.elementId,
+        conceptUi.showAll,
+        modifiedIds
     ) {
         buildConceptTreeState(
             conceptId = conceptId,
@@ -44,10 +50,11 @@ fun LootTableLayout(context: StudioContext) {
             elementIcon = conceptIcon,
             folderIcons = emptyMap(),
             disableAutoExpand = false,
-            onSelectAll = {
-                context.uiMemory().updateFilterPath(conceptId, "")
-                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-            },
+            totalCount = entries.size,
+            modifiedCount = modifiedIds.size,
+            showAll = conceptUi.showAll,
+            onSelectAll = { context.uiMemory().setShowAll(conceptId, true) },
+            onSelectChanges = { context.uiMemory().setShowAll(conceptId, false) },
             onSelectFolder = { path ->
                 context.uiMemory().updateFilterPath(conceptId, path)
                 context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
@@ -57,8 +64,7 @@ fun LootTableLayout(context: StudioContext) {
             },
             onToggleExpanded = { path, expanded ->
                 context.uiMemory().setTreeExpanded(conceptId, path, expanded)
-            },
-            onNavigateChanges = { context.navigationMemory().navigate(ConceptChangesDestination(conceptId)) }
+            }
         )
     }
 

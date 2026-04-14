@@ -22,7 +22,7 @@ import net.minecraft.resources.Identifier
 fun registerStudioRoutes() {
     StudioUiRegistry.registerLayout(
         registryId = Registries.ENCHANTMENT.identifier(),
-        defaultSnapshot = ConceptUiSnapshot("", "", StudioSidebarView.SLOTS, emptyMap()),
+        defaultSnapshot = ConceptUiSnapshot("", "", StudioSidebarView.SLOTS, emptyMap(), true),
         supportsSimulation = true,
         prefetchAtlas = true,
         render = { context -> EnchantmentLayout(context) }

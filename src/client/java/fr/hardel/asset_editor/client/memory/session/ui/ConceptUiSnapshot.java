@@ -5,7 +5,7 @@ import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioS
 import java.util.Map;
 
 public record ConceptUiSnapshot(String search, String filterPath,
-    StudioSidebarView sidebarView, Map<String, Boolean> treeExpansion) {
+    StudioSidebarView sidebarView, Map<String, Boolean> treeExpansion, boolean showAll) {
 
     public ConceptUiSnapshot {
         search = search == null ? "" : search;
@@ -15,6 +15,6 @@ public record ConceptUiSnapshot(String search, String filterPath,
     }
 
     public ConceptUiSnapshot() {
-        this("", "", StudioSidebarView.SLOTS, Map.of());
+        this("", "", StudioSidebarView.SLOTS, Map.of(), true);
     }
 }

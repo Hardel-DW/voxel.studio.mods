@@ -36,7 +36,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import java.util.Locale
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.Registries
@@ -50,9 +52,14 @@ fun RecipeOverviewPage(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.RECIPE) ?: return
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRecipeEntries(context)
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.RECIPE)
     val search = conceptUi.search.trim().lowercase(Locale.ROOT)
-    val filtered = remember(entries, search, conceptUi.filterPath) {
+    val showAll = conceptUi.showAll
+    val filtered = remember(entries, search, conceptUi.filterPath, showAll, modifiedIds) {
         entries.filter { entry ->
+            if (!showAll && entry.id !in modifiedIds)
+                return@filter false
+
             if (search.isNotEmpty() && !entry.id.toString().lowercase(Locale.ROOT).contains(search))
                 return@filter false
 

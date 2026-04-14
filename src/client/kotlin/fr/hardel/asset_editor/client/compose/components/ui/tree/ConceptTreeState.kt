@@ -30,18 +30,17 @@ data class ConceptTreeState(
     val conceptId: Identifier,
     val tree: TreeNodeModel?,
     val rows: ImmutableList<TreeRowState>,
-    val rootCount: Int,
+    val totalCount: Int,
     val filterPath: String,
     val selectedElementId: String?,
     val modifiedCount: Int,
+    val showAll: Boolean,
     val onSelectAll: () -> Unit,
+    val onSelectChanges: () -> Unit,
     val onSelectFolder: (String) -> Unit,
     val onSelectElement: (String) -> Unit,
-    val onToggleExpanded: (String, Boolean) -> Unit,
-    val onNavigateChanges: () -> Unit
-) {
-    fun isAllActive(): Boolean = filterPath.isBlank() && selectedElementId.isNullOrBlank()
-}
+    val onToggleExpanded: (String, Boolean) -> Unit
+)
 
 fun buildConceptTreeState(
     conceptId: Identifier,
@@ -52,12 +51,14 @@ fun buildConceptTreeState(
     elementIcon: Identifier,
     folderIcons: Map<String, Identifier>,
     disableAutoExpand: Boolean,
+    totalCount: Int,
     modifiedCount: Int = 0,
+    showAll: Boolean = true,
     onSelectAll: () -> Unit,
+    onSelectChanges: () -> Unit,
     onSelectFolder: (String) -> Unit,
     onSelectElement: (String) -> Unit,
-    onToggleExpanded: (String, Boolean) -> Unit,
-    onNavigateChanges: () -> Unit
+    onToggleExpanded: (String, Boolean) -> Unit
 ): ConceptTreeState {
     val rows = if (tree == null) {
         emptyList()
@@ -69,7 +70,7 @@ fun buildConceptTreeState(
             filterPath = filterPath,
             elementIcon = elementIcon,
             folderIcons = folderIcons,
-            disableAutoExpand = disableAutoExpand
+            disableAutoExpand = disableAutoExpand || !showAll
         )
     }
 
@@ -77,15 +78,16 @@ fun buildConceptTreeState(
         conceptId = conceptId,
         tree = tree,
         rows = rows.toImmutableList(),
-        rootCount = tree?.count ?: 0,
+        totalCount = totalCount,
         filterPath = filterPath,
         selectedElementId = selectedElementId?.takeUnless { it.isBlank() },
         modifiedCount = modifiedCount,
+        showAll = showAll,
         onSelectAll = onSelectAll,
+        onSelectChanges = onSelectChanges,
         onSelectFolder = onSelectFolder,
         onSelectElement = onSelectElement,
-        onToggleExpanded = onToggleExpanded,
-        onNavigateChanges = onNavigateChanges
+        onToggleExpanded = onToggleExpanded
     )
 }
 

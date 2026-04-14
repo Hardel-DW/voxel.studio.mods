@@ -13,7 +13,6 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
@@ -89,7 +88,6 @@ fun ConceptLayout(
 private fun StudioDestination.conceptIdOrNull(): Identifier? =
     when (this) {
         is ConceptOverviewDestination -> conceptId
-        is ConceptChangesDestination -> conceptId
         is ConceptSimulationDestination -> conceptId
         is ElementEditorDestination -> conceptId
         else -> null

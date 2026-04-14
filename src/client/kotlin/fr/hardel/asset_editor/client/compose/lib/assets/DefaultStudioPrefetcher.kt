@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.lib.assets
 
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
@@ -19,7 +18,6 @@ class DefaultStudioPrefetcher(
         CompletableFuture.runAsync {
             when (destination) {
                 is ConceptOverviewDestination -> prefetchConcept(destination.conceptId)
-                is ConceptChangesDestination -> prefetchConcept(destination.conceptId)
                 is ElementEditorDestination -> {
                     prefetchConcept(destination.conceptId)
                     if (StudioUiRegistry.shouldPrefetchAtlas(destination.conceptId)) {

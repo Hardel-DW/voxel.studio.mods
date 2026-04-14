@@ -12,12 +12,12 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLay
 import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryEntries
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
@@ -38,8 +38,12 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
     val dataReady = compendiumItems.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = rememberRegistryEntries(context, ClientWorkspaceRegistries.ENCHANTMENT)
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.ENCHANTMENT)
     val sidebarView = conceptUi.sidebarView
-    val tree = remember(entries, sidebarView, compendiumItems) { EnchantmentTreeBuilder.build(entries, sidebarView) }
+    val filteredEntries = remember(entries, conceptUi.showAll, modifiedIds) {
+        if (conceptUi.showAll) entries else entries.filter { it.id() in modifiedIds }
+    }
+    val tree = remember(filteredEntries, sidebarView, compendiumItems) { EnchantmentTreeBuilder.build(filteredEntries, sidebarView) }
     val folderIcons = remember(sidebarView) {
         when (sidebarView) {
             StudioSidebarView.SLOTS -> EnchantmentTreeBuilder.slotFolderIcons()
@@ -57,7 +61,9 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
         conceptUi.filterPath,
         conceptUi.treeExpansion,
         currentEditor?.elementId,
-        sidebarView
+        sidebarView,
+        conceptUi.showAll,
+        modifiedIds
     ) {
         buildConceptTreeState(
             conceptId = conceptId,
@@ -68,10 +74,11 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             elementIcon = conceptIcon,
             folderIcons = folderIcons,
             disableAutoExpand = sidebarView == StudioSidebarView.SLOTS,
-            onSelectAll = {
-                context.uiMemory().updateFilterPath(conceptId, "")
-                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-            },
+            totalCount = entries.size,
+            modifiedCount = modifiedIds.size,
+            showAll = conceptUi.showAll,
+            onSelectAll = { context.uiMemory().setShowAll(conceptId, true) },
+            onSelectChanges = { context.uiMemory().setShowAll(conceptId, false) },
             onSelectFolder = { path ->
                 context.uiMemory().updateFilterPath(conceptId, path)
                 context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
@@ -81,8 +88,7 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             },
             onToggleExpanded = { path, expanded ->
                 context.uiMemory().setTreeExpanded(conceptId, path, expanded)
-            },
-            onNavigateChanges = { context.navigationMemory().navigate(ConceptChangesDestination(conceptId)) }
+            }
         )
     }
 

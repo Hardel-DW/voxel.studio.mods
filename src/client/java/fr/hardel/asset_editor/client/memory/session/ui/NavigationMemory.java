@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.memory.session.ui;
 import fr.hardel.asset_editor.client.memory.core.ReadableMemory;
 import fr.hardel.asset_editor.client.memory.core.SimpleMemory;
 import fr.hardel.asset_editor.client.memory.core.Subscription;
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination;
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination;
 import fr.hardel.asset_editor.client.compose.lib.DebugDestination;
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination;
@@ -185,9 +184,6 @@ public final class NavigationMemory implements ReadableMemory<NavigationMemory.S
     private StudioDestination overviewFallback(StudioDestination destination) {
         if (destination instanceof ElementEditorDestination editorDestination)
             return new ConceptOverviewDestination(editorDestination.getConceptId());
-
-        if (destination instanceof ConceptChangesDestination changesDestination)
-            return new ConceptOverviewDestination(changesDestination.getConceptId());
 
         if (permissionSupplier.get().isNone())
             return NoPermissionDestination.INSTANCE;

@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class WorkspaceQueryService {
 
@@ -32,7 +33,8 @@ public final class WorkspaceQueryService {
         List<WorkspaceElementSnapshot> snapshots = entries.stream()
             .map(entry -> definition.toSnapshot(entry, access.registries()))
             .toList();
+        Set<Identifier> modifiedIds = access.repository().modifiedIds(access.packId(), definition, access.packRoot(), access.registries());
 
-        return new PackWorkspaceSyncPayload(access.packId(), definition.registryId(), snapshots);
+        return new PackWorkspaceSyncPayload(access.packId(), definition.registryId(), snapshots, modifiedIds);
     }
 }

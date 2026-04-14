@@ -13,7 +13,6 @@ Important: if you need knowledge, search in the directory:
 - client (Old JavaFX code)
 
 # Global Rules:
-- Gradle is accessible with "gradle\wrapper\gradle-wrapper.jar" path.
 - No redundancy.
 - No function/variable with a single line/reference. Except Getter/Setter...
 - Avoid over engineering.

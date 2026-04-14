@@ -11,10 +11,11 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
+import fr.hardel.asset_editor.client.compose.lib.rememberModifiedIds
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
 import fr.hardel.asset_editor.client.compose.routes.EmptyPage
-import fr.hardel.asset_editor.client.compose.lib.ConceptChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
@@ -30,11 +31,15 @@ fun RecipeLayout(context: StudioContext) {
     val dataReady = recipeEntryDefs.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = if (dataReady) rememberRecipeEntries(context) else emptyList()
+    val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.RECIPE)
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
-    val tree = remember(entries, recipeEntryDefs) {
-        RecipeTreeBuilder.build(entries.map { RecipeTreeBuilder.RecipeEntry(it.id.toString(), it.type) })
+    val filteredEntries = remember(entries, conceptUi.showAll, modifiedIds) {
+        if (conceptUi.showAll) entries else entries.filter { it.id in modifiedIds }
+    }
+    val tree = remember(filteredEntries) {
+        RecipeTreeBuilder.build(filteredEntries.map { RecipeTreeBuilder.RecipeEntry(it.id.toString(), it.type) })
     }
     val treeState = buildConceptTreeState(
         conceptId = conceptId,
@@ -45,10 +50,11 @@ fun RecipeLayout(context: StudioContext) {
         elementIcon = conceptIcon,
         folderIcons = RecipeTreeBuilder.folderIcons(),
         disableAutoExpand = false,
-        onSelectAll = {
-            context.uiMemory().updateFilterPath(conceptId, "")
-            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-        },
+        totalCount = entries.size,
+        modifiedCount = modifiedIds.size,
+        showAll = conceptUi.showAll,
+        onSelectAll = { context.uiMemory().setShowAll(conceptId, true) },
+        onSelectChanges = { context.uiMemory().setShowAll(conceptId, false) },
         onSelectFolder = { path ->
             context.uiMemory().updateFilterPath(conceptId, path)
             context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
@@ -58,8 +64,7 @@ fun RecipeLayout(context: StudioContext) {
         },
         onToggleExpanded = { path, expanded ->
             context.uiMemory().setTreeExpanded(conceptId, path, expanded)
-        },
-        onNavigateChanges = { context.navigationMemory().navigate(ConceptChangesDestination(conceptId)) }
+        }
     )
 
     ConceptLayout(
