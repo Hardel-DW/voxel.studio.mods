@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
+import fr.hardel.asset_editor.client.compose.components.ui.HQBlockRender
 import net.minecraft.resources.Identifier
 
 private data class BlockPos(val x: Int, val y: Int, val z: Int)
@@ -81,6 +81,6 @@ private fun AnimatedBlock(pos: BlockPos, visible: Boolean, itemId: Identifier) {
             .offset { IntOffset(baseXDp.roundToPx(), animatedY.roundToPx()) }
             .graphicsLayer { alpha = animatedAlpha }
     ) {
-        ItemSprite(itemId = itemId, displaySize = BLOCK_SIZE)
+        HQBlockRender(itemId = itemId, displaySize = BLOCK_SIZE)
     }
 }

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.mixin.client;
 
+import fr.hardel.asset_editor.client.rendering.HighQualityBlockRenderer;
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer;
 import fr.hardel.asset_editor.client.rendering.NativeAtlasSnapshotService;
 import net.minecraft.client.DeltaTracker;
@@ -14,6 +15,7 @@ public abstract class GameRendererMixin {
     @Inject(method = "render", at = @At("HEAD"))
     private void onRenderStart(DeltaTracker deltaTracker, boolean renderLevel, CallbackInfo ci) {
         ItemAtlasRenderer.tryGenerate();
+        HighQualityBlockRenderer.tryRenderPending();
         NativeAtlasSnapshotService.tick();
     }
 }
