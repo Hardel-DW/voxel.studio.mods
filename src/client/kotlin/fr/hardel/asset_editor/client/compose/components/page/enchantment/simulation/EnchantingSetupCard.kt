@@ -17,17 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Counter
-import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SimpleCard
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleSwitch
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.resources.Identifier
-
-private val ENCHANTING_TABLE_BLOCK = Identifier.fromNamespaceAndPath("minecraft", "textures/studio/block/enchanting_table.png")
 
 @Composable
 fun EnchantingSetupCard(
@@ -101,12 +96,7 @@ private fun BookshelfPreviewColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(180.dp)
-        ) {
-            ResourceImageIcon(location = ENCHANTING_TABLE_BLOCK, size = 96.dp)
-        }
+        EnchantingTable3DScene(bookshelves = bookshelves)
         Counter(
             value = bookshelves,
             min = 0,

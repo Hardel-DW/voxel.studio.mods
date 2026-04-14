@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class ItemAtlasRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemAtlasRenderer.class);
     private static final Identifier DEBUG_TEXTURE_ID = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "item_atlas");
-    private static final int ITEM_SIZE = 32;
+    private static final int ITEM_SIZE = 64;
 
     private static final AtomicBoolean needsGeneration = new AtomicBoolean(false);
     private static final CopyOnWriteArrayList<Runnable> generationListeners = new CopyOnWriteArrayList<>();
