@@ -19,6 +19,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.AbstractAction
 import javax.swing.JFrame
+import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 import org.slf4j.LoggerFactory
@@ -61,6 +62,11 @@ open class UndecoratedStageWindow(
                 screenBounds.y + (screenBounds.height - height) / 2
             )
             background = Color.BLACK
+        }
+
+        (createdFrame.contentPane as? JPanel)?.apply {
+            background = Color.BLACK
+            isOpaque = true
         }
 
         createdFrame.rootPane.apply {

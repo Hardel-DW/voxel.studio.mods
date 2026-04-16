@@ -17,6 +17,8 @@ abstract class MinecraftStageWindow(
 
     protected abstract fun onCreated()
 
+    protected open fun onBeforeShow() {}
+
     protected open fun onWorldClosed() {}
 
     protected open fun onResourceReload() {}
@@ -29,12 +31,19 @@ abstract class MinecraftStageWindow(
                 startupRequested = true
                 if (!initializeWindow()) return@invokeLater
                 platformReady = true
-                onCreated()
-                if (pendingWorldClose) {
-                    pendingWorldClose = false
-                    onWorldClosed()
-                    return@invokeLater
+
+                onBeforeShow()
+                onWindowFocused()
+                showWindow()
+
+                SwingUtilities.invokeLater {
+                    onCreated()
+                    if (pendingWorldClose) {
+                        pendingWorldClose = false
+                        onWorldClosed()
+                    }
                 }
+                return@invokeLater
             }
 
             onWindowFocused()
