@@ -1,0 +1,23 @@
+{
+  "registry": [
+    "minecraft:tags/banner_pattern",
+    "minecraft:tags/block",
+    "minecraft:tags/cat_variant",
+    "minecraft:tags/damage_type",
+    "minecraft:tags/dialog",
+    "minecraft:tags/enchantment",
+    "minecraft:tags/entity_type",
+    "minecraft:tags/fluid",
+    "minecraft:tags/game_event",
+    "minecraft:tags/instrument",
+    "minecraft:tags/item",
+    "minecraft:tags/painting_variant",
+    "minecraft:tags/point_of_interest_type",
+    "minecraft:tags/potion",
+    "minecraft:tags/timeline",
+    "minecraft:tags/villager_trade",
+    "minecraft:tags/worldgen"
+  ],
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

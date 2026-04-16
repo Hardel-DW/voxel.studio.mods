@@ -1,0 +1,5 @@
+{
+  "registry": "minecraft:trade_set",
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

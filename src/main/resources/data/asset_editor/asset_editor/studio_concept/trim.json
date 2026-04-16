@@ -1,0 +1,8 @@
+{
+  "registry": [
+    "minecraft:trim_material",
+    "minecraft:trim_pattern"
+  ],
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

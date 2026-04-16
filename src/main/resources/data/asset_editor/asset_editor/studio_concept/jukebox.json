@@ -1,0 +1,5 @@
+{
+  "registry": "minecraft:jukebox_song",
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

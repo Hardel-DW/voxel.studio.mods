@@ -13,6 +13,11 @@ data object NoPermissionDestination : StudioDestination
 data object DebugDestination : StudioDestination
 
 @Immutable
+data class ChangesDestination(
+    val selectedFile: String? = null
+) : StudioDestination
+
+@Immutable
 data class ConceptOverviewDestination(
     val conceptId: Identifier
 ) : StudioDestination

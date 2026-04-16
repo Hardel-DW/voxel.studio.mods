@@ -1,0 +1,14 @@
+{
+  "registry": [
+    "minecraft:wolf_variant",
+    "minecraft:zombie_nautilus_variant",
+    "minecraft:cat_variant",
+    "minecraft:chicken_variant",
+    "minecraft:cow_variant",
+    "minecraft:frog_variant",
+    "minecraft:painting_variant",
+    "minecraft:pig_variant"
+  ],
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

@@ -1,0 +1,11 @@
+{
+  "registry": [
+    "minecraft:chicken_sound_variant",
+    "minecraft:wolf_sound_variant",
+    "minecraft:cow_sound_variant",
+    "minecraft:cat_sound_variant",
+    "minecraft:pig_sound_variant"
+  ],
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

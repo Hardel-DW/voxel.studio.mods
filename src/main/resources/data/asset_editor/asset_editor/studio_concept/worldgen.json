@@ -1,0 +1,22 @@
+{
+  "registry": [
+    "minecraft:worldgen/biome",
+    "minecraft:worldgen/configured_carver",
+    "minecraft:worldgen/configured_feature",
+    "minecraft:worldgen/configured_structure_feature",
+    "minecraft:worldgen/configured_surface_builder",
+    "minecraft:worldgen/density_function",
+    "minecraft:worldgen/flat_level_generator_preset",
+    "minecraft:worldgen/multi_noise_biome_source_parameter_list",
+    "minecraft:worldgen/noise",
+    "minecraft:worldgen/noise_settings",
+    "minecraft:worldgen/placed_feature",
+    "minecraft:worldgen/processor_list",
+    "minecraft:worldgen/structure",
+    "minecraft:worldgen/structure_set",
+    "minecraft:worldgen/template_pool",
+    "minecraft:worldgen/world_preset"
+  ],
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

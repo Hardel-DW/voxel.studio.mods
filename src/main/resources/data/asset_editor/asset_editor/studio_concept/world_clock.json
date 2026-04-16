@@ -1,0 +1,5 @@
+{
+  "registry": "minecraft:world_clock",
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

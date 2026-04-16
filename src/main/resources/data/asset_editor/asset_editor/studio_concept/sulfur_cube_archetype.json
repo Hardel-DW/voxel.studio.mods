@@ -1,0 +1,5 @@
+{
+  "registry": "minecraft:sulfur_cube_archetype",
+  "default_editor_tab": "asset_editor:main",
+  "tabs": ["asset_editor:main"]
+}

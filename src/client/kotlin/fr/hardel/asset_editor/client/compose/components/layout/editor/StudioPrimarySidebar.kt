@@ -29,6 +29,7 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
+import fr.hardel.asset_editor.client.compose.lib.ChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberPermissions
@@ -40,6 +41,7 @@ import net.minecraft.resources.Identifier
 
 private val LOGO = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
 private val DEBUG_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/debug.svg")
+private val CHANGES_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
 private val SETTINGS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/settings.svg")
 
 @Composable
@@ -107,6 +109,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
             SidebarIconButton(icon = DEBUG_ICON) { context.navigationMemory().navigate(DebugDestination) }
+            SidebarIconButton(icon = CHANGES_ICON) { context.navigationMemory().navigate(ChangesDestination()) }
             SidebarIconButton(icon = SETTINGS_ICON) {}
         }
     }

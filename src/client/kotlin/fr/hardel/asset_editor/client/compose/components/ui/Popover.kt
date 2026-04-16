@@ -27,6 +27,8 @@ fun Popover(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     matchTriggerWidth: Boolean = false,
+    alignment: Alignment = Alignment.TopStart,
+    offset: IntOffset = IntOffset(0, 8),
     content: @Composable () -> Unit
 ) {
     if (!expanded) return
@@ -34,8 +36,8 @@ fun Popover(
     val shape = RoundedCornerShape(16.dp)
 
     Popup(
-        alignment = Alignment.TopStart,
-        offset = IntOffset(0, 8),
+        alignment = alignment,
+        offset = offset,
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {

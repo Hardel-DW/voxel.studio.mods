@@ -45,9 +45,15 @@ public final class StudioRegistryResolver {
         if (registryKey == null)
             return null;
 
-        Identifier registryId = registryKey.identifier();
+        return conceptIdForRegistry(registries, registryKey.identifier());
+    }
+
+    public static Identifier conceptIdForRegistry(RegistryAccess registries, Identifier registryId) {
+        if (registryId == null)
+            return null;
+
         return conceptIds(registries).stream()
-            .filter(conceptId -> registryId.equals(requireConceptDefinition(registries, conceptId).registry()))
+            .filter(conceptId -> requireConceptDefinition(registries, conceptId).hasRegistry(registryId))
             .findFirst()
             .orElse(null);
     }
@@ -87,8 +93,12 @@ public final class StudioRegistryResolver {
         return ResourceKey.createRegistryKey(requireConceptDefinition(registries, conceptId).registry());
     }
 
+    public static List<Identifier> registryIds(RegistryAccess registries, Identifier conceptId) {
+        return requireConceptDefinition(registries, conceptId).registries();
+    }
+
     public static String registryPath(RegistryAccess registries, Identifier conceptId) {
-        return requireConceptDefinition(registries, conceptId).registry().getPath();
+        return conceptId.getPath();
     }
 
     public static String titleKey(RegistryAccess registries, Identifier conceptId) {
@@ -101,6 +111,10 @@ public final class StudioRegistryResolver {
 
     public static Identifier icon(RegistryAccess registries, Identifier conceptId) {
         return Identifier.withDefaultNamespace("textures/studio/concept/" + registryPath(registries, conceptId) + ".png");
+    }
+
+    public static Identifier elementIcon(Identifier registryId) {
+        return Identifier.withDefaultNamespace("textures/studio/concept/" + registryId.getPath() + ".png");
     }
 
     private static Optional<Registry<StudioConceptDef>> conceptRegistry(RegistryAccess registries) {
