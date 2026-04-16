@@ -80,7 +80,6 @@ private val selectTriggerShape = RoundedCornerShape(20.dp)
 
 class DropdownMenuState {
     var expanded by mutableStateOf(false)
-    var triggerHeightPx by mutableIntStateOf(0)
     var triggerWidthPx by mutableIntStateOf(0)
 
     fun open() { expanded = true }
@@ -173,7 +172,11 @@ fun DropdownMenu(
         LocalDropdownMenuState provides state,
         LocalDropdownMenuClose provides { state.close() }
     ) {
-        Box { content() }
+        Box(
+            modifier = Modifier.onGloballyPositioned { coords ->
+                state.triggerWidthPx = coords.size.width
+            }
+        ) { content() }
     }
 }
 
@@ -192,11 +195,7 @@ fun DropdownMenuTrigger(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
-            ) { state.toggle() }
-            .onGloballyPositioned { coords ->
-                state.triggerHeightPx = coords.size.height
-                state.triggerWidthPx = coords.size.width
-            },
+            ) { state.toggle() },
         content = content
     )
 }
