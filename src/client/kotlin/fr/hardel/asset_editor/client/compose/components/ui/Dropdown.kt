@@ -50,10 +50,14 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -99,31 +103,47 @@ private val LocalDropdownMenuClose = compositionLocalOf<() -> Unit> {
 
 class DropdownSubMenuState {
     var expanded by mutableStateOf(false)
+    private var triggerHovered = false
+    private var contentHovered = false
     private var closeJob: Job? = null
 
-    fun requestOpen() {
+    fun setTriggerHovered(value: Boolean, scope: CoroutineScope) {
+        triggerHovered = value
+        refresh(scope)
+    }
+
+    fun setContentHovered(value: Boolean, scope: CoroutineScope) {
+        contentHovered = value
+        refresh(scope)
+    }
+
+    fun open() {
         closeJob?.cancel()
         closeJob = null
         expanded = true
     }
 
-    fun requestClose(scope: CoroutineScope) {
-        closeJob?.cancel()
-        closeJob = scope.launch {
-            delay(150)
-            expanded = false
-        }
-    }
-
-    fun cancelClose() {
-        closeJob?.cancel()
-        closeJob = null
-    }
-
     fun close() {
         closeJob?.cancel()
         closeJob = null
+        triggerHovered = false
+        contentHovered = false
         expanded = false
+    }
+
+    private fun refresh(scope: CoroutineScope) {
+        if (triggerHovered || contentHovered) {
+            closeJob?.cancel()
+            closeJob = null
+            expanded = true
+        } else if (expanded) {
+            closeJob?.cancel()
+            closeJob = scope.launch {
+                delay(150)
+                expanded = false
+                closeJob = null
+            }
+        }
     }
 }
 
@@ -221,7 +241,7 @@ fun DropdownMenuContent(
             modifier = modifier
                 .then(
                     if (matchTriggerWidth) Modifier.width(triggerWidthDp)
-                    else Modifier.widthIn(min = minWidth)
+                    else Modifier.widthIn(min = minWidth).width(IntrinsicSize.Max)
                 )
                 .graphicsLayer {
                     val p = animProgress.value
@@ -243,7 +263,7 @@ fun DropdownMenuContent(
             CompositionLocalProvider(LocalOpenSubMenu provides openSubMenu) {
                 Column(
                     modifier = Modifier
-                        .width(IntrinsicSize.Max)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState()),
                     content = content
                 )
@@ -501,10 +521,8 @@ fun DropdownMenuSubTrigger(
             val prev = openSubMenu?.value
             if (prev != null && prev !== subState) prev.close()
             openSubMenu?.value = subState
-            subState.requestOpen()
-        } else {
-            subState.requestClose(scope)
         }
+        subState.setTriggerHovered(isHovered, scope)
     }
 
     CompositionLocalProvider(LocalContentColor provides textColor) {
@@ -524,7 +542,7 @@ fun DropdownMenuSubTrigger(
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null
-                ) { if (subState.expanded) subState.close() else subState.requestOpen() }
+                ) { if (subState.expanded) subState.close() else subState.open() }
                 .padding(horizontal = 6.dp, vertical = 4.dp)
                 .then(if (inset) Modifier.padding(start = 22.dp) else Modifier)
         ) {
@@ -559,19 +577,37 @@ fun DropdownMenuSubContent(
     }
 
     LaunchedEffect(isHovered) {
-        if (isHovered) subState.cancelClose() else subState.requestClose(scope)
+        subState.setContentHovered(isHovered, scope)
     }
 
     val openSubMenu = remember { mutableStateOf<DropdownSubMenuState?>(null) }
 
+    val positionProvider = remember(gapPx) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize
+            ): IntOffset {
+                val preferredX = anchorBounds.right + gapPx
+                val x = if (preferredX + popupContentSize.width > windowSize.width) {
+                    anchorBounds.left - gapPx - popupContentSize.width
+                } else preferredX
+                val y = anchorBounds.top.coerceAtMost(windowSize.height - popupContentSize.height)
+                return IntOffset(x, y)
+            }
+        }
+    }
+
     Popup(
-        alignment = Alignment.TopEnd,
-        offset = IntOffset(gapPx, 0),
+        popupPositionProvider = positionProvider,
         properties = PopupProperties(focusable = false)
     ) {
         Box(
             modifier = modifier
                 .widthIn(min = minWidth)
+                .width(IntrinsicSize.Max)
                 .graphicsLayer {
                     val p = animProgress.value
                     alpha = p
@@ -592,7 +628,7 @@ fun DropdownMenuSubContent(
         ) {
             CompositionLocalProvider(LocalOpenSubMenu provides openSubMenu) {
                 Column(
-                    modifier = Modifier.width(IntrinsicSize.Max),
+                    modifier = Modifier.fillMaxWidth(),
                     content = content
                 )
             }
