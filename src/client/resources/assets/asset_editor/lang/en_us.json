@@ -62,6 +62,8 @@
     "debug:workspace.bool.false": "False",
     "debug:workspace.section.overview": "Overview",
     "debug:workspace.section.session": "Session",
+    "debug:workspace.section.navigation": "Navigation",
+    "debug:workspace.section.pack": "Pack",
     "debug:workspace.section.ui": "UI State",
     "debug:workspace.section.tabs": "Open Tabs",
     "debug:workspace.section.pending": "Pending Actions",

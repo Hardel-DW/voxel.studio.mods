@@ -1,6 +1,9 @@
 package fr.hardel.asset_editor.client.compose.routes.debug
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,21 +14,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.google.gson.GsonBuilder
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.debug.DEBUG_TIME_FORMAT
-import fr.hardel.asset_editor.client.compose.components.page.debug.DebugLogsActionBar
-import fr.hardel.asset_editor.client.compose.components.page.debug.DebugLogsExpandRow
-import fr.hardel.asset_editor.client.compose.components.page.debug.copyDebugLogsToClipboard
-import fr.hardel.asset_editor.client.compose.components.page.debug.debugLogLevelColor
+import fr.hardel.asset_editor.client.compose.components.ui.Button
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
 import fr.hardel.asset_editor.client.compose.components.ui.datatable.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.datatable.TableColumn
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.asFlow
+import fr.hardel.asset_editor.client.memory.session.debug.DebugLogMemory
 import net.minecraft.client.resources.language.I18n
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun DebugLogsPage(context: StudioContext) {
@@ -40,18 +49,38 @@ fun DebugLogsPage(context: StudioContext) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        DebugLogsActionBar(
-            entryCount = entries.size,
-            onCopyAll = { copyDebugLogsToClipboard(entries) },
-            onClear = context.debugMemory().logs()::clear
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = I18n.get("debug:logs.count", entries.size),
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc500
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Button(
+                onClick = { copyDebugLogsToClipboard(entries) },
+                variant = ButtonVariant.GHOST_BORDER,
+                size = ButtonSize.SM,
+                text = I18n.get("debug:logs.action.copy_all")
+            )
+            Button(
+                onClick = context.debugMemory().logs()::clear,
+                variant = ButtonVariant.GHOST_BORDER,
+                size = ButtonSize.SM,
+                text = I18n.get("debug:action.clear")
+            )
+        }
 
         DataTable(
             items = entries,
             columns = listOf(
                 TableColumn(I18n.get("debug:logs.column.time"), weight = 0.8f) { entry ->
                     Text(
-                        DEBUG_TIME_FORMAT.format(Instant.ofEpochMilli(entry.timestamp())),
+                        DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
+                            .format(Instant.ofEpochMilli(entry.timestamp())),
                         style = StudioTypography.regular(11),
                         color = StudioColors.Zinc500
                     )
@@ -60,7 +89,12 @@ fun DebugLogsPage(context: StudioContext) {
                     Text(
                         I18n.get("debug:logs.level.${entry.level().name.lowercase()}"),
                         style = StudioTypography.semiBold(11),
-                        color = debugLogLevelColor(entry.level())
+                        color = when (entry.level()) {
+                            DebugLogMemory.Level.INFO -> StudioColors.Sky400
+                            DebugLogMemory.Level.WARN -> StudioColors.Amber400
+                            DebugLogMemory.Level.ERROR -> StudioColors.Red400
+                            DebugLogMemory.Level.SUCCESS -> StudioColors.Zinc100
+                        }
                     )
                 },
                 TableColumn(I18n.get("debug:logs.column.category"), weight = 0.9f) { entry ->
@@ -81,10 +115,56 @@ fun DebugLogsPage(context: StudioContext) {
             idExtractor = { entry -> entry.id() },
             expandedIds = expandedIds,
             onToggleExpand = { id -> expandedIds = if (id in expandedIds) expandedIds - id else expandedIds + id },
-            expandContent = { entry -> DebugLogsExpandRow(entry) },
+            expandContent = { entry ->
+                if (entry.data().isEmpty()) {
+                    Text(
+                        text = I18n.get("debug:logs.no_additional_data"),
+                        style = StudioTypography.regular(12),
+                        color = StudioColors.Zinc500
+                    )
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        entry.data().forEach { (key, value) ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(key, style = StudioTypography.medium(11), color = StudioColors.Zinc500)
+                                Text(
+                                    value,
+                                    style = StudioTypography.regular(12),
+                                    color = StudioColors.Zinc300,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                CopyButton(textProvider = { value })
+                            }
+                        }
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
         )
     }
+}
+
+private val LOGS_GSON = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+
+private fun copyDebugLogsToClipboard(entries: List<DebugLogMemory.Entry>) {
+    val payload = entries.map { entry ->
+        buildMap<String, Any> {
+            put("timestamp", entry.timestamp())
+            put("level", entry.level().name)
+            put("category", entry.category().name)
+            put("message", entry.message())
+            if (entry.data().isNotEmpty()) put("data", entry.data())
+        }
+    }
+    Toolkit.getDefaultToolkit().systemClipboard
+        .setContents(StringSelection(LOGS_GSON.toJson(payload)), null)
 }

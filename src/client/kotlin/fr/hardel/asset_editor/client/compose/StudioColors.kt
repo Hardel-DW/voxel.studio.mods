@@ -19,6 +19,7 @@ object StudioColors {
     val Red400 = Color(0xFFF87171)
     val Sky400 = Color(0xFF38BDF8)
     val Amber400 = Color(0xFFFBBF24)
+    val Emerald400 = Color(0xFF34D399)
 
     // globals.css @theme variables
     val Editor = Color(0xFF0F0E0E)
