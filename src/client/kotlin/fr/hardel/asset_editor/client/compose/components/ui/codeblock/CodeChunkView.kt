@@ -114,6 +114,17 @@ internal fun CodeChunkView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .drawWithContent {
+                    drawContent()
+                    if (showGutter) {
+                        val x = gutterWidthPx - 1.dp.toPx()
+                        drawRect(
+                            color = CODE_GUTTER_BORDER,
+                            topLeft = Offset(x, 0f),
+                            size = Size(1.dp.toPx(), size.height)
+                        )
+                    }
+                }
                 .pointerHoverIcon(PointerIcon.Text)
                 .pointerInput(lazyListState) {
                     awaitPointerEventScope {
@@ -295,7 +306,7 @@ internal fun CodeChunkViewStatic(
         borderFill = borderFill,
         minHeight = minHeight,
         selection = selection,
-        onSelectionChange = { },
+        onSelectionChange = { selection = it },
         lazyListState = lazyListState,
         horizontalScrollState = horizontalScroll,
         focusRequester = focusRequester,
@@ -320,11 +331,6 @@ private fun ChunkGutter(
         modifier = Modifier
             .widthIn(min = width)
             .drawBehind {
-                drawRect(
-                    color = CODE_GUTTER_BORDER,
-                    topLeft = Offset(size.width - 1.dp.toPx(), 0f),
-                    size = Size(1.dp.toPx(), size.height)
-                )
                 val layout = layoutResult ?: return@drawBehind
                 drawPerLineBackgrounds(layout, lineStart, lineEnd, topPad.toPx()) { line ->
                     source.markers[line].gutterBackground
