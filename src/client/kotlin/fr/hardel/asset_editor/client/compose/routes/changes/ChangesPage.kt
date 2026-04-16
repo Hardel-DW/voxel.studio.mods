@@ -1,9 +1,10 @@
-package fr.hardel.asset_editor.client.compose.components.page.changes
+package fr.hardel.asset_editor.client.compose.routes.changes
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -19,12 +20,14 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesDiffBody
+import fr.hardel.asset_editor.client.compose.components.page.changes.DiffEmptyState
+import fr.hardel.asset_editor.client.compose.components.page.changes.DiffHeader
+import fr.hardel.asset_editor.client.compose.components.page.changes.formatDiffContentIfJson
+import fr.hardel.asset_editor.client.compose.components.page.changes.isPreviewableDiffPath
 import fr.hardel.asset_editor.client.compose.components.ui.Badge
 import fr.hardel.asset_editor.client.compose.components.ui.FloatingBanner
-import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CodeDiff
-import fr.hardel.asset_editor.client.compose.components.ui.codeblock.DiffStatus
 import fr.hardel.asset_editor.client.compose.lib.git.GitDiffPayload
-import fr.hardel.asset_editor.client.compose.lib.git.GitFileStatus
 import fr.hardel.asset_editor.client.compose.lib.git.GitState
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -33,25 +36,23 @@ private val BANNER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 private val BANNER_ACCENT = Color(0xFF38BDF8)
 
 @Composable
-fun ChangesDiffContent(
-    state: GitState,
-    selectedFile: String?,
-    modifier: Modifier = Modifier
-) {
-    val status = state.snapshot.status[selectedFile]
-    if (selectedFile.isNullOrBlank() || !isPreviewable(selectedFile) || status == null) {
-        DiffEmptyState(selectedFile = selectedFile, modifier = modifier)
+fun ChangesPage(gitState: GitState, selectedFile: String?) {
+    val status = gitState.snapshot.status[selectedFile]
+    if (selectedFile.isNullOrBlank() || !isPreviewableDiffPath(selectedFile) || status == null) {
+        DiffEmptyState(selectedFile = selectedFile, modifier = Modifier.fillMaxSize())
         return
     }
 
     var payload by remember(selectedFile) { mutableStateOf<GitDiffPayload?>(null) }
-    LaunchedEffect(selectedFile, state.snapshot.root) {
-        payload = state.readDiff(selectedFile)
+    LaunchedEffect(selectedFile, gitState.snapshot.root) {
+        payload = gitState.readDiff(selectedFile)
     }
 
     val name = selectedFile.substringAfterLast('/')
-    Column(modifier = modifier.fillMaxSize()) {
+
+    Column(modifier = Modifier.fillMaxSize()) {
         DiffHeader(name = name, file = selectedFile)
+
         Box(modifier = Modifier.fillMaxSize()) {
             val diff = payload
             if (diff == null) {
@@ -66,25 +67,24 @@ fun ChangesDiffContent(
                     )
                 }
             } else {
-                val formattedOriginal = formatIfJson(selectedFile, diff.original)
-                val formattedWorking = formatIfJson(selectedFile, diff.working)
-                DiffBody(
+                ChangesDiffBody(
                     status = status,
-                    original = formattedOriginal,
-                    working = formattedWorking,
+                    original = formatDiffContentIfJson(selectedFile, diff.original),
+                    working = formatDiffContentIfJson(selectedFile, diff.working),
                     modifier = Modifier.fillMaxSize().padding(bottom = 24.dp)
                 )
             }
+
             FloatingBanner(
                 icon = BANNER_ICON,
                 accent = BANNER_ACCENT,
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 24.dp)
             ) {
-                androidx.compose.foundation.layout.Row(
+                Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Badge(text = I18n.get("changes:banner.diff.badge"), accent = BANNER_ACCENT)
                     Text(
@@ -101,45 +101,4 @@ fun ChangesDiffContent(
             }
         }
     }
-}
-
-@Composable
-private fun DiffBody(
-    status: GitFileStatus,
-    original: String,
-    working: String,
-    modifier: Modifier = Modifier
-) {
-    when (status) {
-        GitFileStatus.ADDED, GitFileStatus.UNTRACKED -> CodeDiff(
-            original = "",
-            compiled = working,
-            status = DiffStatus.ADDED,
-            modifier = modifier
-        )
-        GitFileStatus.DELETED -> CodeDiff(
-            original = original,
-            compiled = "",
-            status = DiffStatus.DELETED,
-            modifier = modifier
-        )
-        GitFileStatus.MODIFIED, GitFileStatus.RENAMED -> CodeDiff(
-            original = original,
-            compiled = working,
-            status = DiffStatus.UPDATED,
-            modifier = modifier
-        )
-    }
-}
-
-private fun isPreviewable(path: String): Boolean =
-    path.endsWith(".json") || path.endsWith(".mcfunction") || path.endsWith(".mcmeta")
-
-private fun formatIfJson(path: String, content: String): String {
-    if (!path.endsWith(".json") && !path.endsWith(".mcmeta")) return content
-    if (content.isBlank()) return content
-    return runCatching {
-        val element = com.google.gson.JsonParser.parseString(content)
-        com.google.gson.GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(element)
-    }.getOrElse { content }
 }

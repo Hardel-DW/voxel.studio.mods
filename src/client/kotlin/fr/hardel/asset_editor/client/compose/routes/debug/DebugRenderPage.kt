@@ -21,33 +21,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.debug.AtlasSpriteTile
+import fr.hardel.asset_editor.client.compose.components.page.debug.STUDIO_ITEMS_ATLAS_ID
 import fr.hardel.asset_editor.client.compose.components.page.debug.SpriteCell
-import fr.hardel.asset_editor.client.compose.components.ui.Dropdown
+import fr.hardel.asset_editor.client.compose.components.page.debug.buildAtlasOptions
+import fr.hardel.asset_editor.client.compose.components.page.debug.toAtlasSpriteTile
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuLabel
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuSelectTrigger
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
-import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.NativeAtlasBridge
 import fr.hardel.asset_editor.client.rendering.NativeAtlasSnapshotService
-import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.Identifier
-
-private val STUDIO_ITEMS_ID = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_items")
-
-private data class AtlasOption(val id: Identifier, val label: String)
-private data class AtlasSpriteTile(
-    val id: Identifier,
-    val sourceX: Int,
-    val sourceY: Int,
-    val sourceWidth: Int,
-    val sourceHeight: Int
-)
 
 @Composable
 fun DebugRenderPage() {
@@ -56,7 +48,7 @@ fun DebugRenderPage() {
     var query by remember { mutableStateOf("") }
     var version by remember { mutableIntStateOf(0) }
 
-    val isStudioItems = selectedOption.id == STUDIO_ITEMS_ID
+    val isStudioItems = selectedOption.id == STUDIO_ITEMS_ATLAS_ID
 
     DisposableEffect(isStudioItems) {
         val subscription = if (isStudioItems) {
@@ -90,7 +82,7 @@ fun DebugRenderPage() {
             val lower = query.trim().lowercase()
             val all = nativeSnapshot.sprites().values
                 .sortedBy(NativeAtlasSnapshotService.SpriteRegion::spriteId)
-                .map(::toTile)
+                .map { it.toAtlasSpriteTile() }
             if (lower.isBlank()) all else all.filter { it.id.toString().contains(lower) }
         }
     }
@@ -136,16 +128,20 @@ fun DebugRenderPage() {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Dropdown(
-                        items = atlasOptions,
-                        selected = selectedOption,
-                        labelExtractor = AtlasOption::label,
-                        onSelect = { option ->
-                            selectedOption = option
-                            query = ""
-                        },
-                        label = I18n.get("debug:render.atlas.dropdown_label")
-                    )
+                    DropdownMenu {
+                        DropdownMenuSelectTrigger(label = selectedOption.label)
+                        DropdownMenuContent {
+                            DropdownMenuLabel(text = I18n.get("debug:render.atlas.dropdown_label"))
+                            atlasOptions.forEach { option ->
+                                DropdownMenuItem(onClick = {
+                                    selectedOption = option
+                                    query = ""
+                                }) {
+                                    Text(text = option.label, style = StudioTypography.regular(13))
+                                }
+                            }
+                        }
+                    }
                     InputText(
                         value = query,
                         onValueChange = { value -> query = value },
@@ -155,11 +151,7 @@ fun DebugRenderPage() {
                 }
 
                 if (title.isNotEmpty()) {
-                    Text(
-                        text = title,
-                        style = StudioTypography.regular(13),
-                        color = StudioColors.Zinc400
-                    )
+                    Text(text = title, style = StudioTypography.regular(13), color = StudioColors.Zinc400)
                 }
             }
 
@@ -200,26 +192,4 @@ fun DebugRenderPage() {
             }
         }
     }
-}
-
-private fun buildAtlasOptions(): List<AtlasOption> {
-    val options = mutableListOf(
-        AtlasOption(id = STUDIO_ITEMS_ID, label = I18n.get("debug:render.atlas.studio_items"))
-    )
-
-    Minecraft.getInstance().atlasManager.forEach { atlasId, _ ->
-        options.add(AtlasOption(id = atlasId, label = StudioTranslation.resolve("debug:render.atlas", atlasId)))
-    }
-
-    return options
-}
-
-private fun toTile(sprite: NativeAtlasSnapshotService.SpriteRegion): AtlasSpriteTile {
-    return AtlasSpriteTile(
-        id = sprite.spriteId(),
-        sourceX = sprite.sourceX(),
-        sourceY = sprite.sourceY(),
-        sourceWidth = sprite.sourceWidth(),
-        sourceHeight = sprite.sourceHeight()
-    )
 }

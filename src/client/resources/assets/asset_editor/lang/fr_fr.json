@@ -630,6 +630,7 @@
     "changes:menu.section.view": "Vue",
     "changes:menu.section.actions": "Actions",
     "changes:menu.section.repository": "Depot",
+    "changes:menu.section.branches": "Branches",
     "changes:menu.checkout": "Checkout vers...",
     "changes:menu.checkout.back": "Retour",
     "changes:menu.create_branch": "Creer une branche...",

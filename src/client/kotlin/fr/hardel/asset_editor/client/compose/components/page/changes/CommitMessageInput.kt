@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.ui
+package fr.hardel.asset_editor.client.compose.components.page.changes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

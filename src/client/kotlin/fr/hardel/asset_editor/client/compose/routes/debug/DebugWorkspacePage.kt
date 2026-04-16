@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.debug.DebugWorkspaceOverview
+import fr.hardel.asset_editor.client.compose.components.page.debug.DebugWorkspaceRegistriesSnapshot
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.Section
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -44,7 +46,7 @@ fun DebugWorkspacePage(context: StudioContext) {
     val registrySnapshot = remember(registryState) { context.registryMemory().entryCountsSnapshot() }
 
     val sections = linkedMapOf<String, Any>(
-        I18n.get("debug:workspace.section.overview") to OverviewSnapshot(
+        I18n.get("debug:workspace.section.overview") to DebugWorkspaceOverview(
             destination = destination.toString(),
             selectedPack = selectedPack?.packId() ?: "none",
             currentElement = currentEditor?.elementId ?: "none",
@@ -57,7 +59,7 @@ fun DebugWorkspacePage(context: StudioContext) {
         I18n.get("debug:workspace.section.ui") to uiSnapshot,
         "Navigation" to navigationSnapshot,
         "Pack" to packSnapshot,
-        I18n.get("debug:workspace.section.registries") to RegistriesSnapshot(registrySnapshot),
+        I18n.get("debug:workspace.section.registries") to DebugWorkspaceRegistriesSnapshot(registrySnapshot),
         I18n.get("debug:workspace.section.issues") to issuesSnapshot
     )
 
@@ -83,15 +85,3 @@ fun DebugWorkspacePage(context: StudioContext) {
         }
     }
 }
-
-private data class OverviewSnapshot(
-    val destination: String,
-    val selectedPack: String,
-    val currentElement: String,
-    val pendingActions: Int,
-    val openTabs: Int,
-    val registries: Int,
-    val totalEntries: Int
-)
-
-private data class RegistriesSnapshot(val counts: Map<String, Int>)

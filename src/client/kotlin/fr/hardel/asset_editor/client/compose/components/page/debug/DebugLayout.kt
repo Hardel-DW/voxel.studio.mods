@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.routes.debug
+package fr.hardel.asset_editor.client.compose.components.page.debug
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +28,11 @@ import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorBrea
 import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorHeaderTabItem
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugCodeBlockPage
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugLogsPage
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugNetworkPage
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugRenderPage
+import fr.hardel.asset_editor.client.compose.routes.debug.DebugWorkspacePage
 import net.minecraft.client.resources.language.I18n
 
 private const val TAB_WORKSPACE = "workspace"
@@ -86,7 +92,7 @@ fun DebugLayout(context: StudioContext) {
                             onBack = null
                         )
 
-                        androidx.compose.material.Text(
+                        Text(
                             text = I18n.get("debug:layout.title"),
                             style = StudioTypography.minecraftTen(36),
                             color = Color.White

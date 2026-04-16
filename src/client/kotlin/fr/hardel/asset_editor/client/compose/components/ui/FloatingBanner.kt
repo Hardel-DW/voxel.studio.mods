@@ -13,10 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import net.minecraft.resources.Identifier
+
+private val bannerShape = RoundedCornerShape(12.dp)
 
 @Composable
 fun FloatingBanner(
@@ -25,34 +28,39 @@ fun FloatingBanner(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
     Box(
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = Alignment.TopCenter,
         modifier = modifier
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
                 .widthIn(max = 520.dp)
-                .clip(shape)
-                .background(StudioColors.Zinc950.copy(alpha = 0.85f))
-                .border(1.dp, accent.copy(alpha = 0.25f), shape)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .shadow(
+                    8.dp, bannerShape,
+                    ambientColor = Color.Black.copy(alpha = 0.3f),
+                    spotColor = Color.Black.copy(alpha = 0.3f)
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.10f), bannerShape)
+                .background(StudioColors.Zinc950.copy(alpha = 0.92f), bannerShape)
+                .clip(bannerShape)
+                .padding(4.dp)
         ) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(accent.copy(alpha = 0.12f))
-                    .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(accent.copy(alpha = 0.10f))
                     .padding(8.dp)
             ) {
-                SvgIcon(location = icon, size = 16.dp, tint = accent)
+                SvgIcon(location = icon, size = 14.dp, tint = accent)
             }
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.weight(1f, fill = false)
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
             ) {
                 content()
             }

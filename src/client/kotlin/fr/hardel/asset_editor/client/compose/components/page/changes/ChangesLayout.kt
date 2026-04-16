@@ -39,13 +39,13 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
-import fr.hardel.asset_editor.client.compose.components.ui.CommitMessageInput
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.ChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import fr.hardel.asset_editor.client.compose.lib.git.GitState
 import fr.hardel.asset_editor.client.compose.lib.git.rememberGitState
+import fr.hardel.asset_editor.client.compose.routes.changes.ChangesPage
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -64,155 +64,149 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
 
     var commitMessage by rememberSaveable { mutableStateOf("") }
     var viewMode by rememberSaveable { mutableStateOf(ChangesView.CONCEPT) }
-    var menuOpen by remember { mutableStateOf(false) }
     var floatingDialog by remember { mutableStateOf(FloatingDialog.NONE) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-    Row(modifier = Modifier.fillMaxSize().background(StudioColors.Sidebar)) {
-        Column(
-            modifier = Modifier
-                .width(288.dp)
-                .fillMaxHeight()
-                .background(StudioColors.Zinc950.copy(alpha = 0.75f))
-                .border(
-                    width = 1.dp,
-                    color = StudioColors.Zinc800.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(0.dp)
-                )
-        ) {
-            SidebarHeader(
-                count = snapshot.status.size,
-                loading = snapshot.isLoading,
-                onReload = { gitState.fetchAndRefresh() },
-                onMoreClick = { menuOpen = !menuOpen },
-                menu = {
-                    ChangesActionsMenu(
-                        expanded = menuOpen,
-                        snapshot = snapshot,
-                        currentView = viewMode,
-                        onDismiss = { menuOpen = false },
-                        onViewChange = { viewMode = it },
-                        onPull = { gitState.pull() },
-                        onPush = { gitState.push() },
-                        onCommit = {
-                            if (commitMessage.isNotBlank() && snapshot.status.isNotEmpty()) {
-                                gitState.commit(commitMessage.trim(), snapshot.status.keys.toList())
-                                commitMessage = ""
-                            }
-                        },
-                        onCheckout = { floatingDialog = FloatingDialog.CHECKOUT },
-                        onCreateBranch = { floatingDialog = FloatingDialog.CREATE_BRANCH },
-
-                        onAddRemote = { floatingDialog = FloatingDialog.ADD_REMOTE },
-                        onRemoveRemote = { floatingDialog = FloatingDialog.REMOVE_REMOTE },
-                        onInit = { floatingDialog = FloatingDialog.INIT }
+        Row(modifier = Modifier.fillMaxSize().background(StudioColors.Sidebar)) {
+            Column(
+                modifier = Modifier
+                    .width(288.dp)
+                    .fillMaxHeight()
+                    .background(StudioColors.Zinc950.copy(alpha = 0.75f))
+                    .border(
+                        width = 1.dp,
+                        color = StudioColors.Zinc800.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(0.dp)
                     )
-                }
-            )
+            ) {
+                SidebarHeader(
+                    count = snapshot.status.size,
+                    loading = snapshot.isLoading,
+                    onReload = { gitState.fetchAndRefresh() },
+                    menu = {
+                        ChangesActionsMenu(
+                            snapshot = snapshot,
+                            currentView = viewMode,
+                            onViewChange = { viewMode = it },
+                            onPull = { gitState.pull() },
+                            onPush = { gitState.push() },
+                            onCommit = {
+                                if (commitMessage.isNotBlank() && snapshot.status.isNotEmpty()) {
+                                    gitState.commit(commitMessage.trim(), snapshot.status.keys.toList())
+                                    commitMessage = ""
+                                }
+                            },
+                            onCheckout = { floatingDialog = FloatingDialog.CHECKOUT },
+                            onCreateBranch = { floatingDialog = FloatingDialog.CREATE_BRANCH },
+                            onAddRemote = { floatingDialog = FloatingDialog.ADD_REMOTE },
+                            onRemoveRemote = { floatingDialog = FloatingDialog.REMOVE_REMOTE },
+                            onInit = { floatingDialog = FloatingDialog.INIT },
+                            trigger = {
+                                HeaderIconButton(icon = MORE_ICON, enabled = true)
+                            }
+                        )
+                    }
+                )
 
-            ActionSection(
-                gitState = gitState,
-                snapshot = snapshot,
-                commitMessage = commitMessage,
-                onCommitMessageChange = { commitMessage = it },
-                onClearCommit = { commitMessage = "" },
-                onInitRequest = { floatingDialog = FloatingDialog.INIT }
-            )
+                ActionSection(
+                    gitState = gitState,
+                    snapshot = snapshot,
+                    commitMessage = commitMessage,
+                    onCommitMessageChange = { commitMessage = it },
+                    onClearCommit = { commitMessage = "" },
+                    onInitRequest = { floatingDialog = FloatingDialog.INIT }
+                )
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                ) {
+                    when {
+                        !snapshot.gitInstalled -> GitNotInstalledNotice()
+                        !snapshot.isRepository -> NotARepositoryNotice()
+                        snapshot.status.isEmpty() -> EmptyChangesNotice()
+                        viewMode == ChangesView.FILE -> ChangesFileTreeView(
+                            status = snapshot.status,
+                            selectedFile = destination.selectedFile,
+                            onSelect = { path ->
+                                context.navigationMemory().navigate(ChangesDestination(path))
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        else -> ChangesConceptTreeView(
+                            registries = context.registryAccess(),
+                            status = snapshot.status,
+                            selectedFile = destination.selectedFile,
+                            onSelect = { path ->
+                                context.navigationMemory().navigate(ChangesDestination(path))
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+
+                SidebarFooter(snapshot = snapshot, gitState = gitState)
+            }
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                    .fillMaxHeight()
+                    .background(StudioColors.Zinc950)
             ) {
-                when {
-                    !snapshot.gitInstalled -> GitNotInstalledNotice()
-                    !snapshot.isRepository -> NotARepositoryNotice()
-                    snapshot.status.isEmpty() -> EmptyChangesNotice()
-                    viewMode == ChangesView.FILE -> ChangesFileTreeView(
-                        status = snapshot.status,
-                        selectedFile = destination.selectedFile,
-                        onSelect = { path ->
-                            context.navigationMemory().navigate(ChangesDestination(path))
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    else -> ChangesConceptTreeView(
-                        registries = context.registryAccess(),
-                        status = snapshot.status,
-                        selectedFile = destination.selectedFile,
-                        onSelect = { path ->
-                            context.navigationMemory().navigate(ChangesDestination(path))
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                ChangesPage(gitState = gitState, selectedFile = destination.selectedFile)
             }
-
-            SidebarFooter(snapshot = snapshot, gitState = gitState)
         }
 
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .background(StudioColors.Zinc950)
-        ) {
-            ChangesDiffContent(
-                state = gitState,
-                selectedFile = destination.selectedFile,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
+        AddRemoteDialog(
+            visible = floatingDialog == FloatingDialog.ADD_REMOTE,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { name, url ->
+                gitState.addRemote(name, url)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
 
-    AddRemoteDialog(
-        visible = floatingDialog == FloatingDialog.ADD_REMOTE,
-        snapshot = snapshot,
-        onDismiss = { floatingDialog = FloatingDialog.NONE },
-        onSubmit = { name, url ->
-            gitState.addRemote(name, url)
-            floatingDialog = FloatingDialog.NONE
-        }
-    )
+        RemoveRemoteDialog(
+            visible = floatingDialog == FloatingDialog.REMOVE_REMOTE,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onRemove = { name ->
+                gitState.removeRemote(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
 
-    RemoveRemoteDialog(
-        visible = floatingDialog == FloatingDialog.REMOVE_REMOTE,
-        snapshot = snapshot,
-        onDismiss = { floatingDialog = FloatingDialog.NONE },
-        onRemove = { name ->
-            gitState.removeRemote(name)
-            floatingDialog = FloatingDialog.NONE
-        }
-    )
+        CreateBranchDialog(
+            visible = floatingDialog == FloatingDialog.CREATE_BRANCH,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { name ->
+                gitState.createBranch(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
 
-    CreateBranchDialog(
-        visible = floatingDialog == FloatingDialog.CREATE_BRANCH,
-        onDismiss = { floatingDialog = FloatingDialog.NONE },
-        onSubmit = { name ->
-            gitState.createBranch(name)
-            floatingDialog = FloatingDialog.NONE
-        }
-    )
+        CheckoutBranchDialog(
+            visible = floatingDialog == FloatingDialog.CHECKOUT,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onCheckout = { name ->
+                gitState.checkoutBranch(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
 
-    CheckoutBranchDialog(
-        visible = floatingDialog == FloatingDialog.CHECKOUT,
-        snapshot = snapshot,
-        onDismiss = { floatingDialog = FloatingDialog.NONE },
-        onCheckout = { name ->
-            gitState.checkoutBranch(name)
-            floatingDialog = FloatingDialog.NONE
-        }
-    )
-
-    InitRepositoryDialog(
-        visible = floatingDialog == FloatingDialog.INIT,
-        onDismiss = { floatingDialog = FloatingDialog.NONE },
-        onSubmit = { url ->
-            gitState.init(url)
-            floatingDialog = FloatingDialog.NONE
-        }
-    )
+        InitRepositoryDialog(
+            visible = floatingDialog == FloatingDialog.INIT,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { url ->
+                gitState.init(url)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
     }
 }
 
@@ -221,7 +215,6 @@ private fun SidebarHeader(
     count: Int,
     loading: Boolean,
     onReload: () -> Unit,
-    onMoreClick: () -> Unit,
     menu: @Composable () -> Unit
 ) {
     Column(
@@ -253,14 +246,7 @@ private fun SidebarHeader(
                 onClick = onReload
             )
             Spacer(modifier = Modifier.width(2.dp))
-            Box {
-                HeaderIconButton(
-                    icon = MORE_ICON,
-                    enabled = true,
-                    onClick = onMoreClick
-                )
-                menu()
-            }
+            menu()
         }
         Text(
             text = I18n.get("changes:layout.subtitle").replace("{count}", count.toString()),
@@ -272,7 +258,7 @@ private fun SidebarHeader(
 }
 
 @Composable
-private fun HeaderIconButton(icon: Identifier, enabled: Boolean, onClick: () -> Unit) {
+private fun HeaderIconButton(icon: Identifier, enabled: Boolean, onClick: (() -> Unit)? = null) {
     val interaction = remember { MutableInteractionSource() }
     val isHovered by interaction.collectIsHoveredAsState()
     Box(
@@ -282,7 +268,14 @@ private fun HeaderIconButton(icon: Identifier, enabled: Boolean, onClick: () -> 
             .clip(RoundedCornerShape(6.dp))
             .hoverable(interaction, enabled = enabled)
             .pointerHoverIcon(if (enabled) PointerIcon.Hand else PointerIcon.Default)
-            .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
+            .then(
+                if (onClick != null) Modifier.clickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onClick
+                ) else Modifier
+            )
             .alpha(if (enabled) 1f else 0.4f)
     ) {
         SvgIcon(

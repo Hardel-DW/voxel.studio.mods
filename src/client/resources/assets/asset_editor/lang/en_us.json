@@ -640,6 +640,7 @@
     "changes:menu.section.view": "View",
     "changes:menu.section.actions": "Actions",
     "changes:menu.section.repository": "Repository",
+    "changes:menu.section.branches": "Branches",
     "changes:menu.checkout": "Checkout to...",
     "changes:menu.checkout.back": "Back",
     "changes:menu.create_branch": "Create Branch...",
