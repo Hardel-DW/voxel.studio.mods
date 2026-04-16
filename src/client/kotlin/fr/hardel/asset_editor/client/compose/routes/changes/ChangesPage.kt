@@ -32,7 +32,7 @@ import fr.hardel.asset_editor.client.compose.lib.git.GitState
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val BANNER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
+private val BANNER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 private val BANNER_ACCENT = StudioColors.Sky400
 
 @Composable

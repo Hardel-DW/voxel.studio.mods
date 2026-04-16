@@ -160,6 +160,8 @@ private val LocalRadioGroupState = compositionLocalOf<RadioGroupState?> { null }
 
 enum class DropdownItemVariant { DEFAULT, DESTRUCTIVE }
 
+enum class DropdownMenuSide { BOTTOM, TOP }
+
 // ── Root ─────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -207,6 +209,7 @@ fun DropdownMenuContent(
     sideOffset: Dp = 4.dp,
     minWidth: Dp = 128.dp,
     matchTriggerWidth: Boolean = false,
+    side: DropdownMenuSide = DropdownMenuSide.BOTTOM,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val state = LocalDropdownMenuState.current
@@ -231,9 +234,27 @@ fun DropdownMenuContent(
     val triggerWidthDp = with(density) { state.triggerWidthPx.toDp() }
     val openSubMenu = remember { mutableStateOf<DropdownSubMenuState?>(null) }
 
+    val positionProvider = remember(gapPx, side) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect,
+                windowSize: IntSize,
+                layoutDirection: LayoutDirection,
+                popupContentSize: IntSize
+            ): IntOffset {
+                val x = anchorBounds.left
+                val y = when (side) {
+                    DropdownMenuSide.BOTTOM -> anchorBounds.bottom + gapPx
+                    DropdownMenuSide.TOP -> anchorBounds.top - popupContentSize.height - gapPx
+                }
+                return IntOffset(x, y)
+            }
+        }
+    }
+    val originY = if (side == DropdownMenuSide.TOP) 1f else 0f
+
     Popup(
-        alignment = Alignment.TopStart,
-        offset = IntOffset(0, state.triggerHeightPx + gapPx),
+        popupPositionProvider = positionProvider,
         onDismissRequest = { state.close() },
         properties = PopupProperties(focusable = true)
     ) {
@@ -248,7 +269,7 @@ fun DropdownMenuContent(
                     alpha = p
                     scaleX = 0.95f + 0.05f * p
                     scaleY = 0.95f + 0.05f * p
-                    transformOrigin = TransformOrigin(0f, 0f)
+                    transformOrigin = TransformOrigin(0f, originY)
                 }
                 .shadow(
                     8.dp, contentShape,

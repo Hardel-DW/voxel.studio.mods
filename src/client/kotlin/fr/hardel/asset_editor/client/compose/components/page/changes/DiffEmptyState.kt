@@ -22,7 +22,7 @@ private val CODE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "ico
 
 @Composable
 fun DiffEmptyState(selectedFile: String?, modifier: Modifier = Modifier) {
-    val fallbackCodeIcon = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
+    val fallbackCodeIcon = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 
     Box(
         contentAlignment = Alignment.Center,

@@ -65,11 +65,15 @@ fun Button(
     val contentPadding = buttonPadding(size)
 
     val shape = RoundedCornerShape(12.dp)
-    val bgModifier = variantBackground(variant, isHovered)
-    val borderModifier = variantBorder(variant, isHovered)
-    val textColor = buttonTextColor(variant, isHovered)
+    val mutedDefault = !enabled && variant == ButtonVariant.DEFAULT
+    val bgModifier = if (mutedDefault) Modifier.background(Color.Transparent)
+        else variantBackground(variant, isHovered)
+    val borderModifier = if (mutedDefault) Modifier.border(2.dp, StudioColors.Zinc800, shape)
+        else variantBorder(variant, isHovered)
+    val textColor = if (mutedDefault) StudioColors.Zinc600 else buttonTextColor(variant, isHovered)
 
     val hoverAlpha = when {
+        mutedDefault -> 1f
         !enabled -> 0.5f
         variant == ButtonVariant.SHIMMER && isHovered -> 0.75f
         variant == ButtonVariant.PATREON && isHovered -> 0.9f

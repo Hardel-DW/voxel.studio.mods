@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
 import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
 import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuSide
 import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuTrigger
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.rememberDropdownMenuState
@@ -94,7 +95,7 @@ fun GitBranchBar(
                 SvgIcon(location = CHEVRON_ICON, size = 12.dp, tint = StudioColors.Zinc500)
             }
 
-            DropdownMenuContent(matchTriggerWidth = true) {
+            DropdownMenuContent(matchTriggerWidth = true, side = DropdownMenuSide.TOP) {
                 snapshot.branches.forEach { branch ->
                     val isActive = branch == snapshot.currentBranch
                     DropdownMenuItem(

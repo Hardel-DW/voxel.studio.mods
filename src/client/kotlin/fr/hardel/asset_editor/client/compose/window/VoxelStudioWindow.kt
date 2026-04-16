@@ -1,8 +1,10 @@
 package fr.hardel.asset_editor.client.compose.window
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -17,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
@@ -159,7 +162,17 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     @Composable
     private fun WindowContent() {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+        val focusManager = LocalFocusManager.current
+        val interactionSource = remember { MutableInteractionSource() }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) { focusManager.clearFocus() }
+        ) {
             when (state) {
                 State.SPLASH -> SplashContent(splashVersion)
                 State.EDITOR -> EditorContent(editorVersion)

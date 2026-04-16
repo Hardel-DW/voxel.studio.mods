@@ -55,7 +55,7 @@ import fr.hardel.asset_editor.client.compose.routes.changes.ChangesPage
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val HEADER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
+private val HEADER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
 private val GITHUB_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/github.svg")
 private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/reload.svg")
