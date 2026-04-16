@@ -172,6 +172,7 @@ fun DebugCodeBlockPage() {
                         status = DiffStatus.UPDATED,
                         textStyle = DEBUG_CODE_BLOCK_MONO_STYLE,
                         lineSpacing = 5f,
+                        borderFill = StudioColors.Zinc800,
                         modifier = Modifier.fillMaxWidth().weight(1f)
                     )
                     DebugCodeBlockBenchPanel(title = "CodeDiff", entries = generation.codeDiffBench)
@@ -240,6 +241,7 @@ private suspend fun prepareDebugCodeBlockSample(targetLines: Int): DebugCodeBloc
         }
         val editorState = CodeEditorState(gen.original).apply {
             minHeight = 360.dp
+            borderFill = StudioColors.Zinc800
             indentUnit = DEBUG_CODE_BLOCK_GSON_INDENT
             prewarmCache(maxLines = 256)
         }

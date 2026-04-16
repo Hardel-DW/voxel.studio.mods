@@ -30,7 +30,8 @@ fun CodeDiff(
     status: DiffStatus,
     modifier: Modifier = Modifier,
     textStyle: TextStyle = CODE_TEXT_STYLE,
-    lineSpacing: Float = 4f
+    lineSpacing: Float = 4f,
+    borderFill: Color = Color.Transparent
 ) {
     val diffLines = remember(original, compiled, status) {
         when (status) {
@@ -72,7 +73,7 @@ fun CodeDiff(
         textStyle = resolvedStyle,
         showGutter = true,
         backgroundFill = StudioColors.Zinc950,
-        borderFill = StudioColors.Zinc800,
+        borderFill = borderFill,
         minHeight = 0.dp,
         modifier = modifier
     )

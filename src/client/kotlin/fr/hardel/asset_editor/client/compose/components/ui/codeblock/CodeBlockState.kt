@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +47,7 @@ class CodeBlockState {
     var textStyle by mutableStateOf(CODE_TEXT_STYLE)
     var textFill by mutableStateOf(StudioColors.Zinc300)
     var backgroundFill by mutableStateOf(StudioColors.Zinc950)
-    var borderFill by mutableStateOf(StudioColors.Zinc800)
+    var borderFill by mutableStateOf(Color.Transparent)
     var lineSpacing by mutableStateOf(4.sp)
     var wrapText by mutableStateOf(false)
     var minHeight by mutableStateOf(0.dp)

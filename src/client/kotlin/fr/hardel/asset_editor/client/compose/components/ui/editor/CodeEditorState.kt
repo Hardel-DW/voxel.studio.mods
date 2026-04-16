@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -42,7 +43,7 @@ class CodeEditorState(initialText: String = "") {
         CODE_TEXT_STYLE.merge(TextStyle(color = StudioColors.Zinc300, fontSize = 14.sp))
     )
     var backgroundFill by mutableStateOf(StudioColors.Zinc950)
-    var borderFill by mutableStateOf(StudioColors.Zinc800)
+    var borderFill by mutableStateOf(Color.Transparent)
     var minHeight by mutableStateOf(0.dp)
 
     /**
