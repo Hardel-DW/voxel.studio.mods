@@ -288,7 +288,7 @@ private fun ChangeItemButton(itemId: Identifier, onClick: () -> Unit) {
                     modifier = Modifier
                         .size(48.dp)
                         .graphicsLayer { alpha = 0.6f }
-                        .background(Color(0xFF8B5CF6).copy(alpha = 0.1f), RoundedCornerShape(50))
+                        .background(StudioColors.Violet500.copy(alpha = 0.1f), RoundedCornerShape(50))
                 )
             }
             ItemSprite(itemId, 48.dp)
@@ -311,7 +311,7 @@ private fun DeleteButton(onClick: () -> Unit) {
         modifier = Modifier
             .size(36.dp) // size-9
             .clip(RoundedCornerShape(8.dp)) // rounded-lg
-            .background(if (hovered) Color(0xFFEF4444).copy(alpha = 0.1f) else Color.Transparent)
+            .background(if (hovered) StudioColors.Red500.copy(alpha = 0.1f) else Color.Transparent)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
@@ -321,7 +321,7 @@ private fun DeleteButton(onClick: () -> Unit) {
     ) {
         SvgIcon(
             TRASH_ICON, 16.dp, // size-4
-            if (hovered) Color(0xFFF87171) else StudioColors.Zinc500 // text-zinc-500, hover:text-red-400
+            if (hovered) StudioColors.Red400 else StudioColors.Zinc500
         )
     }
 }

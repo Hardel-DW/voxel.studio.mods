@@ -11,13 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
 fun Badge(
     text: String,
     modifier: Modifier = Modifier,
-    accent: Color = Color(0xFF38BDF8),
+    accent: Color = StudioColors.Sky400,
     textColor: Color = Color.White
 ) {
     val shape = RoundedCornerShape(6.dp)

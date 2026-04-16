@@ -16,12 +16,12 @@ import fr.hardel.asset_editor.client.compose.lib.utils.DiffLineType
 
 enum class DiffStatus { ADDED, DELETED, UPDATED }
 
-private val ADDED_BG = Color(0xFF22C55E).copy(alpha = 0.10f)
-private val ADDED_GUTTER_BG = Color(0xFF22C55E).copy(alpha = 0.05f)
-private val ADDED_GUTTER_TEXT = Color(0xFF22C55E)
-private val REMOVED_BG = Color(0xFFEF4444).copy(alpha = 0.10f)
-private val REMOVED_GUTTER_BG = Color(0xFFEF4444).copy(alpha = 0.05f)
-private val REMOVED_GUTTER_TEXT = Color(0xFFEF4444)
+private val ADDED_BG = StudioColors.Green500.copy(alpha = 0.10f)
+private val ADDED_GUTTER_BG = StudioColors.Green500.copy(alpha = 0.05f)
+private val ADDED_GUTTER_TEXT = StudioColors.Green500
+private val REMOVED_BG = StudioColors.Red500.copy(alpha = 0.10f)
+private val REMOVED_GUTTER_BG = StudioColors.Red500.copy(alpha = 0.05f)
+private val REMOVED_GUTTER_TEXT = StudioColors.Red500
 
 @Composable
 fun CodeDiff(

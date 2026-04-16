@@ -58,9 +58,9 @@ fun DiffHeader(
 @Composable
 private fun TrafficLights() {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Dot(Color(0xFFEF4444))
-        Dot(Color(0xFFFBBF24))
-        Dot(Color(0xFF22C55E))
+        Dot(StudioColors.Red500)
+        Dot(StudioColors.Amber400)
+        Dot(StudioColors.Green500)
     }
 }
 

@@ -406,7 +406,7 @@ private fun DeleteButton(onClick: () -> Unit) {
         Text(
             text = "\u2715",
             style = StudioTypography.regular(14),
-            color = if (hovered) Color(0xFFEF4444) else StudioColors.Zinc500
+            color = if (hovered) StudioColors.Red500 else StudioColors.Zinc500
         )
     }
 }

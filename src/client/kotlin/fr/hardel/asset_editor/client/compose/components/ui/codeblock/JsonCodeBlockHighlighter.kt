@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.codeblock
 
-import androidx.compose.ui.graphics.Color
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.lib.highlight.Highlight
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightPalette
 import fr.hardel.asset_editor.client.compose.lib.highlight.HighlightRegistry
@@ -36,12 +36,12 @@ class JsonCodeBlockHighlighter : CodeBlockHighlighter {
         const val PUNCTUATION = "json-punctuation"
 
         fun installDefaultPalette(palette: HighlightPalette) {
-            palette.set(STRING, HighlightStyle.foreground(Color(0xFF98C379)))
-            palette.set(NUMBER, HighlightStyle.foreground(Color(0xFFD19A66)))
-            palette.set(BOOLEAN, HighlightStyle.foreground(Color(0xFF56B6C2)))
-            palette.set(NULL, HighlightStyle.foreground(Color(0xFFC678DD)))
-            palette.set(PROPERTY, HighlightStyle.foreground(Color(0xFF61AFEF)))
-            palette.set(PUNCTUATION, HighlightStyle.foreground(Color(0xFFABB2BF)))
+            palette.set(STRING, HighlightStyle.foreground(StudioColors.SyntaxString))
+            palette.set(NUMBER, HighlightStyle.foreground(StudioColors.SyntaxNumber))
+            palette.set(BOOLEAN, HighlightStyle.foreground(StudioColors.SyntaxBoolean))
+            palette.set(NULL, HighlightStyle.foreground(StudioColors.SyntaxNull))
+            palette.set(PROPERTY, HighlightStyle.foreground(StudioColors.SyntaxProperty))
+            palette.set(PUNCTUATION, HighlightStyle.foreground(StudioColors.SyntaxPunctuation))
         }
     }
 }

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.changes
+package fr.hardel.asset_editor.client.compose.components.page.changes.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

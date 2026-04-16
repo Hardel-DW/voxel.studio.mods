@@ -36,9 +36,15 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.AddRemoteDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.CheckoutBranchDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.CreateBranchDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.InitRepositoryDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RemoveRemoteDialog
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.ChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -56,6 +62,11 @@ private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 private val MORE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/more.svg")
 
 private enum class FloatingDialog { NONE, ADD_REMOTE, REMOVE_REMOTE, CREATE_BRANCH, CHECKOUT, INIT }
+
+object ChangesView {
+    const val CONCEPT = "concept"
+    const val FILE = "file"
+}
 
 @Composable
 fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
@@ -135,6 +146,7 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                             },
                             modifier = Modifier.fillMaxSize()
                         )
+
                         else -> ChangesConceptTreeView(
                             registries = context.registryAccess(),
                             status = snapshot.status,
@@ -323,11 +335,11 @@ private fun ActionSection(
                 )
             }
         }
-        CommitMessageInput(
+        InputText(
             value = commitMessage,
             onValueChange = onCommitMessageChange,
             placeholder = I18n.get("github:layout.commit.placeholder"),
-            enabled = !snapshot.isLoading && primary == ChangesPrimaryAction.COMMIT
+            showSearchIcon = false
         )
         Button(
             onClick = {
@@ -338,6 +350,7 @@ private fun ActionSection(
                         gitState.commit(commitMessage.trim(), snapshot.status.keys.toList())
                         onClearCommit()
                     }
+
                     ChangesPrimaryAction.PUSH -> gitState.push()
                     ChangesPrimaryAction.PUBLISH -> gitState.push()
                     ChangesPrimaryAction.NONE -> Unit

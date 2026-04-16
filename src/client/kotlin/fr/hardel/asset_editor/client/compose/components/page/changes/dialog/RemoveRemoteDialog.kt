@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.changes
+package fr.hardel.asset_editor.client.compose.components.page.changes.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,44 +15,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.ui.Button
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
+import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteRow
 import fr.hardel.asset_editor.client.compose.components.ui.FloatingCommandPalette
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun CheckoutBranchDialog(
+fun RemoveRemoteDialog(
     visible: Boolean,
     snapshot: GitSnapshot,
     onDismiss: () -> Unit,
-    onCheckout: (name: String) -> Unit
+    onRemove: (name: String) -> Unit
 ) {
     if (!visible) return
+
     var query by remember { mutableStateOf("") }
-
-    val filtered = remember(snapshot.branches, query) {
-        if (query.isBlank()) snapshot.branches
-        else snapshot.branches.filter { it.contains(query, ignoreCase = true) }
-    }
-
-    val submit = {
-        val first = filtered.firstOrNull()
-        if (first != null && first != snapshot.currentBranch) onCheckout(first)
-        else if (first != null) onDismiss()
+    val filtered = remember(snapshot.remotes, query) {
+        if (query.isBlank()) snapshot.remotes
+        else snapshot.remotes.filter {
+            it.name.contains(query, ignoreCase = true) || it.url.contains(query, ignoreCase = true)
+        }
     }
 
     FloatingCommandPalette(
         visible = true,
-        title = I18n.get("changes:menu.checkout"),
+        title = I18n.get("changes:remote.remove.title"),
         searchValue = query,
         onSearchChange = { query = it },
-        searchPlaceholder = I18n.get("changes:dialog.checkout.placeholder"),
-        onDismiss = onDismiss,
-        onSubmit = submit
+        searchPlaceholder = I18n.get("changes:remote.remove.placeholder"),
+        onDismiss = onDismiss
     ) {
-        if (snapshot.branches.isEmpty()) {
+        if (snapshot.remotes.isEmpty()) {
             Text(
-                text = I18n.get("changes:dialog.checkout.none"),
+                text = I18n.get("changes:remote.remove.none"),
                 style = StudioTypography.regular(12),
                 color = StudioColors.Zinc500,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp)
@@ -61,7 +59,7 @@ fun CheckoutBranchDialog(
         }
         if (filtered.isEmpty()) {
             Text(
-                text = I18n.get("changes:dialog.checkout.empty_filter"),
+                text = I18n.get("changes:remote.remove.empty_filter"),
                 style = StudioTypography.regular(12),
                 color = StudioColors.Zinc500,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 12.dp)
@@ -69,16 +67,22 @@ fun CheckoutBranchDialog(
             return@FloatingCommandPalette
         }
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(items = filtered, key = { it }) { branch ->
-                val isCurrent = branch == snapshot.currentBranch
+            items(items = filtered, key = { it.name }) { remote ->
                 CommandPaletteRow(
-                    label = branch,
-                    description = if (isCurrent) I18n.get("changes:dialog.checkout.current") else null,
-                    enabled = !isCurrent,
-                    onClick = { onCheckout(branch) }
+                    label = remote.name,
+                    description = remote.url,
+                    trailing = {
+                        Button(
+                            onClick = { onRemove(remote.name) },
+                            variant = ButtonVariant.GHOST_BORDER,
+                            size = ButtonSize.SM,
+                            text = I18n.get("changes:remote.remove.action")
+                        )
+                    },
+                    onClick = {}
                 )
             }
         }

@@ -17,14 +17,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParser
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesDiffBody
 import fr.hardel.asset_editor.client.compose.components.page.changes.DiffEmptyState
 import fr.hardel.asset_editor.client.compose.components.page.changes.DiffHeader
-import fr.hardel.asset_editor.client.compose.components.page.changes.formatDiffContentIfJson
-import fr.hardel.asset_editor.client.compose.components.page.changes.isPreviewableDiffPath
 import fr.hardel.asset_editor.client.compose.components.ui.Badge
 import fr.hardel.asset_editor.client.compose.components.ui.FloatingBanner
 import fr.hardel.asset_editor.client.compose.lib.git.GitDiffPayload
@@ -33,12 +33,14 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val BANNER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
-private val BANNER_ACCENT = Color(0xFF38BDF8)
+private val BANNER_ACCENT = StudioColors.Sky400
 
 @Composable
 fun ChangesPage(gitState: GitState, selectedFile: String?) {
     val status = gitState.snapshot.status[selectedFile]
-    if (selectedFile.isNullOrBlank() || !isPreviewableDiffPath(selectedFile) || status == null) {
+    val previewable = selectedFile != null &&
+        (selectedFile.endsWith(".json") || selectedFile.endsWith(".mcfunction") || selectedFile.endsWith(".mcmeta"))
+    if (selectedFile.isNullOrBlank() || !previewable || status == null) {
         DiffEmptyState(selectedFile = selectedFile, modifier = Modifier.fillMaxSize())
         return
     }
@@ -90,7 +92,7 @@ fun ChangesPage(gitState: GitState, selectedFile: String?) {
                     Text(
                         text = I18n.get("changes:banner.diff.title"),
                         style = StudioTypography.bold(13),
-                        color = Color(0xFFF4F4F5)
+                        color = StudioColors.Zinc100
                     )
                 }
                 Text(
@@ -101,4 +103,13 @@ fun ChangesPage(gitState: GitState, selectedFile: String?) {
             }
         }
     }
+}
+
+private fun formatDiffContentIfJson(path: String, content: String): String {
+    if (!path.endsWith(".json") && !path.endsWith(".mcmeta")) return content
+    if (content.isBlank()) return content
+    return runCatching {
+        val element = JsonParser.parseString(content)
+        GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create().toJson(element)
+    }.getOrElse { content }
 }

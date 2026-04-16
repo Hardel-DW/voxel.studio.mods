@@ -58,15 +58,15 @@ fun GitBranchBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFEF4444).copy(alpha = 0.12f))
-                    .border(1.dp, Color(0xFFEF4444).copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                    .background(StudioColors.Red500.copy(alpha = 0.12f))
+                    .border(1.dp, StudioColors.Red500.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                     .padding(horizontal = 10.dp, vertical = 8.dp)
                     .clickable { state.clearError() }
             ) {
                 Text(
                     text = error,
                     style = StudioTypography.regular(10),
-                    color = Color(0xFFFCA5A5),
+                    color = StudioColors.Red300,
                     maxLines = 3
                 )
             }

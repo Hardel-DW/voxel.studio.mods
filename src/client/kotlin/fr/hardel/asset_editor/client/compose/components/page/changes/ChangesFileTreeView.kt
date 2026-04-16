@@ -150,10 +150,10 @@ private fun FileRow(
 @Composable
 private fun StatusGlyph(status: GitFileStatus?) {
     val (label, color) = when (status) {
-        GitFileStatus.ADDED, GitFileStatus.UNTRACKED -> "A" to Color(0xFF22C55E)
-        GitFileStatus.MODIFIED -> "M" to Color(0xFFFBBF24)
-        GitFileStatus.DELETED -> "D" to Color(0xFFEF4444)
-        GitFileStatus.RENAMED -> "R" to Color(0xFF38BDF8)
+        GitFileStatus.ADDED, GitFileStatus.UNTRACKED -> "A" to StudioColors.Green500
+        GitFileStatus.MODIFIED -> "M" to StudioColors.Amber400
+        GitFileStatus.DELETED -> "D" to StudioColors.Red500
+        GitFileStatus.RENAMED -> "R" to StudioColors.Sky400
         else -> "·" to StudioColors.Zinc600
     }
     Text(

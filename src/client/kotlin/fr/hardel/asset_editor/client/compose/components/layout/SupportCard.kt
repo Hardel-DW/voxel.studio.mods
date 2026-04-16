@@ -38,7 +38,7 @@ private val CHECK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/c
 private val PATREON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/company/patreon.svg")
 private val ADVANTAGES = listOf("early_access", "submit_ideas", "discord_role", "live_voxel")
 private val cardShape = RoundedCornerShape(16.dp)
-private val borderColor = Color(0xFF1C1917) // stone-900
+private val borderColor = StudioColors.Stone900
 
 @Composable
 fun SupportCard(modifier: Modifier = Modifier) {

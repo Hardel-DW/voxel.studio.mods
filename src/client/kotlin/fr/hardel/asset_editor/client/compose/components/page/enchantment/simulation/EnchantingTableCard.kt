@@ -221,13 +221,13 @@ private fun SlotButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val borderColor = when {
-        selected -> Color(0xFF7A009F)
-        hovered -> Color(0xFF52006F)
+        selected -> StudioColors.EnchantSelected
+        hovered -> StudioColors.EnchantHover
         else -> StudioColors.Zinc800
     }
     val background = when {
-        selected -> Color(0xFF1A0026).copy(alpha = 0.45f)
-        hovered -> Color(0xFF120018).copy(alpha = 0.4f)
+        selected -> StudioColors.EnchantSelectedBg.copy(alpha = 0.45f)
+        hovered -> StudioColors.EnchantHoverBg.copy(alpha = 0.4f)
         else -> StudioColors.Zinc900.copy(alpha = 0.5f)
     }
 

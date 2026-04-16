@@ -16,10 +16,31 @@ object StudioColors {
     val Zinc800 = Color(0xFF27272A)
     val Zinc900 = Color(0xFF18181B)
     val Zinc950 = Color(0xFF09090B)
+    val Red300 = Color(0xFFFCA5A5)
     val Red400 = Color(0xFFF87171)
+    val Red500 = Color(0xFFEF4444)
     val Sky400 = Color(0xFF38BDF8)
     val Amber400 = Color(0xFFFBBF24)
     val Emerald400 = Color(0xFF34D399)
+    val Green500 = Color(0xFF22C55E)
+    val Blue500 = Color(0xFF3B82F6)
+    val Violet500 = Color(0xFF8B5CF6)
+    val Orange700 = Color(0xFFC2410C)
+    val Stone900 = Color(0xFF1C1917)
+
+    // Syntax highlighting (One Dark palette)
+    val SyntaxString = Color(0xFF98C379)
+    val SyntaxNumber = Color(0xFFD19A66)
+    val SyntaxBoolean = Color(0xFF56B6C2)
+    val SyntaxNull = Color(0xFFC678DD)
+    val SyntaxProperty = Color(0xFF61AFEF)
+    val SyntaxPunctuation = Color(0xFFABB2BF)
+
+    // Enchanting table palette
+    val EnchantSelected = Color(0xFF7A009F)
+    val EnchantHover = Color(0xFF52006F)
+    val EnchantSelectedBg = Color(0xFF1A0026)
+    val EnchantHoverBg = Color(0xFF120018)
 
     // globals.css @theme variables
     val Editor = Color(0xFF0F0E0E)

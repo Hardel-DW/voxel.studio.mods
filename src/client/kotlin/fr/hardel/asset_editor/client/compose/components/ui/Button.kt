@@ -155,7 +155,7 @@ private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifie
     ButtonVariant.TRANSPARENT -> Modifier.background(if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent)
     ButtonVariant.LINK -> Modifier.background(Color.Transparent)
     ButtonVariant.SHIMMER -> Modifier.background(StudioColors.Zinc100)
-    ButtonVariant.PATREON -> Modifier.background(Color(0xFFC2410C))
+    ButtonVariant.PATREON -> Modifier.background(StudioColors.Orange700)
 }
 
 private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier = when (variant) {
