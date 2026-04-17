@@ -11,11 +11,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val GIT_BRANCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/git-branch.svg")
 
 @Composable
 fun CheckoutBranchDialog(
@@ -44,6 +48,7 @@ fun CheckoutBranchDialog(
         value = query,
         onValueChange = { query = it },
         placeholder = I18n.get("changes:dialog.checkout.placeholder"),
+        leadingIcon = GIT_BRANCH_ICON,
         onDismiss = onDismiss,
         onSubmit = submit
     ) {

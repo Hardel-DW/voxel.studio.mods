@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -19,6 +20,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val TRASH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
 @Composable
 fun DeleteTagDialog(
@@ -41,6 +45,7 @@ fun DeleteTagDialog(
         value = query,
         onValueChange = { query = it },
         placeholder = I18n.get("changes:dialog.tag.delete.placeholder"),
+        leadingIcon = TRASH_ICON,
         onDismiss = onDismiss
     ) {
         if (filtered.isEmpty()) {

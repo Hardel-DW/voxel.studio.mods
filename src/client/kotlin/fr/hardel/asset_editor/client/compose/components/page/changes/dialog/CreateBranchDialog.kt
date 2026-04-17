@@ -5,9 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteHint
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val GIT_BRANCH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/git-branch.svg")
 
 @Composable
 fun CreateBranchDialog(
@@ -31,6 +35,7 @@ fun CreateBranchDialog(
         value = name,
         onValueChange = { name = it },
         placeholder = I18n.get("github:branch.create.placeholder"),
+        leadingIcon = GIT_BRANCH_ICON,
         onDismiss = onDismiss,
         onSubmit = submit
     ) {

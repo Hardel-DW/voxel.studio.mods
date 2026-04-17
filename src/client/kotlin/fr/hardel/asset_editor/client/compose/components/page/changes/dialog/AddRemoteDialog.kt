@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.page.changes.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -12,9 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -24,6 +23,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteHint
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val GLOBE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/globe.svg")
 
 @Composable
 fun AddRemoteDialog(
@@ -40,23 +42,41 @@ fun AddRemoteDialog(
         if (snapshot.remotes.none { it.name == "origin" }) "origin" else nextFreeName(snapshot)
     }
 
+    val submit = {
+        val trimmed = url.trim()
+        if (trimmed.isNotBlank()) onSubmit(suggestedName, trimmed)
+    }
+
     CommandPalette(
         visible = true,
         title = I18n.get("changes:remote.add.title"),
         value = url,
         onValueChange = { url = it },
         placeholder = I18n.get("changes:remote.add.placeholder"),
-        onDismiss = onDismiss
+        leadingIcon = GLOBE_ICON,
+        onDismiss = onDismiss,
+        onSubmit = submit,
+        actions = {
+            Button(
+                onClick = submit,
+                variant = ButtonVariant.DEFAULT,
+                size = ButtonSize.SM,
+                enabled = url.isNotBlank(),
+                text = I18n.get("changes:remote.add.submit")
+            )
+        }
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            CommandPaletteHint(I18n.get("changes:remote.add.hint"))
+            CommandPaletteHint(
+                I18n.get("changes:remote.add.name_as").replace("{name}", suggestedName)
+            )
             if (snapshot.remotes.isNotEmpty()) {
-                CommandPaletteGroup(heading = I18n.get("changes:remote.add.existing").uppercase()) {
+                CommandPaletteGroup(heading = I18n.get("changes:remote.add.existing")) {
                     for (remote in snapshot.remotes) {
                         CommandPaletteItem(
                             label = remote.name,
@@ -66,29 +86,6 @@ fun AddRemoteDialog(
                         )
                     }
                 }
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, start = 8.dp, end = 4.dp)
-            ) {
-                CommandPaletteHint(
-                    I18n.get("changes:remote.add.name_as").replace("{name}", suggestedName)
-                )
-                Button(
-                    onClick = {
-                        val trimmed = url.trim()
-                        if (trimmed.isNotBlank()) {
-                            onSubmit(suggestedName, trimmed)
-                        }
-                    },
-                    variant = ButtonVariant.DEFAULT,
-                    size = ButtonSize.SM,
-                    enabled = url.isNotBlank(),
-                    text = I18n.get("changes:remote.add.submit")
-                )
             }
         }
     }

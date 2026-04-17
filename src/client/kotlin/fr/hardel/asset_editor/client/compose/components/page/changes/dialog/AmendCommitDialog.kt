@@ -5,9 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteHint
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val GIT_COMMIT_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/git-commit.svg")
 
 @Composable
 fun AmendCommitDialog(
@@ -27,6 +31,7 @@ fun AmendCommitDialog(
         value = text,
         onValueChange = { text = it },
         placeholder = I18n.get("changes:dialog.amend.placeholder"),
+        leadingIcon = GIT_COMMIT_ICON,
         onDismiss = onDismiss,
         onSubmit = submit
     ) {

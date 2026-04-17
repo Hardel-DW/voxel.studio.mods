@@ -11,12 +11,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteHint
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
+
+private val ARROW_DOWN_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/arrow-down.svg")
 
 @Composable
 fun PullFromDialog(
@@ -40,6 +44,7 @@ fun PullFromDialog(
         value = query,
         onValueChange = { query = it },
         placeholder = I18n.get("changes:dialog.pull_from.placeholder"),
+        leadingIcon = ARROW_DOWN_ICON,
         onDismiss = onDismiss
     ) {
         if (branch == null) {
