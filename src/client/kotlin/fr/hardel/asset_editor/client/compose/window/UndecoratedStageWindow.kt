@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.window
 
+import fr.hardel.asset_editor.client.splash.SplashAssets
 import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
@@ -62,6 +63,7 @@ open class UndecoratedStageWindow(
                 screenBounds.y + (screenBounds.height - height) / 2
             )
             background = Color.BLACK
+            iconImages = SplashAssets.logoIcons()
         }
 
         (createdFrame.contentPane as? JPanel)?.apply {
@@ -278,8 +280,8 @@ open class UndecoratedStageWindow(
 
         private fun unsnap() {
             val saved = boundsBeforeSnap ?: return
-            frame.bounds = saved
             boundsBeforeSnap = null
+            frame.bounds = saved
         }
 
         private fun applySnap(cursorX: Int, cursorY: Int) {

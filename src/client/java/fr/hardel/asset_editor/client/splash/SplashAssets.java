@@ -2,9 +2,14 @@ package fr.hardel.asset_editor.client.splash;
 
 import fr.hardel.asset_editor.AssetEditor;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
+import java.awt.image.BufferedImage;
+import java.util.List;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +53,26 @@ public final class SplashAssets {
 
     static Font font(String name) {
         return FONTS.computeIfAbsent(name, SplashAssets::loadFont);
+    }
+
+    public static List<BufferedImage> logoIcons() {
+        SvgShape logo = shape(ICON_LOGO);
+        return List.of(16, 24, 32, 48, 64, 128, 256).stream()
+            .map(size -> rasterize(logo, size))
+            .toList();
+    }
+
+    private static BufferedImage rasterize(SvgShape shape, int size) {
+        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        double scale = size / shape.viewBoxWidth();
+        g.scale(scale, scale);
+        g.setColor(Color.WHITE);
+        g.fill(shape.path());
+        g.dispose();
+        return image;
     }
 
     public static void preloadAsync() {
