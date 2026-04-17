@@ -138,6 +138,9 @@ class GitRepository(val root: Path) {
     suspend fun merge(name: String): GitOpResult =
         GitCli.runResult(root, "merge", "--no-ff", name)
 
+    suspend fun rebase(name: String): GitOpResult =
+        GitCli.runResult(root, "rebase", name)
+
     suspend fun tags(): List<String> {
         val invocation = GitCli.run(root, "tag", "--list", "--sort=-creatordate")
         if (!invocation.isSuccess) return emptyList()

@@ -44,7 +44,9 @@ import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.Crea
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.DeleteBranchDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.DeleteTagDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.InitRepositoryDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.MergeBranchDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.PullFromDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RebaseBranchDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RemoveRemoteDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RenameBranchDialog
 import fr.hardel.asset_editor.client.compose.components.ui.Button
@@ -71,6 +73,7 @@ private enum class FloatingDialog {
     NONE,
     ADD_REMOTE, REMOVE_REMOTE,
     CREATE_BRANCH, CHECKOUT, RENAME_BRANCH, DELETE_BRANCH,
+    MERGE_BRANCH, REBASE_BRANCH,
     CREATE_TAG, DELETE_TAG,
     PULL_FROM, AMEND,
     INIT
@@ -126,6 +129,8 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                                     }
                                 },
                                 onCheckout = { floatingDialog = FloatingDialog.CHECKOUT },
+                                onMergeBranch = { floatingDialog = FloatingDialog.MERGE_BRANCH },
+                                onRebaseBranch = { floatingDialog = FloatingDialog.REBASE_BRANCH },
                                 onCreateBranch = { floatingDialog = FloatingDialog.CREATE_BRANCH },
                                 onRenameBranch = { floatingDialog = FloatingDialog.RENAME_BRANCH },
                                 onDeleteBranch = { floatingDialog = FloatingDialog.DELETE_BRANCH },
@@ -230,6 +235,26 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
             onDismiss = { floatingDialog = FloatingDialog.NONE },
             onCheckout = { name ->
                 gitState.checkoutBranch(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        MergeBranchDialog(
+            visible = floatingDialog == FloatingDialog.MERGE_BRANCH,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onMerge = { name ->
+                gitState.merge(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        RebaseBranchDialog(
+            visible = floatingDialog == FloatingDialog.REBASE_BRANCH,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onRebase = { name ->
+                gitState.rebase(name)
                 floatingDialog = FloatingDialog.NONE
             }
         )

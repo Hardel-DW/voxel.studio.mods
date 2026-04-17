@@ -59,6 +59,8 @@ data class ChangesMenuCallbacks(
     val onAmend: () -> Unit,
     val onCommit: () -> Unit,
     val onCheckout: () -> Unit,
+    val onMergeBranch: () -> Unit,
+    val onRebaseBranch: () -> Unit,
     val onCreateBranch: () -> Unit,
     val onRenameBranch: () -> Unit,
     val onDeleteBranch: () -> Unit,
@@ -233,6 +235,18 @@ private fun advancedSection(
                 icon = BRANCH,
                 enabled = hasBranches && !loading,
                 onClick = cb.onCheckout
+            ),
+            GitMenuAction(
+                label = i18n("changes:menu.branch.merge"),
+                icon = BRANCH,
+                enabled = branchCount > 1 && !loading,
+                onClick = cb.onMergeBranch
+            ),
+            GitMenuAction(
+                label = i18n("changes:menu.branch.rebase"),
+                icon = BRANCH,
+                enabled = branchCount > 1 && !loading,
+                onClick = cb.onRebaseBranch
             ),
             GitMenuAction(
                 label = i18n("changes:menu.branch.create"),

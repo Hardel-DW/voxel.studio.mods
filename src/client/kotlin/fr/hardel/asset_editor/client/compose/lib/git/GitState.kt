@@ -147,6 +147,9 @@ class GitState internal constructor(
     fun merge(name: String) =
         launchOp(GitOperationKind.MERGE) { repo -> repo.merge(name) }
 
+    fun rebase(name: String) =
+        launchOp(GitOperationKind.REBASE) { repo -> repo.rebase(name) }
+
     fun clearError() {
         if (snapshot.lastError != null) snapshot = snapshot.copy(lastError = null)
     }

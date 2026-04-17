@@ -68,5 +68,6 @@ enum class GitOperationKind {
     TAG_CREATE,
     TAG_DELETE,
     MERGE,
+    REBASE,
     PR
 }
