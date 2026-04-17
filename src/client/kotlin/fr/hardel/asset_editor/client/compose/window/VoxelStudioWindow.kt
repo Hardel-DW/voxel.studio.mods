@@ -10,14 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
@@ -38,11 +41,12 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import net.minecraft.client.resources.language.I18n
 
+private const val DOUBLE_CLICK_THRESHOLD_NANOS = 300_000_000L
+
 object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     private const val HELP_URL = "https://github.com"
     private const val GITHUB_URL = "https://github.com"
-    private const val FADE_OUT_MILLIS = 500
     private const val CARD_SPLASH = "splash"
     private const val CARD_EDITOR = "editor"
 
@@ -116,7 +120,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         stage = Stage.SPLASH
         val container = ensureContentContainer()
         val panel = ensureSplashPanel(container)
-        panel.cancelFade()
         panel.startAnimation()
         cardLayout?.show(container, CARD_SPLASH)
     }
@@ -135,10 +138,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         editorVersion++
         resync()
 
-        splash.fadeOut(FADE_OUT_MILLIS) {
-            cardLayout?.show(container, CARD_EDITOR)
-            splash.stopAnimation()
-        }
+        cardLayout?.show(container, CARD_EDITOR)
+        splash.stopAnimation()
     }
 
     private fun ensureContentContainer(): JPanel {
@@ -241,59 +242,66 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 }
 
 /**
- * Declares a draggable "window caption" rectangle.
- *
- * On platforms where the OS handles the drag natively (Windows via FlatLaf), this registers the
- * bounds into a thread-safe hit-test registry consumed by the AWT-Windows thread. On platforms
- * where we move the frame manually (macOS, Linux), it installs a pointer-input gesture that drives
- * the chrome's begin/perform/end drag lifecycle and maps double-click to maximize.
- *
- * Place this on any Compose area that should be grabbable by the user to move the window.
- * Do NOT stack a clickable on the same region: on Windows the OS hit-test will eat the events
- * before Compose sees them.
+ * Marks a Compose region as a draggable window caption. Do not stack a clickable on the same
+ * region: on Windows the OS hit-test consumes the events before Compose sees them.
  */
 fun Modifier.windowDragArea(id: String): Modifier = composed {
     val chrome = VoxelStudioWindow.windowChrome
-    if (chrome.nativeDragHandled) {
-        DisposableEffect(id) {
-            onDispose { chrome.captionRegions.unregister(id) }
-        }
-        Modifier.onGloballyPositioned { coords ->
-            val rect = coords.boundsInRoot()
-            chrome.captionRegions.register(
-                id,
-                Rectangle(rect.left.toInt(), rect.top.toInt(), rect.width.toInt(), rect.height.toInt())
-            )
-        }
-    } else {
-        Modifier.pointerInput(id) {
-            awaitEachGesture {
-                val down = awaitFirstDown(requireUnconsumed = false)
-                var moved = false
-                var clickCount = 0
+    if (chrome.nativeDragHandled) nativeCaptionRegion(chrome, id)
+    else manualDragGesture(id)
+}
 
-                VoxelStudioWindow.onDragStart()
+@Composable
+private fun nativeCaptionRegion(chrome: NativeWindowChrome, id: String): Modifier {
+    DisposableEffect(id) {
+        onDispose { chrome.captionRegions.unregister(id) }
+    }
+    return Modifier.onGloballyPositioned { coords ->
+        val rect = coords.boundsInRoot()
+        chrome.captionRegions.register(
+            id,
+            Rectangle(rect.left.toInt(), rect.top.toInt(), rect.width.toInt(), rect.height.toInt())
+        )
+    }
+}
 
-                while (true) {
-                    val event = awaitPointerEvent()
-                    when (event.type) {
-                        PointerEventType.Move -> {
-                            moved = true
-                            event.changes.forEach { it.consume() }
-                            VoxelStudioWindow.onDragMove()
-                        }
+@Composable
+private fun manualDragGesture(id: String): Modifier {
+    val lastReleaseNanos = remember { mutableLongStateOf(0L) }
+    return Modifier.pointerInput(id) {
+        awaitEachGesture { detectDragOrClick(lastReleaseNanos) }
+    }
+}
 
-                        PointerEventType.Release -> {
-                            VoxelStudioWindow.onDragEnd()
-                            if (!moved) {
-                                clickCount++
-                                if (down.pressed && clickCount == 2) VoxelStudioWindow.onDragDoubleClick()
-                            }
-                            return@awaitEachGesture
-                        }
-                    }
-                }
+private suspend fun AwaitPointerEventScope.detectDragOrClick(lastReleaseNanos: MutableLongState) {
+    awaitFirstDown(requireUnconsumed = false)
+    VoxelStudioWindow.onDragStart()
+
+    var moved = false
+    while (true) {
+        val event = awaitPointerEvent()
+        when (event.type) {
+            PointerEventType.Move -> {
+                moved = true
+                event.changes.forEach { it.consume() }
+                VoxelStudioWindow.onDragMove()
+            }
+
+            PointerEventType.Release -> {
+                VoxelStudioWindow.onDragEnd()
+                if (!moved) handleTap(lastReleaseNanos)
+                return
             }
         }
+    }
+}
+
+private fun handleTap(lastReleaseNanos: MutableLongState) {
+    val now = System.nanoTime()
+    if (now - lastReleaseNanos.longValue < DOUBLE_CLICK_THRESHOLD_NANOS) {
+        VoxelStudioWindow.onDragDoubleClick()
+        lastReleaseNanos.longValue = 0L
+    } else {
+        lastReleaseNanos.longValue = now
     }
 }

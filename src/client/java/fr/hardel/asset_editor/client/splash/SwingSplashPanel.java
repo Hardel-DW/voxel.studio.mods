@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -130,10 +129,6 @@ public final class SwingSplashPanel extends JPanel {
     private Rectangle titleBarDragRegion = new Rectangle();
     private HoverTarget hoverTarget;
 
-    private float globalAlpha = 1f;
-    private Timer fadeTimer;
-    private float frozenLoadingAlpha = 1f;
-
     public SwingSplashPanel(Actions actions) {
         this.actions = actions;
 
@@ -177,38 +172,6 @@ public final class SwingSplashPanel extends JPanel {
         animationTimer.stop();
     }
 
-    public void fadeOut(int durationMs, Runnable onComplete) {
-        cancelFade();
-        frozenLoadingAlpha = easedPulse(System.currentTimeMillis() - animStart);
-
-        long start = System.currentTimeMillis();
-        fadeTimer = new Timer(16, null);
-        fadeTimer.addActionListener(e -> {
-            long elapsed = System.currentTimeMillis() - start;
-            if (elapsed >= durationMs) {
-                globalAlpha = 0f;
-                finishFade();
-                SwingUtilities.invokeLater(onComplete);
-                return;
-            }
-            float t = (float) elapsed / durationMs;
-            globalAlpha = 1f - t * t * t;
-            repaint();
-        });
-        fadeTimer.start();
-    }
-
-    public void cancelFade() {
-        if (fadeTimer != null) {
-            fadeTimer.stop();
-            fadeTimer = null;
-        }
-        if (globalAlpha != 1f) {
-            globalAlpha = 1f;
-            repaint();
-        }
-    }
-
     /**
      * Window-caption hit-test for native chrome integration. Must be lock-free and side-effect free:
      * invoked from the AWT-Windows thread (outside the EDT) when FlatLaf's WM_NCHITTEST handler
@@ -223,7 +186,6 @@ public final class SwingSplashPanel extends JPanel {
     @Override
     public void removeNotify() {
         stopAnimation();
-        cancelFade();
         super.removeNotify();
     }
 
@@ -231,7 +193,6 @@ public final class SwingSplashPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
         applyRenderingHints(g2);
-        g2.setComposite(AlphaComposite.SrcOver.derive(globalAlpha));
 
         int w = getWidth();
         int h = getHeight();
@@ -255,14 +216,6 @@ public final class SwingSplashPanel extends JPanel {
         paintTitleBar(g2, w);
 
         g2.dispose();
-    }
-
-    private void finishFade() {
-        if (fadeTimer != null) {
-            fadeTimer.stop();
-            fadeTimer = null;
-        }
-        repaint();
     }
 
     private static void applyRenderingHints(Graphics2D g) {
@@ -359,13 +312,13 @@ public final class SwingSplashPanel extends JPanel {
     }
 
     private void paintLoadingText(Graphics2D g, int w, int h, long elapsed) {
-        float alpha = fadeTimer != null ? frozenLoadingAlpha : easedPulse(elapsed);
+        float alpha = easedPulse(elapsed);
         FontMetrics metrics = g.getFontMetrics(monoSmallTracked);
         int textWidth = metrics.stringWidth(splashLoading);
         int baseline = h - Dim.LOADING_BOTTOM_OFFSET - metrics.getDescent();
 
         Graphics2D gg = (Graphics2D) g.create();
-        gg.setComposite(AlphaComposite.SrcOver.derive(alpha * globalAlpha));
+        gg.setComposite(AlphaComposite.SrcOver.derive(alpha));
         gg.setFont(monoSmallTracked);
         gg.setColor(Palette.ZINC_400);
         gg.drawString(splashLoading, (w - textWidth) / 2, baseline);
@@ -484,7 +437,7 @@ public final class SwingSplashPanel extends JPanel {
 
     private void paintSvg(Graphics2D g, SvgShape shape, int x, int y, int size, Color color, float alpha) {
         Graphics2D gg = (Graphics2D) g.create();
-        gg.setComposite(AlphaComposite.SrcOver.derive(alpha * globalAlpha));
+        gg.setComposite(AlphaComposite.SrcOver.derive(alpha));
         gg.translate(x, y);
         double scale = size / shape.viewBoxWidth();
         gg.scale(scale, scale);
