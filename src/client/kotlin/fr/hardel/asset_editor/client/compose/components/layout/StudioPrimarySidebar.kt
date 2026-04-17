@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -122,7 +123,7 @@ private fun ConceptButton(
     active: Boolean,
     onClick: () -> Unit
 ) {
-    val shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(16.dp)
 
     // Link: block relative rounded-2xl overflow-hidden h-14 bg-transparent
     // active -> bg-zinc-700/5 border border-zinc-800

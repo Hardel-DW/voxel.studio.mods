@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
+import fr.hardel.asset_editor.client.compose.components.layout.HeaderActionButton
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.EnchantingSetupCard
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.EnchantingTableCard
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation.EnchantmentResultsTable

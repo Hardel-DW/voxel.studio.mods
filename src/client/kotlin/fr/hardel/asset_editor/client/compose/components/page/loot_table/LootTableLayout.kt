@@ -2,8 +2,8 @@ package fr.hardel.asset_editor.client.compose.components.page.loot_table
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
-import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayout
+import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry

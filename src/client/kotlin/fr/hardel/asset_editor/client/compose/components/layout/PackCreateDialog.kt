@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.Dialog
 import fr.hardel.asset_editor.client.compose.components.ui.FileInput
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
-import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.network.ClientPayloadSender
 import fr.hardel.asset_editor.network.pack.PackCreatePayload
 import java.io.File
@@ -30,7 +29,6 @@ object PackCreateDialog {
 
     @Composable
     fun create(
-        context: StudioContext,
         onDismiss: () -> Unit
     ) {
         var name by remember { mutableStateOf("") }
@@ -38,7 +36,6 @@ object PackCreateDialog {
         var syncing by remember { mutableStateOf(false) }
         var userEditedNamespace by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
-        var iconFile by remember { mutableStateOf<File?>(null) }
 
         // Compose-only: dialog de création de pack, pas d'équivalent TSX direct dans le layout editor.
         Dialog(
@@ -110,9 +107,7 @@ object PackCreateDialog {
                 FileInput(
                     promptText = I18n.get("studio:pack.create.icon.placeholder"),
                     accept = "*.png",
-                    onFileSelected = { file ->
-                        iconFile = file
-                    }
+                    onFileSelected = { _ ->}
                 )
 
                 if (errorMessage != null) {

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

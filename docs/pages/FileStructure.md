@@ -35,8 +35,7 @@ kotlin/client
 ├── compose
 │   ├── components               — Reusable visual components
 │   │   ├── layout               — Components common to all pages
-│   │   │   ├── editor           — Main app shell (header, sidebar, tabs, pack selector)
-│   │   │   └── loading          — Splash screen
+│   │   │   └── editor           — Main app shell (header, sidebar, tabs, pack selector, window controls)
 │   │   ├── page                 — Components specific to a concept (enchantment, loot_table, recipe)
 │   │   └── ui                   — Generic components (buttons, inputs, trees, dialogs)
 │   │

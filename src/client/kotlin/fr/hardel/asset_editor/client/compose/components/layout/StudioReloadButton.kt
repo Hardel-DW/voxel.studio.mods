@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable

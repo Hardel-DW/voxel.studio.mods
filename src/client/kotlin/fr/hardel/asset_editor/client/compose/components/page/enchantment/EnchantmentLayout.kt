@@ -8,10 +8,10 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
-import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayout
-import fr.hardel.asset_editor.client.compose.components.layout.editor.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayout
+import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
-import fr.hardel.asset_editor.client.compose.components.layout.editor.HeaderActionButton
+import fr.hardel.asset_editor.client.compose.components.layout.HeaderActionButton
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.lib.ConceptSimulationDestination

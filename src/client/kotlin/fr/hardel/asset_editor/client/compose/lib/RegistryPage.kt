@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.layout.editor.PackCreateDialog
+import fr.hardel.asset_editor.client.compose.components.layout.PackCreateDialog
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -142,7 +142,7 @@ fun RegistryPageDialogs(
     }
 
     if (state.createPack) {
-        PackCreateDialog.create(context) {
+        PackCreateDialog.create() {
             state.createPack = false
         }
     }

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.layout.loading.WindowControls
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -80,7 +79,6 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
                     StudioEditorTabItem(
                         context = context,
                         tab = tab,
-                        index = index,
                         active = tab.tabId == activeTabId
                     )
                 }
@@ -104,7 +102,6 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
 private fun StudioEditorTabItem(
     context: StudioContext,
     tab: StudioTabEntry,
-    index: Int,
     active: Boolean
 ) {
     val itemInteraction = remember { MutableInteractionSource() }

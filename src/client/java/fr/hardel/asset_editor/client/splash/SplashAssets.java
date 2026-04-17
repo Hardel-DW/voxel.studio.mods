@@ -1,19 +1,32 @@
 package fr.hardel.asset_editor.client.splash;
 
+import fr.hardel.asset_editor.AssetEditor;
+
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.geom.Path2D;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class SplashAssets {
 
-    record SvgShape(Path2D path, double viewBoxWidth, double viewBoxHeight) {}
+    public record SvgShape(Path2D path, double viewBoxWidth, double viewBoxHeight) {}
 
-    private static final String ASSET_ROOT = "/assets/asset_editor/";
+    static final String ICON_LOGO = "logo.svg";
+    static final String ICON_GITHUB = "company/github.svg";
+    static final String ICON_MINIMIZE = "window/minimize.svg";
+    static final String ICON_MAXIMIZE = "window/maximize.svg";
+    static final String ICON_CLOSE = "window/close.svg";
+
+    static final String FONT_EXTRABOLD = "rubik-extrabold.ttf";
+    static final String FONT_MEDIUM = "rubik-medium.ttf";
+
+    private static final String ASSET_ROOT = "/assets/" + AssetEditor.MOD_ID + "/";
     private static final String ICON_ROOT = ASSET_ROOT + "icons/";
     private static final String FONT_ROOT = ASSET_ROOT + "fonts/";
 
@@ -26,70 +39,31 @@ public final class SplashAssets {
             "width\\s*=\\s*\"([^\"]+)\"[^>]*" +
             "height\\s*=\\s*\"([^\"]+)\"");
 
-    private static volatile SvgShape logo;
-    private static volatile SvgShape github;
-    private static volatile SvgShape minimize;
-    private static volatile SvgShape maximize;
-    private static volatile SvgShape close;
-    private static volatile Font rubikExtraBold;
-    private static volatile Font rubikMedium;
+    private static final ConcurrentMap<String, SvgShape> SHAPES = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, Font> FONTS = new ConcurrentHashMap<>();
 
-    static SvgShape logo() {
-        if (logo == null)
-            logo = loadSvg("logo.svg");
-        return logo;
+    static SvgShape shape(String name) {
+        return SHAPES.computeIfAbsent(name, SplashAssets::loadSvg);
     }
 
-    static SvgShape github() {
-        if (github == null)
-            github = loadSvg("company/github.svg");
-        return github;
-    }
-
-    static SvgShape minimize() {
-        if (minimize == null)
-            minimize = loadSvg("window/minimize.svg");
-        return minimize;
-    }
-
-    static SvgShape maximize() {
-        if (maximize == null)
-            maximize = loadSvg("window/maximize.svg");
-        return maximize;
-    }
-
-    static SvgShape close() {
-        if (close == null)
-            close = loadSvg("window/close.svg");
-        return close;
-    }
-
-    static Font rubikExtraBold() {
-        if (rubikExtraBold == null)
-            rubikExtraBold = loadFont("rubik-extrabold.ttf");
-        return rubikExtraBold;
-    }
-
-    static Font rubikMedium() {
-        if (rubikMedium == null)
-            rubikMedium = loadFont("rubik-medium.ttf");
-        return rubikMedium;
-    }
-
-    public static void preload() {
-        logo();
-        github();
-        minimize();
-        maximize();
-        close();
-        rubikExtraBold();
-        rubikMedium();
+    static Font font(String name) {
+        return FONTS.computeIfAbsent(name, SplashAssets::loadFont);
     }
 
     public static void preloadAsync() {
         Thread worker = new Thread(SplashAssets::preload, "asset_editor-splash-preload");
         worker.setDaemon(true);
         worker.start();
+    }
+
+    private static void preload() {
+        shape(ICON_LOGO);
+        shape(ICON_GITHUB);
+        shape(ICON_MINIMIZE);
+        shape(ICON_MAXIMIZE);
+        shape(ICON_CLOSE);
+        font(FONT_EXTRABOLD);
+        font(FONT_MEDIUM);
     }
 
     private static SvgShape loadSvg(String name) {
@@ -104,20 +78,25 @@ public final class SplashAssets {
 
         Matcher rectMatcher = RECT.matcher(xml);
         if (rectMatcher.find()) {
-            double x = Double.parseDouble(rectMatcher.group(1));
-            double y = Double.parseDouble(rectMatcher.group(2));
-            double w = Double.parseDouble(rectMatcher.group(3));
-            double h = Double.parseDouble(rectMatcher.group(4));
-            Path2D path = new Path2D.Double();
-            path.moveTo(x, y);
-            path.lineTo(x + w, y);
-            path.lineTo(x + w, y + h);
-            path.lineTo(x, y + h);
-            path.closePath();
+            Path2D path = rectPath(
+                Double.parseDouble(rectMatcher.group(1)),
+                Double.parseDouble(rectMatcher.group(2)),
+                Double.parseDouble(rectMatcher.group(3)),
+                Double.parseDouble(rectMatcher.group(4)));
             return new SvgShape(path, viewBox[0], viewBox[1]);
         }
 
         throw new IllegalStateException("Unsupported SVG (no <path d> or <rect>): " + name);
+    }
+
+    private static Path2D rectPath(double x, double y, double w, double h) {
+        Path2D.Double path = new Path2D.Double();
+        path.moveTo(x, y);
+        path.lineTo(x + w, y);
+        path.lineTo(x + w, y + h);
+        path.lineTo(x, y + h);
+        path.closePath();
+        return path;
     }
 
     private static double[] parseViewBox(String xml) {

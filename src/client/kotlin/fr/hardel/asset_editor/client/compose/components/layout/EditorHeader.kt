@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.editor
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,9 +23,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -58,7 +61,7 @@ fun EditorHeader(
     val editorDestination = rememberCurrentElementDestination(context, conceptId)
     val isOverview = destination is ConceptOverviewDestination
     val segments = remember(destination, treeState.filterPath, treeState.selectedElementId, treeState.tree) {
-        buildBreadcrumbSegments(treeState, conceptId, conceptRegistryKey, destination)
+        buildBreadcrumbSegments(treeState, conceptRegistryKey, destination)
     }
     val title = remember(destination, segments, treeState.selectedElementId) {
         resolveTitle(context, treeState, conceptId, conceptRegistryKey, segments, destination)
@@ -199,9 +202,9 @@ fun HeaderActionButton(
                 drawRoundRect(
                     color = StudioColors.Zinc800,
                     topLeft = Offset(stroke / 2f, stroke / 2f),
-                    size = androidx.compose.ui.geometry.Size(size.width - stroke, size.height - stroke),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx(), 8.dp.toPx()),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke)
+                    size = Size(size.width - stroke, size.height - stroke),
+                    cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx()),
+                    style = Stroke(width = stroke)
                 )
             }
             .hoverable(interaction)
@@ -286,7 +289,6 @@ private fun resolveColorKey(
 
 private fun buildBreadcrumbSegments(
     treeState: ConceptTreeState,
-    conceptId: Identifier,
     conceptRegistryKey: ResourceKey<out Registry<*>>,
     destination: StudioDestination
 ): List<String> {

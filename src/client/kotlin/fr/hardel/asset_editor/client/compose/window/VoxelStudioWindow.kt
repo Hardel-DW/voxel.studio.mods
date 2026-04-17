@@ -21,7 +21,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import fr.hardel.asset_editor.DevFlags
-import fr.hardel.asset_editor.client.compose.components.layout.editor.StudioEditorRoot
+import fr.hardel.asset_editor.client.compose.components.layout.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
@@ -149,7 +149,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     private fun ensureSplashPanel(container: JPanel): SwingSplashPanel {
         splashPanel?.let { return it }
-        val panel = createSplashPanel()
+        val panel = SwingSplashPanel(SplashActions)
         splashPanel = panel
         container.add(panel, CARD_SPLASH)
         return panel
@@ -170,7 +170,11 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         }
     }
 
-    private fun createSplashPanel(): SwingSplashPanel = SwingSplashPanel(object : SwingSplashPanel.Actions {
+    private fun resync() {
+        activeContext?.resyncWorldSession()
+    }
+
+    private object SplashActions : SwingSplashPanel.Actions {
         override fun minimize() = requestMinimize()
         override fun maximize() = requestToggleMaximize()
         override fun close() = requestClose()
@@ -181,15 +185,10 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         override fun openGithub() {
             BrowserUtils.openBrowser(GITHUB_URL)
         }
-
         override fun dragStart() = onDragStart()
         override fun dragMove() = onDragMove()
         override fun dragEnd() = onDragEnd()
         override fun dragDoubleClick() = onDragDoubleClick()
-    })
-
-    private fun resync() {
-        activeContext?.resyncWorldSession()
     }
 
     @Composable

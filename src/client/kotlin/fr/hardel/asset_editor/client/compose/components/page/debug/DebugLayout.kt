@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorBreadcrumb
-import fr.hardel.asset_editor.client.compose.components.layout.editor.EditorHeaderTabItem
+import fr.hardel.asset_editor.client.compose.components.layout.EditorBreadcrumb
+import fr.hardel.asset_editor.client.compose.components.layout.EditorHeaderTabItem
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.client.compose.routes.debug.DebugCodeBlockPage

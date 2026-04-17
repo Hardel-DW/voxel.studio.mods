@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.layout.loading
+package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
@@ -43,7 +44,7 @@ fun WindowControls(
 @Composable
 private fun WindowButton(
     icon: Identifier,
-    hoverTint: androidx.compose.ui.graphics.Color,
+    hoverTint: Color,
     width: Dp,
     height: Dp,
     onClick: () -> Unit

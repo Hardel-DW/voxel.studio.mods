@@ -22,12 +22,18 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.swing.*;
+import javax.swing.SwingUtilities;
+import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public final class SwingSplashPanel extends JPanel {
 
@@ -51,46 +57,59 @@ public final class SwingSplashPanel extends JPanel {
         void dragDoubleClick();
     }
 
-    private static final int TITLE_BAR_HEIGHT = 32;
-    private static final int FRAME_PAD_TOP = 48;
-    private static final int FRAME_PAD_SIDE = 24;
-    private static final int FRAME_PAD_BOTTOM = 24;
-    private static final int FRAME_INNER_PAD = 16;
-    private static final int GRID_CELL = 64;
-    private static final int CORNER_SIZE = 16;
-    private static final int WINDOW_CTRL_WIDTH = 36;
-    private static final int LOADING_BOTTOM_OFFSET = 80;
-    private static final int DOT_SIZE = 4;
-    private static final int DOT_GAP = 4;
-    private static final int LOGO_SIZE = 96;
-    private static final int TITLE_BAR_LOGO_SIZE = 16;
-    private static final int WIN_ICON_SIZE = 12;
-    private static final int GITHUB_ICON_SIZE = 16;
-    private static final int TITLE_SIZE = 36;
-    private static final int TITLE_BAR_TEXT_SIZE = 12;
-    private static final int SMALL_TEXT_SIZE = 10;
-    private static final int SUBTITLE_SIZE = 12;
+    private enum HoverTarget {
+        MINIMIZE, MAXIMIZE, CLOSE, HELP, GITHUB
+    }
 
-    private static final Color GRID_LINE = new Color(0x09090B);
-    private static final Color GRID_VIGNETTE = new Color(0, 0, 0, 153);
-    private static final Color DASHED_BORDER = new Color(0x151418);
-    private static final Color CORNER_COLOR = new Color(0x52525B);
-    private static final Color DOT_1 = new Color(0x71717A);
-    private static final Color DOT_2 = new Color(0x52525B);
-    private static final Color DOT_3 = new Color(0x3F3F46);
-    private static final Color ZINC_400 = new Color(0xA1A1AA);
-    private static final Color ZINC_500 = new Color(0x71717A);
-    private static final Color ZINC_600 = new Color(0x52525B);
-    private static final Color ZINC_200 = new Color(0xE4E4E7);
-    private static final Color RED_400 = new Color(0xF87171);
+    private static final class Dim {
+        static final int TITLE_BAR_HEIGHT = 32;
+        static final int FRAME_PAD_TOP = 48;
+        static final int FRAME_PAD_SIDE = 24;
+        static final int FRAME_PAD_BOTTOM = 24;
+        static final int FRAME_INNER_PAD = 16;
+        static final int GRID_CELL = 64;
+        static final int CORNER_SIZE = 16;
+        static final int WINDOW_CTRL_WIDTH = 36;
+        static final int LOADING_BOTTOM_OFFSET = 80;
+        static final int DOT_SIZE = 4;
+        static final int DOT_GAP = 4;
+        static final int LOGO_SIZE = 96;
+        static final int TITLE_BAR_LOGO_SIZE = 16;
+        static final int WINDOW_ICON_SIZE = 12;
+        static final int GITHUB_ICON_SIZE = 16;
+        static final int TITLE_SIZE = 36;
+        static final int TITLE_BAR_TEXT_SIZE = 12;
+        static final int SMALL_TEXT_SIZE = 10;
+        static final int SUBTITLE_SIZE = 12;
+
+        private Dim() {}
+    }
+
+    private static final class Palette {
+        static final Color GRID_LINE = new Color(0x09090B);
+        static final Color GRID_VIGNETTE = new Color(0, 0, 0, 153);
+        static final Color DASHED_BORDER = new Color(0x151418);
+        static final Color CORNER = new Color(0x52525B);
+        static final Color DOT_1 = new Color(0x71717A);
+        static final Color DOT_2 = new Color(0x52525B);
+        static final Color DOT_3 = new Color(0x3F3F46);
+        static final Color ZINC_200 = new Color(0xE4E4E7);
+        static final Color ZINC_400 = new Color(0xA1A1AA);
+        static final Color ZINC_500 = new Color(0x71717A);
+        static final Color ZINC_600 = new Color(0x52525B);
+        static final Color RED_400 = new Color(0xF87171);
+        static final Color TRANSPARENT = new Color(0, 0, 0, 0);
+
+        private Palette() {}
+    }
 
     private static final float[] DASH_PATTERN = { 6f, 4f };
+    private static final long PULSE_PERIOD_MS = 3000L;
+    private static final float PULSE_MIN = 0.3f;
 
+    private final Map<HoverTarget, SvgShape> windowIcons;
     private final SvgShape logoShape;
     private final SvgShape githubShape;
-    private final SvgShape minShape;
-    private final SvgShape maxShape;
-    private final SvgShape closeShape;
     private final Font titleFont;
     private final Font titleBarFont;
     private final Font subtitleFont;
@@ -106,21 +125,14 @@ public final class SwingSplashPanel extends JPanel {
     private final Actions actions;
     private final Timer animationTimer;
     private final long animStart;
+    private final List<HitRegion> hitRegions = new ArrayList<>();
 
     private Rectangle titleBarDragRegion = new Rectangle();
-    private final Rectangle[] windowControls = { new Rectangle(), new Rectangle(), new Rectangle() };
-    private Rectangle helpRegion = new Rectangle();
-    private Rectangle githubRegion = new Rectangle();
-
-    private HoverTarget hoverTarget = null;
+    private HoverTarget hoverTarget;
 
     private float globalAlpha = 1f;
     private Timer fadeTimer;
     private float frozenLoadingAlpha = 1f;
-
-    private enum HoverTarget {
-        MIN, MAX, CLOSE, HELP, GITHUB
-    }
 
     public SwingSplashPanel(Actions actions) {
         this.actions = actions;
@@ -129,17 +141,17 @@ public final class SwingSplashPanel extends JPanel {
         setBackground(Color.BLACK);
         setLayout(null);
 
-        logoShape = SplashAssets.logo();
-        githubShape = SplashAssets.github();
-        minShape = SplashAssets.minimize();
-        maxShape = SplashAssets.maximize();
-        closeShape = SplashAssets.close();
+        logoShape = SplashAssets.shape(SplashAssets.ICON_LOGO);
+        githubShape = SplashAssets.shape(SplashAssets.ICON_GITHUB);
+        windowIcons = new EnumMap<>(HoverTarget.class);
+        windowIcons.put(HoverTarget.MINIMIZE, SplashAssets.shape(SplashAssets.ICON_MINIMIZE));
+        windowIcons.put(HoverTarget.MAXIMIZE, SplashAssets.shape(SplashAssets.ICON_MAXIMIZE));
+        windowIcons.put(HoverTarget.CLOSE, SplashAssets.shape(SplashAssets.ICON_CLOSE));
 
-        titleFont = SplashAssets.rubikExtraBold().deriveFont((float) TITLE_SIZE);
-        titleBarFont = SplashAssets.rubikMedium().deriveFont((float) TITLE_BAR_TEXT_SIZE);
-        subtitleFont = withTracking(SplashAssets.rubikMedium().deriveFont((float) SUBTITLE_SIZE), 0.3f);
-        Font monoSmall = new Font(Font.MONOSPACED, Font.PLAIN, SMALL_TEXT_SIZE);
-        monoSmallTracked = withTracking(monoSmall, 0.1f);
+        titleFont = SplashAssets.font(SplashAssets.FONT_EXTRABOLD).deriveFont((float) Dim.TITLE_SIZE);
+        titleBarFont = SplashAssets.font(SplashAssets.FONT_MEDIUM).deriveFont((float) Dim.TITLE_BAR_TEXT_SIZE);
+        subtitleFont = withTracking(SplashAssets.font(SplashAssets.FONT_MEDIUM).deriveFont((float) Dim.SUBTITLE_SIZE), 0.3f);
+        monoSmallTracked = withTracking(new Font(Font.MONOSPACED, Font.PLAIN, Dim.SMALL_TEXT_SIZE), 0.1f);
 
         appTitle = I18n.get("app:title");
         splashTitle = I18n.get("splash:title");
@@ -167,28 +179,23 @@ public final class SwingSplashPanel extends JPanel {
 
     public void fadeOut(int durationMs, Runnable onComplete) {
         cancelFade();
-        long pulseElapsed = System.currentTimeMillis() - animStart;
-        frozenLoadingAlpha = easedPulse(pulseElapsed);
-        long start = System.currentTimeMillis();
-        Timer timer = new Timer(16, null);
-        timer.addActionListener(e -> {
-            long fadeElapsed = System.currentTimeMillis() - start;
-            if (fadeElapsed >= durationMs) {
-                globalAlpha = 0f;
-                timer.stop();
-                if (fadeTimer == timer)
-                    fadeTimer = null;
+        frozenLoadingAlpha = easedPulse(System.currentTimeMillis() - animStart);
 
-                repaint();
+        long start = System.currentTimeMillis();
+        fadeTimer = new Timer(16, null);
+        fadeTimer.addActionListener(e -> {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed >= durationMs) {
+                globalAlpha = 0f;
+                finishFade();
                 SwingUtilities.invokeLater(onComplete);
                 return;
             }
-            float t = (float) fadeElapsed / durationMs;
+            float t = (float) elapsed / durationMs;
             globalAlpha = 1f - t * t * t;
             repaint();
         });
-        fadeTimer = timer;
-        timer.start();
+        fadeTimer.start();
     }
 
     public void cancelFade() {
@@ -212,11 +219,7 @@ public final class SwingSplashPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-
+        applyRenderingHints(g2);
         g2.setComposite(AlphaComposite.SrcOver.derive(globalAlpha));
 
         int w = getWidth();
@@ -226,8 +229,11 @@ public final class SwingSplashPanel extends JPanel {
         g2.setColor(Color.BLACK);
         g2.fillRect(0, 0, w, h);
 
-        Rectangle frame = new Rectangle(FRAME_PAD_SIDE, FRAME_PAD_TOP,
-            w - 2 * FRAME_PAD_SIDE, h - FRAME_PAD_TOP - FRAME_PAD_BOTTOM);
+        Rectangle frame = new Rectangle(
+            Dim.FRAME_PAD_SIDE, Dim.FRAME_PAD_TOP,
+            w - 2 * Dim.FRAME_PAD_SIDE, h - Dim.FRAME_PAD_TOP - Dim.FRAME_PAD_BOTTOM);
+
+        hitRegions.clear();
 
         paintGrid(g2, frame);
         paintCenterContent(g2, w, h);
@@ -240,24 +246,40 @@ public final class SwingSplashPanel extends JPanel {
         g2.dispose();
     }
 
+    private void finishFade() {
+        if (fadeTimer != null) {
+            fadeTimer.stop();
+            fadeTimer = null;
+        }
+        repaint();
+    }
+
+    private static void applyRenderingHints(Graphics2D g) {
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+    }
+
     private void paintGrid(Graphics2D g, Rectangle frame) {
         Shape previousClip = g.getClip();
         g.setClip(frame);
 
-        g.setColor(GRID_LINE);
+        g.setColor(Palette.GRID_LINE);
         g.setStroke(new BasicStroke(1f));
 
-        for (int x = frame.x; x <= frame.x + frame.width; x += GRID_CELL) {
-            float snapped = (float) (double) x + 0.5f;
-            g.draw(new java.awt.geom.Line2D.Float(snapped, frame.y, snapped, frame.y + frame.height));
+        int right = frame.x + frame.width;
+        int bottom = frame.y + frame.height;
+        for (int x = frame.x; x <= right; x += Dim.GRID_CELL) {
+            float snapped = x + 0.5f;
+            g.draw(new Line2D.Float(snapped, frame.y, snapped, bottom));
         }
-        for (int y = frame.y; y <= frame.y + frame.height; y += GRID_CELL) {
-            float snapped = (float) (double) y + 0.5f;
-            g.draw(new java.awt.geom.Line2D.Float(frame.x, snapped, frame.x + frame.width, snapped));
+        for (int y = frame.y; y <= bottom; y += Dim.GRID_CELL) {
+            float snapped = y + 0.5f;
+            g.draw(new Line2D.Float(frame.x, snapped, right, snapped));
         }
 
         paintGridVignette(g, frame);
-
         g.setClip(previousClip);
     }
 
@@ -270,19 +292,17 @@ public final class SwingSplashPanel extends JPanel {
             return;
 
         float[] fractions = { 0f, 0.4f, 1f };
-        Color[] colors = { new Color(0, 0, 0, 0), new Color(0, 0, 0, 0), GRID_VIGNETTE };
+        Color[] colors = { Palette.TRANSPARENT, Palette.TRANSPARENT, Palette.GRID_VIGNETTE };
 
         AffineTransform gradientTransform = new AffineTransform();
         gradientTransform.translate(cx, cy);
         gradientTransform.scale(1.0, ry / rx);
         gradientTransform.translate(-cx, -cy);
 
-        RadialGradientPaint paint = new RadialGradientPaint(
+        g.setPaint(new RadialGradientPaint(
             new Point2D.Float(cx, cy), rx, new Point2D.Float(cx, cy),
             fractions, colors, MultipleGradientPaint.CycleMethod.NO_CYCLE,
-            MultipleGradientPaint.ColorSpaceType.SRGB, gradientTransform);
-
-        g.setPaint(paint);
+            MultipleGradientPaint.ColorSpaceType.SRGB, gradientTransform));
         g.fill(frame);
     }
 
@@ -295,20 +315,19 @@ public final class SwingSplashPanel extends JPanel {
         int titleHeight = titleMetrics.getAscent() + titleMetrics.getDescent();
         int subtitleHeight = subtitleMetrics.getAscent() + subtitleMetrics.getDescent();
 
-        int blockHeight = LOGO_SIZE + 32 + titleHeight + 4 + subtitleHeight;
+        int blockHeight = Dim.LOGO_SIZE + 32 + titleHeight + 4 + subtitleHeight;
         int cursorY = centerY - blockHeight / 2;
 
-        paintLogo(g, centerX - LOGO_SIZE / 2, cursorY);
-        cursorY += LOGO_SIZE + 32;
+        paintLogo(g, centerX - Dim.LOGO_SIZE / 2, cursorY);
+        cursorY += Dim.LOGO_SIZE + 32;
 
         cursorY += titleMetrics.getAscent();
         paintTitleWithGradient(g, centerX, cursorY, titleMetrics);
         cursorY += titleMetrics.getDescent();
 
-        cursorY += 4;
-        cursorY += subtitleMetrics.getAscent();
+        cursorY += 4 + subtitleMetrics.getAscent();
         g.setFont(subtitleFont);
-        g.setColor(ZINC_500);
+        g.setColor(Palette.ZINC_500);
         int subtitleWidth = subtitleMetrics.stringWidth(splashSubtitle);
         g.drawString(splashSubtitle, centerX - subtitleWidth / 2, cursorY);
     }
@@ -320,42 +339,36 @@ public final class SwingSplashPanel extends JPanel {
         int bottom = baselineY + metrics.getDescent();
 
         g.setFont(titleFont);
-        g.setPaint(new GradientPaint(0, top, Color.WHITE, 0, bottom, ZINC_400));
+        g.setPaint(new GradientPaint(0, top, Color.WHITE, 0, bottom, Palette.ZINC_400));
         g.drawString(splashTitle, x, baselineY);
     }
 
     private void paintLogo(Graphics2D g, int x, int y) {
-        Graphics2D gg = (Graphics2D) g.create();
-        gg.translate(x, y);
-        double scale = SwingSplashPanel.LOGO_SIZE / logoShape.viewBoxWidth();
-        gg.scale(scale, scale);
-        gg.setColor(Color.WHITE);
-        gg.fill(logoShape.path());
-        gg.dispose();
+        paintSvg(g, logoShape, x, y, Dim.LOGO_SIZE, Color.WHITE, 1f);
     }
 
     private void paintLoadingText(Graphics2D g, int w, int h, long elapsed) {
         float alpha = fadeTimer != null ? frozenLoadingAlpha : easedPulse(elapsed);
         FontMetrics metrics = g.getFontMetrics(monoSmallTracked);
         int textWidth = metrics.stringWidth(splashLoading);
-        int baseline = h - LOADING_BOTTOM_OFFSET - metrics.getDescent();
+        int baseline = h - Dim.LOADING_BOTTOM_OFFSET - metrics.getDescent();
 
         Graphics2D gg = (Graphics2D) g.create();
         gg.setComposite(AlphaComposite.SrcOver.derive(alpha * globalAlpha));
         gg.setFont(monoSmallTracked);
-        gg.setColor(ZINC_400);
+        gg.setColor(Palette.ZINC_400);
         gg.drawString(splashLoading, (w - textWidth) / 2, baseline);
         gg.dispose();
     }
 
     private void paintDashedFrame(Graphics2D g, Rectangle frame) {
-        g.setColor(DASHED_BORDER);
+        g.setColor(Palette.DASHED_BORDER);
         g.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10f, DASH_PATTERN, 0f));
         g.draw(new Rectangle2D.Float(frame.x + 0.5f, frame.y + 0.5f, frame.width - 1f, frame.height - 1f));
     }
 
     private void paintCorners(Graphics2D g, Rectangle frame) {
-        g.setColor(CORNER_COLOR);
+        g.setColor(Palette.CORNER);
         g.setStroke(new BasicStroke(1f));
 
         int x1 = frame.x - 1;
@@ -364,50 +377,45 @@ public final class SwingSplashPanel extends JPanel {
         int y2 = frame.y + frame.height + 1;
 
         drawCorner(g, x1, y1, true, true);
-        drawCorner(g, x2 - CORNER_SIZE, y1, true, false);
-        drawCorner(g, x1, y2 - CORNER_SIZE, false, true);
-        drawCorner(g, x2 - CORNER_SIZE, y2 - CORNER_SIZE, false, false);
+        drawCorner(g, x2 - Dim.CORNER_SIZE, y1, true, false);
+        drawCorner(g, x1, y2 - Dim.CORNER_SIZE, false, true);
+        drawCorner(g, x2 - Dim.CORNER_SIZE, y2 - Dim.CORNER_SIZE, false, false);
     }
 
     private void drawCorner(Graphics2D g, int x, int y, boolean top, boolean left) {
         float cx = x + 0.5f;
         float cy = y + 0.5f;
-        float endX = x + CORNER_SIZE;
-        float endY = y + CORNER_SIZE;
+        float endX = x + Dim.CORNER_SIZE;
+        float endY = y + Dim.CORNER_SIZE;
 
-        if (top)
-            g.draw(new java.awt.geom.Line2D.Float(cx, cy, endX, cy));
-        else
-            g.draw(new java.awt.geom.Line2D.Float(cx, endY - 0.5f, endX, endY - 0.5f));
+        float horizontalY = top ? cy : endY - 0.5f;
+        g.draw(new Line2D.Float(cx, horizontalY, endX, horizontalY));
 
-        if (left)
-            g.draw(new java.awt.geom.Line2D.Float(cx, cy, cx, endY));
-        else
-            g.draw(new java.awt.geom.Line2D.Float(endX - 0.5f, cy, endX - 0.5f, endY));
+        float verticalX = left ? cx : endX - 0.5f;
+        g.draw(new Line2D.Float(verticalX, cy, verticalX, endY));
     }
 
     private void paintFrameStrips(Graphics2D g, Rectangle frame) {
-        int innerX = frame.x + FRAME_INNER_PAD;
-        int innerY = frame.y + FRAME_INNER_PAD;
-        int innerW = frame.width - 2 * FRAME_INNER_PAD;
-        int innerBottom = frame.y + frame.height - FRAME_INNER_PAD;
+        int innerX = frame.x + Dim.FRAME_INNER_PAD;
+        int innerY = frame.y + Dim.FRAME_INNER_PAD;
+        int innerW = frame.width - 2 * Dim.FRAME_INNER_PAD;
+        int innerBottom = frame.y + frame.height - Dim.FRAME_INNER_PAD;
 
         paintFrameTop(g, innerX, innerY, innerW);
         paintFrameBottom(g, innerX, innerBottom, innerW);
     }
 
     private void paintFrameTop(Graphics2D g, int x, int y, int width) {
-        int dotY = y + (TITLE_BAR_TEXT_SIZE - DOT_SIZE) / 2 + 2;
-        drawDot(g, x, dotY, DOT_1);
-        drawDot(g, x + DOT_SIZE + DOT_GAP, dotY, DOT_2);
-        drawDot(g, x + 2 * (DOT_SIZE + DOT_GAP), dotY, DOT_3);
+        int dotY = y + (Dim.TITLE_BAR_TEXT_SIZE - Dim.DOT_SIZE) / 2 + 2;
+        drawDot(g, x, dotY, Palette.DOT_1);
+        drawDot(g, x + Dim.DOT_SIZE + Dim.DOT_GAP, dotY, Palette.DOT_2);
+        drawDot(g, x + 2 * (Dim.DOT_SIZE + Dim.DOT_GAP), dotY, Palette.DOT_3);
 
         g.setFont(monoSmallTracked);
-        g.setColor(ZINC_600);
+        g.setColor(Palette.ZINC_600);
         FontMetrics m = g.getFontMetrics(monoSmallTracked);
         int textWidth = m.stringWidth(buildVersion);
-        int baseline = y + m.getAscent();
-        g.drawString(buildVersion, x + width - textWidth, baseline);
+        g.drawString(buildVersion, x + width - textWidth, y + m.getAscent());
     }
 
     private void paintFrameBottom(Graphics2D g, int x, int bottomY, int width) {
@@ -417,49 +425,50 @@ public final class SwingSplashPanel extends JPanel {
         int helpHeight = m.getAscent() + m.getDescent();
         int baseline = bottomY - m.getDescent();
 
-        g.setColor(hoverTarget == HoverTarget.HELP ? ZINC_400 : ZINC_600);
+        g.setColor(hoverTarget == HoverTarget.HELP ? Palette.ZINC_400 : Palette.ZINC_600);
         g.drawString(splashHelp, x, baseline);
-        helpRegion = new Rectangle(x, baseline - m.getAscent(), helpWidth, helpHeight);
+        registerHit(HoverTarget.HELP, new Rectangle(x, baseline - m.getAscent(), helpWidth, helpHeight));
 
-        int iconX = x + width - GITHUB_ICON_SIZE;
-        int iconY = bottomY - GITHUB_ICON_SIZE;
+        int iconX = x + width - Dim.GITHUB_ICON_SIZE;
+        int iconY = bottomY - Dim.GITHUB_ICON_SIZE;
         float alpha = hoverTarget == HoverTarget.GITHUB ? 0.7f : 1f;
-        paintSvg(g, githubShape, iconX, iconY, GITHUB_ICON_SIZE, Color.WHITE, alpha);
-        githubRegion = new Rectangle(iconX, iconY, GITHUB_ICON_SIZE, GITHUB_ICON_SIZE);
+        paintSvg(g, githubShape, iconX, iconY, Dim.GITHUB_ICON_SIZE, Color.WHITE, alpha);
+        registerHit(HoverTarget.GITHUB, new Rectangle(iconX, iconY, Dim.GITHUB_ICON_SIZE, Dim.GITHUB_ICON_SIZE));
     }
 
     private void drawDot(Graphics2D g, int x, int y, Color color) {
         g.setColor(color);
-        g.fillRect(x, y, DOT_SIZE, DOT_SIZE);
+        g.fillRect(x, y, Dim.DOT_SIZE, Dim.DOT_SIZE);
     }
 
     private void paintTitleBar(Graphics2D g, int w) {
         int logoX = 12;
-        int logoY = (TITLE_BAR_HEIGHT - TITLE_BAR_LOGO_SIZE) / 2;
-        paintSvg(g, logoShape, logoX, logoY, TITLE_BAR_LOGO_SIZE, Color.WHITE, 1f);
+        int logoY = (Dim.TITLE_BAR_HEIGHT - Dim.TITLE_BAR_LOGO_SIZE) / 2;
+        paintSvg(g, logoShape, logoX, logoY, Dim.TITLE_BAR_LOGO_SIZE, Color.WHITE, 1f);
 
-        int titleX = logoX + TITLE_BAR_LOGO_SIZE + 8;
+        int titleX = logoX + Dim.TITLE_BAR_LOGO_SIZE + 8;
         g.setFont(titleBarFont);
         FontMetrics m = g.getFontMetrics(titleBarFont);
-        int baseline = (TITLE_BAR_HEIGHT - m.getHeight()) / 2 + m.getAscent();
-        g.setColor(ZINC_400);
+        int baseline = (Dim.TITLE_BAR_HEIGHT - m.getHeight()) / 2 + m.getAscent();
+        g.setColor(Palette.ZINC_400);
         g.drawString(appTitle, titleX, baseline);
 
-        int controlsStart = w - 3 * WINDOW_CTRL_WIDTH;
-        titleBarDragRegion = new Rectangle(0, 0, controlsStart, TITLE_BAR_HEIGHT);
+        int controlsStart = w - 3 * Dim.WINDOW_CTRL_WIDTH;
+        titleBarDragRegion = new Rectangle(0, 0, controlsStart, Dim.TITLE_BAR_HEIGHT);
 
-        paintWindowControl(g, controlsStart, minShape, ZINC_200, HoverTarget.MIN, 0);
-        paintWindowControl(g, controlsStart + WINDOW_CTRL_WIDTH, maxShape, ZINC_200, HoverTarget.MAX, 1);
-        paintWindowControl(g, controlsStart + 2 * WINDOW_CTRL_WIDTH, closeShape, RED_400, HoverTarget.CLOSE, 2);
+        paintWindowControl(g, controlsStart, HoverTarget.MINIMIZE, Palette.ZINC_200);
+        paintWindowControl(g, controlsStart + Dim.WINDOW_CTRL_WIDTH, HoverTarget.MAXIMIZE, Palette.ZINC_200);
+        paintWindowControl(g, controlsStart + 2 * Dim.WINDOW_CTRL_WIDTH, HoverTarget.CLOSE, Palette.RED_400);
     }
 
-    private void paintWindowControl(Graphics2D g, int x, SvgShape shape,
-                                    Color hoverTint, HoverTarget target, int index) {
-        windowControls[index] = new Rectangle(x, 0, WINDOW_CTRL_WIDTH, TITLE_BAR_HEIGHT);
-        Color tint = hoverTarget == target ? hoverTint : ZINC_500;
-        int iconX = x + (WINDOW_CTRL_WIDTH - WIN_ICON_SIZE) / 2;
-        int iconY = (TITLE_BAR_HEIGHT - WIN_ICON_SIZE) / 2;
-        paintSvg(g, shape, iconX, iconY, WIN_ICON_SIZE, tint, 1f);
+    private void paintWindowControl(Graphics2D g, int x, HoverTarget target, Color hoverTint) {
+        Rectangle bounds = new Rectangle(x, 0, Dim.WINDOW_CTRL_WIDTH, Dim.TITLE_BAR_HEIGHT);
+        registerHit(target, bounds);
+
+        Color tint = hoverTarget == target ? hoverTint : Palette.ZINC_500;
+        int iconX = x + (Dim.WINDOW_CTRL_WIDTH - Dim.WINDOW_ICON_SIZE) / 2;
+        int iconY = (Dim.TITLE_BAR_HEIGHT - Dim.WINDOW_ICON_SIZE) / 2;
+        paintSvg(g, windowIcons.get(target), iconX, iconY, Dim.WINDOW_ICON_SIZE, tint, 1f);
     }
 
     private void paintSvg(Graphics2D g, SvgShape shape, int x, int y, int size, Color color, float alpha) {
@@ -473,10 +482,21 @@ public final class SwingSplashPanel extends JPanel {
         gg.dispose();
     }
 
+    private void registerHit(HoverTarget target, Rectangle bounds) {
+        hitRegions.add(new HitRegion(target, bounds));
+    }
+
+    private HoverTarget hitTest(int x, int y) {
+        for (HitRegion region : hitRegions) {
+            if (region.bounds.contains(x, y)) return region.target;
+        }
+        return null;
+    }
+
     private static float easedPulse(long elapsed) {
-        double t = (elapsed % (long) 3000) / (double) (long) 3000;
+        double t = (elapsed % PULSE_PERIOD_MS) / (double) PULSE_PERIOD_MS;
         double cosine = (1 + Math.cos(2 * Math.PI * t)) / 2;
-        return (float) ((float) 0.3 + ((float) 1.0 - (float) 0.3) * cosine);
+        return (float) (PULSE_MIN + (1.0 - PULSE_MIN) * cosine);
     }
 
     private static Font withTracking(Font base, float tracking) {
@@ -484,6 +504,8 @@ public final class SwingSplashPanel extends JPanel {
         attrs.put(TextAttribute.TRACKING, tracking);
         return base.deriveFont(attrs);
     }
+
+    private record HitRegion(HoverTarget target, Rectangle bounds) {}
 
     private final class SplashMouseHandler extends MouseAdapter {
 
@@ -493,7 +515,6 @@ public final class SwingSplashPanel extends JPanel {
         @Override
         public void mousePressed(MouseEvent e) {
             pressedTarget = hitTest(e.getX(), e.getY());
-
             if (pressedTarget == null && titleBarDragRegion.contains(e.getPoint())) {
                 actions.dragStart();
                 dragging = true;
@@ -502,8 +523,7 @@ public final class SwingSplashPanel extends JPanel {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (dragging)
-                actions.dragMove();
+            if (dragging) actions.dragMove();
         }
 
         @Override
@@ -514,15 +534,7 @@ public final class SwingSplashPanel extends JPanel {
             }
 
             HoverTarget target = hitTest(e.getX(), e.getY());
-            if (target != null && target == pressedTarget) {
-                switch (target) {
-                    case MIN -> actions.minimize();
-                    case MAX -> actions.maximize();
-                    case CLOSE -> actions.close();
-                    case HELP -> actions.openHelp();
-                    case GITHUB -> actions.openGithub();
-                }
-            }
+            if (target != null && target == pressedTarget) dispatch(target);
             pressedTarget = null;
         }
 
@@ -553,21 +565,14 @@ public final class SwingSplashPanel extends JPanel {
             }
         }
 
-        private HoverTarget hitTest(int x, int y) {
-            for (int i = 0; i < windowControls.length; i++) {
-                if (windowControls[i].contains(x, y)) {
-                    return switch (i) {
-                        case 0 -> HoverTarget.MIN;
-                        case 1 -> HoverTarget.MAX;
-                        default -> HoverTarget.CLOSE;
-                    };
-                }
+        private void dispatch(HoverTarget target) {
+            switch (target) {
+                case MINIMIZE -> actions.minimize();
+                case MAXIMIZE -> actions.maximize();
+                case CLOSE -> actions.close();
+                case HELP -> actions.openHelp();
+                case GITHUB -> actions.openGithub();
             }
-            if (helpRegion.contains(x, y))
-                return HoverTarget.HELP;
-            if (githubRegion.contains(x, y))
-                return HoverTarget.GITHUB;
-            return null;
         }
     }
 }

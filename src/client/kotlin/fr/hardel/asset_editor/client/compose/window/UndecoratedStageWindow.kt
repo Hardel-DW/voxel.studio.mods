@@ -145,16 +145,6 @@ open class UndecoratedStageWindow(
         frameHost?.endDrag()
     }
 
-    protected fun isFrameSnapped(): Boolean = frameHost?.isSnapped == true
-
-    protected fun frameLocation(): Point? = frame?.location
-
-    protected fun frameSize(): Dimension? = frame?.size
-
-    protected fun bindDragArea(component: Component) {
-        frameHost?.installDragArea(component)
-    }
-
     private class FrameHost(
         private val frame: JFrame,
         private val resizeMargin: Int = 10,
@@ -275,41 +265,6 @@ open class UndecoratedStageWindow(
             val pos = MouseInfo.getPointerInfo()?.location
             dragging = false
             if (pos != null) applySnap(pos.x, pos.y)
-        }
-
-        fun installDragArea(component: Component) {
-            component.addMouseListener(object : MouseAdapter() {
-                override fun mousePressed(event: MouseEvent) {
-                    val point = SwingUtilities.convertPoint(component, event.point, frame.glassPane)
-                    if (SwingUtilities.isLeftMouseButton(event) && detectZone(point) == ResizeZone.NONE) {
-                        dragging = true
-                        moveOffsetX = event.xOnScreen - frame.x
-                        moveOffsetY = event.yOnScreen - frame.y
-                    }
-                }
-
-                override fun mouseReleased(event: MouseEvent) {
-                    if (dragging) {
-                        applySnap(event.xOnScreen, event.yOnScreen)
-                        dragging = false
-                    }
-                }
-            })
-
-            component.addMouseMotionListener(object : MouseMotionAdapter() {
-                override fun mouseDragged(event: MouseEvent) {
-                    if (!dragging) return
-
-                    if (isSnapped) {
-                        val ratio = event.x.toDouble() / frame.width.coerceAtLeast(1)
-                        unsnap()
-                        moveOffsetX = (frame.width * ratio).toInt()
-                        moveOffsetY = event.y
-                    }
-
-                    frame.setLocation(event.xOnScreen - moveOffsetX, event.yOnScreen - moveOffsetY)
-                }
-            })
         }
 
         fun toggleMaximize() {

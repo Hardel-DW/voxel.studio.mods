@@ -237,8 +237,8 @@ final class SvgPath {
             if (i < src.length() && (src.charAt(i) == '+' || src.charAt(i) == '-')) i++;
             while (i < src.length() && Character.isDigit(src.charAt(i))) i++;
             if (i < src.length() && src.charAt(i) == '.') {
-                i++;
-                while (i < src.length() && Character.isDigit(src.charAt(i))) i++;
+                do i++;
+                while (i < src.length() && Character.isDigit(src.charAt(i)));
             }
             if (i < src.length() && (src.charAt(i) == 'e' || src.charAt(i) == 'E')) {
                 i++;
