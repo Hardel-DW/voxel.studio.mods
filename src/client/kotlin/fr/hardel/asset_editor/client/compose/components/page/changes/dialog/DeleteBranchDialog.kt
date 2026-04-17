@@ -14,8 +14,9 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
-import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteRow
-import fr.hardel.asset_editor.client.compose.components.ui.FloatingCommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
 
@@ -35,25 +36,26 @@ fun DeleteBranchDialog(
         else base.filter { it.contains(query, ignoreCase = true) }
     }
 
-    FloatingCommandPalette(
+    CommandPalette(
         visible = true,
         title = I18n.get("changes:menu.branch.delete"),
-        searchValue = query,
-        onSearchChange = { query = it },
-        searchPlaceholder = I18n.get("changes:dialog.branch.delete.placeholder"),
+        value = query,
+        onValueChange = { query = it },
+        placeholder = I18n.get("changes:dialog.branch.delete.placeholder"),
         onDismiss = onDismiss
     ) {
         if (deletable.isEmpty()) {
-            DialogHint("changes:dialog.branch.delete.empty")
-            return@FloatingCommandPalette
+            CommandPaletteEmpty(I18n.get("changes:dialog.branch.delete.empty"))
+            return@CommandPalette
         }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(items = deletable, key = { it }) { branch ->
-                CommandPaletteRow(
+                CommandPaletteItem(
                     label = branch,
+                    onClick = {},
                     trailing = {
                         Button(
                             onClick = { onDelete(branch) },
@@ -61,8 +63,7 @@ fun DeleteBranchDialog(
                             size = ButtonSize.SM,
                             text = I18n.get("changes:dialog.branch.delete.action")
                         )
-                    },
-                    onClick = {}
+                    }
                 )
             }
         }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,13 +15,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
-import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteRow
-import fr.hardel.asset_editor.client.compose.components.ui.FloatingCommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteGroup
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteHint
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
 
@@ -41,40 +40,31 @@ fun AddRemoteDialog(
         if (snapshot.remotes.none { it.name == "origin" }) "origin" else nextFreeName(snapshot)
     }
 
-    FloatingCommandPalette(
+    CommandPalette(
         visible = true,
         title = I18n.get("changes:remote.add.title"),
-        searchValue = url,
-        onSearchChange = { url = it },
-        searchPlaceholder = I18n.get("changes:remote.add.placeholder"),
+        value = url,
+        onValueChange = { url = it },
+        placeholder = I18n.get("changes:remote.add.placeholder"),
         onDismiss = onDismiss
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = I18n.get("changes:remote.add.hint"),
-                style = StudioTypography.regular(11),
-                color = StudioColors.Zinc500,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            )
+            CommandPaletteHint(I18n.get("changes:remote.add.hint"))
             if (snapshot.remotes.isNotEmpty()) {
-                Text(
-                    text = I18n.get("changes:remote.add.existing").uppercase(),
-                    style = StudioTypography.bold(9),
-                    color = StudioColors.Zinc600,
-                    modifier = Modifier.padding(start = 10.dp, top = 4.dp)
-                )
-                for (remote in snapshot.remotes) {
-                    CommandPaletteRow(
-                        label = remote.name,
-                        description = remote.url,
-                        enabled = false,
-                        onClick = {}
-                    )
+                CommandPaletteGroup(heading = I18n.get("changes:remote.add.existing").uppercase()) {
+                    for (remote in snapshot.remotes) {
+                        CommandPaletteItem(
+                            label = remote.name,
+                            onClick = {},
+                            description = remote.url,
+                            enabled = false
+                        )
+                    }
                 }
             }
             Row(
@@ -82,13 +72,10 @@ fun AddRemoteDialog(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp)
+                    .padding(top = 8.dp, start = 8.dp, end = 4.dp)
             ) {
-                Text(
-                    text = I18n.get("changes:remote.add.name_as").replace("{name}", suggestedName),
-                    style = StudioTypography.regular(11),
-                    color = StudioColors.Zinc500,
-                    modifier = Modifier.weight(1f).padding(horizontal = 10.dp)
+                CommandPaletteHint(
+                    I18n.get("changes:remote.add.name_as").replace("{name}", suggestedName)
                 )
                 Button(
                     onClick = {

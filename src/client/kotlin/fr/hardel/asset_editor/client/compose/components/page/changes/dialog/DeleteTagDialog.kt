@@ -14,8 +14,9 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
-import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteRow
-import fr.hardel.asset_editor.client.compose.components.ui.FloatingCommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
+import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import net.minecraft.client.resources.language.I18n
 
@@ -34,25 +35,26 @@ fun DeleteTagDialog(
         else snapshot.tags.filter { it.contains(query, ignoreCase = true) }
     }
 
-    FloatingCommandPalette(
+    CommandPalette(
         visible = true,
         title = I18n.get("changes:menu.tag.delete"),
-        searchValue = query,
-        onSearchChange = { query = it },
-        searchPlaceholder = I18n.get("changes:dialog.tag.delete.placeholder"),
+        value = query,
+        onValueChange = { query = it },
+        placeholder = I18n.get("changes:dialog.tag.delete.placeholder"),
         onDismiss = onDismiss
     ) {
         if (filtered.isEmpty()) {
-            DialogHint("changes:dialog.tag.delete.empty")
-            return@FloatingCommandPalette
+            CommandPaletteEmpty(I18n.get("changes:dialog.tag.delete.empty"))
+            return@CommandPalette
         }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(items = filtered, key = { it }) { tag ->
-                CommandPaletteRow(
+                CommandPaletteItem(
                     label = tag,
+                    onClick = {},
                     trailing = {
                         Button(
                             onClick = { onDelete(tag) },
@@ -60,8 +62,7 @@ fun DeleteTagDialog(
                             size = ButtonSize.SM,
                             text = I18n.get("changes:dialog.tag.delete.action")
                         )
-                    },
-                    onClick = {}
+                    }
                 )
             }
         }
