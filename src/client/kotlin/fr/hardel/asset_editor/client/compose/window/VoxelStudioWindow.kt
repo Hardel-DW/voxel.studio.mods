@@ -16,19 +16,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
 import fr.hardel.asset_editor.DevFlags
 import fr.hardel.asset_editor.client.compose.components.layout.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
+import fr.hardel.asset_editor.client.compose.window.chrome.NativeWindowChrome
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.splash.SwingSplashPanel
 import java.awt.CardLayout
+import java.awt.Rectangle
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import net.minecraft.client.resources.language.I18n
@@ -53,6 +58,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private var cardLayout: CardLayout? = null
     private var activeContext: StudioContext? = null
     private var permissionSubscription: Subscription? = null
+
+    internal val windowChrome: NativeWindowChrome get() = chrome
 
     @JvmStatic
     fun initialize() = MinecraftStageWindow.initializeRuntime()
@@ -150,6 +157,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private fun ensureSplashPanel(container: JPanel): SwingSplashPanel {
         splashPanel?.let { return it }
         val panel = SwingSplashPanel(SplashActions)
+        attachSwingContent(panel) { p -> panel.isCaptionAt(p.x, p.y) }
         splashPanel = panel
         container.add(panel, CARD_SPLASH)
         return panel
@@ -159,6 +167,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         if (composePanel != null) return
         val container = ensureContentContainer()
         val panel = ComposePanel().apply { setContent { WindowContent() } }
+        attachComposeContent(panel)
         composePanel = panel
         container.add(panel, CARD_EDITOR)
     }
@@ -231,30 +240,58 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     }
 }
 
-fun Modifier.windowDragArea(id: String): Modifier = this.pointerInput(id) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        var moved = false
-        var clickCount = 0
+/**
+ * Declares a draggable "window caption" rectangle.
+ *
+ * On platforms where the OS handles the drag natively (Windows via FlatLaf), this registers the
+ * bounds into a thread-safe hit-test registry consumed by the AWT-Windows thread. On platforms
+ * where we move the frame manually (macOS, Linux), it installs a pointer-input gesture that drives
+ * the chrome's begin/perform/end drag lifecycle and maps double-click to maximize.
+ *
+ * Place this on any Compose area that should be grabbable by the user to move the window.
+ * Do NOT stack a clickable on the same region: on Windows the OS hit-test will eat the events
+ * before Compose sees them.
+ */
+fun Modifier.windowDragArea(id: String): Modifier = composed {
+    val chrome = VoxelStudioWindow.windowChrome
+    if (chrome.nativeDragHandled) {
+        DisposableEffect(id) {
+            onDispose { chrome.captionRegions.unregister(id) }
+        }
+        Modifier.onGloballyPositioned { coords ->
+            val rect = coords.boundsInRoot()
+            chrome.captionRegions.register(
+                id,
+                Rectangle(rect.left.toInt(), rect.top.toInt(), rect.width.toInt(), rect.height.toInt())
+            )
+        }
+    } else {
+        Modifier.pointerInput(id) {
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false)
+                var moved = false
+                var clickCount = 0
 
-        VoxelStudioWindow.onDragStart()
+                VoxelStudioWindow.onDragStart()
 
-        while (true) {
-            val event = awaitPointerEvent()
-            when (event.type) {
-                PointerEventType.Move -> {
-                    moved = true
-                    event.changes.forEach { it.consume() }
-                    VoxelStudioWindow.onDragMove()
-                }
+                while (true) {
+                    val event = awaitPointerEvent()
+                    when (event.type) {
+                        PointerEventType.Move -> {
+                            moved = true
+                            event.changes.forEach { it.consume() }
+                            VoxelStudioWindow.onDragMove()
+                        }
 
-                PointerEventType.Release -> {
-                    VoxelStudioWindow.onDragEnd()
-                    if (!moved) {
-                        clickCount++
-                        if (down.pressed && clickCount == 2) VoxelStudioWindow.onDragDoubleClick()
+                        PointerEventType.Release -> {
+                            VoxelStudioWindow.onDragEnd()
+                            if (!moved) {
+                                clickCount++
+                                if (down.pressed && clickCount == 2) VoxelStudioWindow.onDragDoubleClick()
+                            }
+                            return@awaitEachGesture
+                        }
                     }
-                    return@awaitEachGesture
                 }
             }
         }

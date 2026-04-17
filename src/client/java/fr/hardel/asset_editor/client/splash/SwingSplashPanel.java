@@ -209,6 +209,17 @@ public final class SwingSplashPanel extends JPanel {
         }
     }
 
+    /**
+     * Window-caption hit-test for native chrome integration. Must be lock-free and side-effect free:
+     * invoked from the AWT-Windows thread (outside the EDT) when FlatLaf's WM_NCHITTEST handler
+     * needs to know whether a point is a draggable caption area.
+     */
+    public boolean isCaptionAt(int x, int y) {
+        if (y < 0 || y >= Dim.TITLE_BAR_HEIGHT) return false;
+        int controlsStart = getWidth() - 3 * Dim.WINDOW_CTRL_WIDTH;
+        return x >= 0 && x < controlsStart;
+    }
+
     @Override
     public void removeNotify() {
         stopAnimation();

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.window
 
+import fr.hardel.asset_editor.client.compose.window.chrome.NativeChromeFactory
 import javax.swing.SwingUtilities
 
 abstract class MinecraftStageWindow(
@@ -74,6 +75,7 @@ abstract class MinecraftStageWindow(
             synchronized(this) {
                 if (runtimePrepared) return
                 System.setProperty("java.awt.headless", "false")
+                NativeChromeFactory.prepareRuntime()
                 runtimePrepared = true
             }
         }
