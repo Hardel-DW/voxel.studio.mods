@@ -4,10 +4,10 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuSelectTrigger
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuSelectTrigger
 
 @Composable
 fun DropdownOptionRow(

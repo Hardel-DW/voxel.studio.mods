@@ -31,10 +31,10 @@ import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
 import fr.hardel.asset_editor.client.compose.components.ui.CopyButton
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuSelectTrigger
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuSelectTrigger
 import fr.hardel.asset_editor.client.compose.components.ui.KeyValueGrid
 import fr.hardel.asset_editor.client.compose.components.ui.datatable.DataTable
 import fr.hardel.asset_editor.client.compose.components.ui.datatable.TableColumn

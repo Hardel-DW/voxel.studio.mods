@@ -15,10 +15,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuTrigger
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuTrigger
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import net.minecraft.resources.Identifier
 

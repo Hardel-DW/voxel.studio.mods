@@ -34,11 +34,11 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuItem
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuLabel
-import fr.hardel.asset_editor.client.compose.components.ui.DropdownMenuSelectTrigger
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuItem
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuLabel
+import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuSelectTrigger
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.NativeAtlasBridge
