@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.ChangesDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.git.GitFileStatus
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import fr.hardel.asset_editor.client.compose.lib.git.GitState
 import fr.hardel.asset_editor.client.compose.lib.git.rememberGitState
@@ -92,6 +94,19 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
     var commitMessage by rememberSaveable { mutableStateOf("") }
     var viewMode by rememberSaveable { mutableStateOf(ChangesView.CONCEPT) }
     var floatingDialog by remember { mutableStateOf(FloatingDialog.NONE) }
+    var pendingAdvance by remember { mutableStateOf(false) }
+
+    LaunchedEffect(snapshot.status, pendingAdvance) {
+        if (!pendingAdvance) return@LaunchedEffect
+        val currentPath = destination.selectedFile
+        val currentStatus = currentPath?.let { snapshot.status[it] }
+        if (currentStatus == GitFileStatus.CONFLICTED) return@LaunchedEffect
+        val next = snapshot.conflictedPaths.firstOrNull { it != currentPath }
+        if (next != null) {
+            context.navigationMemory().navigate(ChangesDestination(next))
+        }
+        pendingAdvance = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize().background(StudioColors.Sidebar)) {
@@ -147,14 +162,22 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     }
                 )
 
-                ActionSection(
-                    gitState = gitState,
-                    snapshot = snapshot,
-                    commitMessage = commitMessage,
-                    onCommitMessageChange = { commitMessage = it },
-                    onClearCommit = { commitMessage = "" },
-                    onInitRequest = { floatingDialog = FloatingDialog.INIT }
-                )
+                if (snapshot.operationInProgress != null || snapshot.hasConflicts) {
+                    ConflictBanner(
+                        snapshot = snapshot,
+                        onContinue = { gitState.continueOperation() },
+                        onAbort = { gitState.abortOperation() }
+                    )
+                } else {
+                    ActionSection(
+                        gitState = gitState,
+                        snapshot = snapshot,
+                        commitMessage = commitMessage,
+                        onCommitMessageChange = { commitMessage = it },
+                        onClearCommit = { commitMessage = "" },
+                        onInitRequest = { floatingDialog = FloatingDialog.INIT }
+                    )
+                }
 
                 Box(
                     modifier = Modifier
@@ -196,7 +219,18 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     .fillMaxHeight()
                     .background(StudioColors.Zinc950)
             ) {
-                ChangesPage(gitState = gitState, selectedFile = destination.selectedFile)
+                ChangesPage(
+                    gitState = gitState,
+                    selectedFile = destination.selectedFile,
+                    onAcceptOurs = { path ->
+                        gitState.acceptOurs(path)
+                        pendingAdvance = true
+                    },
+                    onAcceptTheirs = { path ->
+                        gitState.acceptTheirs(path)
+                        pendingAdvance = true
+                    }
+                )
             }
         }
 

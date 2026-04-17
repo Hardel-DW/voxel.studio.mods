@@ -230,7 +230,8 @@ fun CommandPalette(
                 )
 
                 CompositionLocalProvider(LocalCommandPaletteState provides state) {
-                    Box(
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(max = 400.dp)

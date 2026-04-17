@@ -111,10 +111,11 @@ class GitRepository(val root: Path) {
         return GitCli.runResult(root, "push", "-u", "origin", branch)
     }
 
-    suspend fun pull(): GitOpResult = GitCli.runResult(root, "pull", "--ff-only")
+    suspend fun pull(): GitOpResult =
+        GitCli.runResult(root, "pull", "--ff-only", "--autostash")
 
     suspend fun pullFrom(remote: String, branch: String): GitOpResult =
-        GitCli.runResult(root, "pull", "--ff-only", remote, branch)
+        GitCli.runResult(root, "pull", "--ff-only", "--autostash", remote, branch)
 
     suspend fun amendCommit(message: String?): GitOpResult {
         return if (message.isNullOrBlank())
@@ -140,6 +141,73 @@ class GitRepository(val root: Path) {
 
     suspend fun rebase(name: String): GitOpResult =
         GitCli.runResult(root, "rebase", name)
+
+    suspend fun operationInProgress(): OperationInProgress? {
+        val gitDir = root.resolve(".git")
+        return when {
+            Files.exists(gitDir.resolve("MERGE_HEAD")) -> OperationInProgress.MERGE
+            Files.isDirectory(gitDir.resolve("rebase-merge")) -> OperationInProgress.REBASE
+            Files.isDirectory(gitDir.resolve("rebase-apply")) -> OperationInProgress.REBASE
+            Files.exists(gitDir.resolve("CHERRY_PICK_HEAD")) -> OperationInProgress.CHERRY_PICK
+            else -> null
+        }
+    }
+
+    suspend fun incomingBranch(operation: OperationInProgress): String? = when (operation) {
+        OperationInProgress.MERGE -> mergeIncomingBranch()
+        OperationInProgress.REBASE -> rebaseIncomingBranch()
+        OperationInProgress.CHERRY_PICK -> null
+    }
+
+    private suspend fun mergeIncomingBranch(): String? {
+        val sha = runCatching {
+            Files.readString(root.resolve(".git/MERGE_HEAD")).trim()
+        }.getOrNull()?.takeUnless { it.isBlank() } ?: return null
+        val invocation = GitCli.run(root, "name-rev", "--name-only", "--no-undefined", sha)
+        if (!invocation.isSuccess) return sha.take(8)
+        return invocation.stdout.trim()
+            .removePrefix("remotes/")
+            .takeUnless { it.isBlank() }
+            ?: sha.take(8)
+    }
+
+    private suspend fun rebaseIncomingBranch(): String? {
+        val candidates = listOf(".git/rebase-merge/head-name", ".git/rebase-apply/head-name")
+        val file = candidates.map { root.resolve(it) }.firstOrNull { Files.exists(it) } ?: return null
+        return runCatching {
+            Files.readString(file).trim().removePrefix("refs/heads/")
+        }.getOrNull()?.takeUnless { it.isBlank() }
+    }
+
+    suspend fun readConflictStage(path: String, stage: Int): String? {
+        val invocation = GitCli.run(root, "show", ":$stage:$path")
+        if (!invocation.isSuccess) return null
+        return invocation.stdout
+    }
+
+    suspend fun acceptOurs(path: String): GitOpResult {
+        val checkout = GitCli.runResult(root, "checkout", "--ours", "--", path)
+        if (!checkout.isSuccess) return checkout
+        return GitCli.runResult(root, "add", "--", path)
+    }
+
+    suspend fun acceptTheirs(path: String): GitOpResult {
+        val checkout = GitCli.runResult(root, "checkout", "--theirs", "--", path)
+        if (!checkout.isSuccess) return checkout
+        return GitCli.runResult(root, "add", "--", path)
+    }
+
+    suspend fun mergeContinue(): GitOpResult =
+        GitCli.runResult(root, "commit", "--no-edit")
+
+    suspend fun mergeAbort(): GitOpResult =
+        GitCli.runResult(root, "merge", "--abort")
+
+    suspend fun rebaseContinue(): GitOpResult =
+        GitCli.runResult(root, "-c", "core.editor=true", "rebase", "--continue")
+
+    suspend fun rebaseAbort(): GitOpResult =
+        GitCli.runResult(root, "rebase", "--abort")
 
     suspend fun tags(): List<String> {
         val invocation = GitCli.run(root, "tag", "--list", "--sort=-creatordate")
@@ -177,6 +245,7 @@ class GitRepository(val root: Path) {
         if (path.isEmpty()) return null
 
         val status = when {
+            isConflicted(xy) -> GitFileStatus.CONFLICTED
             xy == "??" -> GitFileStatus.UNTRACKED
             xy.contains('D') -> GitFileStatus.DELETED
             xy.startsWith("A") || xy[1] == 'A' -> GitFileStatus.ADDED
@@ -185,5 +254,11 @@ class GitRepository(val root: Path) {
             else -> GitFileStatus.MODIFIED
         }
         return path to status
+    }
+
+    private fun isConflicted(xy: String): Boolean {
+        if (xy.length < 2) return false
+        if (xy[0] == 'U' || xy[1] == 'U') return true
+        return xy == "AA" || xy == "DD"
     }
 }

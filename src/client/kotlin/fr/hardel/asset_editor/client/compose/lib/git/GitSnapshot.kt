@@ -21,6 +21,8 @@ data class GitSnapshot(
     val remotes: ImmutableList<GitRemote>,
     val tags: ImmutableList<String>,
     val status: ImmutableMap<String, GitFileStatus>,
+    val operationInProgress: OperationInProgress?,
+    val incomingBranch: String?,
     val isLoading: Boolean,
     val pendingOp: GitOperationKind?,
     val lastError: String?
@@ -28,6 +30,9 @@ data class GitSnapshot(
     val hasChanges: Boolean get() = status.isNotEmpty()
     val canPush: Boolean get() = isRepository && currentBranch != null
     val needsPublish: Boolean get() = isRepository && currentBranch != null && !hasUpstream
+    val hasConflicts: Boolean get() = status.values.any { it == GitFileStatus.CONFLICTED }
+    val conflictedPaths: List<String>
+        get() = status.entries.filter { it.value == GitFileStatus.CONFLICTED }.map { it.key }
 
     companion object {
         val Empty = GitSnapshot(
@@ -43,11 +48,19 @@ data class GitSnapshot(
             remotes = persistentListOf(),
             tags = persistentListOf(),
             status = persistentMapOf(),
+            operationInProgress = null,
+            incomingBranch = null,
             isLoading = false,
             pendingOp = null,
             lastError = null
         )
     }
+}
+
+enum class OperationInProgress {
+    MERGE,
+    REBASE,
+    CHERRY_PICK
 }
 
 enum class GitOperationKind {
@@ -69,5 +82,6 @@ enum class GitOperationKind {
     TAG_DELETE,
     MERGE,
     REBASE,
+    CONFLICT_RESOLVE,
     PR
 }

@@ -26,7 +26,7 @@ fun ChangesDiffBody(
             status = DiffStatus.DELETED,
             modifier = modifier
         )
-        GitFileStatus.MODIFIED, GitFileStatus.RENAMED -> CodeDiff(
+        GitFileStatus.MODIFIED, GitFileStatus.RENAMED, GitFileStatus.CONFLICTED -> CodeDiff(
             original = original,
             compiled = working,
             status = DiffStatus.UPDATED,

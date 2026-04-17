@@ -150,6 +150,59 @@ class GitState internal constructor(
     fun rebase(name: String) =
         launchOp(GitOperationKind.REBASE) { repo -> repo.rebase(name) }
 
+    suspend fun readConflictStage(path: String, stage: Int): String? {
+        val repo = repository ?: return null
+        return repo.readConflictStage(path, stage)
+    }
+
+    fun acceptOurs(path: String) =
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> repo.acceptOurs(path) }
+
+    fun acceptTheirs(path: String) =
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> repo.acceptTheirs(path) }
+
+    fun acceptAllOurs() {
+        val paths = snapshot.conflictedPaths.toList()
+        if (paths.isEmpty()) return
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> bulkAccept(paths) { repo.acceptOurs(it) } }
+    }
+
+    fun acceptAllTheirs() {
+        val paths = snapshot.conflictedPaths.toList()
+        if (paths.isEmpty()) return
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> bulkAccept(paths) { repo.acceptTheirs(it) } }
+    }
+
+    private suspend fun bulkAccept(paths: List<String>, action: suspend (String) -> GitOpResult): GitOpResult {
+        for (path in paths) {
+            val result = action(path)
+            if (!result.isSuccess) return result
+        }
+        return GitOpResult.Success
+    }
+
+    fun continueOperation() {
+        val op = snapshot.operationInProgress ?: return
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            when (op) {
+                OperationInProgress.MERGE -> repo.mergeContinue()
+                OperationInProgress.REBASE -> repo.rebaseContinue()
+                OperationInProgress.CHERRY_PICK -> GitOpResult.Failure("Cherry-pick continue not supported")
+            }
+        }
+    }
+
+    fun abortOperation() {
+        val op = snapshot.operationInProgress ?: return
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            when (op) {
+                OperationInProgress.MERGE -> repo.mergeAbort()
+                OperationInProgress.REBASE -> repo.rebaseAbort()
+                OperationInProgress.CHERRY_PICK -> GitOpResult.Failure("Cherry-pick abort not supported")
+            }
+        }
+    }
+
     fun clearError() {
         if (snapshot.lastError != null) snapshot = snapshot.copy(lastError = null)
     }
@@ -166,18 +219,20 @@ class GitState internal constructor(
                 val result = runCatching { block(repo) }.getOrElse { error ->
                     GitOpResult.Failure(error.message ?: error::class.simpleName ?: "unknown error")
                 }
-                if (!result.isSuccess) {
-                    snapshot = snapshot.copy(
-                        isLoading = false,
-                        pendingOp = null,
-                        lastError = result.errorMessage
-                    )
-                    return@withLock
-                }
                 if (refreshAfter) {
-                    refreshLocked(repo)
+                    runCatching { refreshLocked(repo) }.onFailure { error ->
+                        snapshot = snapshot.copy(
+                            isLoading = false,
+                            pendingOp = null,
+                            lastError = error.message ?: error::class.simpleName ?: "unknown error"
+                        )
+                        return@withLock
+                    }
                 } else {
                     snapshot = snapshot.copy(isLoading = false, pendingOp = null)
+                }
+                if (!result.isSuccess) {
+                    snapshot = snapshot.copy(lastError = result.errorMessage)
                 }
             }
         }
@@ -221,6 +276,8 @@ class GitState internal constructor(
         val tags = repo.tags()
         val status = repo.status()
         val counts = if (upstream) repo.aheadBehind() else null
+        val operation = repo.operationInProgress()
+        val incoming = operation?.let { repo.incomingBranch(it) }
         snapshot = snapshot.copy(
             gitInstalled = true,
             isRepository = true,
@@ -233,6 +290,8 @@ class GitState internal constructor(
             remotes = remotes.toImmutableList(),
             tags = tags.toImmutableList(),
             status = status.toImmutableMap(),
+            operationInProgress = operation,
+            incomingBranch = incoming,
             isLoading = false,
             pendingOp = null
         )

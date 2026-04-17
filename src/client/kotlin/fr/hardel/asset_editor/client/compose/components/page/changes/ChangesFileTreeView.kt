@@ -154,6 +154,7 @@ private fun StatusGlyph(status: GitFileStatus?) {
         GitFileStatus.MODIFIED -> "M" to StudioColors.Amber400
         GitFileStatus.DELETED -> "D" to StudioColors.Red500
         GitFileStatus.RENAMED -> "R" to StudioColors.Sky400
+        GitFileStatus.CONFLICTED -> "!" to StudioColors.Red400
         else -> "·" to StudioColors.Zinc600
     }
     Text(

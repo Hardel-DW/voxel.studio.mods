@@ -20,12 +20,27 @@ import fr.hardel.asset_editor.client.compose.components.page.changes.ChangesDiff
 import fr.hardel.asset_editor.client.compose.components.page.changes.DiffEmptyState
 import fr.hardel.asset_editor.client.compose.components.page.changes.DiffHeader
 import fr.hardel.asset_editor.client.compose.lib.git.GitDiffPayload
+import fr.hardel.asset_editor.client.compose.lib.git.GitFileStatus
 import fr.hardel.asset_editor.client.compose.lib.git.GitState
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun ChangesPage(gitState: GitState, selectedFile: String?) {
+fun ChangesPage(
+    gitState: GitState,
+    selectedFile: String?,
+    onAcceptOurs: (String) -> Unit = {},
+    onAcceptTheirs: (String) -> Unit = {}
+) {
     val status = gitState.snapshot.status[selectedFile]
+    if (selectedFile != null && status == GitFileStatus.CONFLICTED) {
+        ConflictResolutionPage(
+            gitState = gitState,
+            path = selectedFile,
+            onAcceptOurs = { onAcceptOurs(selectedFile) },
+            onAcceptTheirs = { onAcceptTheirs(selectedFile) }
+        )
+        return
+    }
     val previewable = selectedFile != null &&
         (selectedFile.endsWith(".json") || selectedFile.endsWith(".mcfunction") || selectedFile.endsWith(".mcmeta"))
     if (selectedFile.isNullOrBlank() || !previewable || status == null) {

@@ -5,7 +5,8 @@ enum class GitFileStatus {
     MODIFIED,
     DELETED,
     UNTRACKED,
-    RENAMED;
+    RENAMED,
+    CONFLICTED;
 
     val isAddition: Boolean get() = this == ADDED || this == UNTRACKED
 
@@ -14,5 +15,6 @@ enum class GitFileStatus {
         MODIFIED -> "M"
         DELETED -> "D"
         RENAMED -> "R"
+        CONFLICTED -> "!"
     }
 }
