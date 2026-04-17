@@ -24,6 +24,9 @@ class LinuxChrome : NativeWindowChrome {
 
     override val captionRegions = CaptionRegions()
     override val nativeDragHandled: Boolean = false
+    override val showComposeWindowControls: Boolean = true
+    override val headerStartReservationDp: Int = 0
+    override val headerEndReservationDp: Int = 0
 
     private var frame: JFrame? = null
     private var host: FrameHost? = null

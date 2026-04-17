@@ -24,6 +24,9 @@ class WindowsChrome : NativeWindowChrome {
 
     override val captionRegions = CaptionRegions()
     override val nativeDragHandled: Boolean = true
+    override val showComposeWindowControls: Boolean = false
+    override val headerStartReservationDp: Int = 0
+    override val headerEndReservationDp: Int = NATIVE_CAPTION_BUTTONS_WIDTH_DP
 
     private var frame: JFrame? = null
     private val composeHitTest = Function<Point, Boolean> { point -> captionRegions.isCaptionAt(point.x, point.y) }
@@ -50,21 +53,13 @@ class WindowsChrome : NativeWindowChrome {
         panel.putClientProperty(FlatClientProperties.COMPONENT_TITLE_BAR_CAPTION, delegate)
     }
 
-    /**
-     * FlatLaf's hit-test walks the Swing tree top-down and reads [FlatClientProperties.COMPONENT_TITLE_BAR_CAPTION]
-     * on the deepest descendant that has mouse listeners. ComposePanel hosts an internal
-     * `SkiaSwingLayer` / `SkiaLayer` child that fills it completely and carries Skiko's mouse
-     * listeners, so putting the property on ComposePanel alone is ignored — we must propagate it
-     * to every `JComponent` descendant and re-propagate when the hierarchy is rebuilt (addNotify,
-     * Compose internal layer swap, etc.).
-     */
     override fun attachComposeContent(panel: ComposePanel) {
         propagateCaptionHitTest(panel)
         val relevantFlags = (
-            HierarchyEvent.DISPLAYABILITY_CHANGED or
-            HierarchyEvent.PARENT_CHANGED or
-            HierarchyEvent.SHOWING_CHANGED
-        ).toLong()
+                HierarchyEvent.DISPLAYABILITY_CHANGED or
+                        HierarchyEvent.PARENT_CHANGED or
+                        HierarchyEvent.SHOWING_CHANGED
+                ).toLong()
         panel.addHierarchyListener { event ->
             if (event.changeFlags and relevantFlags != 0L) {
                 SwingUtilities.invokeLater { propagateCaptionHitTest(panel) }
@@ -97,7 +92,8 @@ class WindowsChrome : NativeWindowChrome {
     }
 
     companion object {
-        private const val TITLE_BAR_HEIGHT = 36
+        private const val TITLE_BAR_HEIGHT = 48
+        private const val NATIVE_CAPTION_BUTTONS_WIDTH_DP = 144
 
         fun prepareRuntime() {
             System.setProperty("flatlaf.useWindowDecorations", "true")

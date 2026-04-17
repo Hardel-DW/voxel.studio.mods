@@ -37,12 +37,7 @@ public final class SplashAssets {
 
     private static final Pattern VIEW_BOX = Pattern.compile("viewBox\\s*=\\s*\"([^\"]+)\"");
     private static final Pattern PATH_D = Pattern.compile("<path\\b[^>]*\\bd\\s*=\\s*\"([^\"]+)\"");
-    private static final Pattern RECT = Pattern.compile(
-        "<rect\\b[^>]*" +
-            "x\\s*=\\s*\"([^\"]+)\"[^>]*" +
-            "y\\s*=\\s*\"([^\"]+)\"[^>]*" +
-            "width\\s*=\\s*\"([^\"]+)\"[^>]*" +
-            "height\\s*=\\s*\"([^\"]+)\"");
+    private static final Pattern RECT = Pattern.compile("<rect\\b[^>]*x\\s*=\\s*\"([^\"]+)\"[^>]*y\\s*=\\s*\"([^\"]+)\"[^>]*width\\s*=\\s*\"([^\"]+)\"[^>]*height\\s*=\\s*\"([^\"]+)\"");
 
     private static final ConcurrentMap<String, SvgShape> SHAPES = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, Font> FONTS = new ConcurrentHashMap<>();

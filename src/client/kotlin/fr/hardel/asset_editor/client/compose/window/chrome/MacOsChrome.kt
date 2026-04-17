@@ -18,6 +18,9 @@ class MacOsChrome : NativeWindowChrome {
 
     override val captionRegions = CaptionRegions()
     override val nativeDragHandled: Boolean = false
+    override val showComposeWindowControls: Boolean = false
+    override val headerStartReservationDp: Int = TRAFFIC_LIGHTS_WIDTH_DP
+    override val headerEndReservationDp: Int = 0
 
     private var frame: JFrame? = null
     private var dragOffsetX = 0
@@ -63,6 +66,10 @@ class MacOsChrome : NativeWindowChrome {
     }
 
     companion object {
+        // Reserved gutter at the header's leading edge for the macOS traffic-light buttons.
+        // Value covers the red/yellow/green cluster plus a small trailing margin.
+        private const val TRAFFIC_LIGHTS_WIDTH_DP = 78
+
         fun prepareRuntime() {
             System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua")
             System.setProperty("apple.laf.useScreenMenuBar", "true")

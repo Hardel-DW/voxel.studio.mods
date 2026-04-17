@@ -27,6 +27,19 @@ interface NativeWindowChrome {
      */
     val nativeDragHandled: Boolean
 
+    /**
+     * True iff the Compose header should draw its own min/maximize/close buttons.
+     * False when the OS provides native controls (Windows FlatLaf caption buttons, macOS traffic
+     * lights) — rendering Compose controls on top would duplicate them.
+     */
+    val showComposeWindowControls: Boolean
+
+    /** Dp to reserve at the header's leading edge for native chrome (macOS traffic lights). */
+    val headerStartReservationDp: Int
+
+    /** Dp to reserve at the header's trailing edge for native chrome (Windows caption buttons). */
+    val headerEndReservationDp: Int
+
     /** Apply chrome settings to a freshly created, not-yet-visible frame. */
     fun applyTo(frame: JFrame)
 

@@ -39,6 +39,7 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
+import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow
 import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.resources.Identifier
 
@@ -49,9 +50,8 @@ private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
     val openTabs = rememberOpenTabs(context)
     val activeTabId = rememberActiveTabId(context)
+    val chrome = VoxelStudioWindow.windowChrome
 
-    // header: shrink-0 h-12 select-none flex items-center gap-4 pl-4
-    // Compose-only extras: PackSelector + WindowControls around the tablist.
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -60,16 +60,17 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             .height(48.dp)
             .padding(start = 8.dp)
     ) {
-        // Compose-only: pack switcher before the tab list.
+        if (chrome.headerStartReservationDp > 0) {
+            Spacer(Modifier.size(width = chrome.headerStartReservationDp.dp, height = 1.dp))
+        }
+
         PackSelector(context = context)
-        // div: vertical separator
         Box(
             modifier = Modifier
                 .size(width = 1.dp, height = 24.dp)
                 .background(StudioColors.Zinc700)
         )
 
-        // div[role=tablist]: flex items-center gap-1 overflow-x-auto scrollbar-none
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -85,7 +86,6 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             }
         }
 
-        // Compose-only: drag area used instead of empty header space on web.
         Spacer(
             Modifier
                 .weight(1f)
@@ -93,8 +93,13 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
                 .windowDragArea(EDITOR_TABS_DRAG_AREA)
         )
 
-        // Compose-only: desktop window controls.
-        WindowControls(buttonWidth = 48.dp, buttonHeight = 48.dp)
+        when {
+            chrome.showComposeWindowControls ->
+                WindowControls(buttonWidth = 48.dp, buttonHeight = 48.dp)
+
+            chrome.headerEndReservationDp > 0 ->
+                Spacer(Modifier.size(width = chrome.headerEndReservationDp.dp, height = 1.dp))
+        }
     }
 }
 
@@ -117,9 +122,6 @@ private fun StudioEditorTabItem(
         tab.destination.elementId
     }
 
-    // div[role=tab]: group relative flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer
-    // active -> bg-zinc-800/80 text-zinc-100
-    // hover -> hover:bg-zinc-800/50
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -155,7 +157,6 @@ private fun StudioEditorTabItem(
             maxLines = 1,
             modifier = Modifier.widthIn(max = 192.dp)
         )
-        // button: size-4 flex items-center justify-center rounded hover:bg-zinc-700 transition-colors
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
