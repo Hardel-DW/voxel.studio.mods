@@ -113,14 +113,46 @@ class GitRepository(val root: Path) {
 
     suspend fun pull(): GitOpResult = GitCli.runResult(root, "pull", "--ff-only")
 
+    suspend fun pullFrom(remote: String, branch: String): GitOpResult =
+        GitCli.runResult(root, "pull", "--ff-only", remote, branch)
+
+    suspend fun amendCommit(message: String?): GitOpResult {
+        return if (message.isNullOrBlank())
+            GitCli.runResult(root, "commit", "--amend", "--no-edit")
+        else
+            GitCli.runResult(root, "commit", "--amend", "-m", message)
+    }
+
     suspend fun createBranch(name: String): GitOpResult =
         GitCli.runResult(root, "checkout", "-b", name)
 
     suspend fun checkout(name: String): GitOpResult =
         GitCli.runResult(root, "checkout", name)
 
+    suspend fun deleteBranch(name: String, force: Boolean = false): GitOpResult =
+        GitCli.runResult(root, "branch", if (force) "-D" else "-d", name)
+
+    suspend fun renameBranch(oldName: String, newName: String): GitOpResult =
+        GitCli.runResult(root, "branch", "-m", oldName, newName)
+
     suspend fun merge(name: String): GitOpResult =
         GitCli.runResult(root, "merge", "--no-ff", name)
+
+    suspend fun tags(): List<String> {
+        val invocation = GitCli.run(root, "tag", "--list", "--sort=-creatordate")
+        if (!invocation.isSuccess) return emptyList()
+        return invocation.stdout.lineSequence().map { it.trim() }.filter { it.isNotEmpty() }.toList()
+    }
+
+    suspend fun createTag(name: String, message: String?): GitOpResult {
+        return if (message.isNullOrBlank())
+            GitCli.runResult(root, "tag", name)
+        else
+            GitCli.runResult(root, "tag", "-a", name, "-m", message)
+    }
+
+    suspend fun deleteTag(name: String): GitOpResult =
+        GitCli.runResult(root, "tag", "-d", name)
 
     private fun parsePorcelain(output: String): Map<String, GitFileStatus> {
         val result = LinkedHashMap<String, GitFileStatus>()

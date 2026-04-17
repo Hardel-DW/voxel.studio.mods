@@ -2,64 +2,39 @@ package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.DevFlags
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import kotlinx.coroutines.CoroutineScope
@@ -104,6 +79,7 @@ class DropdownSubMenuState {
     var expanded by mutableStateOf(false)
     private var triggerHovered = false
     private var contentHovered = false
+    private var inSafeTriangle = false
     private var closeJob: Job? = null
 
     fun setTriggerHovered(value: Boolean, scope: CoroutineScope) {
@@ -113,6 +89,12 @@ class DropdownSubMenuState {
 
     fun setContentHovered(value: Boolean, scope: CoroutineScope) {
         contentHovered = value
+        if (!value) inSafeTriangle = false
+        refresh(scope)
+    }
+
+    fun setInSafeTriangle(value: Boolean, scope: CoroutineScope) {
+        inSafeTriangle = value
         refresh(scope)
     }
 
@@ -127,11 +109,12 @@ class DropdownSubMenuState {
         closeJob = null
         triggerHovered = false
         contentHovered = false
+        inSafeTriangle = false
         expanded = false
     }
 
     private fun refresh(scope: CoroutineScope) {
-        if (triggerHovered || contentHovered) {
+        if (triggerHovered || contentHovered || inSafeTriangle) {
             closeJob?.cancel()
             closeJob = null
             expanded = true
@@ -148,6 +131,105 @@ class DropdownSubMenuState {
 
 private val LocalDropdownSubMenuState = compositionLocalOf<DropdownSubMenuState?> { null }
 private val LocalOpenSubMenu = compositionLocalOf<MutableState<DropdownSubMenuState?>?> { null }
+
+// ── Safe triangle (Ben Kamens algorithm) ─────────────────────────────────────
+// https://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown
+
+class SafeTriangleTracker {
+    var cursorWindow by mutableStateOf<Offset?>(null)
+    var submenuWindowBounds by mutableStateOf<Rect?>(null)
+    var activeSubState by mutableStateOf<DropdownSubMenuState?>(null)
+    var graceApex by mutableStateOf<Offset?>(null)
+    private var graceJob: Job? = null
+
+    fun onSubMenuOpened(state: DropdownSubMenuState) {
+        activeSubState = state
+    }
+
+    fun onSubMenuBounds(bounds: Rect, state: DropdownSubMenuState) {
+        if (activeSubState === state) submenuWindowBounds = bounds
+    }
+
+    fun onSubMenuClosed(state: DropdownSubMenuState, scope: CoroutineScope) {
+        if (activeSubState === state) {
+            submenuWindowBounds = null
+            activeSubState = null
+            clearGrace(scope)
+        }
+    }
+
+    fun onTriggerLeave(scope: CoroutineScope) {
+        val cursor = cursorWindow ?: return
+        submenuWindowBounds ?: return
+        graceApex = cursor
+        graceJob?.cancel()
+        graceJob = scope.launch {
+            delay(300)
+            clearGrace(scope)
+        }
+    }
+
+    fun clearGrace(scope: CoroutineScope) {
+        graceJob?.cancel()
+        graceJob = null
+        graceApex = null
+        activeSubState?.setInSafeTriangle(false, scope)
+    }
+
+    fun blocksOpeningOf(state: DropdownSubMenuState): Boolean {
+        val apex = graceApex ?: return false
+        val bounds = submenuWindowBounds ?: return false
+        val cursor = cursorWindow ?: return false
+        return activeSubState !== state && pointInSafeTriangle(cursor, apex, bounds)
+    }
+
+    fun onCursor(windowPos: Offset, scope: CoroutineScope) {
+        cursorWindow = windowPos
+        val sub = activeSubState ?: return
+        val apex = graceApex
+        val bounds = submenuWindowBounds
+        if (apex != null && bounds != null) {
+            val inside = pointInSafeTriangle(windowPos, apex, bounds)
+            sub.setInSafeTriangle(inside, scope)
+            if (!inside) clearGrace(scope)
+        }
+    }
+}
+
+private fun pointInSafeTriangle(p: Offset, apex: Offset, submenu: Rect): Boolean {
+    val edgeX = if (submenu.left >= apex.x) submenu.left else submenu.right
+    return pointInTriangle(p, apex, Offset(edgeX, submenu.top), Offset(edgeX, submenu.bottom))
+}
+
+private fun pointInTriangle(p: Offset, a: Offset, b: Offset, c: Offset): Boolean {
+    val s1 = triSign(p, a, b)
+    val s2 = triSign(p, b, c)
+    val s3 = triSign(p, c, a)
+    return !((s1 < 0f || s2 < 0f || s3 < 0f) && (s1 > 0f || s2 > 0f || s3 > 0f))
+}
+
+private fun triSign(p1: Offset, p2: Offset, p3: Offset): Float =
+    (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
+
+private val LocalSafeTriangleTracker = compositionLocalOf<SafeTriangleTracker?> { null }
+
+private fun DrawScope.drawSafeTriangle(tracker: SafeTriangleTracker, coords: LayoutCoordinates?) {
+    val bounds = tracker.submenuWindowBounds ?: return
+    val apex = tracker.graceApex ?: return
+    val origin = coords?.localToWindow(Offset.Zero) ?: return
+    val edgeX = if (bounds.left >= apex.x) bounds.left else bounds.right
+    val ax = apex.x - origin.x
+    val ay = apex.y - origin.y
+    val path = Path().apply {
+        moveTo(ax, ay)
+        lineTo(edgeX - origin.x, bounds.top - origin.y)
+        lineTo(edgeX - origin.x, bounds.bottom - origin.y)
+        close()
+    }
+    drawPath(path, Color(0x3300FF00))
+    drawPath(path, Color(0xFF00FF00), style = Stroke(width = 2f))
+    drawCircle(Color.Red, 4f, Offset(ax, ay))
+}
 
 // ── Radio group ──────────────────────────────────────────────────────────────
 
@@ -229,9 +311,12 @@ fun DropdownMenuContent(
     if (!showPopup) return
 
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
     val gapPx = with(density) { sideOffset.roundToPx() }
     val triggerWidthDp = with(density) { state.triggerWidthPx.toDp() }
     val openSubMenu = remember { mutableStateOf<DropdownSubMenuState?>(null) }
+    val tracker = remember { SafeTriangleTracker() }
+    var contentCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     val positionProvider = remember(gapPx, side) {
         object : PopupPositionProvider {
@@ -278,9 +363,27 @@ fun DropdownMenuContent(
                 .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
                 .background(StudioColors.Zinc900, contentShape)
                 .clip(contentShape)
+                .onGloballyPositioned { contentCoords = it }
+                .pointerInput(tracker) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val local = event.changes.firstOrNull()?.position ?: continue
+                            val coords = contentCoords ?: continue
+                            tracker.onCursor(coords.localToWindow(local), scope)
+                        }
+                    }
+                }
+                .drawWithContent {
+                    drawContent()
+                    if (DevFlags.SHOW_HOVER_TRIANGLE) drawSafeTriangle(tracker, contentCoords)
+                }
                 .padding(4.dp)
         ) {
-            CompositionLocalProvider(LocalOpenSubMenu provides openSubMenu) {
+            CompositionLocalProvider(
+                LocalOpenSubMenu provides openSubMenu,
+                LocalSafeTriangleTracker provides tracker
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -333,7 +436,6 @@ fun DropdownMenuItem(
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val closeMenu = LocalDropdownMenuClose.current
-    val openSubMenu = LocalOpenSubMenu.current
 
     val focusBg = when (variant) {
         DropdownItemVariant.DEFAULT -> StudioColors.Zinc800
@@ -343,15 +445,6 @@ fun DropdownMenuItem(
         !enabled -> StudioColors.Zinc600
         variant == DropdownItemVariant.DESTRUCTIVE -> StudioColors.Red400
         else -> StudioColors.Zinc200
-    }
-
-    LaunchedEffect(isHovered) {
-        if (isHovered) {
-            openSubMenu?.let {
-                it.value?.close()
-                it.value = null
-            }
-        }
     }
 
     CompositionLocalProvider(LocalContentColor provides textColor) {
@@ -531,18 +624,36 @@ fun DropdownMenuSubTrigger(
 ) {
     val subState = LocalDropdownSubMenuState.current ?: return
     val openSubMenu = LocalOpenSubMenu.current
+    val tracker = LocalSafeTriangleTracker.current
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val textColor = StudioColors.Zinc200
 
     LaunchedEffect(isHovered) {
-        if (isHovered) {
-            val prev = openSubMenu?.value
-            if (prev != null && prev !== subState) prev.close()
-            openSubMenu?.value = subState
+        if (!isHovered && subState.expanded) {
+            tracker?.onTriggerLeave(scope)
         }
-        subState.setTriggerHovered(isHovered, scope)
+    }
+
+    LaunchedEffect(isHovered, tracker?.graceApex) {
+        if (isHovered) {
+            val t = tracker
+            if (t?.blocksOpeningOf(subState) != true) {
+                val prev = openSubMenu?.value
+                if (prev != null && prev !== subState) prev.close()
+                openSubMenu?.value = subState
+                t?.clearGrace(scope)
+                subState.setTriggerHovered(true, scope)
+            }
+        } else {
+            subState.setTriggerHovered(false, scope)
+        }
+    }
+
+    LaunchedEffect(subState.expanded) {
+        if (subState.expanded) tracker?.onSubMenuOpened(subState)
+        else tracker?.onSubMenuClosed(subState, scope)
     }
 
     CompositionLocalProvider(LocalContentColor provides textColor) {
@@ -583,6 +694,7 @@ fun DropdownMenuSubContent(
     content: @Composable ColumnScope.() -> Unit
 ) {
     val subState = LocalDropdownSubMenuState.current ?: return
+    val parentTracker = LocalSafeTriangleTracker.current
     if (!subState.expanded) return
 
     val scope = rememberCoroutineScope()
@@ -591,6 +703,8 @@ fun DropdownMenuSubContent(
     val animProgress = remember { Animatable(0f) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val tracker = remember { SafeTriangleTracker() }
+    var boxCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     LaunchedEffect(Unit) {
         animProgress.animateTo(1f, tween(100))
@@ -598,6 +712,7 @@ fun DropdownMenuSubContent(
 
     LaunchedEffect(isHovered) {
         subState.setContentHovered(isHovered, scope)
+        if (isHovered) parentTracker?.clearGrace(scope)
     }
 
     val openSubMenu = remember { mutableStateOf<DropdownSubMenuState?>(null) }
@@ -643,10 +758,39 @@ fun DropdownMenuSubContent(
                 .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
                 .background(StudioColors.Zinc900, contentShape)
                 .clip(contentShape)
+                .onGloballyPositioned { lc ->
+                    boxCoords = lc
+                    val tl = lc.localToWindow(Offset.Zero)
+                    val sz = lc.size
+                    parentTracker?.onSubMenuBounds(
+                        Rect(tl.x, tl.y, tl.x + sz.width, tl.y + sz.height),
+                        subState
+                    )
+                }
+                .pointerInput(tracker) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val local = event.changes.firstOrNull()?.position ?: continue
+                            val coords = boxCoords ?: continue
+                            tracker.onCursor(coords.localToWindow(local), scope)
+                        }
+                    }
+                }
+                .drawWithContent {
+                    drawContent()
+                    if (DevFlags.SHOW_HOVER_TRIANGLE) {
+                        drawSafeTriangle(tracker, boxCoords)
+                        parentTracker?.let { drawSafeTriangle(it, boxCoords) }
+                    }
+                }
                 .padding(4.dp)
                 .hoverable(interactionSource)
         ) {
-            CompositionLocalProvider(LocalOpenSubMenu provides openSubMenu) {
+            CompositionLocalProvider(
+                LocalOpenSubMenu provides openSubMenu,
+                LocalSafeTriangleTracker provides tracker
+            ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     content = content
@@ -687,3 +831,4 @@ fun DropdownMenuSelectTrigger(
         SvgIcon(CHEVRON_DOWN_ICON, 12.dp, StudioColors.Zinc400)
     }
 }
+

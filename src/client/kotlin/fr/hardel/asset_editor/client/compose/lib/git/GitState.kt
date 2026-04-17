@@ -118,11 +118,31 @@ class GitState internal constructor(
 
     fun pull() = launchOp(GitOperationKind.PULL) { repo -> repo.pull() }
 
+    fun pullFrom(remote: String, branch: String) =
+        launchOp(GitOperationKind.PULL_FROM) { repo -> repo.pullFrom(remote, branch) }
+
+    fun fetch() = launchOp(GitOperationKind.FETCH) { repo -> repo.fetch() }
+
+    fun amend(message: String?) =
+        launchOp(GitOperationKind.AMEND) { repo -> repo.amendCommit(message) }
+
     fun createBranch(name: String) =
         launchOp(GitOperationKind.BRANCH_CREATE) { repo -> repo.createBranch(name) }
 
     fun checkoutBranch(name: String) =
         launchOp(GitOperationKind.BRANCH_CHECKOUT) { repo -> repo.checkout(name) }
+
+    fun deleteBranch(name: String, force: Boolean = false) =
+        launchOp(GitOperationKind.BRANCH_DELETE) { repo -> repo.deleteBranch(name, force) }
+
+    fun renameBranch(oldName: String, newName: String) =
+        launchOp(GitOperationKind.BRANCH_RENAME) { repo -> repo.renameBranch(oldName, newName) }
+
+    fun createTag(name: String, message: String?) =
+        launchOp(GitOperationKind.TAG_CREATE) { repo -> repo.createTag(name, message) }
+
+    fun deleteTag(name: String) =
+        launchOp(GitOperationKind.TAG_DELETE) { repo -> repo.deleteTag(name) }
 
     fun merge(name: String) =
         launchOp(GitOperationKind.MERGE) { repo -> repo.merge(name) }
@@ -183,6 +203,7 @@ class GitState internal constructor(
                 branches = emptyList<String>().toImmutableList(),
                 remoteUrl = null,
                 remotes = emptyList<GitRemote>().toImmutableList(),
+                tags = emptyList<String>().toImmutableList(),
                 status = emptyMap<String, GitFileStatus>().toImmutableMap(),
                 isLoading = false,
                 pendingOp = null
@@ -194,6 +215,7 @@ class GitState internal constructor(
         val branches = repo.branches()
         val remote = repo.remoteUrl()
         val remotes = repo.listRemotes()
+        val tags = repo.tags()
         val status = repo.status()
         val counts = if (upstream) repo.aheadBehind() else null
         snapshot = snapshot.copy(
@@ -206,6 +228,7 @@ class GitState internal constructor(
             branches = branches.toImmutableList(),
             remoteUrl = remote,
             remotes = remotes.toImmutableList(),
+            tags = tags.toImmutableList(),
             status = status.toImmutableMap(),
             isLoading = false,
             pendingOp = null

@@ -37,10 +37,16 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.AddRemoteDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.AmendCommitDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.CheckoutBranchDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.CreateBranchDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.CreateTagDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.DeleteBranchDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.DeleteTagDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.InitRepositoryDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.PullFromDialog
 import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RemoveRemoteDialog
+import fr.hardel.asset_editor.client.compose.components.page.changes.dialog.RenameBranchDialog
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -61,7 +67,14 @@ private val GITHUB_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/reload.svg")
 private val MORE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/more.svg")
 
-private enum class FloatingDialog { NONE, ADD_REMOTE, REMOVE_REMOTE, CREATE_BRANCH, CHECKOUT, INIT }
+private enum class FloatingDialog {
+    NONE,
+    ADD_REMOTE, REMOVE_REMOTE,
+    CREATE_BRANCH, CHECKOUT, RENAME_BRANCH, DELETE_BRANCH,
+    CREATE_TAG, DELETE_TAG,
+    PULL_FROM, AMEND,
+    INIT
+}
 
 object ChangesView {
     const val CONCEPT = "concept"
@@ -98,20 +111,30 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                         ChangesActionsMenu(
                             snapshot = snapshot,
                             currentView = viewMode,
-                            onViewChange = { viewMode = it },
-                            onPull = { gitState.pull() },
-                            onPush = { gitState.push() },
-                            onCommit = {
-                                if (commitMessage.isNotBlank() && snapshot.status.isNotEmpty()) {
-                                    gitState.commit(commitMessage.trim(), snapshot.status.keys.toList())
-                                    commitMessage = ""
-                                }
-                            },
-                            onCheckout = { floatingDialog = FloatingDialog.CHECKOUT },
-                            onCreateBranch = { floatingDialog = FloatingDialog.CREATE_BRANCH },
-                            onAddRemote = { floatingDialog = FloatingDialog.ADD_REMOTE },
-                            onRemoveRemote = { floatingDialog = FloatingDialog.REMOVE_REMOTE },
-                            onInit = { floatingDialog = FloatingDialog.INIT },
+                            commitMessage = commitMessage,
+                            callbacks = ChangesMenuCallbacks(
+                                onViewChange = { viewMode = it },
+                                onPull = { gitState.pull() },
+                                onPullFrom = { floatingDialog = FloatingDialog.PULL_FROM },
+                                onPush = { gitState.push() },
+                                onFetch = { gitState.fetch() },
+                                onAmend = { floatingDialog = FloatingDialog.AMEND },
+                                onCommit = {
+                                    if (commitMessage.isNotBlank() && snapshot.status.isNotEmpty()) {
+                                        gitState.commit(commitMessage.trim(), snapshot.status.keys.toList())
+                                        commitMessage = ""
+                                    }
+                                },
+                                onCheckout = { floatingDialog = FloatingDialog.CHECKOUT },
+                                onCreateBranch = { floatingDialog = FloatingDialog.CREATE_BRANCH },
+                                onRenameBranch = { floatingDialog = FloatingDialog.RENAME_BRANCH },
+                                onDeleteBranch = { floatingDialog = FloatingDialog.DELETE_BRANCH },
+                                onCreateTag = { floatingDialog = FloatingDialog.CREATE_TAG },
+                                onDeleteTag = { floatingDialog = FloatingDialog.DELETE_TAG },
+                                onAddRemote = { floatingDialog = FloatingDialog.ADD_REMOTE },
+                                onRemoveRemote = { floatingDialog = FloatingDialog.REMOVE_REMOTE },
+                                onInit = { floatingDialog = FloatingDialog.INIT }
+                            ),
                             trigger = {
                                 HeaderIconButton(icon = MORE_ICON, enabled = true)
                             }
@@ -216,6 +239,66 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
             onDismiss = { floatingDialog = FloatingDialog.NONE },
             onSubmit = { url ->
                 gitState.init(url)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        PullFromDialog(
+            visible = floatingDialog == FloatingDialog.PULL_FROM,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onPullFrom = { remote, branch ->
+                gitState.pullFrom(remote, branch)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        AmendCommitDialog(
+            visible = floatingDialog == FloatingDialog.AMEND,
+            initialMessage = commitMessage,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { message ->
+                gitState.amend(message)
+                commitMessage = ""
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        RenameBranchDialog(
+            visible = floatingDialog == FloatingDialog.RENAME_BRANCH,
+            currentBranch = snapshot.currentBranch,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { old, new ->
+                gitState.renameBranch(old, new)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        DeleteBranchDialog(
+            visible = floatingDialog == FloatingDialog.DELETE_BRANCH,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onDelete = { name ->
+                gitState.deleteBranch(name)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        CreateTagDialog(
+            visible = floatingDialog == FloatingDialog.CREATE_TAG,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onSubmit = { name ->
+                gitState.createTag(name, null)
+                floatingDialog = FloatingDialog.NONE
+            }
+        )
+
+        DeleteTagDialog(
+            visible = floatingDialog == FloatingDialog.DELETE_TAG,
+            snapshot = snapshot,
+            onDismiss = { floatingDialog = FloatingDialog.NONE },
+            onDelete = { name ->
+                gitState.deleteTag(name)
                 floatingDialog = FloatingDialog.NONE
             }
         )
