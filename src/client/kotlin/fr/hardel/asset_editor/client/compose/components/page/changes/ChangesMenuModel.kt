@@ -53,6 +53,7 @@ data class GitMenuSection(
 data class ChangesMenuCallbacks(
     val onViewChange: (String) -> Unit,
     val onPull: () -> Unit,
+    val onPullRebase: () -> Unit,
     val onPullFrom: () -> Unit,
     val onPush: () -> Unit,
     val onFetch: () -> Unit,
@@ -154,6 +155,12 @@ private fun quickSyncSection(
                 onClick = cb.onPush
             ),
             GitMenuAction(
+                label = i18n("changes:menu.push.fetch"),
+                icon = RELOAD,
+                enabled = hasRemote(snapshot) && !loading,
+                onClick = cb.onFetch
+            ),
+            GitMenuAction(
                 label = i18n("changes:menu.commit"),
                 icon = COMMIT,
                 enabled = hasChanges && hasMessage && !loading,
@@ -162,6 +169,8 @@ private fun quickSyncSection(
         )
     )
 }
+
+private fun hasRemote(snapshot: GitSnapshot): Boolean = snapshot.remotes.isNotEmpty()
 
 private fun advancedSection(
     snapshot: GitSnapshot,
@@ -190,6 +199,12 @@ private fun advancedSection(
                 enabled = hasUpstream && !loading,
                 trailing = if (behind > 0) "↓$behind" else null,
                 onClick = cb.onPull
+            ),
+            GitMenuAction(
+                label = i18n("changes:menu.pull.pull_rebase"),
+                icon = ARROW_DOWN,
+                enabled = hasUpstream && !loading,
+                onClick = cb.onPullRebase
             ),
             GitMenuAction(
                 label = i18n("changes:menu.pull.pull_from"),

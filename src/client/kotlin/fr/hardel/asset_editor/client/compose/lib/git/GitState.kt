@@ -118,6 +118,8 @@ class GitState internal constructor(
 
     fun pull() = launchOp(GitOperationKind.PULL) { repo -> repo.pull() }
 
+    fun pullRebase() = launchOp(GitOperationKind.PULL) { repo -> repo.pullRebase() }
+
     fun pullFrom(remote: String, branch: String) =
         launchOp(GitOperationKind.PULL_FROM) { repo -> repo.pullFrom(remote, branch) }
 
@@ -150,27 +152,54 @@ class GitState internal constructor(
     fun rebase(name: String) =
         launchOp(GitOperationKind.REBASE) { repo -> repo.rebase(name) }
 
-    suspend fun readConflictStage(path: String, stage: Int): String? {
-        val repo = repository ?: return null
-        return repo.readConflictStage(path, stage)
+    /**
+     * During rebase git swaps the semantic of stages: `:2:` becomes the upstream/onto content
+     * and `:3:` becomes the commit being replayed (i.e. the user's own work). To keep the UI
+     * consistent with the user's mental model of "current = my side, incoming = upstream",
+     * we flip the stage mapping based on the operation in progress.
+     */
+    private fun currentStage(): Int =
+        if (snapshot.operationInProgress == OperationInProgress.REBASE) 3 else 2
+
+    private fun incomingStage(): Int =
+        if (snapshot.operationInProgress == OperationInProgress.REBASE) 2 else 3
+
+    suspend fun readCurrentSide(path: String): String? =
+        repository?.readConflictStage(path, currentStage())
+
+    suspend fun readIncomingSide(path: String): String? =
+        repository?.readConflictStage(path, incomingStage())
+
+    fun acceptCurrent(path: String) {
+        val rebasing = snapshot.operationInProgress == OperationInProgress.REBASE
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            if (rebasing) repo.acceptTheirs(path) else repo.acceptOurs(path)
+        }
     }
 
-    fun acceptOurs(path: String) =
-        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> repo.acceptOurs(path) }
-
-    fun acceptTheirs(path: String) =
-        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> repo.acceptTheirs(path) }
-
-    fun acceptAllOurs() {
-        val paths = snapshot.conflictedPaths.toList()
-        if (paths.isEmpty()) return
-        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> bulkAccept(paths) { repo.acceptOurs(it) } }
+    fun acceptIncoming(path: String) {
+        val rebasing = snapshot.operationInProgress == OperationInProgress.REBASE
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            if (rebasing) repo.acceptOurs(path) else repo.acceptTheirs(path)
+        }
     }
 
-    fun acceptAllTheirs() {
+    fun acceptAllCurrent() {
         val paths = snapshot.conflictedPaths.toList()
         if (paths.isEmpty()) return
-        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo -> bulkAccept(paths) { repo.acceptTheirs(it) } }
+        val rebasing = snapshot.operationInProgress == OperationInProgress.REBASE
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            bulkAccept(paths) { if (rebasing) repo.acceptTheirs(it) else repo.acceptOurs(it) }
+        }
+    }
+
+    fun acceptAllIncoming() {
+        val paths = snapshot.conflictedPaths.toList()
+        if (paths.isEmpty()) return
+        val rebasing = snapshot.operationInProgress == OperationInProgress.REBASE
+        launchOp(GitOperationKind.CONFLICT_RESOLVE) { repo ->
+            bulkAccept(paths) { if (rebasing) repo.acceptOurs(it) else repo.acceptTheirs(it) }
+        }
     }
 
     private suspend fun bulkAccept(paths: List<String>, action: suspend (String) -> GitOpResult): GitOpResult {
@@ -278,6 +307,10 @@ class GitState internal constructor(
         val counts = if (upstream) repo.aheadBehind() else null
         val operation = repo.operationInProgress()
         val incoming = operation?.let { repo.incomingBranch(it) }
+        val conflicted = status.entries.filter { it.value == GitFileStatus.CONFLICTED }.map { it.key }
+        if (conflicted.isNotEmpty()) {
+            runCatching { repo.neutralizeConflictMarkers(conflicted) }
+        }
         snapshot = snapshot.copy(
             gitInstalled = true,
             isRepository = true,

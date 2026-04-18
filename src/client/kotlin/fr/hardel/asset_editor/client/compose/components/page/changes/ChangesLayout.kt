@@ -96,6 +96,14 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
     var floatingDialog by remember { mutableStateOf(FloatingDialog.NONE) }
     var pendingAdvance by remember { mutableStateOf(false) }
 
+    val displayedStatus: Map<String, GitFileStatus> = remember(snapshot.status, snapshot.hasConflicts) {
+        if (snapshot.hasConflicts) {
+            snapshot.status.filterValues { it == GitFileStatus.CONFLICTED }
+        } else {
+            snapshot.status
+        }
+    }
+
     LaunchedEffect(snapshot.status, pendingAdvance) {
         if (!pendingAdvance) return@LaunchedEffect
         val currentPath = destination.selectedFile
@@ -122,7 +130,7 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     )
             ) {
                 SidebarHeader(
-                    count = snapshot.status.size,
+                    count = displayedStatus.size,
                     loading = snapshot.isLoading,
                     onReload = { gitState.fetchAndRefresh() },
                     menu = {
@@ -133,6 +141,7 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                             callbacks = ChangesMenuCallbacks(
                                 onViewChange = { viewMode = it },
                                 onPull = { gitState.pull() },
+                                onPullRebase = { gitState.pullRebase() },
                                 onPullFrom = { floatingDialog = FloatingDialog.PULL_FROM },
                                 onPush = { gitState.push() },
                                 onFetch = { gitState.fetch() },
@@ -166,7 +175,15 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     ConflictBanner(
                         snapshot = snapshot,
                         onContinue = { gitState.continueOperation() },
-                        onAbort = { gitState.abortOperation() }
+                        onAbort = { gitState.abortOperation() },
+                        onAcceptAllOurs = {
+                            gitState.acceptAllCurrent()
+                            pendingAdvance = true
+                        },
+                        onAcceptAllTheirs = {
+                            gitState.acceptAllIncoming()
+                            pendingAdvance = true
+                        }
                     )
                 } else {
                     ActionSection(
@@ -188,9 +205,9 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     when {
                         !snapshot.gitInstalled -> GitNotInstalledNotice()
                         !snapshot.isRepository -> NotARepositoryNotice()
-                        snapshot.status.isEmpty() -> EmptyChangesNotice()
+                        displayedStatus.isEmpty() -> EmptyChangesNotice()
                         viewMode == ChangesView.FILE -> ChangesFileTreeView(
-                            status = snapshot.status,
+                            status = displayedStatus,
                             selectedFile = destination.selectedFile,
                             onSelect = { path ->
                                 context.navigationMemory().navigate(ChangesDestination(path))
@@ -200,7 +217,7 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
 
                         else -> ChangesConceptTreeView(
                             registries = context.registryAccess(),
-                            status = snapshot.status,
+                            status = displayedStatus,
                             selectedFile = destination.selectedFile,
                             onSelect = { path ->
                                 context.navigationMemory().navigate(ChangesDestination(path))
@@ -223,11 +240,11 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
                     gitState = gitState,
                     selectedFile = destination.selectedFile,
                     onAcceptOurs = { path ->
-                        gitState.acceptOurs(path)
+                        gitState.acceptCurrent(path)
                         pendingAdvance = true
                     },
                     onAcceptTheirs = { path ->
-                        gitState.acceptTheirs(path)
+                        gitState.acceptIncoming(path)
                         pendingAdvance = true
                     }
                 )
