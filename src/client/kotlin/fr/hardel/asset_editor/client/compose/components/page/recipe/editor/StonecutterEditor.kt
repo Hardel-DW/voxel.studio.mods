@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeAdvancedOptions
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
@@ -55,11 +56,13 @@ fun StonecutterEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
         RecipeCountOption(state)
 
         recipe?.let {
-            EditorCard {
-                RecipeGroupOption(
-                    value = it.group(),
-                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
-                )
+            RecipeAdvancedOptions {
+                EditorCard {
+                    RecipeGroupOption(
+                        value = it.group(),
+                        onValueChange = { value -> state.onAction(SetGroupAction(value)) }
+                    )
+                }
             }
         }
     }

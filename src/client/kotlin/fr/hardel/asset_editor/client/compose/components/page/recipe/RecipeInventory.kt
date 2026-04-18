@@ -150,7 +150,7 @@ fun RecipeInventory(
                     else -> LazyVerticalGrid(
                         columns = GridCells.FixedSize(56.dp),
                         state = gridState,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {

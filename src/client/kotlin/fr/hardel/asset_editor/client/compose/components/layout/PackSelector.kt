@@ -1,8 +1,11 @@
 package fr.hardel.asset_editor.client.compose.components.layout
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +42,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
@@ -69,7 +74,17 @@ fun PackSelector(
     val selectedPack = rememberSelectedPack(context)
     val availablePacks = rememberAvailablePacks(context)
 
-    // Compose-only: sélecteur de pack dans la barre supérieure, pas d'équivalent TSX direct.
+    val triggerBg by animateColorAsState(
+        targetValue = if (hovered || expanded) StudioColors.Zinc900 else Color.Transparent,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-trigger-bg"
+    )
+    val triggerBorder by animateColorAsState(
+        targetValue = if (hovered || expanded) StudioColors.Zinc700 else StudioColors.Zinc800,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-trigger-border"
+    )
+
     Box(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
@@ -80,8 +95,9 @@ fun PackSelector(
                 anchorPosition = IntOffset(position.x.roundToInt(), position.y.roundToInt())
                 anchorSize = coordinates.size
             }
-            .background(if (hovered) StudioColors.Zinc900 else Color.Transparent, packSelectorShape)
-            .border(1.dp, if (hovered) StudioColors.Zinc700 else StudioColors.Zinc800, packSelectorShape)
+            .background(triggerBg, packSelectorShape)
+            .border(1.dp, triggerBorder, packSelectorShape)
+            .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
@@ -114,14 +130,22 @@ fun PackSelector(
             properties = PopupProperties(focusable = true)
         ) {
             val popupShape = RoundedCornerShape(16.dp)
+            val popupProgress = remember { Animatable(0f) }
+            LaunchedEffect(Unit) { popupProgress.animateTo(1f, StudioMotion.popupEnterSpec()) }
 
-            // popover/content: rounded-2xl border border-zinc-800 bg-zinc-950 p-4 shadow-md
             Box(
                 modifier = Modifier
                     .width(280.dp)
+                    .graphicsLayer {
+                        val p = popupProgress.value
+                        alpha = p
+                        scaleX = 0.95f + 0.05f * p
+                        scaleY = 0.95f + 0.05f * p
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    }
                     .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                    .border(1.dp, StudioColors.Zinc800, popupShape)
-                    .background(StudioColors.Zinc950, popupShape)
+                    .border(1.dp, Color.White.copy(alpha = 0.08f), popupShape)
+                    .background(StudioColors.Zinc900, popupShape)
                     .clip(popupShape)
             ) {
                 ShineOverlay(
@@ -189,17 +213,23 @@ private fun PackRow(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
+    val rowBg by animateColorAsState(
+        targetValue = when {
+            selected -> StudioColors.Zinc800.copy(alpha = 0.35f)
+            hovered -> StudioColors.Zinc800
+            else -> Color.Transparent
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-row-bg"
+    )
 
-    // button/row: compose-only pack item in popup list
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = if (!selected && hovered) StudioColors.Zinc900 else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .background(rowBg, RoundedCornerShape(8.dp))
+            .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
@@ -227,17 +257,19 @@ private fun CreatePackButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
+    val bg by animateColorAsState(
+        targetValue = if (hovered) StudioColors.Zinc800 else Color.Transparent,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-create-bg"
+    )
 
-    // button/row: compose-only "create pack" action in popup
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = if (hovered) StudioColors.Zinc900 else Color.Transparent,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .background(bg, RoundedCornerShape(8.dp))
+            .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,

@@ -117,6 +117,7 @@ fun RecipeOverviewCard(
                         .fillMaxWidth()
                         .background(StudioColors.Zinc800.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                         .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .pointerHoverIcon(PointerIcon.Hand)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }

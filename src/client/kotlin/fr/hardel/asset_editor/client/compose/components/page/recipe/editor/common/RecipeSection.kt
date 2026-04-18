@@ -8,19 +8,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwap
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwapSwitch
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSelector
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import net.minecraft.client.resources.language.I18n
+import net.minecraft.resources.Identifier
 
 @Composable
 fun RecipeSection(
@@ -35,7 +40,15 @@ fun RecipeSection(
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
             .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(12.dp))
     ) {
-        ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.12f)
+        // Shine is pinned to the top with a fixed height so expanding collapsible sections
+        // (e.g. advanced options) don't stretch the highlight along with the content.
+        ShineOverlay(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .height(240.dp),
+            opacity = 0.12f
+        )
 
         Column(modifier = Modifier.padding(24.dp)) {
             Row(
@@ -53,6 +66,17 @@ fun RecipeSection(
                         text = I18n.get("recipe:section.description"),
                         style = StudioTypography.regular(14),
                         color = StudioColors.Zinc400
+                    )
+                }
+
+                val quickSwap = remember(selection) {
+                    Identifier.tryParse(selection)?.let(RecipeQuickSwap::pairOf)
+                }
+                if (quickSwap != null) {
+                    RecipeQuickSwapSwitch(
+                        currentLabel = quickSwap.currentLabelKey,
+                        partnerLabel = quickSwap.partnerLabelKey,
+                        onSwap = { onSelectionChange(quickSwap.partner.toString()) }
                     )
                 }
 

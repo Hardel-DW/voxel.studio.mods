@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeAdvancedOptions
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCategoryOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
@@ -58,19 +59,21 @@ fun TransmuteEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
         RecipeCountOption(state)
 
         recipe?.let {
-            EditorCard {
-                RecipeGroupOption(
-                    value = it.group(),
-                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
-                )
-            }
+            RecipeAdvancedOptions {
+                EditorCard {
+                    RecipeGroupOption(
+                        value = it.group(),
+                        onValueChange = { value -> state.onAction(SetGroupAction(value)) }
+                    )
+                }
 
-            EditorCard {
-                RecipeCategoryOption(
-                    value = it.category().serializedName,
-                    options = CraftingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
-                )
+                EditorCard {
+                    RecipeCategoryOption(
+                        value = it.category().serializedName,
+                        options = CraftingBookCategory.entries.map { category -> category.serializedName },
+                        onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
+                    )
+                }
             }
         }
     }

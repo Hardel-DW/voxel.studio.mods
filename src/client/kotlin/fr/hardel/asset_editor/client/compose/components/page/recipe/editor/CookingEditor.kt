@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeAdvancedOptions
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCategoryOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCookingTimeOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
@@ -63,34 +64,36 @@ fun CookingEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
         RecipeCountOption(state)
 
         recipe?.let {
-            EditorCard {
-                RecipeGroupOption(
-                    value = it.group(),
-                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
-                )
-            }
+            RecipeAdvancedOptions {
+                EditorCard {
+                    RecipeGroupOption(
+                        value = it.group(),
+                        onValueChange = { value -> state.onAction(SetGroupAction(value)) }
+                    )
+                }
 
-            EditorCard {
-                RecipeCategoryOption(
-                    value = it.category().serializedName,
-                    options = CookingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
-                )
-            }
+                EditorCard {
+                    RecipeCategoryOption(
+                        value = it.category().serializedName,
+                        options = CookingBookCategory.entries.map { category -> category.serializedName },
+                        onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
+                    )
+                }
 
-            EditorCard {
-                RecipeExperienceOption(
-                    value = it.experience(),
-                    onValueChange = { value -> state.onAction(SetCookingExperienceAction(value)) }
-                )
-            }
+                EditorCard {
+                    RecipeExperienceOption(
+                        value = it.experience(),
+                        onValueChange = { value -> state.onAction(SetCookingExperienceAction(value)) }
+                    )
+                }
 
-            EditorCard {
-                RecipeCookingTimeOption(
-                    value = it.cookingTime(),
-                    max = if (it is CampfireCookingRecipe) Int.MAX_VALUE else Short.MAX_VALUE.toInt(),
-                    onValueChange = { value -> state.onAction(SetCookingTimeAction(value)) }
-                )
+                EditorCard {
+                    RecipeCookingTimeOption(
+                        value = it.cookingTime(),
+                        max = if (it is CampfireCookingRecipe) Int.MAX_VALUE else Short.MAX_VALUE.toInt(),
+                        onValueChange = { value -> state.onAction(SetCookingTimeAction(value)) }
+                    )
+                }
             }
         }
     }

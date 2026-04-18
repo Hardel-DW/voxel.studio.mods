@@ -40,6 +40,8 @@
     "generic:all": "Tout",
     "generic:see.more": "Voir plus",
     "generic:actions": "Actions",
+    "generic:advanced_options": "Options avancées",
+    "generic:advanced_options.description": "Paramètres rarement nécessaires",
     "debug:action.clear": "Vider",
     "debug:layout.title": "Debug",
     "debug:layout.tab.workspace": "Workspace",

@@ -40,6 +40,8 @@
     "generic:all": "All",
     "generic:see.more": "See more",
     "generic:actions": "Actions",
+    "generic:advanced_options": "Advanced Options",
+    "generic:advanced_options.description": "Optional settings rarely needed",
     "debug:action.clear": "Clear",
     "debug:action.copy_all": "Copy All",
     "debug:action.copy_selected": "Copy",

@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client;
 import fr.hardel.asset_editor.DevFlags;
 import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwap;
 import fr.hardel.asset_editor.client.event.ClientTickHandler;
 import fr.hardel.asset_editor.client.event.StudioKeybinding;
 import fr.hardel.asset_editor.client.event.StudioReloadListener;
@@ -29,6 +30,7 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientTickHandler.register();
         ClientNetworkHandler.register();
         StudioReloadListener.register();
+        RecipeQuickSwap.INSTANCE.registerDefaults();
         ComposeDownloadHud.register();
         if (DevFlags.CLEAR_COMPOSE_CACHE) ComposeBootstrap.purgeCache();
         ComposeBootstrap.tryLinkFromCache();
