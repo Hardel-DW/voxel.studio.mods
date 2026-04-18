@@ -32,11 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
@@ -53,6 +54,8 @@ enum class ButtonSize {
     NONE, SQUARE, DEFAULT, SM, LG, XL, ICON
 }
 
+private val SHIMMER_COLORS = listOf(Color.Transparent, Color.White.copy(alpha = 0.45f), Color.Transparent)
+
 @Composable
 fun Button(
     onClick: () -> Unit,
@@ -67,7 +70,7 @@ fun Button(
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
-        targetValue = if (isPressed && enabled) 0.96f else 1f,
+        targetValue = if (isPressed && enabled) 0.97f else 1f,
         animationSpec = StudioMotion.pressSpec(),
         label = "button-press-scale"
     )
@@ -228,33 +231,30 @@ private fun buttonEffects(variant: ButtonVariant): Modifier {
         )
     )
 
-    return Modifier.drawWithContent {
-        drawContent()
-        if (variant == ButtonVariant.SHIMMER) {
-            val strokeWidth = 1.dp.toPx()
-            drawLine(
-                color = StudioColors.Zinc900,
-                start = Offset(0f, strokeWidth / 2f),
-                end = Offset(size.width, strokeWidth / 2f),
-                strokeWidth = strokeWidth
-            )
-            drawLine(
-                color = StudioColors.Zinc900,
-                start = Offset(strokeWidth / 2f, 0f),
-                end = Offset(strokeWidth / 2f, size.height),
-                strokeWidth = strokeWidth
-            )
-        }
+    return Modifier.drawWithCache {
+        val strokeWidth = 1.dp.toPx()
         val stripeWidth = size.width * 0.4f
-        val x = shimmerOffset * size.width
-        drawRect(
-            brush = Brush.horizontalGradient(
-                colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.45f), Color.Transparent),
-                startX = x,
-                endX = x + stripeWidth
-            ),
-            topLeft = Offset.Zero,
-            size = Size(size.width, size.height)
+        val shimmerBrush = Brush.horizontalGradient(
+            colors = SHIMMER_COLORS,
+            startX = 0f,
+            endX = stripeWidth
         )
+        val stripeSize = Size(stripeWidth, size.height)
+        val topStart = Offset(0f, strokeWidth / 2f)
+        val topEnd = Offset(size.width, strokeWidth / 2f)
+        val leftStart = Offset(strokeWidth / 2f, 0f)
+        val leftEnd = Offset(strokeWidth / 2f, size.height)
+
+        onDrawWithContent {
+            drawContent()
+            if (variant == ButtonVariant.SHIMMER) {
+                drawLine(StudioColors.Zinc900, topStart, topEnd, strokeWidth)
+                drawLine(StudioColors.Zinc900, leftStart, leftEnd, strokeWidth)
+            }
+            val offsetX = shimmerOffset * size.width
+            translate(offsetX, 0f) {
+                drawRect(brush = shimmerBrush, topLeft = Offset.Zero, size = stripeSize)
+            }
+        }
     }
 }

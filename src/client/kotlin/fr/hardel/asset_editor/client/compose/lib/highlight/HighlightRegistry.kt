@@ -3,13 +3,17 @@ package fr.hardel.asset_editor.client.compose.lib.highlight
 import java.util.ArrayList
 import java.util.LinkedHashMap
 import java.util.Objects
+import java.util.concurrent.CopyOnWriteArrayList
 
 class HighlightRegistry {
 
     data class Entry(val name: String, val highlight: Highlight)
 
     private val highlights = LinkedHashMap<String, Highlight>()
-    private val listeners = ArrayList<Runnable>()
+    private val listeners = CopyOnWriteArrayList<Runnable>()
+
+    private var cachedEntries: List<Entry>? = null
+    private var cachedPaintOrder: List<Entry>? = null
 
     fun set(name: String, highlight: Highlight): HighlightRegistry {
         Objects.requireNonNull(name, "name")
@@ -20,6 +24,7 @@ class HighlightRegistry {
 
         highlights[name] = highlight
         highlight.registerIn(this)
+        invalidateCaches()
         scheduleRepaint()
         return this
     }
@@ -38,21 +43,29 @@ class HighlightRegistry {
         }
 
         highlights.clear()
+        invalidateCaches()
         scheduleRepaint()
     }
 
     fun size(): Int = highlights.size
 
     fun entries(): List<Entry> {
+        cachedEntries?.let { return it }
         val snapshot = ArrayList<Entry>(highlights.size)
         for (entry in highlights.entries) {
             snapshot += Entry(entry.key, entry.value)
         }
-        return snapshot.toList()
+        val immutable = java.util.Collections.unmodifiableList(snapshot)
+        cachedEntries = immutable
+        return immutable
     }
 
-    fun entriesInPaintOrder(): List<Entry> =
-        entries().sortedBy { it.highlight.priority() }
+    fun entriesInPaintOrder(): List<Entry> {
+        cachedPaintOrder?.let { return it }
+        val sorted = entries().sortedBy { it.highlight.priority() }
+        cachedPaintOrder = sorted
+        return sorted
+    }
 
     fun compareOverlayStackingPosition(
         name1: String,
@@ -80,12 +93,20 @@ class HighlightRegistry {
     }
 
     fun addListener(listener: Runnable) {
-        listeners += listener
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: Runnable) {
+        listeners.remove(listener)
+    }
+
+    private fun invalidateCaches() {
+        cachedEntries = null
+        cachedPaintOrder = null
     }
 
     internal fun scheduleRepaint() {
-        for (listener in listeners.toList()) {
-            listener.run()
-        }
+        invalidateCaches()
+        listeners.forEach(Runnable::run)
     }
 }

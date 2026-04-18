@@ -2,7 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -37,6 +36,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.AnimatedCheckmark
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
@@ -50,9 +50,6 @@ private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 private val CARD_SHAPE = RoundedCornerShape(8.dp)
 
 private const val SPIN_DURATION_MS = 700
-private const val COLOR_FADE_MS = 220
-private const val CONTENT_FADE_MS = 180
-private const val CHECK_DRAW_MS = 420
 private const val SUCCESS_HOLD_MS = 1200L
 
 private enum class ReloadState { IDLE, LOADING, SUCCESS }
@@ -72,15 +69,12 @@ fun StudioReloadButton(modifier: Modifier = Modifier) {
                 rotation.snapTo(0f)
                 rotation.animateTo(
                     targetValue = 360f,
-                    animationSpec = tween(SPIN_DURATION_MS, easing = FastOutSlowInEasing)
+                    animationSpec = tween(SPIN_DURATION_MS, easing = StudioMotion.Standard)
                 )
                 state = ReloadState.SUCCESS
             }
             ReloadState.SUCCESS -> {
-                checkProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(CHECK_DRAW_MS, easing = FastOutSlowInEasing)
-                )
+                checkProgress.animateTo(1f, StudioMotion.checkmarkSpec())
                 delay(SUCCESS_HOLD_MS)
                 state = ReloadState.IDLE
             }
@@ -96,27 +90,27 @@ fun StudioReloadButton(modifier: Modifier = Modifier) {
     val borderColor by animateColorAsState(
         targetValue = if (hovered) StudioColors.Zinc700.copy(alpha = 0.5f)
         else StudioColors.Zinc800.copy(alpha = 0.5f),
-        animationSpec = tween(COLOR_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "reload-border"
     )
     val titleColor by animateColorAsState(
         targetValue = if (hovered) Color.White else StudioColors.Zinc300,
-        animationSpec = tween(COLOR_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "reload-title"
     )
     val iconAlpha by animateFloatAsState(
         targetValue = if (hovered) 0.6f else 0.4f,
-        animationSpec = tween(COLOR_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "reload-icon-alpha"
     )
     val contentAlpha by animateFloatAsState(
         targetValue = if (success) 0f else 1f,
-        animationSpec = tween(CONTENT_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "reload-content-alpha"
     )
     val checkAlpha by animateFloatAsState(
         targetValue = if (success) 1f else 0f,
-        animationSpec = tween(CONTENT_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "reload-check-alpha"
     )
 

@@ -33,6 +33,7 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
+import fr.hardel.asset_editor.client.compose.components.ui.topLeftBorder
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeRuntimeEntry
 import net.minecraft.client.resources.language.I18n
 
@@ -43,7 +44,6 @@ fun RecipeOverviewCard(
     modifier: Modifier = Modifier
 ) {
     val interaction = remember(element.id) { MutableInteractionSource() }
-    val borderColor = StudioColors.Zinc900
     val entryConfig = RecipeTreeData.getEntryByRecipeType(element.type)
 
     // TSX: bg-black/35 border-t-2 border-l-2 border-zinc-900 rounded-xl
@@ -52,10 +52,7 @@ fun RecipeOverviewCard(
             .fillMaxSize()
             .clip(RoundedCornerShape(12.dp))
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .drawBehind {
-                drawLine(borderColor, Offset(0f, 0f), Offset(size.width, 0f), strokeWidth = 2.dp.toPx())
-                drawLine(borderColor, Offset(0f, 0f), Offset(0f, size.height), strokeWidth = 2.dp.toPx())
-            }
+            .topLeftBorder(2.dp, StudioColors.Zinc900, 12.dp)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(

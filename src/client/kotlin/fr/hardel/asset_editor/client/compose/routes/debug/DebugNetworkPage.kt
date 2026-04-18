@@ -149,6 +149,7 @@ fun DebugNetworkPage(context: StudioContext) {
 
         DataTable(
             items = entries,
+            lazy = true,
             columns = listOf(
                 TableColumn(I18n.get("debug:network.column.time"), weight = 0.8f) { entry ->
                     Text(
@@ -276,6 +277,7 @@ fun DebugNetworkPage(context: StudioContext) {
             selectedIds = selectedIds,
             onSelectionChange = { newSelection -> selectedIds = newSelection },
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
                 .padding(top = 12.dp)
         )

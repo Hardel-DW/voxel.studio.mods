@@ -44,6 +44,7 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
     private final LinkedHashSet<String> knownNamespaces = new LinkedHashSet<>(List.of(AssetEditor.MOD_ID));
     private final SimpleMemory<Snapshot> memory = new SimpleMemory<>(Snapshot.empty());
     private volatile String selectedNamespace;
+    private List<String> cachedNamespaces = List.of(AssetEditor.MOD_ID);
 
     @Override
     public Snapshot snapshot() {
@@ -58,7 +59,9 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
     public void capture(Direction direction, CustomPacketPayload payload) {
         Identifier payloadId = payload.type().id();
         synchronized (this) {
-            knownNamespaces.add(payloadId.getNamespace());
+            if (knownNamespaces.add(payloadId.getNamespace())) {
+                cachedNamespaces = List.copyOf(knownNamespaces);
+            }
             entries.addFirst(new TraceEntry(idGenerator.incrementAndGet(), System.currentTimeMillis(), direction, payloadId, payload));
             while (entries.size() > MAX_ENTRIES) {
                 entries.removeLast();
@@ -95,19 +98,21 @@ public final class NetworkTraceMemory implements ReadableMemory<NetworkTraceMemo
             entries.clear();
             knownNamespaces.clear();
             knownNamespaces.add(AssetEditor.MOD_ID);
+            cachedNamespaces = List.of(AssetEditor.MOD_ID);
             selectedNamespace = null;
             publishSnapshot();
         }
     }
 
     private void publishSnapshot() {
-        List<TraceEntry> filteredEntries = new ArrayList<>();
+        List<TraceEntry> filteredEntries = new ArrayList<>(entries.size());
+        String namespace = selectedNamespace;
         for (TraceEntry entry : entries) {
-            if (selectedNamespace == null || entry.payloadId().getNamespace().equals(selectedNamespace)) {
+            if (namespace == null || entry.payloadId().getNamespace().equals(namespace)) {
                 filteredEntries.add(entry);
             }
         }
 
-        memory.setSnapshot(new Snapshot(filteredEntries, new ArrayList<>(knownNamespaces), selectedNamespace));
+        memory.setSnapshot(new Snapshot(filteredEntries, cachedNamespaces, namespace));
     }
 }

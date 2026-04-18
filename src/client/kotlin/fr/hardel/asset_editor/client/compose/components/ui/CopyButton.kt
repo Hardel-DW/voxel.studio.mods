@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.compose.components.ui
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,8 +32,6 @@ import java.awt.datatransfer.StringSelection
 
 private val COPY_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/copy.svg")
 
-private const val CHECK_DRAW_MS = 420
-private const val CONTENT_FADE_MS = 180
 private const val SUCCESS_HOLD_MS = 1200L
 
 @Composable
@@ -51,7 +48,7 @@ fun CopyButton(
     LaunchedEffect(success) {
         if (success) {
             checkProgress.snapTo(0f)
-            checkProgress.animateTo(1f, tween(CHECK_DRAW_MS, easing = StudioMotion.Ease))
+            checkProgress.animateTo(1f, StudioMotion.checkmarkSpec())
             delay(SUCCESS_HOLD_MS)
             success = false
         }
@@ -64,12 +61,12 @@ fun CopyButton(
     )
     val copyAlpha by animateFloatAsState(
         targetValue = if (success) 0f else 1f,
-        animationSpec = tween(CONTENT_FADE_MS, easing = StudioMotion.Ease),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "copy-content-alpha"
     )
     val checkAlpha by animateFloatAsState(
         targetValue = if (success) 1f else 0f,
-        animationSpec = tween(CONTENT_FADE_MS, easing = StudioMotion.Ease),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "copy-check-alpha"
     )
 

@@ -7,6 +7,10 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.components.ui.FpsCounter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -214,6 +218,13 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
                 }
         ) {
             EditorContent(editorVersion)
+            if (DevFlags.SHOW_FPS_COUNTER) {
+                FpsCounter(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 48.dp, end = 12.dp)
+                )
+            }
         }
     }
 

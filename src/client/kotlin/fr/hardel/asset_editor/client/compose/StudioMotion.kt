@@ -3,8 +3,7 @@ package fr.hardel.asset_editor.client.compose
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -23,38 +22,60 @@ import androidx.compose.ui.unit.dp
 /**
  * Single source of truth for motion: durations, easings, and reusable animation specs.
  *
- * Pick a duration bucket first, then a spec. Prefer [StudioMotion.Ease] everywhere unless
- * you have a specific reason — consistency matters more than micro-tuning.
+ * Values track the Material 3 2026 motion specification (m3.material.io/styles/motion):
+ * duration tokens in the short / medium / long tiers, and three easing curves:
+ * - [Standard] for everyday UI — colour fades, hover, toggle-like state changes.
+ * - [EmphasizedDecelerate] for elements entering the screen (arrive fast, settle).
+ * - [EmphasizedAccelerate] for elements leaving the screen (ease out, exit fast).
  *
- * Where to use what
- * -----------------
- * - Hover / press / color fades on interactive elements -> [hoverSpec] (Quick)
- * - Popup / dropdown / menu enter/exit -> [popupEnterSpec] / [popupExitSpec]
- * - Page-level enter (route, overview pages) -> [pageEnterSpec] + [PageEnterAnimation]
- * - Tab content swap -> [tabFadeSpec]
- * - Collapsing sections (advanced options) -> [collapseEnterSpec] / [collapseExitSpec]
+ * Rules of thumb (do not micro-tune without a reason):
+ * - Hover / tint fades → [hoverSpec] (short3 = 150ms, standard).
+ * - Press feedback    → [pressSpec] (~short1-2 = 75ms, standard).
+ * - Popup / menu enter→ [popupEnterSpec] (short4 + standard-decelerate).
+ * - Popup exit        → [popupExitSpec]  (short2 + standard-accelerate, always faster than enter).
+ * - Section collapse  → [collapseEnterSpec] / [collapseExitSpec].
+ * - Route / page enter→ [pageEnterSpec] + [PageEnterAnimation] (medium4, emphasized-decelerate).
+ * - Tab content swap  → [tabFadeSpec].
  */
 object StudioMotion {
 
-    // Durations (ms)
-    const val Instant = 75
-    const val Quick = 120
-    const val Standard = 180
-    const val Emphasized = 300
+    // Material 3 duration tokens (ms). Use the named constants, not raw numbers, at call sites.
+    const val Short1 = 50
+    const val Short2 = 100
+    const val Short3 = 150
+    const val Short4 = 200
+    const val Medium1 = 250
+    const val Medium2 = 300
+    const val Medium3 = 350
+    const val Medium4 = 400
+    const val Long1 = 450
+    const val Long2 = 500
 
-    // Easings
-    val Ease: Easing = FastOutSlowInEasing
-    val EaseOut: Easing = LinearOutSlowInEasing
-    val EaseInOut: Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
+    // Press feedback sits below short1 on purpose — tactile response must feel instantaneous.
+    const val Press = 75
 
-    fun <T> hoverSpec(): TweenSpec<T> = tween(Quick, easing = Ease)
-    fun <T> pressSpec(): TweenSpec<T> = tween(Instant, easing = Ease)
-    fun <T> popupEnterSpec(): TweenSpec<T> = tween(Quick, easing = Ease)
-    fun <T> popupExitSpec(): TweenSpec<T> = tween(Instant, easing = Ease)
-    fun <T> pageEnterSpec(): TweenSpec<T> = tween(Standard, easing = Ease)
-    fun <T> tabFadeSpec(): TweenSpec<T> = tween(Standard, easing = Ease)
-    fun <T> collapseEnterSpec(): TweenSpec<T> = tween(Standard, easing = Ease)
-    fun <T> collapseExitSpec(): TweenSpec<T> = tween(Quick, easing = Ease)
+    // Material 3 easing curves. `Standard` handles ~90% of cases; reach for the emphasized
+    // pair only when motion needs a clear enter-vs-exit asymmetry (routes, dialogs, sections).
+    val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+    val EmphasizedDecelerate: Easing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+    val EmphasizedAccelerate: Easing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
+    val Linear: Easing = LinearEasing
+
+    fun <T> hoverSpec(): TweenSpec<T> = tween(Short3, easing = Standard)
+    fun <T> pressSpec(): TweenSpec<T> = tween(Press, easing = Standard)
+
+    fun <T> popupEnterSpec(): TweenSpec<T> = tween(Short4, easing = EmphasizedDecelerate)
+    fun <T> popupExitSpec(): TweenSpec<T> = tween(Short2, easing = EmphasizedAccelerate)
+
+    fun <T> pageEnterSpec(): TweenSpec<T> = tween(Medium4, easing = EmphasizedDecelerate)
+
+    fun <T> tabFadeSpec(): TweenSpec<T> = tween(Short4, easing = Standard)
+
+    fun <T> collapseEnterSpec(): TweenSpec<T> = tween(Medium2, easing = EmphasizedDecelerate)
+    fun <T> collapseExitSpec(): TweenSpec<T> = tween(Short4, easing = EmphasizedAccelerate)
+
+    /** Checkmark / success path tween — community convention (Framer): ~350ms decelerate. */
+    fun <T> checkmarkSpec(): TweenSpec<T> = tween(Medium3, easing = EmphasizedDecelerate)
 }
 
 /**
@@ -78,7 +99,7 @@ fun PageEnterAnimation(
             .graphicsLayer {
                 val p = progress.value
                 alpha = 0.7f + 0.3f * p
-                translationY = (1f - p) * 4.dp.toPx()
+                translationY = (1f - p) * 6.dp.toPx()
             }
     ) { content() }
 }

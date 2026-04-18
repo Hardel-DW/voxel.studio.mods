@@ -135,7 +135,7 @@ private fun SidebarItemEnter(delayIndex: Int, content: @Composable () -> Unit) {
     val progress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         delay(delayIndex * 40L)
-        progress.animateTo(1f, tween(StudioMotion.Standard, easing = StudioMotion.Ease))
+        progress.animateTo(1f, tween(StudioMotion.Medium2, easing = StudioMotion.EmphasizedDecelerate))
     }
     Box(
         modifier = Modifier.graphicsLayer {

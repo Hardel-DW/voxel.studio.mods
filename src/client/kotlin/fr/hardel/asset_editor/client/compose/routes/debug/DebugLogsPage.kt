@@ -76,6 +76,7 @@ fun DebugLogsPage(context: StudioContext) {
 
         DataTable(
             items = entries,
+            lazy = true,
             columns = listOf(
                 TableColumn(I18n.get("debug:logs.column.time"), weight = 0.8f) { entry ->
                     Text(
@@ -147,6 +148,7 @@ fun DebugLogsPage(context: StudioContext) {
                 }
             },
             modifier = Modifier
+                .weight(1f)
                 .fillMaxWidth()
                 .padding(top = 12.dp)
         )

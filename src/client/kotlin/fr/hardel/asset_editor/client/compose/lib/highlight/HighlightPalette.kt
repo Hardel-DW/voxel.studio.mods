@@ -1,13 +1,13 @@
 package fr.hardel.asset_editor.client.compose.lib.highlight
 
-import java.util.ArrayList
 import java.util.LinkedHashMap
 import java.util.Objects
+import java.util.concurrent.CopyOnWriteArrayList
 
 class HighlightPalette {
 
     private val styles = LinkedHashMap<String, HighlightStyle>()
-    private val listeners = ArrayList<Runnable>()
+    private val listeners = CopyOnWriteArrayList<Runnable>()
 
     fun set(name: String, style: HighlightStyle): HighlightPalette {
         Objects.requireNonNull(name, "name")
@@ -32,12 +32,14 @@ class HighlightPalette {
     fun snapshot(): Map<String, HighlightStyle> = styles.toMap()
 
     fun addListener(listener: Runnable) {
-        listeners += listener
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: Runnable) {
+        listeners.remove(listener)
     }
 
     private fun notifyListeners() {
-        for (listener in listeners.toList()) {
-            listener.run()
-        }
+        listeners.forEach(Runnable::run)
     }
 }

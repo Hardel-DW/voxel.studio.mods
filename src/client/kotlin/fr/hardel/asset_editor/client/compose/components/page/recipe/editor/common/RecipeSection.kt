@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -24,6 +24,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickS
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwapSwitch
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSelector
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
+import fr.hardel.asset_editor.client.compose.components.ui.topLeftBorder
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -37,8 +38,9 @@ fun RecipeSection(
 ) {
     Box(
         modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(12.dp))
+            .topLeftBorder(2.dp, StudioColors.Zinc900, 12.dp)
     ) {
         // Shine is pinned to the top with a fixed height so expanding collapsible sections
         // (e.g. advanced options) don't stretch the highlight along with the content.

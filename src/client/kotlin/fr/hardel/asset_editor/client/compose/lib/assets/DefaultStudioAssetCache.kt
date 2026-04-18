@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.lib.assets
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import fr.hardel.asset_editor.client.compose.StudioResourceLoader
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import net.minecraft.resources.Identifier
 import org.jetbrains.skia.Data
@@ -14,12 +15,24 @@ import org.jetbrains.skia.svg.SVGPreserveAspectRatio
 import org.jetbrains.skia.svg.SVGPreserveAspectRatioAlign
 import org.jetbrains.skia.svg.SVGPreserveAspectRatioScale
 
+private const val BITMAP_CACHE_MAX = 512
+private const val SVG_CACHE_MAX = 512
+private const val MISSING_CACHE_MAX = 1024
+
 class DefaultStudioAssetCache : StudioAssetCache {
 
-    private val bitmapCache = ConcurrentHashMap<String, ImageBitmap>()
-    private val svgCache = ConcurrentHashMap<String, SvgAsset>()
-    private val missingBitmap = ConcurrentHashMap.newKeySet<String>()
-    private val missingSvg = ConcurrentHashMap.newKeySet<String>()
+    private val bitmapCache: MutableMap<String, ImageBitmap> = Collections.synchronizedMap(
+        LruMap<String, ImageBitmap>(BITMAP_CACHE_MAX, onEvict = null)
+    )
+    private val svgCache: MutableMap<String, SvgAsset> = Collections.synchronizedMap(
+        LruMap<String, SvgAsset>(SVG_CACHE_MAX, onEvict = SvgAsset::close)
+    )
+    private val missingBitmap = Collections.synchronizedSet(
+        Collections.newSetFromMap(LruMap<String, Boolean>(MISSING_CACHE_MAX, onEvict = null))
+    )
+    private val missingSvg = Collections.synchronizedSet(
+        Collections.newSetFromMap(LruMap<String, Boolean>(MISSING_CACHE_MAX, onEvict = null))
+    )
 
     override fun bitmap(location: Identifier): ImageBitmap? {
         val key = location.toString()
@@ -73,10 +86,21 @@ class DefaultStudioAssetCache : StudioAssetCache {
     }
 
     override fun invalidateAll() {
-        svgCache.values.forEach(SvgAsset::close)
+        synchronized(svgCache) { svgCache.values.forEach(SvgAsset::close) }
         bitmapCache.clear()
         svgCache.clear()
         missingBitmap.clear()
         missingSvg.clear()
+    }
+}
+
+private class LruMap<K, V>(
+    private val maxSize: Int,
+    private val onEvict: ((V) -> Unit)?
+) : java.util.LinkedHashMap<K, V>(maxSize, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<K, V>): Boolean {
+        val evict = size > maxSize
+        if (evict) onEvict?.invoke(eldest.value)
+        return evict
     }
 }

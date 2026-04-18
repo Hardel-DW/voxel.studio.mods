@@ -7,12 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class DevFlagsTest {
 
     @Test
-    void disableSingleplayerAdminMustStayDisabledInBuilds() {
+    void allDevFlagsMustStayDisabledInBuilds() {
         assertFalse(DevFlags.DISABLE_SINGLEPLAYER_ADMIN);
-    }
-
-    @Test
-    void clearComposeCacheMustStayDisabledInBuilds() {
         assertFalse(DevFlags.CLEAR_COMPOSE_CACHE);
+        assertFalse(DevFlags.SHOW_FPS_COUNTER);
+        assertFalse(DevFlags.SHOW_HOVER_TRIANGLE);
+        assertFalse(DevFlags.STAY_ON_SPLASH);
     }
 }

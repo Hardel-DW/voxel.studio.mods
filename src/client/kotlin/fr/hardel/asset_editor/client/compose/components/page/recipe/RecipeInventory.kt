@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -29,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,6 +35,7 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
+import fr.hardel.asset_editor.client.compose.components.ui.topLeftBorder
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import net.minecraft.client.resources.language.I18n
@@ -66,12 +66,6 @@ fun RecipeInventory(
     val selectedIdentifier = remember(selectedItemId) { selectedItemId?.let(Identifier::tryParse) }
 
     var visibleCount by remember { mutableIntStateOf(BATCH_SIZE) }
-    var atlasVersion by remember { mutableIntStateOf(0) }
-
-    DisposableEffect(Unit) {
-        val subscription = ItemAtlasGenerator.subscribe(Runnable { atlasVersion++ })
-        onDispose(subscription::run)
-    }
 
     LaunchedEffect(search) { visibleCount = BATCH_SIZE }
 
@@ -79,7 +73,11 @@ fun RecipeInventory(
         derivedStateOf { filteredItems.take(visibleCount) }
     }
     val hasMore = visibleCount < filteredItems.size
-    val atlasReady = remember(atlasVersion) { ItemAtlasGenerator.getAtlasImage() != null }
+    val atlasImage by ItemAtlasGenerator.atlasImageState
+    val atlasReady = atlasImage != null
+    LaunchedEffect(Unit) {
+        if (atlasImage == null) ItemAtlasGenerator.getAtlasImage()
+    }
 
     val gridState = rememberLazyGridState()
 
@@ -98,8 +96,9 @@ fun RecipeInventory(
     Box(
         modifier = modifier
             .fillMaxHeight()
+            .clip(RoundedCornerShape(12.dp))
             .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(12.dp))
-            .border(1.dp, StudioColors.Zinc900, RoundedCornerShape(12.dp))
+            .topLeftBorder(2.dp, StudioColors.Zinc900, 12.dp)
     ) {
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.12f)
 
