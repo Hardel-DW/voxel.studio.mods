@@ -112,7 +112,7 @@ public final class AssetEditorNetworking {
     }
 
     private static void handlePackCreate(PackCreatePayload payload, ServerPlayNetworking.Context context) {
-        context.server().execute(() -> PACK_SERVICE.createPack(context.player(), payload.name(), payload.namespace()).ifPresent(packs -> broadcastPackList(context.server(), packs)));
+        context.server().execute(() -> PACK_SERVICE.createPack(context.player(), payload.name(), payload.namespace(), payload.icon()).ifPresent(packs -> broadcastPackList(context.server(), packs)));
     }
 
     private static void handleWorkspaceMutation(WorkspaceMutationRequestPayload payload, ServerPlayNetworking.Context context) {

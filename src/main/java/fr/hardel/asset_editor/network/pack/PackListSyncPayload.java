@@ -17,11 +17,14 @@ public record PackListSyncPayload(List<PackEntry> packs) implements CustomPacket
     public static final Type<PackListSyncPayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "pack_list_sync"));
 
+    private static final int MAX_ICON_BYTES = 512 * 1024;
+
     private static final StreamCodec<ByteBuf, PackEntry> ENTRY_CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, PackEntry::packId,
         ByteBufCodecs.STRING_UTF8, PackEntry::name,
         ByteBufCodecs.BOOL, PackEntry::writable,
         ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), PackEntry::namespaces,
+        ByteBufCodecs.byteArray(MAX_ICON_BYTES), PackEntry::icon,
         PackEntry::new);
 
     public static final StreamCodec<ByteBuf, PackListSyncPayload> CODEC = ENTRY_CODEC.apply(ByteBufCodecs.list()).map(PackListSyncPayload::new, PackListSyncPayload::packs);

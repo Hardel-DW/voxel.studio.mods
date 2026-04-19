@@ -64,13 +64,11 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
     }
     var showSettings by remember { mutableStateOf(false) }
 
-    // aside: shrink-0 w-16 flex flex-col bg-sidebar
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .background(StudioColors.Sidebar)
     ) {
-        // div: h-16 flex items-center justify-center
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -88,7 +86,6 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
         }
 
-        // div: overflow-y-auto overflow-x-hidden flex-1 flex flex-col items-center
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -115,7 +112,6 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 }
         }
 
-        // div: shrink-0 flex flex-col-reverse items-center gap-2 mt-2
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),

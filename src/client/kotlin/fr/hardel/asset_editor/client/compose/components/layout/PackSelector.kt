@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,11 +14,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,17 +36,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -50,14 +68,43 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberAvailablePacks
 import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
-import kotlin.math.roundToInt
+import java.io.ByteArrayInputStream
+import javax.imageio.ImageIO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val FOLDER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/folder.svg")
 private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
-private val PENCIL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
-private val packSelectorShape = RoundedCornerShape(8.dp)
+private val PLUS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
+private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
+private val LOCK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/lock.svg")
+private val triggerShape = RoundedCornerShape(10.dp)
+private val popupShape = RoundedCornerShape(14.dp)
+private val itemShape = RoundedCornerShape(8.dp)
+private val iconShape = RoundedCornerShape(8.dp)
+private val POPUP_GAP = 8.dp
+
+private val FALLBACK_COLORS = listOf(
+    StudioColors.Violet500,
+    StudioColors.Emerald400,
+    StudioColors.Amber400,
+    StudioColors.Sky400,
+    StudioColors.Red400,
+    StudioColors.Blue500,
+    StudioColors.Green500
+)
+
+/** Aligns the popup left edge with the anchor and stacks it [gap] pixels below it. */
+private class BelowAnchorPositionProvider(private val gap: Int) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize
+    ) = IntOffset(anchorBounds.left, anchorBounds.bottom + gap)
+}
 
 @Composable
 fun PackSelector(
@@ -66,8 +113,6 @@ fun PackSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
-    var anchorPosition by remember { mutableStateOf(IntOffset.Zero) }
-    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
 
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
@@ -75,134 +120,214 @@ fun PackSelector(
     val availablePacks = rememberAvailablePacks(context)
 
     val triggerBg by animateColorAsState(
-        targetValue = if (hovered || expanded) StudioColors.Zinc900 else Color.Transparent,
+        targetValue = when {
+            expanded -> StudioColors.Zinc900
+            hovered -> StudioColors.Zinc900.copy(alpha = 0.7f)
+            else -> Color.Transparent
+        },
         animationSpec = StudioMotion.hoverSpec(),
         label = "pack-trigger-bg"
     )
     val triggerBorder by animateColorAsState(
-        targetValue = if (hovered || expanded) StudioColors.Zinc700 else StudioColors.Zinc800,
+        targetValue = when {
+            expanded -> StudioColors.Zinc700
+            hovered -> StudioColors.Zinc700.copy(alpha = 0.8f)
+            else -> StudioColors.Zinc800
+        },
         animationSpec = StudioMotion.hoverSpec(),
         label = "pack-trigger-border"
+    )
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-chevron"
     )
 
     Box(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .width(280.dp)
-            .height(36.dp)
-            .onGloballyPositioned { coordinates ->
-                val position = coordinates.positionInWindow()
-                anchorPosition = IntOffset(position.x.roundToInt(), position.y.roundToInt())
-                anchorSize = coordinates.size
-            }
-            .background(triggerBg, packSelectorShape)
-            .border(1.dp, triggerBorder, packSelectorShape)
+            .height(40.dp)
+            .background(triggerBg, triggerShape)
+            .border(1.dp, triggerBorder, triggerShape)
+            .clip(triggerShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
                 interactionSource = interaction,
                 indication = null
             ) { expanded = !expanded }
-            .padding(horizontal = 10.dp)
     ) {
-        // div: flex items-center gap-2
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
         ) {
-            SvgIcon(FOLDER_ICON, 14.dp, StudioColors.Zinc400)
-            Text(
-                text = selectedPack?.name() ?: I18n.get("studio:pack.none"),
-                style = StudioTypography.medium(12),
-                color = if (selectedPack == null) StudioColors.Zinc500 else StudioColors.Zinc200,
-                maxLines = 1,
-                modifier = Modifier.weight(1f)
-            )
-            SvgIcon(CHEVRON_ICON, 10.dp, StudioColors.Zinc500)
-        }
-    }
-
-    if (expanded) {
-        Popup(
-            offset = IntOffset(anchorPosition.x, anchorPosition.y + anchorSize.height + 8),
-            onDismissRequest = { expanded = false },
-            properties = PopupProperties(focusable = true)
-        ) {
-            val popupShape = RoundedCornerShape(16.dp)
-            val popupProgress = remember { Animatable(0f) }
-            LaunchedEffect(Unit) { popupProgress.animateTo(1f, StudioMotion.popupEnterSpec()) }
-
-            Box(
-                modifier = Modifier
-                    .width(280.dp)
-                    .graphicsLayer {
-                        val p = popupProgress.value
-                        alpha = p
-                        scaleX = 0.95f + 0.05f * p
-                        scaleY = 0.95f + 0.05f * p
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    }
-                    .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                    .border(1.dp, Color.White.copy(alpha = 0.08f), popupShape)
-                    .background(StudioColors.Zinc900, popupShape)
-                    .clip(popupShape)
-            ) {
-                ShineOverlay(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer {
-                            scaleY = 0.35f
-                            transformOrigin = TransformOrigin(0.5f, 0f)
-                        },
-                    opacity = 0.12f
+            if (selectedPack != null) {
+                PackIconAvatar(pack = selectedPack, size = 28.dp)
+                Text(
+                    text = selectedPack.name(),
+                    style = StudioTypography.medium(13),
+                    color = StudioColors.Zinc100,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
                 )
-
-                // div: flex flex-col gap-? p-4
-                Column(
-                    modifier = Modifier.padding(16.dp)
+            } else {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(iconShape)
+                        .background(StudioColors.Zinc900)
                 ) {
-                    Text(
-                        text = I18n.get("studio:pack.select"),
-                        style = StudioTypography.semiBold(13),
-                        color = StudioColors.Zinc300,
-                        modifier = Modifier.padding(bottom = 4.dp)
-                    )
-
-                    availablePacks.forEach { pack ->
-                        PackRow(
-                            pack = pack,
-                            selected = pack == selectedPack,
-                            onClick = {
-                                context.packSelectionMemory().selectPack(pack)
-                                expanded = false
-                            }
-                        )
-                    }
-
-                    // div: separator
-                    Box(
-                        modifier = Modifier
-                            .padding(vertical = 6.dp)
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(StudioColors.Zinc800)
-                    )
-
-                    CreatePackButton {
-                        expanded = false
-                        showCreateDialog = true
-                    }
+                    SvgIcon(FOLDER_ICON, 14.dp, StudioColors.Zinc600)
                 }
+                Text(
+                    text = I18n.get("studio:pack.none"),
+                    style = StudioTypography.medium(13),
+                    color = StudioColors.Zinc500,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
             }
+            SvgIcon(
+                location = CHEVRON_ICON,
+                size = 10.dp,
+                tint = if (expanded) StudioColors.Zinc300 else StudioColors.Zinc500,
+                modifier = Modifier.graphicsLayer { rotationZ = chevronRotation }
+            )
+        }
+
+        if (expanded) {
+            PackSelectorPopup(
+                availablePacks = availablePacks,
+                selectedPack = selectedPack,
+                onSelect = { pack ->
+                    context.packSelectionMemory().selectPack(pack)
+                    expanded = false
+                },
+                onCreate = {
+                    expanded = false
+                    showCreateDialog = true
+                },
+                onDismiss = { expanded = false }
+            )
         }
     }
 
     if (showCreateDialog) {
-        PackCreateDialog.create(
-            onDismiss = { }
-        )
+        PackCreateDialog.create(onDismiss = { })
     }
+}
+
+@Composable
+private fun PackSelectorPopup(
+    availablePacks: List<ClientPackInfo>,
+    selectedPack: ClientPackInfo?,
+    onSelect: (ClientPackInfo) -> Unit,
+    onCreate: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val gapPx = with(LocalDensity.current) { POPUP_GAP.roundToPx() }
+    val positionProvider = remember(gapPx) { BelowAnchorPositionProvider(gapPx) }
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { progress.animateTo(1f, StudioMotion.popupEnterSpec()) }
+
+    Popup(
+        popupPositionProvider = positionProvider,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(focusable = true)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(280.dp)
+                .graphicsLayer {
+                    val p = progress.value
+                    alpha = p
+                    scaleX = 0.96f + 0.04f * p
+                    scaleY = 0.96f + 0.04f * p
+                    transformOrigin = TransformOrigin(0f, 0f)
+                }
+                .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.5f), spotColor = Color.Black.copy(alpha = 0.5f))
+                .clip(popupShape)
+                .background(StudioColors.Zinc950, popupShape)
+                .border(1.dp, StudioColors.Zinc800, popupShape)
+        ) {
+            ShineOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        scaleY = 0.3f
+                        transformOrigin = TransformOrigin(0.5f, 0f)
+                    },
+                opacity = 0.1f
+            )
+
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                PopupHeader(count = availablePacks.size)
+
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 320.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                    availablePacks.forEach { pack ->
+                        PackRow(
+                            pack = pack,
+                            selected = pack == selectedPack,
+                            onClick = { onSelect(pack) }
+                        )
+                    }
+                }
+
+                Separator()
+                CreatePackRow(onClick = onCreate)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PopupHeader(count: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = I18n.get("studio:pack.select").uppercase(),
+            style = StudioTypography.medium(10).copy(letterSpacing = 1.2.sp),
+            color = StudioColors.Zinc500
+        )
+        Box(modifier = Modifier.weight(1f))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .background(StudioColors.Zinc900, RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        ) {
+            Text(
+                text = count.toString(),
+                style = StudioTypography.semiBold(10),
+                color = StudioColors.Zinc400
+            )
+        }
+    }
+    Separator()
+}
+
+@Composable
+private fun Separator() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .height(1.dp)
+            .background(StudioColors.Zinc900)
+    )
 }
 
 @Composable
@@ -213,14 +338,24 @@ private fun PackRow(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
+
     val rowBg by animateColorAsState(
         targetValue = when {
+            hovered -> StudioColors.Zinc800.copy(alpha = 0.75f)
             selected -> StudioColors.Zinc800.copy(alpha = 0.35f)
-            hovered -> StudioColors.Zinc800
             else -> Color.Transparent
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "pack-row-bg"
+    )
+    val nameColor by animateColorAsState(
+        targetValue = when {
+            hovered -> StudioColors.Zinc50
+            selected -> StudioColors.Zinc100
+            else -> StudioColors.Zinc200
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-row-name"
     )
 
     Row(
@@ -228,7 +363,8 @@ private fun PackRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .background(rowBg, RoundedCornerShape(8.dp))
+            .clip(itemShape)
+            .background(rowBg, itemShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
@@ -236,39 +372,84 @@ private fun PackRow(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 6.dp, vertical = 6.dp)
     ) {
-        SvgIcon(
-            location = FOLDER_ICON,
-            size = 14.dp,
-            tint = if (selected) StudioColors.Zinc200 else StudioColors.Zinc400
-        )
-        Text(
-            text = pack.name(),
-            style = if (selected) StudioTypography.semiBold(13) else StudioTypography.medium(13),
-            color = if (selected) StudioColors.Zinc100 else StudioColors.Zinc300
-        )
+        PackIconAvatar(pack = pack, size = 28.dp)
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = pack.name(),
+                style = StudioTypography.semiBold(13),
+                color = nameColor,
+                maxLines = 1
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                if (!pack.writable()) {
+                    SvgIcon(LOCK_ICON, 10.dp, StudioColors.Amber400)
+                    Text(
+                        text = I18n.get("studio:pack.readonly"),
+                        style = StudioTypography.regular(11),
+                        color = StudioColors.Amber400
+                    )
+                } else {
+                    Text(
+                        text = packSubtitle(pack),
+                        style = StudioTypography.regular(11),
+                        color = StudioColors.Zinc500
+                    )
+                }
+            }
+        }
+
+        if (selected) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(StudioColors.Violet500.copy(alpha = 0.2f))
+            ) {
+                SvgIcon(CHECK_ICON, 12.dp, Color.White)
+            }
+        }
     }
 }
 
 @Composable
-private fun CreatePackButton(
-    onClick: () -> Unit
-) {
+private fun CreatePackRow(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
+
     val bg by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc800 else Color.Transparent,
+        targetValue = if (hovered) StudioColors.Zinc800.copy(alpha = 0.75f) else Color.Transparent,
         animationSpec = StudioMotion.hoverSpec(),
         label = "pack-create-bg"
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (hovered) StudioColors.Zinc50 else StudioColors.Zinc200,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-create-text"
+    )
+    val iconTint by animateColorAsState(
+        targetValue = if (hovered) StudioColors.Zinc200 else StudioColors.Zinc400,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "pack-create-icon"
     )
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .background(bg, RoundedCornerShape(8.dp))
+            .padding(horizontal = 4.dp, vertical = 2.dp)
+            .clip(itemShape)
+            .background(bg, itemShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(
@@ -276,13 +457,90 @@ private fun CreatePackButton(
                 indication = null,
                 onClick = onClick
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 6.dp, vertical = 8.dp)
     ) {
-        SvgIcon(PENCIL_ICON, 12.dp, StudioColors.Zinc400)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(28.dp)
+                .clip(iconShape)
+                .background(StudioColors.Zinc950)
+                .border(1.dp, StudioColors.Zinc800, iconShape)
+        ) {
+            SvgIcon(PLUS_ICON, 12.dp, iconTint)
+        }
         Text(
             text = I18n.get("studio:pack.create"),
-            style = StudioTypography.medium(12),
-            color = StudioColors.Zinc300
+            style = StudioTypography.semiBold(13),
+            color = textColor
         )
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun PackIconAvatar(pack: ClientPackInfo, size: Dp) {
+    val bitmap = rememberPackIcon(pack.icon())
+    val hasIconBytes = pack.icon().isNotEmpty()
+    PackIconSurface(pack = pack, size = size, shape = iconShape) {
+        when {
+            bitmap != null -> Image(
+                bitmap = bitmap,
+                contentDescription = pack.name(),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            // Pack has bytes but still decoding → show just the gradient, never a stale letter.
+            hasIconBytes -> Unit
+            else -> Text(
+                text = (pack.name().firstOrNull() ?: '?').uppercaseChar().toString(),
+                style = StudioTypography.medium((size.value * 0.42f).toInt()).copy(fontWeight = FontWeight.Bold),
+                color = Color.White.copy(alpha = 0.92f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PackIconSurface(pack: ClientPackInfo, size: Dp, shape: Shape, content: @Composable () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(size)
+            .clip(shape)
+            .background(fallbackBrush(pack.packId()))
+            .border(1.dp, Color.Black.copy(alpha = 0.3f), shape)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun rememberPackIcon(icon: ByteArray): ImageBitmap? {
+    var bitmap by remember(icon) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(icon) {
+        bitmap = if (icon.isEmpty()) null
+        else withContext(Dispatchers.IO) {
+            runCatching { ImageIO.read(ByteArrayInputStream(icon))?.toComposeImageBitmap() }.getOrNull()
+        }
+    }
+    return bitmap
+}
+
+private fun fallbackBrush(packId: String): Brush {
+    val hash = packId.hashCode()
+    val base = FALLBACK_COLORS[Math.floorMod(hash, FALLBACK_COLORS.size)]
+    val accent = FALLBACK_COLORS[Math.floorMod(hash / 31, FALLBACK_COLORS.size)]
+    return Brush.linearGradient(listOf(
+        base.copy(alpha = 0.85f),
+        accent.copy(alpha = 0.75f)
+    ))
+}
+
+private fun packSubtitle(pack: ClientPackInfo): String {
+    return when (val count = pack.namespaces().size) {
+        0 -> pack.packId().removePrefix("file/")
+        1 -> pack.namespaces().first()
+        else -> "${pack.namespaces().first()} +${count - 1}"
     }
 }

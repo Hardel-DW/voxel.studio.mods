@@ -16,7 +16,7 @@ public final class ServerPackService {
         return Optional.of(packManager.listPacks());
     }
 
-    public Optional<List<DataPackManager.PackEntry>> createPack(ServerPlayer player, String name, String namespace) {
+    public Optional<List<DataPackManager.PackEntry>> createPack(ServerPlayer player, String name, String namespace, byte[] icon) {
         PermissionManager permissionManager = PermissionManager.get();
         if (permissionManager == null)
             return Optional.empty();
@@ -28,7 +28,7 @@ public final class ServerPackService {
         if (packManager == null)
             return Optional.empty();
 
-        packManager.createPack(name, namespace);
+        packManager.createPack(name, namespace, icon);
         return Optional.of(packManager.listPacks());
     }
 }

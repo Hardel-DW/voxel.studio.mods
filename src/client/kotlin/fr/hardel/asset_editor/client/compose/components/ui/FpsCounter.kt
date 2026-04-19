@@ -7,12 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -21,19 +16,7 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 
 private const val SAMPLE_WINDOW_NS = 1_000_000_000L
 
-/**
- * Debug overlay that samples `withFrameNanos` and writes an FPS value once per second.
- *
- * Placement: mount at the top of the window's root Box so it draws over every other layer.
- * Visibility is driven by the user preference `showFpsCounter` (see `SettingsMemory`), so the
- * component only renders when the user has opted in from the settings dialog. It also reports
- * the slowest frame time in the last sampling window, which surfaces single janky frames that
- * an average would hide.
- *
- * Rendering cost: one [LaunchedEffect] running `withFrameNanos` in a tight loop, plus one
- * recomposition per second for the two Texts. The loop itself is free — `withFrameNanos`
- * suspends until the compositor schedules the next frame, so there's no polling.
- */
+/** FPS + worst-frame overlay; samples `withFrameNanos` and recomposes once per second. */
 @Composable
 fun FpsCounter(modifier: Modifier = Modifier) {
     val fps = remember { mutableIntStateOf(0) }

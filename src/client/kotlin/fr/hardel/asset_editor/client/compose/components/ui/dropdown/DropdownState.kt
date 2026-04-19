@@ -22,7 +22,7 @@ private const val GRACE_TIMEOUT = 300L
 
 internal val CHEVRON_DOWN_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 internal val CHEVRON_RIGHT_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-right.svg")
-internal val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check-simple.svg")
+internal val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
 
 internal val contentShape = RoundedCornerShape(8.dp)
 internal val itemShape = RoundedCornerShape(6.dp)
@@ -38,9 +38,13 @@ class DropdownMenuState {
     var expanded by mutableStateOf(false)
     var triggerWidthPx by mutableIntStateOf(0)
 
-    fun open() { expanded = true }
-    fun close() { expanded = false }
-    fun toggle() { expanded = !expanded }
+    fun close() {
+        expanded = false
+    }
+
+    fun toggle() {
+        expanded = !expanded
+    }
 }
 
 @Composable
@@ -117,10 +121,10 @@ internal val LocalOpenSubMenu = compositionLocalOf<MutableState<DropdownSubMenuS
 // https://bjk5.com/post/44698559168/breaking-down-amazons-mega-dropdown
 
 internal class SafeTriangleTracker {
-    var cursorWindow by mutableStateOf<Offset?>(null)
     var submenuWindowBounds by mutableStateOf<Rect?>(null)
-    var activeSubState by mutableStateOf<DropdownSubMenuState?>(null)
     var graceApex by mutableStateOf<Offset?>(null)
+    private var cursorWindow: Offset? = null
+    private var activeSubState: DropdownSubMenuState? = null
     private var graceJob: Job? = null
 
     fun onSubMenuOpened(state: DropdownSubMenuState) {

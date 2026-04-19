@@ -9,7 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 import fr.hardel.asset_editor.AssetEditor;
 
-public record PackCreatePayload(String name, String namespace) implements CustomPacketPayload {
+public record PackCreatePayload(String name, String namespace, byte[] icon) implements CustomPacketPayload {
+
+    public static final int MAX_ICON_BYTES = 512 * 1024;
 
     public static final Type<PackCreatePayload> TYPE = new Type<>(
         Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "pack_create"));
@@ -17,6 +19,7 @@ public record PackCreatePayload(String name, String namespace) implements Custom
     public static final StreamCodec<ByteBuf, PackCreatePayload> CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, PackCreatePayload::name,
         ByteBufCodecs.STRING_UTF8, PackCreatePayload::namespace,
+        ByteBufCodecs.byteArray(MAX_ICON_BYTES), PackCreatePayload::icon,
         PackCreatePayload::new);
 
     @Override
