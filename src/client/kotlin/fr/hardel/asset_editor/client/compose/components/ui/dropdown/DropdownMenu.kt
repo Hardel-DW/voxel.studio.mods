@@ -29,10 +29,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
-import fr.hardel.asset_editor.DevFlags
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 
@@ -167,7 +167,7 @@ fun DropdownMenuContent(
                 }
                 .drawWithContent {
                     drawContent()
-                    if (DevFlags.SHOW_HOVER_TRIANGLE) drawSafeTriangle(tracker, contentCoords)
+                    if (ClientMemoryHolder.settings().snapshot().showHoverTriangle) drawSafeTriangle(tracker, contentCoords)
                 }
                 .padding(4.dp)
         ) {
@@ -566,7 +566,7 @@ fun DropdownMenuSubContent(
                 }
                 .drawWithContent {
                     drawContent()
-                    if (DevFlags.SHOW_HOVER_TRIANGLE) {
+                    if (ClientMemoryHolder.settings().snapshot().showHoverTriangle) {
                         drawSafeTriangle(tracker, boxCoords)
                         parentTracker?.let { drawSafeTriangle(it, boxCoords) }
                     }

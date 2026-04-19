@@ -8,20 +8,21 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.components.ui.FpsCounter
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableLongState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.awt.RenderSettings
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
@@ -30,10 +31,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
-import fr.hardel.asset_editor.DevFlags
+import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.layout.StudioEditorRoot
+import fr.hardel.asset_editor.client.compose.components.ui.FpsCounter
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
+import fr.hardel.asset_editor.client.compose.lib.selectAsFlow
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
 import fr.hardel.asset_editor.client.compose.window.chrome.NativeWindowChrome
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
@@ -58,6 +61,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     private var stage = Stage.SPLASH
     private var composeReady = false
+    private var splashUserAdvanced = false
     private var editorVersion by mutableIntStateOf(0)
 
     private var splashPanel: SwingSplashPanel? = null
@@ -122,15 +126,21 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     private fun enterSplashStage() {
         stage = Stage.SPLASH
+        splashUserAdvanced = false
         val container = ensureContentContainer()
         val panel = ensureSplashPanel(container)
         panel.startAnimation()
         cardLayout?.show(container, CARD_SPLASH)
     }
 
+    private fun onSplashUserAdvance() {
+        splashUserAdvanced = true
+        SwingUtilities.invokeLater(::tryTransitionFromSplash)
+    }
+
     private fun tryTransitionFromSplash() {
         if (stage == Stage.EDITOR) return
-        if (DevFlags.STAY_ON_SPLASH) return
+        if (ClientMemoryHolder.settings().snapshot().stayOnSplash && !splashUserAdvanced) return
         if (!composeReady) return
         if (!ClientMemoryHolder.session().hasReceivedPermissions()) return
 
@@ -168,10 +178,19 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         return panel
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     private fun ensureComposePanel() {
         if (composePanel != null) return
         val container = ensureContentContainer()
-        val panel = ComposePanel().apply { setContent { WindowContent() } }
+        // VSync is resolved once at panel construction. Flipping it later in settings
+        // persists to disk but only takes effect on next app launch — the ComposePanel's
+        // render backend can't be swapped without tearing down the whole UI tree.
+        val disableVsync = ClientMemoryHolder.settings().snapshot().disableVsync
+        val panel = if (disableVsync) {
+            ComposePanel(renderSettings = RenderSettings.SkiaSurface(isVsyncEnabled = false))
+        } else {
+            ComposePanel()
+        }.apply { setContent { WindowContent() } }
         attachComposeContent(panel)
         composePanel = panel
         container.add(panel, CARD_EDITOR)
@@ -203,6 +222,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         override fun dragMove() = onDragMove()
         override fun dragEnd() = onDragEnd()
         override fun dragDoubleClick() = onDragDoubleClick()
+        override fun userAdvance() = onSplashUserAdvance()
     }
 
     @Composable
@@ -218,7 +238,10 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
                 }
         ) {
             EditorContent(editorVersion)
-            if (DevFlags.SHOW_FPS_COUNTER) {
+            val showFps by ClientMemoryHolder.settings()
+                .selectAsFlow { it.showFpsCounter }
+                .collectAsState(initial = ClientMemoryHolder.settings().snapshot().showFpsCounter)
+            if (showFps) {
                 FpsCounter(
                     modifier = Modifier
                         .align(Alignment.TopEnd)

@@ -3,6 +3,9 @@ package fr.hardel.asset_editor.client.compose.components.layout
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import fr.hardel.asset_editor.client.compose.components.ui.SettingsDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,6 +62,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
         is ElementEditorDestination -> destination.conceptId
         else -> null
     }
+    var showSettings by remember { mutableStateOf(false) }
 
     // aside: shrink-0 w-16 flex flex-col bg-sidebar
     Column(
@@ -124,9 +128,13 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
                 SidebarIconButton(icon = CHANGES_ICON) { context.navigationMemory().navigate(ChangesDestination()) }
             }
             SidebarItemEnter(delayIndex = 2) {
-                SidebarIconButton(icon = SETTINGS_ICON) {}
+                SidebarIconButton(icon = SETTINGS_ICON) { showSettings = true }
             }
         }
+    }
+
+    if (showSettings) {
+        SettingsDialog(onDismiss = { showSettings = false })
     }
 }
 

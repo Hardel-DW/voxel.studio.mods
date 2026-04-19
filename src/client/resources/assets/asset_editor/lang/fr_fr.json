@@ -742,5 +742,21 @@
     "github:branch.create": "Nouvelle branche",
     "github:branch.create.placeholder": "Nom de la branche",
     "github:branch.create.confirm": "Creer",
-    "github:branch.create.cancel": "Annuler"
+    "github:branch.create.cancel": "Annuler",
+    "settings:title": "Parametres",
+    "settings:description": "Les preferences sont stockees dans config/asset_editor.json et persistent entre les sessions.",
+    "settings:performance.title": "Performances",
+    "settings:performance.fps_counter.title": "Afficher le compteur FPS",
+    "settings:performance.fps_counter.description": "Superposer le nombre d'images par seconde et le pire temps de trame en haut a droite.",
+    "settings:performance.disable_vsync.title": "Desactiver la VSync",
+    "settings:performance.disable_vsync.description": "Laisse le moteur presenter les images aussi vite que possible. Sans VSync le compositeur Windows ne cadence plus l'application a 60 Hz, au prix de possibles dechirures.",
+    "settings:performance.disable_vsync.restart_required": "Prend effet apres la reouverture de la fenetre du studio.",
+    "settings:debug.title": "Debogage",
+    "settings:debug.stay_on_splash.title": "Rester sur l'ecran de demarrage",
+    "settings:debug.stay_on_splash.description": "Quand active, l'ecran de demarrage attend un clic ou une touche avant de passer a l'editeur.",
+    "settings:debug.show_hover_triangle.title": "Afficher le triangle de survol",
+    "settings:debug.show_hover_triangle.description": "Affiche le triangle de securite style Radix utilise par les menus deroulants pour deboguer le suivi du curseur.",
+    "settings:debug.clear_compose_cache.title": "Vider le cache Compose",
+    "settings:debug.clear_compose_cache.description": "Supprime le runtime mis en cache et ferme la fenetre du studio. Le prochain lancement retelechargera le runtime Compose.",
+    "settings:debug.clear_compose_cache.button": "Vider et fermer"
 }

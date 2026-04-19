@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client;
 
-import fr.hardel.asset_editor.DevFlags;
 import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwap;
@@ -32,7 +31,6 @@ public class AssetEditorClient implements ClientModInitializer {
         StudioReloadListener.register();
         RecipeQuickSwap.INSTANCE.registerDefaults();
         ComposeDownloadHud.register();
-        if (DevFlags.CLEAR_COMPOSE_CACHE) ComposeBootstrap.purgeCache();
         ComposeBootstrap.tryLinkFromCache();
         SplashAssets.preloadAsync();
     }

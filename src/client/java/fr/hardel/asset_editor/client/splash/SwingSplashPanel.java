@@ -18,6 +18,8 @@ import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
@@ -54,6 +56,8 @@ public final class SwingSplashPanel extends JPanel {
         void dragEnd();
 
         void dragDoubleClick();
+
+        void userAdvance();
     }
 
     private enum HoverTarget {
@@ -161,11 +165,21 @@ public final class SwingSplashPanel extends JPanel {
         MouseAdapter mouse = new SplashMouseHandler();
         addMouseListener(mouse);
         addMouseMotionListener(mouse);
+
+        // Keyboard-triggered "user advance" for the stay-on-splash user setting. Requires focus.
+        setFocusable(true);
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                actions.userAdvance();
+            }
+        });
     }
 
     public void startAnimation() {
         if (!animationTimer.isRunning())
             animationTimer.start();
+        requestFocusInWindow();
     }
 
     public void stopAnimation() {
@@ -495,10 +509,17 @@ public final class SwingSplashPanel extends JPanel {
             if (dragging) {
                 actions.dragEnd();
                 dragging = false;
+                pressedTarget = null;
+                return;
             }
 
             HoverTarget target = hitTest(e.getX(), e.getY());
-            if (target != null && target == pressedTarget) dispatch(target);
+            if (target != null && target == pressedTarget) {
+                dispatch(target);
+            } else if (target == null && pressedTarget == null
+                && !titleBarDragRegion.contains(e.getPoint())) {
+                actions.userAdvance();
+            }
             pressedTarget = null;
         }
 

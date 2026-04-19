@@ -752,5 +752,21 @@
     "github:branch.create": "New branch",
     "github:branch.create.placeholder": "Branch name",
     "github:branch.create.confirm": "Create",
-    "github:branch.create.cancel": "Cancel"
+    "github:branch.create.cancel": "Cancel",
+    "settings:title": "Settings",
+    "settings:description": "Preferences are stored in config/asset_editor.json and persist across sessions.",
+    "settings:performance.title": "Performance",
+    "settings:performance.fps_counter.title": "Show FPS counter",
+    "settings:performance.fps_counter.description": "Overlay the current frame rate and worst frame time in the top-right corner.",
+    "settings:performance.disable_vsync.title": "Disable VSync",
+    "settings:performance.disable_vsync.description": "Let the renderer present frames as fast as possible. Without VSync the Windows compositor no longer paces the app to 60 Hz, at the cost of possible tearing.",
+    "settings:performance.disable_vsync.restart_required": "Takes effect after the studio window is reopened.",
+    "settings:debug.title": "Debug",
+    "settings:debug.stay_on_splash.title": "Stay on splash screen",
+    "settings:debug.stay_on_splash.description": "When enabled, the splash screen waits for a click or key press before advancing to the editor.",
+    "settings:debug.show_hover_triangle.title": "Show hover triangle overlay",
+    "settings:debug.show_hover_triangle.description": "Render the Radix-style safe triangle used by dropdown menus for debugging hover tracking.",
+    "settings:debug.clear_compose_cache.title": "Clear Compose cache",
+    "settings:debug.clear_compose_cache.description": "Delete the cached runtime and close the studio window. Next launch will re-download the Compose runtime.",
+    "settings:debug.clear_compose_cache.button": "Clear and close"
 }

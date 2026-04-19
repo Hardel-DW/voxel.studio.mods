@@ -25,9 +25,10 @@ private const val SAMPLE_WINDOW_NS = 1_000_000_000L
  * Debug overlay that samples `withFrameNanos` and writes an FPS value once per second.
  *
  * Placement: mount at the top of the window's root Box so it draws over every other layer.
- * The top-level gate on `DevFlags.SHOW_FPS_COUNTER` keeps it out of production builds. The
- * counter also reports the slowest frame time in the last sampling window, which surfaces
- * single janky frames that an average would hide.
+ * Visibility is driven by the user preference `showFpsCounter` (see `SettingsMemory`), so the
+ * component only renders when the user has opted in from the settings dialog. It also reports
+ * the slowest frame time in the last sampling window, which surfaces single janky frames that
+ * an average would hide.
  *
  * Rendering cost: one [LaunchedEffect] running `withFrameNanos` in a tight loop, plus one
  * recomposition per second for the two Texts. The loop itself is free — `withFrameNanos`
