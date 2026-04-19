@@ -39,18 +39,14 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.lib.rememberActiveTabId
 import fr.hardel.asset_editor.client.compose.lib.rememberOpenTabs
 import fr.hardel.asset_editor.client.compose.lib.StudioTabEntry
-import fr.hardel.asset_editor.client.compose.window.VoxelStudioWindow
-import fr.hardel.asset_editor.client.compose.window.windowDragArea
 import net.minecraft.resources.Identifier
 
 private val CLOSE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/close.svg")
-private const val EDITOR_TABS_DRAG_AREA = "editor_tabs_drag_area"
 
 @Composable
 fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
     val openTabs = rememberOpenTabs(context)
     val activeTabId = rememberActiveTabId(context)
-    val chrome = VoxelStudioWindow.windowChrome
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -60,10 +56,6 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             .height(48.dp)
             .padding(start = 8.dp)
     ) {
-        if (chrome.headerStartReservationDp > 0) {
-            Spacer(Modifier.size(width = chrome.headerStartReservationDp.dp, height = 1.dp))
-        }
-
         PackSelector(context = context)
         Box(
             modifier = Modifier
@@ -86,20 +78,7 @@ fun StudioEditorTabsBar(context: StudioContext, modifier: Modifier = Modifier) {
             }
         }
 
-        Spacer(
-            Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .windowDragArea(EDITOR_TABS_DRAG_AREA)
-        )
-
-        when {
-            chrome.showComposeWindowControls ->
-                WindowControls(buttonWidth = 48.dp, buttonHeight = 48.dp)
-
-            chrome.headerEndReservationDp > 0 ->
-                Spacer(Modifier.size(width = chrome.headerEndReservationDp.dp, height = 1.dp))
-        }
+        Spacer(Modifier.weight(1f).fillMaxHeight())
     }
 }
 
