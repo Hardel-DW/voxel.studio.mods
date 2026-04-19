@@ -61,7 +61,7 @@ object VoxelStudioWindow : StageWindow(680, 440, java.awt.Color(0x101011)) {
     private var permissionSubscription: Subscription? = null
 
     @JvmStatic
-    fun initialize() = StageWindow.initializeRuntime()
+    fun initialize() = initializeRuntime()
 
     @JvmStatic
     fun requestOpen() = open()

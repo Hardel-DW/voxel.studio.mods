@@ -1,10 +1,12 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
@@ -105,15 +109,34 @@ fun RecipeOverviewCard(
                     }
                     .padding(top = 16.dp)
             ) {
+                val btnInteraction = remember { MutableInteractionSource() }
+                val btnHovered by btnInteraction.collectIsHoveredAsState()
+                val btnBg by animateColorAsState(
+                    targetValue = if (btnHovered) StudioColors.Zinc800 else StudioColors.Zinc800.copy(alpha = 0.3f),
+                    animationSpec = StudioMotion.hoverSpec(),
+                    label = "configure-bg"
+                )
+                val btnBorder by animateColorAsState(
+                    targetValue = if (btnHovered) StudioColors.Zinc600 else StudioColors.Zinc700.copy(alpha = 0.5f),
+                    animationSpec = StudioMotion.hoverSpec(),
+                    label = "configure-border"
+                )
+                val btnText by animateColorAsState(
+                    targetValue = if (btnHovered) Color.White else StudioColors.Zinc300,
+                    animationSpec = StudioMotion.hoverSpec(),
+                    label = "configure-text"
+                )
+
                 Text(
                     text = I18n.get("generic:configure"),
                     style = StudioTypography.medium(12),
-                    color = StudioColors.Zinc300,
+                    color = btnText,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(StudioColors.Zinc800.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                        .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .background(btnBg, RoundedCornerShape(8.dp))
+                        .border(1.dp, btnBorder, RoundedCornerShape(8.dp))
+                        .hoverable(btnInteraction)
                         .pointerHoverIcon(PointerIcon.Hand)
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 )

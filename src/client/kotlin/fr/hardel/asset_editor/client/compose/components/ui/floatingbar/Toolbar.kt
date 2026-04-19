@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.floatingbar
 
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDp
@@ -58,14 +59,15 @@ import fr.hardel.asset_editor.client.compose.StudioMotion
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-// Asymmetric morph: expand slower with a decelerate curve (arriving), collapse faster with an
-// accelerate curve (leaving). Layout churn scales with duration on a morphing container, so
-// keeping collapse short markedly reduces perceived jank when closing the island.
+// TSX: --island-duration: 400ms; --island-easing: cubic-bezier(0.32, 0.72, 0, 1);
+// Same curve and duration for both expand and collapse to match the web version.
+private val IslandEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
+
 private fun <T> islandExpandSpec(): FiniteAnimationSpec<T> =
-    tween(StudioMotion.Medium4, easing = StudioMotion.EmphasizedDecelerate)
+    tween(StudioMotion.Medium4, easing = IslandEasing)
 
 private fun <T> islandCollapseSpec(): FiniteAnimationSpec<T> =
-    tween(StudioMotion.Medium1, easing = StudioMotion.EmphasizedAccelerate)
+    tween(StudioMotion.Medium4, easing = IslandEasing)
 
 private const val SNAP_THRESHOLD = 100f
 private val COLLAPSED_HEIGHT = 60.dp

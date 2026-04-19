@@ -45,6 +45,25 @@ object LootTableFlattener {
         return null
     }
 
+    fun previewItems(table: LootTable, limit: Int): List<Identifier> {
+        val result = mutableListOf<Identifier>()
+        for (pool in table.pools) {
+            collectItems(pool.entries, result, limit)
+            if (result.size >= limit) break
+        }
+        return result
+    }
+
+    private fun collectItems(entries: List<LootPoolEntryContainer>, output: MutableList<Identifier>, limit: Int) {
+        for (entry in entries) {
+            if (output.size >= limit) return
+            when (entry) {
+                is LootItem -> entry.item.unwrapKey().orElse(null)?.identifier()?.let { output.add(it) }
+                is CompositeEntryBase -> collectItems(entry.children, output, limit)
+            }
+        }
+    }
+
     private fun flattenPool(
         entries: List<LootPoolEntryContainer>,
         poolIndex: Int,
