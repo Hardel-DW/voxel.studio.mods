@@ -81,9 +81,9 @@ fun Button(
     val shape = RoundedCornerShape(12.dp)
     val mutedDefault = !enabled && variant == ButtonVariant.DEFAULT
     val bgModifier = if (mutedDefault) Modifier.background(Color.Transparent)
-        else variantBackground(variant, isHovered)
+    else variantBackground(variant, isHovered)
     val borderModifier = if (mutedDefault) Modifier.border(2.dp, StudioColors.Zinc800, shape)
-        else variantBorder(variant, isHovered)
+    else variantBorder(variant, isHovered)
     val textColorTarget = if (mutedDefault) StudioColors.Zinc600 else buttonTextColor(variant, isHovered)
     val textColor by animateColorAsState(
         targetValue = textColorTarget,
@@ -182,7 +182,6 @@ private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifie
         label = "button-bg"
     )
     return if (variant == ButtonVariant.AURORA) {
-        // Keeps its original gradient; no animation needed.
         Modifier.background(
             Brush.horizontalGradient(
                 colors = listOf(
@@ -203,6 +202,7 @@ private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier {
     val targetColor = when (variant) {
         ButtonVariant.DEFAULT, ButtonVariant.BLACK, ButtonVariant.GHOST, ButtonVariant.TRANSPARENT ->
             StudioColors.Zinc500
+
         ButtonVariant.GHOST_BORDER -> if (hovered) StudioColors.Zinc700 else StudioColors.Zinc900
         ButtonVariant.AURORA -> if (hovered) StudioColors.Zinc800 else StudioColors.Zinc900
         else -> return Modifier

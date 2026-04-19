@@ -49,20 +49,18 @@ fun Checkbox(
         val fillColor = if (checked) StudioColors.Zinc700 else Color.Transparent
         val cornerPx = 3.dp.toPx()
 
-        // Background fill
         drawRoundRect(
             color = fillColor,
             cornerRadius = CornerRadius(cornerPx),
             size = Size(size.width, size.height)
         )
-        // Border
         drawRoundRect(
             color = borderColor,
             cornerRadius = CornerRadius(cornerPx),
             size = Size(size.width, size.height),
             style = Stroke(width = 1.5.dp.toPx())
         )
-        // Checkmark
+
         if (checked) {
             val path = Path().apply {
                 moveTo(size.width * 0.25f, size.height * 0.5f)

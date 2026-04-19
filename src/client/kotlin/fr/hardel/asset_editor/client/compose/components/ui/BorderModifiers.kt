@@ -28,9 +28,6 @@ fun Modifier.topLeftBorder(
     val sw = width.toPx()
     val r = cornerRadius.toPx()
     val half = sw / 2f
-    // Bounding rect for the corner arc. The ellipse tracing the stroke center has
-    // radius (r - half), centered at (r, r) — so the bounding rect is inset by half
-    // on the near sides and by (2r - half) on the far sides.
     val arcRect = Rect(half, half, 2f * r - half, 2f * r - half)
 
     val path = Path().apply {
