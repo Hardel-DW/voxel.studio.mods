@@ -28,23 +28,14 @@ import fr.hardel.asset_editor.client.compose.components.layout.EditorBreadcrumb
 import fr.hardel.asset_editor.client.compose.components.layout.EditorHeaderTabItem
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
-import fr.hardel.asset_editor.client.compose.routes.debug.DebugCodeBlockPage
-import fr.hardel.asset_editor.client.compose.routes.debug.DebugLogsPage
-import fr.hardel.asset_editor.client.compose.routes.debug.DebugNetworkPage
-import fr.hardel.asset_editor.client.compose.routes.debug.DebugRenderPage
-import fr.hardel.asset_editor.client.compose.routes.debug.DebugWorkspacePage
 import net.minecraft.client.resources.language.I18n
 
-private const val TAB_WORKSPACE = "workspace"
-private const val TAB_CODE = "code"
-private const val TAB_RENDER = "render"
-private const val TAB_LOGS = "logs"
-private const val TAB_NETWORK = "network"
 private val DEBUG_TINT = ColorUtils.hueToColor(24, 0.74f, 0.58f)
 
 @Composable
 fun DebugLayout(context: StudioContext) {
-    var currentTab by remember { mutableStateOf(TAB_WORKSPACE) }
+    var currentTabId by remember { mutableStateOf(DebugTabRegistry.first()) }
+    val currentTab = DebugTabRegistry.get(currentTabId) ?: return
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -115,32 +106,19 @@ fun DebugLayout(context: StudioContext) {
                         .padding(top = 24.dp)
                         .offset(y = 8.dp)
                 ) {
-                    DebugTab(I18n.get("debug:layout.tab.workspace"), currentTab == TAB_WORKSPACE) { currentTab = TAB_WORKSPACE }
-                    DebugTab(I18n.get("debug:layout.tab.code"), currentTab == TAB_CODE) { currentTab = TAB_CODE }
-                    DebugTab(I18n.get("debug:layout.tab.render"), currentTab == TAB_RENDER) { currentTab = TAB_RENDER }
-                    DebugTab(I18n.get("debug:layout.tab.logs"), currentTab == TAB_LOGS) { currentTab = TAB_LOGS }
-                    DebugTab(I18n.get("debug:layout.tab.network"), currentTab == TAB_NETWORK) { currentTab = TAB_NETWORK }
+                    DebugTabRegistry.all().forEach { tab ->
+                        EditorHeaderTabItem(
+                            label = I18n.get(tab.labelKey),
+                            active = tab.id == currentTabId,
+                            onClick = { currentTabId = tab.id }
+                        )
+                    }
                 }
             }
         }
 
         Box(modifier = Modifier.fillMaxSize().background(StudioColors.Zinc950)) {
-            when (currentTab) {
-                TAB_WORKSPACE -> DebugWorkspacePage(context)
-                TAB_CODE -> DebugCodeBlockPage()
-                TAB_LOGS -> DebugLogsPage(context)
-                TAB_NETWORK -> DebugNetworkPage(context)
-                else -> DebugRenderPage()
-            }
+            currentTab.render(context)
         }
     }
-}
-
-@Composable
-private fun DebugTab(label: String, active: Boolean, onClick: () -> Unit) {
-    EditorHeaderTabItem(
-        label = label,
-        active = active,
-        onClick = onClick
-    )
 }

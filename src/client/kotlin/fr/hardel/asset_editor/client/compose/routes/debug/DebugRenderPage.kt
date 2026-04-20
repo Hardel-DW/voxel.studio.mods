@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,11 +35,9 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuItem
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuLabel
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuSelectTrigger
+import fr.hardel.asset_editor.client.compose.components.page.debug.DebugSidebar
+import fr.hardel.asset_editor.client.compose.components.page.debug.DebugSidebarEntry
+import fr.hardel.asset_editor.client.compose.components.page.debug.DebugWorkspaceHeader
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.ItemAtlasGenerator
 import fr.hardel.asset_editor.client.compose.lib.NativeAtlasBridge
@@ -51,15 +50,17 @@ import kotlin.math.roundToInt
 
 private val STUDIO_ITEMS_ATLAS_ID: Identifier =
     Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_items")
+private val SIDEBAR_WIDTH = 260.dp
 
 @Composable
 fun DebugRenderPage() {
     val atlasOptions = remember { buildAtlasOptions() }
-    var selectedOption by remember { mutableStateOf(atlasOptions.first()) }
+    var selectedId by remember { mutableStateOf(atlasOptions.first().id) }
     var query by remember { mutableStateOf("") }
     var version by remember { mutableIntStateOf(0) }
 
-    val isStudioItems = selectedOption.id == STUDIO_ITEMS_ATLAS_ID
+    val selectedOption = atlasOptions.first { it.id == selectedId }
+    val isStudioItems = selectedId == STUDIO_ITEMS_ATLAS_ID
 
     DisposableEffect(isStudioItems) {
         val subscription = if (isStudioItems) {
@@ -70,8 +71,8 @@ fun DebugRenderPage() {
         onDispose(subscription::run)
     }
 
-    DisposableEffect(selectedOption) {
-        if (!isStudioItems) NativeAtlasBridge.request(selectedOption.id)
+    DisposableEffect(selectedId) {
+        if (!isStudioItems) NativeAtlasBridge.request(selectedId)
         onDispose {}
     }
 
@@ -85,7 +86,7 @@ fun DebugRenderPage() {
     val nativeAtlasImage = remember(version) { NativeAtlasBridge.getImage() }
     val studioAtlasImage = remember(version) { ItemAtlasGenerator.getAtlasImage() }
     val snapshotReady =
-        nativeSnapshot != null && nativeAtlasImage != null && nativeSnapshot.atlasId() == selectedOption.id
+        nativeSnapshot != null && nativeAtlasImage != null && nativeSnapshot.atlasId() == selectedId
 
     val nativeSprites = remember(nativeSnapshot, query) {
         if (nativeSnapshot == null) emptyList()
@@ -124,110 +125,115 @@ fun DebugRenderPage() {
     val displayedSprites = if (isStudioItems) studioSprites else nativeSprites
     val loading = if (isStudioItems) displayedImage == null else !snapshotReady
 
-    val title = when {
+    val subtitle = when {
         isStudioItems -> I18n.get("debug:render.title", filteredItems.size)
         snapshotReady -> I18n.get("debug:render.atlas.title", selectedOption.label, nativeSprites.size)
         else -> ""
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+    val entries = atlasOptions.map { option ->
+        DebugSidebarEntry(
+            id = option.id,
+            icon = icon("eye"),
+            label = option.label
+        )
+    }
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        DebugSidebar(
+            entries = entries,
+            selectedId = selectedId,
+            onSelect = { selectedId = it; query = "" },
+            sectionLabel = I18n.get("debug:render.nav.section"),
+            modifier = Modifier.width(SIDEBAR_WIDTH).fillMaxHeight()
+        )
+
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(32.dp)
+                .weight(1f)
+                .fillMaxHeight()
+                .background(StudioColors.Zinc950)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 24.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DropdownMenu {
-                        DropdownMenuSelectTrigger(label = selectedOption.label)
-                        DropdownMenuContent {
-                            DropdownMenuLabel(text = I18n.get("debug:render.atlas.dropdown_label"))
-                            atlasOptions.forEach { option ->
-                                DropdownMenuItem(onClick = {
-                                    selectedOption = option
-                                    query = ""
-                                }) {
-                                    Text(text = option.label, style = StudioTypography.regular(13))
-                                }
-                            }
-                        }
+                DebugWorkspaceHeader(
+                    title = selectedOption.label,
+                    subtitle = subtitle.ifBlank { null },
+                    actions = {
+                        InputText(
+                            value = query,
+                            onValueChange = { query = it },
+                            placeholder = I18n.get("debug:render.search"),
+                            maxWidth = 320.dp
+                        )
                     }
-                    InputText(
-                        value = query,
-                        onValueChange = { value -> query = value },
-                        placeholder = I18n.get("debug:render.search"),
-                        maxWidth = 320.dp
-                    )
-                }
+                )
 
-                if (title.isNotEmpty()) {
-                    Text(text = title, style = StudioTypography.regular(13), color = StudioColors.Zinc400)
-                }
-            }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                            val rowHeight = (maxWidth / 16).coerceIn(40.dp, 110.dp)
+                            val cellPadding = 4.dp
 
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val rowHeight = (maxWidth / 16).coerceIn(40.dp, 110.dp)
-                val cellPadding = 4.dp
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (displayedImage != null && (isStudioItems || snapshotReady)) {
+                                    displayedSprites.forEach { sprite ->
+                                        if (sprite.sourceWidth > 0 && sprite.sourceHeight > 0) {
+                                            val aspectRatio = sprite.sourceWidth.toFloat() / sprite.sourceHeight.toFloat()
+                                            val displayWidth = rowHeight * aspectRatio
 
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (displayedImage != null && (isStudioItems || snapshotReady)) {
-                        displayedSprites.forEach { sprite ->
-                            if (sprite.sourceWidth > 0 && sprite.sourceHeight > 0) {
-                                val aspectRatio = sprite.sourceWidth.toFloat() / sprite.sourceHeight.toFloat()
-                                val displayWidth = rowHeight * aspectRatio
-
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier
-                                        .width(displayWidth + cellPadding * 2)
-                                        .height(rowHeight + cellPadding * 2)
-                                        .background(StudioColors.Card, RoundedCornerShape(4.dp))
-                                        .padding(cellPadding)
-                                ) {
-                                    Canvas(
-                                        modifier = Modifier
-                                            .width(displayWidth)
-                                            .height(rowHeight)
-                                    ) {
-                                        drawImage(
-                                            image = displayedImage,
-                                            srcOffset = IntOffset(sprite.sourceX, sprite.sourceY),
-                                            srcSize = IntSize(sprite.sourceWidth, sprite.sourceHeight),
-                                            dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
-                                            filterQuality = FilterQuality.None
-                                        )
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .width(displayWidth + cellPadding * 2)
+                                                    .height(rowHeight + cellPadding * 2)
+                                                    .background(StudioColors.Card, RoundedCornerShape(4.dp))
+                                                    .padding(cellPadding)
+                                            ) {
+                                                Canvas(
+                                                    modifier = Modifier
+                                                        .width(displayWidth)
+                                                        .height(rowHeight)
+                                                ) {
+                                                    drawImage(
+                                                        image = displayedImage,
+                                                        srcOffset = IntOffset(sprite.sourceX, sprite.sourceY),
+                                                        srcSize = IntSize(sprite.sourceWidth, sprite.sourceHeight),
+                                                        dstSize = IntSize(size.width.roundToInt(), size.height.roundToInt()),
+                                                        filterQuality = FilterQuality.None
+                                                    )
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            }
-        }
 
-        if (loading) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.matchParentSize()
-            ) {
-                Text(
-                    text = I18n.get("debug:render.loading"),
-                    style = StudioTypography.semiBold(18),
-                    color = StudioColors.Zinc400
-                )
+                    if (loading) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.matchParentSize()
+                        ) {
+                            Text(
+                                text = I18n.get("debug:render.loading"),
+                                style = StudioTypography.semiBold(18),
+                                color = StudioColors.Zinc400
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -252,3 +258,6 @@ private fun buildAtlasOptions(): List<AtlasOption> {
     }
     return options
 }
+
+private fun icon(name: String): Identifier =
+    Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/$name.svg")
