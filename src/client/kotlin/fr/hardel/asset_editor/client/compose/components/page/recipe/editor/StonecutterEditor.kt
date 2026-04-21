@@ -24,18 +24,17 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.StoneCuttingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.StonecutterRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
-import net.minecraft.world.item.crafting.StonecutterRecipe
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun StonecutterEditor(state: RecipePageState, modifier: Modifier = Modifier) {
-    val recipe = state.editor.recipe as? StonecutterRecipe
     val s = state.editor
 
     Row(
@@ -89,14 +88,12 @@ fun StonecutterEditor(state: RecipePageState, modifier: Modifier = Modifier) {
 
                 RecipeCountOption(s)
 
-                recipe?.let {
-                    RecipeAdvancedOptions {
-                        EditorCard {
-                            RecipeGroupOption(
-                                value = it.group(),
-                                onValueChange = { value -> s.onAction(SetGroupAction(value)) }
-                            )
-                        }
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(StonecutterRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
                     }
                 }
             }

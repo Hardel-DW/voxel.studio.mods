@@ -9,8 +9,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CookingBookCategory;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jspecify.annotations.Nullable;
@@ -124,27 +122,7 @@ public final class RecipeIngredientHelper {
         return RecipeAdapterRegistry.setResultItem(recipe, resolveItem(itemId));
     }
 
-    public @Nullable Recipe<?> setGroup(Recipe<?> recipe, String group) {
-        return RecipeAdapterRegistry.setGroup(recipe, group);
-    }
-
-    public @Nullable Recipe<?> setCraftingCategory(Recipe<?> recipe, CraftingBookCategory category) {
-        return RecipeAdapterRegistry.setCraftingCategory(recipe, category);
-    }
-
-    public @Nullable Recipe<?> setCookingCategory(Recipe<?> recipe, CookingBookCategory category) {
-        return RecipeAdapterRegistry.setCookingCategory(recipe, category);
-    }
-
-    public @Nullable Recipe<?> setCookingExperience(Recipe<?> recipe, float experience) {
-        return RecipeAdapterRegistry.setCookingExperience(recipe, experience);
-    }
-
-    public @Nullable Recipe<?> setCookingTime(Recipe<?> recipe, int cookingTime) {
-        return RecipeAdapterRegistry.setCookingTime(recipe, cookingTime);
-    }
-
-    public @Nullable Recipe<?> setShowNotification(Recipe<?> recipe, boolean value) {
-        return RecipeAdapterRegistry.setShowNotification(recipe, value);
+    public @Nullable Recipe<?> setProperty(Recipe<?> recipe, String key, Object value) {
+        return RecipeAdapterRegistry.setProperty(recipe, key, value);
     }
 }

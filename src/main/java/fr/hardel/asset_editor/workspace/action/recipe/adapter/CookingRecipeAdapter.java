@@ -8,10 +8,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends RecipeAdapter<T> {
+
+    public static final String CATEGORY = "category";
+    public static final String EXPERIENCE = "experience";
+    public static final String COOKING_TIME = "cooking_time";
 
     private final AbstractCookingRecipe.Factory<T> factory;
     private final int defaultCookingTime;
@@ -42,6 +48,31 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     }
 
     @Override
+    protected Map<String, Object> extractProperties(T recipe) {
+        var props = super.extractProperties(recipe);
+        props.put(CATEGORY, recipe.category().getSerializedName());
+        props.put(EXPERIENCE, recipe.experience());
+        props.put(COOKING_TIME, recipe.cookingTime());
+        return props;
+    }
+
+    @Override
+    protected T doSetProperty(T recipe, String key, Object value) {
+        return switch (key) {
+            case GROUP -> factory.create((String) value, recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime());
+            case CATEGORY -> {
+                var cat = Arrays.stream(CookingBookCategory.values())
+                    .filter(c -> c.getSerializedName().equals(value))
+                    .findFirst().orElse(null);
+                yield cat != null ? factory.create(recipe.group(), cat, recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime()) : null;
+            }
+            case EXPERIENCE -> factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), (float) value, recipe.cookingTime());
+            case COOKING_TIME -> factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), (int) value);
+            default -> null;
+        };
+    }
+
+    @Override
     protected T doSetResultCount(T recipe, int count) {
         return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copyWithCount(count), recipe.experience(), recipe.cookingTime());
     }
@@ -54,46 +85,6 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     @Override
     public boolean supportsResultCount() {
         return true;
-    }
-
-    @Override
-    public boolean supportsGroup() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsCookingCategory() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsCookingExperience() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsCookingTime() {
-        return true;
-    }
-
-    @Override
-    protected T doSetGroup(T recipe, String group) {
-        return factory.create(group, recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime());
-    }
-
-    @Override
-    protected T doSetCookingCategory(T recipe, CookingBookCategory category) {
-        return factory.create(recipe.group(), category, recipe.input(), recipe.result().copy(), recipe.experience(), recipe.cookingTime());
-    }
-
-    @Override
-    protected T doSetCookingExperience(T recipe, float experience) {
-        return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), experience, recipe.cookingTime());
-    }
-
-    @Override
-    protected T doSetCookingTime(T recipe, int cookingTime) {
-        return factory.create(recipe.group(), recipe.category(), recipe.input(), recipe.result().copy(), recipe.experience(), cookingTime);
     }
 
     @Override

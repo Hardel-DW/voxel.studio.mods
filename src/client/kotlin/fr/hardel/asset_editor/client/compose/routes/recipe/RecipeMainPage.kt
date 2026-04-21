@@ -37,8 +37,9 @@ fun RecipeMainPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
 
-    val model = runtimeEntry?.visual ?: fallback
     val recipe = workspaceEntry?.data
+    val properties = recipe?.let(RecipeAdapterRegistry::extractProperties) ?: emptyMap()
+    val model = (runtimeEntry?.visual ?: fallback).copy(properties = properties)
     val resultItemEditable = recipe?.let(RecipeAdapterRegistry::supportsResultItem) == true
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
@@ -80,7 +81,6 @@ fun RecipeMainPage(context: StudioContext) {
 
     val editorState = RecipeEditorState(
         model = model,
-        recipe = recipe,
         selectedItemId = selectedItemId,
         paintMode = paintMode,
         resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,

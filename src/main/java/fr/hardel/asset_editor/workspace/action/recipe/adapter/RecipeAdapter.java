@@ -5,17 +5,20 @@ import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CookingBookCategory;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.TransmuteResult;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jspecify.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public abstract class RecipeAdapter<T extends Recipe<?>> {
+
+    public static final String GROUP = "group";
+    public static final String SHOW_NOTIFICATION = "show_notification";
 
     private final Class<T> recipeType;
     private final Identifier serializerId;
@@ -53,30 +56,6 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return doSetResultItem(recipeType.cast(recipe), item);
     }
 
-    public final @Nullable Recipe<?> setGroup(Recipe<?> recipe, String group) {
-        return doSetGroup(recipeType.cast(recipe), group);
-    }
-
-    public final @Nullable Recipe<?> setCraftingCategory(Recipe<?> recipe, CraftingBookCategory category) {
-        return doSetCraftingCategory(recipeType.cast(recipe), category);
-    }
-
-    public final @Nullable Recipe<?> setCookingCategory(Recipe<?> recipe, CookingBookCategory category) {
-        return doSetCookingCategory(recipeType.cast(recipe), category);
-    }
-
-    public final @Nullable Recipe<?> setCookingExperience(Recipe<?> recipe, float experience) {
-        return doSetCookingExperience(recipeType.cast(recipe), experience);
-    }
-
-    public final @Nullable Recipe<?> setCookingTime(Recipe<?> recipe, int cookingTime) {
-        return doSetCookingTime(recipeType.cast(recipe), cookingTime);
-    }
-
-    public final @Nullable Recipe<?> setShowNotification(Recipe<?> recipe, boolean value) {
-        return doSetShowNotification(recipeType.cast(recipe), value);
-    }
-
     public boolean supportsResultCount() {
         return false;
     }
@@ -85,34 +64,12 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return true;
     }
 
-    public boolean supportsGroup() {
-        return false;
-    }
-
-    public boolean supportsCraftingCategory() {
-        return false;
-    }
-
-    public boolean supportsCookingCategory() {
-        return false;
-    }
-
-    public boolean supportsCookingExperience() {
-        return false;
-    }
-
-    public boolean supportsCookingTime() {
-        return false;
-    }
-
-    public boolean supportsShowNotification() {
-        return false;
-    }
-
     public abstract @Nullable Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result);
 
     protected abstract List<Optional<Ingredient>> doExtractIngredients(T recipe);
+
     protected abstract ItemStack doExtractResult(T recipe);
+
     protected abstract T doRebuild(T original, List<Optional<Ingredient>> ingredients);
 
     protected @Nullable T doSetResultCount(T recipe, int count) {
@@ -123,27 +80,22 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return null;
     }
 
-    protected @Nullable T doSetGroup(T recipe, String group) {
-        return null;
+    public final Map<String, Object> extractPropertiesFrom(Recipe<?> recipe) {
+        return extractProperties(recipeType.cast(recipe));
     }
 
-    protected @Nullable T doSetCraftingCategory(T recipe, CraftingBookCategory category) {
-        return null;
+    protected Map<String, Object> extractProperties(T recipe) {
+        var props = new LinkedHashMap<String, Object>();
+        props.put(GROUP, recipe.group());
+        props.put(SHOW_NOTIFICATION, recipe.showNotification());
+        return props;
     }
 
-    protected @Nullable T doSetCookingCategory(T recipe, CookingBookCategory category) {
-        return null;
+    public final @Nullable Recipe<?> setProperty(Recipe<?> recipe, String key, Object value) {
+        return doSetProperty(recipeType.cast(recipe), key, value);
     }
 
-    protected @Nullable T doSetCookingExperience(T recipe, float experience) {
-        return null;
-    }
-
-    protected @Nullable T doSetCookingTime(T recipe, int cookingTime) {
-        return null;
-    }
-
-    protected @Nullable T doSetShowNotification(T recipe, boolean value) {
+    protected @Nullable T doSetProperty(T recipe, String key, Object value) {
         return null;
     }
 

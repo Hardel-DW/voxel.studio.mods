@@ -28,6 +28,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeShowNotificationOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.ShapedRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
@@ -37,12 +38,10 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction
 import net.minecraft.world.item.crafting.CraftingBookCategory
-import net.minecraft.world.item.crafting.ShapedRecipe
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) {
-    val recipe = state.editor.recipe as? ShapedRecipe
     val s = state.editor
 
     Row(
@@ -104,24 +103,26 @@ fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) 
 
                 RecipeCountOption(s)
 
-                recipe?.let {
-                    RecipeAdvancedOptions {
-                        EditorCard {
-                            RecipeGroupOption(
-                                value = it.group(),
-                                onValueChange = { value -> s.onAction(SetGroupAction(value)) }
-                            )
-                        }
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(ShapedRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
+                    }
+                    s.model.property<String>(ShapedRecipeAdapter.CATEGORY)?.let { category ->
                         EditorCard {
                             RecipeCategoryOption(
-                                value = it.category().serializedName,
-                                options = CraftingBookCategory.entries.map { category -> category.serializedName },
+                                value = category,
+                                options = CraftingBookCategory.entries.map { it.serializedName },
                                 onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
                             )
                         }
+                    }
+                    s.model.property<Boolean>(ShapedRecipeAdapter.SHOW_NOTIFICATION)?.let { showNotification ->
                         EditorCard {
                             RecipeShowNotificationOption(
-                                value = it.showNotification(),
+                                value = showNotification,
                                 onValueChange = { value -> s.onAction(SetShowNotificationAction(value)) }
                             )
                         }

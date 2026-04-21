@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.ShapelessRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
@@ -35,12 +36,10 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.crafting.CraftingBookCategory
-import net.minecraft.world.item.crafting.ShapelessRecipe
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifier) {
-    val recipe = state.editor.recipe as? ShapelessRecipe
     val s = state.editor
 
     fun addShapeless() {
@@ -112,18 +111,18 @@ fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifie
 
                 RecipeCountOption(s)
 
-                recipe?.let {
-                    RecipeAdvancedOptions {
-                        EditorCard {
-                            RecipeGroupOption(
-                                value = it.group(),
-                                onValueChange = { value -> s.onAction(SetGroupAction(value)) }
-                            )
-                        }
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(ShapelessRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
+                    }
+                    s.model.property<String>(ShapelessRecipeAdapter.CATEGORY)?.let { category ->
                         EditorCard {
                             RecipeCategoryOption(
-                                value = it.category().serializedName,
-                                options = CraftingBookCategory.entries.map { category -> category.serializedName },
+                                value = category,
+                                options = CraftingBookCategory.entries.map { it.serializedName },
                                 onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
                             )
                         }

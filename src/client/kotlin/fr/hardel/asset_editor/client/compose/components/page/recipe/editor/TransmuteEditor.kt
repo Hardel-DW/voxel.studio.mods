@@ -25,6 +25,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.TransmuteRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
@@ -33,12 +34,10 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRe
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import net.minecraft.world.item.crafting.CraftingBookCategory
-import net.minecraft.world.item.crafting.TransmuteRecipe
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun TransmuteEditor(state: RecipePageState, modifier: Modifier = Modifier) {
-    val recipe = state.editor.recipe as? TransmuteRecipe
     val s = state.editor
 
     Row(
@@ -92,18 +91,18 @@ fun TransmuteEditor(state: RecipePageState, modifier: Modifier = Modifier) {
 
                 RecipeCountOption(s)
 
-                recipe?.let {
-                    RecipeAdvancedOptions {
-                        EditorCard {
-                            RecipeGroupOption(
-                                value = it.group(),
-                                onValueChange = { value -> s.onAction(SetGroupAction(value)) }
-                            )
-                        }
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(TransmuteRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
+                    }
+                    s.model.property<String>(TransmuteRecipeAdapter.CATEGORY)?.let { category ->
                         EditorCard {
                             RecipeCategoryOption(
-                                value = it.category().serializedName,
-                                options = CraftingBookCategory.entries.map { category -> category.serializedName },
+                                value = category,
+                                options = CraftingBookCategory.entries.map { it.serializedName },
                                 onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
                             )
                         }

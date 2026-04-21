@@ -27,6 +27,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeExperienceOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmeltingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.CookingRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
@@ -36,14 +37,11 @@ import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingExperienceAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingTimeAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
-import net.minecraft.world.item.crafting.AbstractCookingRecipe
-import net.minecraft.world.item.crafting.CampfireCookingRecipe
 import net.minecraft.world.item.crafting.CookingBookCategory
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CookingEditor(state: RecipePageState, modifier: Modifier = Modifier) {
-    val recipe = state.editor.recipe as? AbstractCookingRecipe
     val s = state.editor
 
     Row(
@@ -97,31 +95,35 @@ fun CookingEditor(state: RecipePageState, modifier: Modifier = Modifier) {
 
                 RecipeCountOption(s)
 
-                recipe?.let {
-                    RecipeAdvancedOptions {
-                        EditorCard {
-                            RecipeGroupOption(
-                                value = it.group(),
-                                onValueChange = { value -> s.onAction(SetGroupAction(value)) }
-                            )
-                        }
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(CookingRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
+                    }
+                    s.model.property<String>(CookingRecipeAdapter.CATEGORY)?.let { category ->
                         EditorCard {
                             RecipeCategoryOption(
-                                value = it.category().serializedName,
-                                options = CookingBookCategory.entries.map { category -> category.serializedName },
+                                value = category,
+                                options = CookingBookCategory.entries.map { it.serializedName },
                                 onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
                             )
                         }
+                    }
+                    s.model.property<Float>(CookingRecipeAdapter.EXPERIENCE)?.let { experience ->
                         EditorCard {
                             RecipeExperienceOption(
-                                value = it.experience(),
+                                value = experience,
                                 onValueChange = { value -> s.onAction(SetCookingExperienceAction(value)) }
                             )
                         }
+                    }
+                    s.model.property<Int>(CookingRecipeAdapter.COOKING_TIME)?.let { cookingTime ->
                         EditorCard {
                             RecipeCookingTimeOption(
-                                value = it.cookingTime(),
-                                max = if (it is CampfireCookingRecipe) Int.MAX_VALUE else Short.MAX_VALUE.toInt(),
+                                value = cookingTime,
+                                max = if (s.model.type == "minecraft:campfire_cooking") Int.MAX_VALUE else Short.MAX_VALUE.toInt(),
                                 onValueChange = { value -> s.onAction(SetCookingTimeAction(value)) }
                             )
                         }

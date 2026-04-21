@@ -4,12 +4,11 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CookingBookCategory;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +47,8 @@ public final class RecipeAdapterRegistry {
     public static boolean isUnsupported(Recipe<?> recipe) {
         Class<?> type = recipe.getClass();
         while (type != null && Recipe.class.isAssignableFrom(type)) {
-            if (BY_CLASS.containsKey(type)) return false;
+            if (BY_CLASS.containsKey(type))
+                return false;
             type = type.getSuperclass();
         }
         return true;
@@ -68,7 +68,8 @@ public final class RecipeAdapterRegistry {
 
     public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {
         RecipeAdapter<?> targetAdapter = getBySerializer(targetSerializer);
-        if (targetAdapter == null || isUnsupported(source)) return null;
+        if (targetAdapter == null || isUnsupported(source))
+            return null;
 
         RecipeAdapter<?> sourceAdapter = get(source);
         List<Optional<Ingredient>> ingredients = preserveIngredients
@@ -87,30 +88,6 @@ public final class RecipeAdapterRegistry {
         return get(recipe).setResultItem(recipe, item);
     }
 
-    public static @Nullable Recipe<?> setGroup(Recipe<?> recipe, String group) {
-        return get(recipe).setGroup(recipe, group);
-    }
-
-    public static @Nullable Recipe<?> setCraftingCategory(Recipe<?> recipe, CraftingBookCategory category) {
-        return get(recipe).setCraftingCategory(recipe, category);
-    }
-
-    public static @Nullable Recipe<?> setCookingCategory(Recipe<?> recipe, CookingBookCategory category) {
-        return get(recipe).setCookingCategory(recipe, category);
-    }
-
-    public static @Nullable Recipe<?> setCookingExperience(Recipe<?> recipe, float experience) {
-        return get(recipe).setCookingExperience(recipe, experience);
-    }
-
-    public static @Nullable Recipe<?> setCookingTime(Recipe<?> recipe, int cookingTime) {
-        return get(recipe).setCookingTime(recipe, cookingTime);
-    }
-
-    public static @Nullable Recipe<?> setShowNotification(Recipe<?> recipe, boolean value) {
-        return get(recipe).setShowNotification(recipe, value);
-    }
-
     public static boolean supportsResultCount(Recipe<?> recipe) {
         return get(recipe).supportsResultCount();
     }
@@ -124,6 +101,17 @@ public final class RecipeAdapterRegistry {
         return get(recipe).supportsResultItem();
     }
 
-    private RecipeAdapterRegistry() {
+    public static Map<String, Object> extractProperties(Recipe<?> recipe) {
+        if (isUnsupported(recipe))
+            return Collections.emptyMap();
+        return get(recipe).extractPropertiesFrom(recipe);
     }
+
+    public static @Nullable Recipe<?> setProperty(Recipe<?> recipe, String key, Object value) {
+        if (isUnsupported(recipe))
+            return null;
+        return get(recipe).setProperty(recipe, key, value);
+    }
+
+    private RecipeAdapterRegistry() {}
 }

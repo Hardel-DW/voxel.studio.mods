@@ -8,8 +8,11 @@ data class RecipeVisualModel(
     val resultItemId: String,
     val resultCount: Int = 1,
     val resultCountEditable: Boolean = true,
-    val resultCountMax: Int = 64
-)
+    val resultCountMax: Int = 64,
+    val properties: Map<String, Any?> = emptyMap()
+) {
+    inline fun <reified T> property(key: String): T? = properties[key] as? T
+}
 
 data class RecipeRuntimeEntry(
     val id: Identifier,
