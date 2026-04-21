@@ -19,6 +19,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
+import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltipArea
 import net.minecraft.resources.Identifier
 
 object ItemsSelector {
@@ -34,24 +35,26 @@ object ItemsSelector {
         val hovered by interaction.collectIsHoveredAsState()
         val highlighted = selected || hovered
 
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = modifier
-                .size(56.dp)
-                .background(
-                    color = if (highlighted) StudioColors.Zinc900.copy(alpha = 0.4f) else StudioColors.Zinc900.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .border(
-                    1.dp,
-                    if (highlighted) StudioColors.Zinc600 else StudioColors.Zinc800,
-                    RoundedCornerShape(8.dp)
-                )
-                .hoverable(interaction)
-                .pointerHoverIcon(PointerIcon.Hand)
-                .clickable(interactionSource = interaction, indication = null) { onSelect() }
-        ) {
-            ItemSprite(itemId, 32.dp)
+        MinecraftTooltipArea(itemId = itemId, modifier = modifier) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        color = if (highlighted) StudioColors.Zinc900.copy(alpha = 0.4f) else StudioColors.Zinc900.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .border(
+                        1.dp,
+                        if (highlighted) StudioColors.Zinc600 else StudioColors.Zinc800,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .hoverable(interaction)
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .clickable(interactionSource = interaction, indication = null) { onSelect() }
+            ) {
+                ItemSprite(itemId, 32.dp)
+            }
         }
     }
 }

@@ -4,48 +4,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipePageLayout
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotAddAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmithingTemplate
 
 @Composable
-fun SmithingTransformEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
-    RecipeSection(
-        selection = state.selection,
-        recipeCounts = state.recipeCounts,
-        onSelectionChange = state.onSelectionChange,
-        modifier = modifier
-    ) {
+fun SmithingTransformEditor(state: RecipePageState, modifier: Modifier = Modifier) {
+    val s = state.editor
+
+    RecipePageLayout(state = state, modifier = modifier) {
         SmithingTemplate(
-            slots = state.model.slots,
-            resultItemId = state.model.resultItemId,
-            resultCount = state.model.resultCount,
+            slots = s.model.slots,
+            resultItemId = s.model.resultItemId,
+            resultCount = s.model.resultCount,
             interactive = true,
             onSlotPointerDown = { slot, button ->
-                slotPointerDownAction(slot, button, state.selectedItemId)?.let(state.onAction)
+                slotPointerDownAction(slot, button, s.selectedItemId)?.let(s.onAction)
             },
             onSlotPointerEnter = { slot ->
-                when (state.paintMode) {
-                    PaintMode.PAINTING -> slotAddAction(slot, state.selectedItemId)?.let(state.onAction)
-                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
+                when (s.paintMode) {
+                    PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
+                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
                     PaintMode.NONE -> {}
                 }
             },
             onResultPointerDown = { button ->
-                if (button == PointerButton.Primary) {
-                    state.onResultItemChange()
-                }
+                if (button == PointerButton.Primary) s.onResultItemChange()
             },
             onResultPointerEnter = {
-                if (state.paintMode == PaintMode.PAINTING) {
-                    state.onResultItemChange()
-                }
+                if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
             }
         )
 
-        RecipeCountOption(state)
+        RecipeCountOption(s)
     }
 }

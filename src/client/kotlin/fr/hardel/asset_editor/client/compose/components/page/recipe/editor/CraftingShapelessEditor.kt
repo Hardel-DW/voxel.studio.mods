@@ -8,8 +8,9 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeGroupOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipePageLayout
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.QuickSwapTabs
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
 import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
@@ -20,68 +21,63 @@ import net.minecraft.world.item.crafting.CraftingBookCategory
 import net.minecraft.world.item.crafting.ShapelessRecipe
 
 @Composable
-fun CraftingShapelessEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
-    val recipe = state.recipe as? ShapelessRecipe
+fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifier) {
+    val recipe = state.editor.recipe as? ShapelessRecipe
+    val s = state.editor
 
     fun addShapeless() {
-        val itemId = state.selectedItemId ?: return
+        val itemId = s.selectedItemId ?: return
         val itemIdentifier = Identifier.tryParse(itemId) ?: return
-        state.onAction(AddShapelessIngredientAction(listOf(itemIdentifier)))
+        s.onAction(AddShapelessIngredientAction(listOf(itemIdentifier)))
     }
 
-    RecipeSection(
-        selection = state.selection,
-        recipeCounts = state.recipeCounts,
-        onSelectionChange = state.onSelectionChange,
-        modifier = modifier
+    RecipePageLayout(
+        state = state,
+        modifier = modifier,
+        headerExtra = { QuickSwapTabs(state) }
     ) {
         CraftingTemplate(
-            slots = state.model.slots,
-            resultItemId = state.model.resultItemId,
-            resultCount = state.model.resultCount,
+            slots = s.model.slots,
+            resultItemId = s.model.resultItemId,
+            resultCount = s.model.resultCount,
             interactive = true,
             onSlotPointerDown = { slot, button ->
                 when (button) {
                     PointerButton.Primary -> addShapeless()
-                    PointerButton.Secondary -> slotRemoveAction(slot)?.let(state.onAction)
+                    PointerButton.Secondary -> slotRemoveAction(slot)?.let(s.onAction)
                     else -> {}
                 }
             },
             onSlotPointerEnter = { slot ->
-                when (state.paintMode) {
+                when (s.paintMode) {
                     PaintMode.PAINTING -> addShapeless()
-                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
+                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
                     PaintMode.NONE -> {}
                 }
             },
             onResultPointerDown = { button ->
-                if (button == PointerButton.Primary) {
-                    state.onResultItemChange()
-                }
+                if (button == PointerButton.Primary) s.onResultItemChange()
             },
             onResultPointerEnter = {
-                if (state.paintMode == PaintMode.PAINTING) {
-                    state.onResultItemChange()
-                }
+                if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
             }
         )
 
-        RecipeCountOption(state)
+        RecipeCountOption(s)
 
         recipe?.let {
             RecipeAdvancedOptions {
                 EditorCard {
                     RecipeGroupOption(
                         value = it.group(),
-                        onValueChange = { value -> state.onAction(SetGroupAction(value)) }
+                        onValueChange = { value -> s.onAction(SetGroupAction(value)) }
                     )
                 }
-
                 EditorCard {
                     RecipeCategoryOption(
                         value = it.category().serializedName,
                         options = CraftingBookCategory.entries.map { category -> category.serializedName },
-                        onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
+                        onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
                     )
                 }
             }

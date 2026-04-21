@@ -2,9 +2,9 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
 
-typealias RecipeEditorFactory = @Composable (state: RecipeEditorState, modifier: Modifier) -> Unit
+typealias RecipeEditorFactory = @Composable (state: RecipePageState, modifier: Modifier) -> Unit
 
 object RecipeEditorRegistry {
 
