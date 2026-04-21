@@ -1,5 +1,8 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,19 +17,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import kotlinx.coroutines.delay
 import net.minecraft.resources.Identifier
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
 private val COPY_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/copy.svg")
-private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
+
+private const val SUCCESS_HOLD_MS = 1200L
 
 @Composable
 fun CopyButton(
@@ -34,16 +40,35 @@ fun CopyButton(
     modifier: Modifier = Modifier,
     iconSize: Dp = 24.dp
 ) {
-    var showCheck by remember { mutableStateOf(false) }
+    var success by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val checkProgress = remember { Animatable(0f) }
 
-    if (showCheck) {
-        LaunchedEffect(Unit) {
-            delay(1200)
-            showCheck = false
+    LaunchedEffect(success) {
+        if (success) {
+            checkProgress.snapTo(0f)
+            checkProgress.animateTo(1f, StudioMotion.checkmarkSpec())
+            delay(SUCCESS_HOLD_MS)
+            success = false
         }
     }
+
+    val iconTint by animateColorAsState(
+        targetValue = if (isHovered) StudioColors.Zinc300 else StudioColors.Zinc500,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "copy-icon-tint"
+    )
+    val copyAlpha by animateFloatAsState(
+        targetValue = if (success) 0f else 1f,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "copy-content-alpha"
+    )
+    val checkAlpha by animateFloatAsState(
+        targetValue = if (success) 1f else 0f,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "copy-check-alpha"
+    )
 
     Box(
         contentAlignment = Alignment.Center,
@@ -57,13 +82,20 @@ fun CopyButton(
             ) {
                 val clipboard = Toolkit.getDefaultToolkit().systemClipboard
                 clipboard.setContents(StringSelection(textProvider()), null)
-                showCheck = true
+                success = true
             }
     ) {
-        if (showCheck) {
-            SvgIcon(CHECK_ICON, iconSize, StudioColors.Zinc100)
-        } else {
-            SvgIcon(COPY_ICON, iconSize, if (isHovered) StudioColors.Zinc300 else StudioColors.Zinc500)
-        }
+        SvgIcon(
+            location = COPY_ICON,
+            size = iconSize,
+            tint = iconTint,
+            modifier = Modifier.alpha(copyAlpha)
+        )
+        AnimatedCheckmark(
+            progress = checkProgress.value,
+            color = StudioColors.Zinc100,
+            size = iconSize,
+            modifier = Modifier.alpha(checkAlpha)
+        )
     }
 }

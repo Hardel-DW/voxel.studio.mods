@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -12,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,16 +31,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 
 enum class ButtonVariant {
@@ -47,6 +53,8 @@ enum class ButtonVariant {
 enum class ButtonSize {
     NONE, SQUARE, DEFAULT, SM, LG, XL, ICON
 }
+
+private val SHIMMER_COLORS = listOf(Color.Transparent, Color.White.copy(alpha = 0.45f), Color.Transparent)
 
 @Composable
 fun Button(
@@ -60,6 +68,12 @@ fun Button(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed && enabled) 0.97f else 1f,
+        animationSpec = StudioMotion.pressSpec(),
+        label = "button-press-scale"
+    )
 
     val height = buttonHeight(size)
     val contentPadding = buttonPadding(size)
@@ -67,10 +81,15 @@ fun Button(
     val shape = RoundedCornerShape(12.dp)
     val mutedDefault = !enabled && variant == ButtonVariant.DEFAULT
     val bgModifier = if (mutedDefault) Modifier.background(Color.Transparent)
-        else variantBackground(variant, isHovered)
+    else variantBackground(variant, isHovered)
     val borderModifier = if (mutedDefault) Modifier.border(2.dp, StudioColors.Zinc800, shape)
-        else variantBorder(variant, isHovered)
-    val textColor = if (mutedDefault) StudioColors.Zinc600 else buttonTextColor(variant, isHovered)
+    else variantBorder(variant, isHovered)
+    val textColorTarget = if (mutedDefault) StudioColors.Zinc600 else buttonTextColor(variant, isHovered)
+    val textColor by animateColorAsState(
+        targetValue = textColorTarget,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "button-text"
+    )
 
     val hoverAlpha = when {
         mutedDefault -> 1f
@@ -83,6 +102,10 @@ fun Button(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            }
             .then(if (size == ButtonSize.ICON) Modifier.size(height) else Modifier.height(height))
             .clip(shape)
             .then(bgModifier)
@@ -142,34 +165,54 @@ private fun buttonPadding(size: ButtonSize) = when (size) {
     else -> PaddingValues(horizontal = 16.dp)
 }
 
-private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifier = when (variant) {
-    ButtonVariant.DEFAULT -> Modifier.background(if (hovered) StudioColors.Zinc300 else StudioColors.Zinc200)
-    ButtonVariant.BLACK -> Modifier.background(if (hovered) StudioColors.Zinc900 else Color.Black)
-    ButtonVariant.GHOST -> Modifier.background(if (hovered) StudioColors.Zinc200 else Color.Transparent)
-    ButtonVariant.GHOST_BORDER -> Modifier.background(Color.Transparent)
-    ButtonVariant.AURORA -> Modifier.background(
-        Brush.horizontalGradient(
-            colors = listOf(
-                Color.Transparent,
-                Color.Transparent,
-                StudioColors.Zinc700.copy(alpha = 0.3f)
+@Composable
+private fun variantBackground(variant: ButtonVariant, hovered: Boolean): Modifier {
+    val targetColor = when (variant) {
+        ButtonVariant.DEFAULT -> if (hovered) StudioColors.Zinc300 else StudioColors.Zinc200
+        ButtonVariant.BLACK -> if (hovered) StudioColors.Zinc900 else Color.Black
+        ButtonVariant.GHOST -> if (hovered) StudioColors.Zinc200 else Color.Transparent
+        ButtonVariant.GHOST_BORDER, ButtonVariant.LINK, ButtonVariant.AURORA -> Color.Transparent
+        ButtonVariant.TRANSPARENT -> if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent
+        ButtonVariant.SHIMMER -> StudioColors.Zinc100
+        ButtonVariant.PATREON -> StudioColors.Orange700
+    }
+    val animated by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "button-bg"
+    )
+    return if (variant == ButtonVariant.AURORA) {
+        Modifier.background(
+            Brush.horizontalGradient(
+                colors = listOf(
+                    Color.Transparent,
+                    Color.Transparent,
+                    StudioColors.Zinc700.copy(alpha = 0.3f)
+                )
             )
         )
-    )
-    ButtonVariant.TRANSPARENT -> Modifier.background(if (hovered) Color.White.copy(alpha = 0.1f) else Color.Transparent)
-    ButtonVariant.LINK -> Modifier.background(Color.Transparent)
-    ButtonVariant.SHIMMER -> Modifier.background(StudioColors.Zinc100)
-    ButtonVariant.PATREON -> Modifier.background(StudioColors.Orange700)
+    } else {
+        Modifier.background(animated)
+    }
 }
 
-private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier = when (variant) {
-    ButtonVariant.DEFAULT, ButtonVariant.BLACK, ButtonVariant.GHOST, ButtonVariant.TRANSPARENT ->
-        Modifier.border(2.dp, StudioColors.Zinc500, RoundedCornerShape(12.dp))
-    ButtonVariant.GHOST_BORDER ->
-        Modifier.border(2.dp, if (hovered) StudioColors.Zinc700 else StudioColors.Zinc900, RoundedCornerShape(12.dp))
-    ButtonVariant.AURORA ->
-        Modifier.border(2.dp, if (hovered) StudioColors.Zinc800 else StudioColors.Zinc900, RoundedCornerShape(12.dp))
-    else -> Modifier
+@Composable
+private fun variantBorder(variant: ButtonVariant, hovered: Boolean): Modifier {
+    val shape = RoundedCornerShape(12.dp)
+    val targetColor = when (variant) {
+        ButtonVariant.DEFAULT, ButtonVariant.BLACK, ButtonVariant.GHOST, ButtonVariant.TRANSPARENT ->
+            StudioColors.Zinc500
+
+        ButtonVariant.GHOST_BORDER -> if (hovered) StudioColors.Zinc700 else StudioColors.Zinc900
+        ButtonVariant.AURORA -> if (hovered) StudioColors.Zinc800 else StudioColors.Zinc900
+        else -> return Modifier
+    }
+    val animated by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "button-border"
+    )
+    return Modifier.border(2.dp, animated, shape)
 }
 
 @Composable
@@ -188,33 +231,30 @@ private fun buttonEffects(variant: ButtonVariant): Modifier {
         )
     )
 
-    return Modifier.drawWithContent {
-        drawContent()
-        if (variant == ButtonVariant.SHIMMER) {
-            val strokeWidth = 1.dp.toPx()
-            drawLine(
-                color = StudioColors.Zinc900,
-                start = Offset(0f, strokeWidth / 2f),
-                end = Offset(size.width, strokeWidth / 2f),
-                strokeWidth = strokeWidth
-            )
-            drawLine(
-                color = StudioColors.Zinc900,
-                start = Offset(strokeWidth / 2f, 0f),
-                end = Offset(strokeWidth / 2f, size.height),
-                strokeWidth = strokeWidth
-            )
-        }
+    return Modifier.drawWithCache {
+        val strokeWidth = 1.dp.toPx()
         val stripeWidth = size.width * 0.4f
-        val x = shimmerOffset * size.width
-        drawRect(
-            brush = Brush.horizontalGradient(
-                colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.45f), Color.Transparent),
-                startX = x,
-                endX = x + stripeWidth
-            ),
-            topLeft = Offset.Zero,
-            size = Size(size.width, size.height)
+        val shimmerBrush = Brush.horizontalGradient(
+            colors = SHIMMER_COLORS,
+            startX = 0f,
+            endX = stripeWidth
         )
+        val stripeSize = Size(stripeWidth, size.height)
+        val topStart = Offset(0f, strokeWidth / 2f)
+        val topEnd = Offset(size.width, strokeWidth / 2f)
+        val leftStart = Offset(strokeWidth / 2f, 0f)
+        val leftEnd = Offset(strokeWidth / 2f, size.height)
+
+        onDrawWithContent {
+            drawContent()
+            if (variant == ButtonVariant.SHIMMER) {
+                drawLine(StudioColors.Zinc900, topStart, topEnd, strokeWidth)
+                drawLine(StudioColors.Zinc900, leftStart, leftEnd, strokeWidth)
+            }
+            val offsetX = shimmerOffset * size.width
+            translate(offsetX, 0f) {
+                drawRect(brush = shimmerBrush, topLeft = Offset.Zero, size = stripeSize)
+            }
+        }
     }
 }

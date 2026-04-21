@@ -35,9 +35,9 @@ object PackCreateDialog {
         var namespace by remember { mutableStateOf("") }
         var syncing by remember { mutableStateOf(false) }
         var userEditedNamespace by remember { mutableStateOf(false) }
+        var iconFile by remember { mutableStateOf<File?>(null) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
 
-        // Compose-only: dialog de création de pack, pas d'équivalent TSX direct dans le layout editor.
         Dialog(
             title = I18n.get("studio:pack.create.title"),
             onDismiss = onDismiss,
@@ -52,15 +52,18 @@ object PackCreateDialog {
                     onClick = {
                         val nextName = name.trim()
                         val nextNamespace = namespace.trim()
+                        val iconBytes = iconFile?.takeIf { it.isFile }?.readBytes() ?: ByteArray(0)
                         errorMessage = when {
                             nextName.isEmpty() || nextNamespace.isEmpty() ->
                                 I18n.get("error:pack_name_and_namespace_required")
                             !Identifier.isValidNamespace(nextNamespace) ->
                                 I18n.get("error:invalid_namespace")
+                            iconBytes.size > PackCreatePayload.MAX_ICON_BYTES ->
+                                I18n.get("error:pack_icon_too_large")
                             else -> null
                         }
                         if (errorMessage == null) {
-                            ClientPayloadSender.send(PackCreatePayload(nextName, nextNamespace))
+                            ClientPayloadSender.send(PackCreatePayload(nextName, nextNamespace, iconBytes))
                             onDismiss()
                         }
                     },
@@ -106,8 +109,16 @@ object PackCreateDialog {
                 FieldLabel("studio:pack.create.icon")
                 FileInput(
                     promptText = I18n.get("studio:pack.create.icon.placeholder"),
+                    helperText = I18n.get("studio:pack.create.icon.hint"),
                     accept = "*.png",
-                    onFileSelected = { _ ->}
+                    onFileSelected = { file ->
+                        iconFile = file?.takeIf { it.extension.equals("png", ignoreCase = true) }
+                        errorMessage = when {
+                            file == null -> null
+                            iconFile == null -> I18n.get("error:pack_icon_not_png")
+                            else -> null
+                        }
+                    }
                 )
 
                 if (errorMessage != null) {
@@ -123,7 +134,6 @@ object PackCreateDialog {
 
     @Composable
     private fun FieldLabel(key: String) {
-        // label: text-sm/compact helper above the field
         Text(
             text = I18n.get(key),
             style = StudioTypography.medium(12),

@@ -2,6 +2,8 @@ package fr.hardel.asset_editor.client.compose.lib.action
 
 import fr.hardel.asset_editor.client.WorkspaceSyncGateway
 import fr.hardel.asset_editor.client.debug.ClientDebugTelemetry
+import fr.hardel.asset_editor.client.memory.core.ReadableMemory
+import fr.hardel.asset_editor.client.memory.core.SimpleMemory
 import fr.hardel.asset_editor.client.memory.session.SessionMemory
 import fr.hardel.asset_editor.client.memory.persistent.IssueMemory
 import fr.hardel.asset_editor.client.memory.session.ui.ClientPackInfo
@@ -35,19 +37,30 @@ class EditorActionGateway(
 ) : WorkspaceSyncGateway {
 
     private val pendingActions = LinkedHashMap<UUID, PendingClientAction<*>>()
+    private val pendingMemory = SimpleMemory<List<PendingView>>(emptyList())
 
     fun pendingActionCount(): Int = pendingActions.size
 
+    fun pendingActionsMemory(): ReadableMemory<List<PendingView>> = pendingMemory
+
     fun clearPendingActions() {
         pendingActions.clear()
+        publishPending()
     }
 
     private fun trackPendingAction(actionId: UUID, action: PendingClientAction<*>) {
         pendingActions[actionId] = action
+        publishPending()
     }
 
     private fun removePendingAction(actionId: UUID): PendingClientAction<*>? {
-        return pendingActions.remove(actionId)
+        val removed = pendingActions.remove(actionId)
+        if (removed != null) publishPending()
+        return removed
+    }
+
+    private fun publishPending() {
+        pendingMemory.setSnapshot(pendingActions.values.map(PendingView::of))
     }
 
     fun <T : Any> dispatch(
@@ -69,7 +82,7 @@ class EditorActionGateway(
         val actionId = UUID.randomUUID()
         trackPendingAction(
             actionId,
-            PendingClientAction(actionId, pack.packId(), workspace, resolvedTarget, entry)
+            PendingClientAction(actionId, pack.packId(), workspace, resolvedTarget, entry, action.javaClass.simpleName)
         )
 
         projectOptimistic(workspace, resolvedTarget, entry, action)
@@ -233,10 +246,29 @@ class EditorActionGateway(
         val packId: String,
         val workspace: ClientWorkspaceRegistry<T>,
         val target: Identifier,
-        val previousSnapshot: ElementEntry<T>
+        val previousSnapshot: ElementEntry<T>,
+        val actionType: String
     ) {
         fun restoreInto(memory: RegistryMemory) {
             memory.put(workspace, target, previousSnapshot)
+        }
+    }
+
+    data class PendingView(
+        val actionId: UUID,
+        val packId: String,
+        val registryId: Identifier,
+        val target: Identifier,
+        val actionType: String
+    ) {
+        companion object {
+            fun of(pending: PendingClientAction<*>): PendingView = PendingView(
+                actionId = pending.actionId,
+                packId = pending.packId,
+                registryId = pending.workspace.registryId(),
+                target = pending.target,
+                actionType = pending.actionType
+            )
         }
     }
 

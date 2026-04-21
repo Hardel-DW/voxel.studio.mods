@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.compose.lib.highlight
 
-import java.util.ArrayList
 import java.util.IdentityHashMap
 import java.util.LinkedHashSet
 import java.util.Objects
@@ -55,10 +54,8 @@ class Highlight {
     }
 
     private fun scheduleRepaintInContainingRegistries() {
-        for (entry in ArrayList(containingRegistries.entries)) {
-            if (entry.value > 0) {
-                entry.key.scheduleRepaint()
-            }
+        for ((registry, count) in containingRegistries) {
+            if (count > 0) registry.scheduleRepaint()
         }
     }
 }

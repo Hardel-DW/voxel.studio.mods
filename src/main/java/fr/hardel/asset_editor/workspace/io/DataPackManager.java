@@ -29,7 +29,13 @@ public final class DataPackManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DataPackManager.class);
 
-    public record PackEntry(String packId, String name, boolean writable, List<String> namespaces) {}
+    public record PackEntry(String packId, String name, boolean writable, List<String> namespaces, byte[] icon) {
+        public PackEntry(String packId, String name, boolean writable, List<String> namespaces) {
+            this(packId, name, writable, namespaces, new byte[0]);
+        }
+    }
+
+    private static final int MAX_PACK_ICON_BYTES = 512 * 1024;
 
     private static DataPackManager instance;
 
@@ -58,7 +64,7 @@ public final class DataPackManager {
         return repo.getAvailablePacks().stream().map(pack -> toPackEntry(pack, datapackDir)).filter(entry -> entry != null).toList();
     }
 
-    public void createPack(String name, String namespace) {
+    public void createPack(String name, String namespace, byte[] icon) {
         Path datapackDir = server.getWorldPath(LevelResource.DATAPACK_DIR);
         String safeName = name == null ? "" : name.trim();
         String safeNamespace = namespace == null ? "" : namespace.trim();
@@ -75,6 +81,7 @@ public final class DataPackManager {
         try {
             Files.createDirectories(packRoot.resolve("data").resolve(safeNamespace));
             writePackMcmeta(packRoot, safeName);
+            writePackIcon(packRoot, icon);
         } catch (IOException e) {
             LOGGER.warn("Failed to create pack: {}", e.getMessage());
             return;
@@ -89,8 +96,6 @@ public final class DataPackManager {
         } catch (Exception e) {
             LOGGER.warn("Failed to register pack: {}", e.getMessage());
         }
-
-        new PackEntry("file/" + safeName, safeName, true, List.of(safeNamespace));
     }
 
     public Optional<Path> resolveWritablePack(String packId) {
@@ -122,10 +127,26 @@ public final class DataPackManager {
         try (PackResources resources = pack.open()) {
             if (resources instanceof PathPackResources) {
                 Path rootPath = datapackDir.resolve(stripPrefix(id)).normalize();
-                return new PackEntry(id, pack.getTitle().getString(), true, scanNamespaces(rootPath));
+                return new PackEntry(id, pack.getTitle().getString(), true, scanNamespaces(rootPath), readPackIcon(rootPath));
             }
 
-            return new PackEntry(id, pack.getTitle().getString(), false, List.of());
+            return new PackEntry(id, pack.getTitle().getString(), false, List.of(), new byte[0]);
+        }
+    }
+
+    private static byte[] readPackIcon(Path packRoot) {
+        Path iconPath = packRoot.resolve("pack.png");
+        if (!Files.isRegularFile(iconPath))
+            return new byte[0];
+
+        try {
+            long size = Files.size(iconPath);
+            if (size <= 0 || size > MAX_PACK_ICON_BYTES)
+                return new byte[0];
+            return Files.readAllBytes(iconPath);
+        } catch (IOException e) {
+            LOGGER.warn("Failed to read pack icon {}: {}", iconPath, e.getMessage());
+            return new byte[0];
         }
     }
 
@@ -142,6 +163,19 @@ public final class DataPackManager {
         } catch (IOException e) {
             return List.of();
         }
+    }
+
+    private static void writePackIcon(Path packRoot, byte[] icon) throws IOException {
+        if (icon == null || icon.length == 0 || !isPng(icon))
+            return;
+
+        Files.write(packRoot.resolve("pack.png"), icon);
+    }
+
+    private static boolean isPng(byte[] data) {
+        return data.length >= 8
+            && (data[0] & 0xFF) == 0x89 && data[1] == 0x50 && data[2] == 0x4E && data[3] == 0x47
+            && data[4] == 0x0D && data[5] == 0x0A && data[6] == 0x1A && data[7] == 0x0A;
     }
 
     private static void writePackMcmeta(Path packRoot, String name) throws IOException {

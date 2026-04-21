@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui.floatingbar
 
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
@@ -54,12 +55,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
-private const val ANIM_DURATION = 400
-private val ISLAND_EASING = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
-private fun <T> islandTween() = tween<T>(ANIM_DURATION, easing = ISLAND_EASING)
+// TSX: --island-duration: 400ms; --island-easing: cubic-bezier(0.32, 0.72, 0, 1);
+// Same curve and duration for both expand and collapse to match the web version.
+private val IslandEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
+
+private fun <T> islandExpandSpec(): FiniteAnimationSpec<T> =
+    tween(StudioMotion.Medium4, easing = IslandEasing)
+
+private fun <T> islandCollapseSpec(): FiniteAnimationSpec<T> =
+    tween(StudioMotion.Medium4, easing = IslandEasing)
+
 private const val SNAP_THRESHOLD = 100f
 private val COLLAPSED_HEIGHT = 60.dp
 
@@ -92,17 +101,26 @@ fun Toolbar(
     }
     val transition = updateTransition(target, label = "island")
 
-    val cornerRadius by transition.animateDp(transitionSpec = { islandTween() }, label = "radius") { t ->
-        if (t.expanded) 32.dp else 48.dp
-    }
-    val animatedHeight by transition.animateDp(transitionSpec = { islandTween() }, label = "height") { it.height }
-    val animatedWidth by transition.animateDp(transitionSpec = { islandTween() }, label = "width") { it.width }
-    val contentAlpha by transition.animateFloat(transitionSpec = { islandTween() }, label = "alpha") { t ->
-        if (t.expanded) 1f else 0f
-    }
-    val contentScale by transition.animateFloat(transitionSpec = { islandTween() }, label = "scale") { t ->
-        if (t.expanded) 1f else 0.98f
-    }
+    val cornerRadius by transition.animateDp(
+        transitionSpec = { if (targetState.expanded) islandExpandSpec() else islandCollapseSpec() },
+        label = "radius"
+    ) { t -> if (t.expanded) 32.dp else 48.dp }
+    val animatedHeight by transition.animateDp(
+        transitionSpec = { if (targetState.expanded) islandExpandSpec() else islandCollapseSpec() },
+        label = "height"
+    ) { it.height }
+    val animatedWidth by transition.animateDp(
+        transitionSpec = { if (targetState.expanded) islandExpandSpec() else islandCollapseSpec() },
+        label = "width"
+    ) { it.width }
+    val contentAlpha by transition.animateFloat(
+        transitionSpec = { if (targetState.expanded) islandExpandSpec() else islandCollapseSpec() },
+        label = "alpha"
+    ) { t -> if (t.expanded) 1f else 0f }
+    val contentScale by transition.animateFloat(
+        transitionSpec = { if (targetState.expanded) islandExpandSpec() else islandCollapseSpec() },
+        label = "scale"
+    ) { t -> if (t.expanded) 1f else 0.98f }
 
     // Cache shape — avoid recreating RoundedCornerShape every frame
     val shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
@@ -240,7 +258,7 @@ private fun SnapZoneIndicator(isNearSnap: Boolean) {
         initialValue = 1f,
         targetValue = 0.5f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = CubicBezierEasing(0.4f, 0f, 0.6f, 1f)),
+            animation = tween(1000, easing = StudioMotion.Linear),
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulseAlpha"

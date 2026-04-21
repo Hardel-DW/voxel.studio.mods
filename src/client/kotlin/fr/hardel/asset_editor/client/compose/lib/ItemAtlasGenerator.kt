@@ -1,5 +1,9 @@
 package fr.hardel.asset_editor.client.compose.lib
 
+import androidx.compose.runtime.LongState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import fr.hardel.asset_editor.client.compose.lib.utils.argbPixelsToImageBitmap
 import fr.hardel.asset_editor.client.rendering.ItemAtlasRenderer
@@ -14,14 +18,14 @@ object ItemAtlasGenerator {
     private val listeners = CopyOnWriteArrayList<Runnable>()
     private val rebuildLock = Any()
 
-    @Volatile
-    private var atlasImage: ImageBitmap? = null
-
-    @Volatile
-    private var materializedGeneration: Long = -1L
+    private val atlasState = mutableStateOf<ImageBitmap?>(null)
+    private val generationState = mutableLongStateOf(-1L)
 
     @Volatile
     private var pendingGeneration: Long = -1L
+
+    val atlasImageState: State<ImageBitmap?> = atlasState
+    val generation: LongState = generationState
 
     init {
         ItemAtlasRenderer.subscribeGeneration(::rebuild)
@@ -31,12 +35,12 @@ object ItemAtlasGenerator {
     fun getAtlasImage(): ImageBitmap? {
         if (!ItemAtlasRenderer.isReady()) {
             ItemAtlasRenderer.requestGeneration()
-            return atlasImage
+            return atlasState.value
         }
-        if (ItemAtlasRenderer.isReady() && ItemAtlasRenderer.getGeneration() > materializedGeneration) {
+        if (ItemAtlasRenderer.getGeneration() > generationState.longValue) {
             rebuild()
         }
-        return atlasImage
+        return atlasState.value
     }
 
     @JvmStatic
@@ -61,7 +65,7 @@ object ItemAtlasGenerator {
         val generation = ItemAtlasRenderer.getGeneration()
 
         synchronized(rebuildLock) {
-            if (generation <= materializedGeneration || generation == pendingGeneration) {
+            if (generation <= generationState.longValue || generation == pendingGeneration) {
                 return
             }
             pendingGeneration = generation
@@ -72,11 +76,11 @@ object ItemAtlasGenerator {
             .thenAccept { image ->
                 val publish = Runnable {
                     synchronized(rebuildLock) {
-                        if (generation < materializedGeneration) {
+                        if (generation < generationState.longValue) {
                             return@Runnable
                         }
-                        atlasImage = image
-                        materializedGeneration = generation
+                        atlasState.value = image
+                        generationState.longValue = generation
                         if (pendingGeneration == generation) {
                             pendingGeneration = -1L
                         }

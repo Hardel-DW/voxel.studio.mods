@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import fr.hardel.asset_editor.client.compose.PageEnterAnimation
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -80,9 +82,22 @@ fun ConceptLayout(
                 actions = config.headerActions
             )
 
-            config.pageFactory(destination)
+            // key(destination) forces the subtree to remount when the user navigates so
+            // PageEnterAnimation replays its fade/translate on every overview/tab change.
+            key(destinationAnimationKey(destination)) {
+                PageEnterAnimation {
+                    config.pageFactory(destination)
+                }
+            }
         }
     }
+}
+
+private fun destinationAnimationKey(destination: StudioDestination): String = when (destination) {
+    is ConceptOverviewDestination -> "overview:${destination.conceptId}"
+    is ConceptSimulationDestination -> "simulation:${destination.conceptId}"
+    is ElementEditorDestination -> "element:${destination.conceptId}:${destination.tabId}:${destination.elementId}"
+    else -> "other"
 }
 
 private fun StudioDestination.conceptIdOrNull(): Identifier? =

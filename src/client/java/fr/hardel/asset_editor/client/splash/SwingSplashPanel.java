@@ -18,6 +18,8 @@ import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
@@ -26,7 +28,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,47 +38,28 @@ import javax.swing.Timer;
 public final class SwingSplashPanel extends JPanel {
 
     public interface Actions {
-        void minimize();
-
-        void maximize();
-
-        void close();
-
         void openHelp();
-
         void openGithub();
-
-        void dragStart();
-
-        void dragMove();
-
-        void dragEnd();
-
-        void dragDoubleClick();
+        void userAdvance();
     }
 
     private enum HoverTarget {
-        MINIMIZE, MAXIMIZE, CLOSE, HELP, GITHUB
+        HELP, GITHUB
     }
 
     private static final class Dim {
-        static final int TITLE_BAR_HEIGHT = 32;
         static final int FRAME_PAD_TOP = 48;
         static final int FRAME_PAD_SIDE = 24;
         static final int FRAME_PAD_BOTTOM = 24;
         static final int FRAME_INNER_PAD = 16;
         static final int GRID_CELL = 64;
         static final int CORNER_SIZE = 16;
-        static final int WINDOW_CTRL_WIDTH = 36;
         static final int LOADING_BOTTOM_OFFSET = 80;
         static final int DOT_SIZE = 4;
         static final int DOT_GAP = 4;
         static final int LOGO_SIZE = 96;
-        static final int TITLE_BAR_LOGO_SIZE = 16;
-        static final int WINDOW_ICON_SIZE = 12;
         static final int GITHUB_ICON_SIZE = 16;
         static final int TITLE_SIZE = 36;
-        static final int TITLE_BAR_TEXT_SIZE = 12;
         static final int SMALL_TEXT_SIZE = 10;
         static final int SUBTITLE_SIZE = 12;
 
@@ -92,11 +74,9 @@ public final class SwingSplashPanel extends JPanel {
         static final Color DOT_1 = new Color(0x71717A);
         static final Color DOT_2 = new Color(0x52525B);
         static final Color DOT_3 = new Color(0x3F3F46);
-        static final Color ZINC_200 = new Color(0xE4E4E7);
         static final Color ZINC_400 = new Color(0xA1A1AA);
         static final Color ZINC_500 = new Color(0x71717A);
         static final Color ZINC_600 = new Color(0x52525B);
-        static final Color RED_400 = new Color(0xF87171);
         static final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
         private Palette() {}
@@ -106,15 +86,12 @@ public final class SwingSplashPanel extends JPanel {
     private static final long PULSE_PERIOD_MS = 3000L;
     private static final float PULSE_MIN = 0.3f;
 
-    private final Map<HoverTarget, SvgShape> windowIcons;
     private final SvgShape logoShape;
     private final SvgShape githubShape;
     private final Font titleFont;
-    private final Font titleBarFont;
     private final Font subtitleFont;
     private final Font monoSmallTracked;
 
-    private final String appTitle;
     private final String splashTitle;
     private final String splashSubtitle;
     private final String splashLoading;
@@ -126,7 +103,6 @@ public final class SwingSplashPanel extends JPanel {
     private final long animStart;
     private final List<HitRegion> hitRegions = new ArrayList<>();
 
-    private Rectangle titleBarDragRegion = new Rectangle();
     private HoverTarget hoverTarget;
 
     public SwingSplashPanel(Actions actions) {
@@ -138,17 +114,11 @@ public final class SwingSplashPanel extends JPanel {
 
         logoShape = SplashAssets.shape(SplashAssets.ICON_LOGO);
         githubShape = SplashAssets.shape(SplashAssets.ICON_GITHUB);
-        windowIcons = new EnumMap<>(HoverTarget.class);
-        windowIcons.put(HoverTarget.MINIMIZE, SplashAssets.shape(SplashAssets.ICON_MINIMIZE));
-        windowIcons.put(HoverTarget.MAXIMIZE, SplashAssets.shape(SplashAssets.ICON_MAXIMIZE));
-        windowIcons.put(HoverTarget.CLOSE, SplashAssets.shape(SplashAssets.ICON_CLOSE));
 
         titleFont = SplashAssets.font(SplashAssets.FONT_EXTRABOLD).deriveFont((float) Dim.TITLE_SIZE);
-        titleBarFont = SplashAssets.font(SplashAssets.FONT_MEDIUM).deriveFont((float) Dim.TITLE_BAR_TEXT_SIZE);
         subtitleFont = withTracking(SplashAssets.font(SplashAssets.FONT_MEDIUM).deriveFont((float) Dim.SUBTITLE_SIZE), 0.3f);
         monoSmallTracked = withTracking(new Font(Font.MONOSPACED, Font.PLAIN, Dim.SMALL_TEXT_SIZE), 0.1f);
 
-        appTitle = I18n.get("app:title");
         splashTitle = I18n.get("splash:title");
         splashSubtitle = I18n.get("splash:subtitle").toUpperCase(Locale.ROOT);
         splashLoading = I18n.get("splash:loading").toUpperCase(Locale.ROOT);
@@ -161,26 +131,24 @@ public final class SwingSplashPanel extends JPanel {
         MouseAdapter mouse = new SplashMouseHandler();
         addMouseListener(mouse);
         addMouseMotionListener(mouse);
+
+        setFocusable(true);
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                actions.userAdvance();
+            }
+        });
     }
 
     public void startAnimation() {
         if (!animationTimer.isRunning())
             animationTimer.start();
+        requestFocusInWindow();
     }
 
     public void stopAnimation() {
         animationTimer.stop();
-    }
-
-    /**
-     * Window-caption hit-test for native chrome integration. Must be lock-free and side-effect free:
-     * invoked from the AWT-Windows thread (outside the EDT) when FlatLaf's WM_NCHITTEST handler
-     * needs to know whether a point is a draggable caption area.
-     */
-    public boolean isCaptionAt(int x, int y) {
-        if (y < 0 || y >= Dim.TITLE_BAR_HEIGHT) return false;
-        int controlsStart = getWidth() - 3 * Dim.WINDOW_CTRL_WIDTH;
-        return x >= 0 && x < controlsStart;
     }
 
     @Override
@@ -213,7 +181,6 @@ public final class SwingSplashPanel extends JPanel {
         paintDashedFrame(g2, frame);
         paintCorners(g2, frame);
         paintFrameStrips(g2, frame);
-        paintTitleBar(g2, w);
 
         g2.dispose();
     }
@@ -370,7 +337,7 @@ public final class SwingSplashPanel extends JPanel {
     }
 
     private void paintFrameTop(Graphics2D g, int x, int y, int width) {
-        int dotY = y + (Dim.TITLE_BAR_TEXT_SIZE - Dim.DOT_SIZE) / 2 + 2;
+        int dotY = y + (Dim.SUBTITLE_SIZE - Dim.DOT_SIZE) / 2 + 2;
         drawDot(g, x, dotY, Palette.DOT_1);
         drawDot(g, x + Dim.DOT_SIZE + Dim.DOT_GAP, dotY, Palette.DOT_2);
         drawDot(g, x + 2 * (Dim.DOT_SIZE + Dim.DOT_GAP), dotY, Palette.DOT_3);
@@ -403,36 +370,6 @@ public final class SwingSplashPanel extends JPanel {
     private void drawDot(Graphics2D g, int x, int y, Color color) {
         g.setColor(color);
         g.fillRect(x, y, Dim.DOT_SIZE, Dim.DOT_SIZE);
-    }
-
-    private void paintTitleBar(Graphics2D g, int w) {
-        int logoX = 12;
-        int logoY = (Dim.TITLE_BAR_HEIGHT - Dim.TITLE_BAR_LOGO_SIZE) / 2;
-        paintSvg(g, logoShape, logoX, logoY, Dim.TITLE_BAR_LOGO_SIZE, Color.WHITE, 1f);
-
-        int titleX = logoX + Dim.TITLE_BAR_LOGO_SIZE + 8;
-        g.setFont(titleBarFont);
-        FontMetrics m = g.getFontMetrics(titleBarFont);
-        int baseline = (Dim.TITLE_BAR_HEIGHT - m.getHeight()) / 2 + m.getAscent();
-        g.setColor(Palette.ZINC_400);
-        g.drawString(appTitle, titleX, baseline);
-
-        int controlsStart = w - 3 * Dim.WINDOW_CTRL_WIDTH;
-        titleBarDragRegion = new Rectangle(0, 0, controlsStart, Dim.TITLE_BAR_HEIGHT);
-
-        paintWindowControl(g, controlsStart, HoverTarget.MINIMIZE, Palette.ZINC_200);
-        paintWindowControl(g, controlsStart + Dim.WINDOW_CTRL_WIDTH, HoverTarget.MAXIMIZE, Palette.ZINC_200);
-        paintWindowControl(g, controlsStart + 2 * Dim.WINDOW_CTRL_WIDTH, HoverTarget.CLOSE, Palette.RED_400);
-    }
-
-    private void paintWindowControl(Graphics2D g, int x, HoverTarget target, Color hoverTint) {
-        Rectangle bounds = new Rectangle(x, 0, Dim.WINDOW_CTRL_WIDTH, Dim.TITLE_BAR_HEIGHT);
-        registerHit(target, bounds);
-
-        Color tint = hoverTarget == target ? hoverTint : Palette.ZINC_500;
-        int iconX = x + (Dim.WINDOW_CTRL_WIDTH - Dim.WINDOW_ICON_SIZE) / 2;
-        int iconY = (Dim.TITLE_BAR_HEIGHT - Dim.WINDOW_ICON_SIZE) / 2;
-        paintSvg(g, windowIcons.get(target), iconX, iconY, Dim.WINDOW_ICON_SIZE, tint, 1f);
     }
 
     private void paintSvg(Graphics2D g, SvgShape shape, int x, int y, int size, Color color, float alpha) {
@@ -473,41 +410,22 @@ public final class SwingSplashPanel extends JPanel {
 
     private final class SplashMouseHandler extends MouseAdapter {
 
-        private boolean dragging;
         private HoverTarget pressedTarget;
 
         @Override
         public void mousePressed(MouseEvent e) {
             pressedTarget = hitTest(e.getX(), e.getY());
-            if (pressedTarget == null && titleBarDragRegion.contains(e.getPoint())) {
-                actions.dragStart();
-                dragging = true;
-            }
-        }
-
-        @Override
-        public void mouseDragged(MouseEvent e) {
-            if (dragging) actions.dragMove();
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (dragging) {
-                actions.dragEnd();
-                dragging = false;
-            }
-
             HoverTarget target = hitTest(e.getX(), e.getY());
-            if (target != null && target == pressedTarget) dispatch(target);
-            pressedTarget = null;
-        }
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() == 2 && hitTest(e.getX(), e.getY()) == null
-                && titleBarDragRegion.contains(e.getPoint())) {
-                actions.dragDoubleClick();
+            if (target != null && target == pressedTarget) {
+                dispatch(target);
+            } else if (target == null && pressedTarget == null) {
+                actions.userAdvance();
             }
+            pressedTarget = null;
         }
 
         @Override
@@ -531,9 +449,6 @@ public final class SwingSplashPanel extends JPanel {
 
         private void dispatch(HoverTarget target) {
             switch (target) {
-                case MINIMIZE -> actions.minimize();
-                case MAXIMIZE -> actions.maximize();
-                case CLOSE -> actions.close();
                 case HELP -> actions.openHelp();
                 case GITHUB -> actions.openGithub();
             }

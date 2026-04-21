@@ -35,3 +35,4 @@ Important: if you need knowledge, search in the directory:
 - You can use Minecraft/Mixins registries and codecs and everything.
 - AssetEditorClient and AssetEditor must contains "register" methods.
 - AssetEditor Contains MOD_ID, use it instead of hardcoding string.
+- At the end use "./gradlew build". do it only to obtain errors, it is not useful to do it all the time. Run Client, build automatically.

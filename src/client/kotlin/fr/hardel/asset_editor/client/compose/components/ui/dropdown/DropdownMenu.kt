@@ -29,10 +29,10 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
-import fr.hardel.asset_editor.DevFlags
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 
 // ── Root ─────────────────────────────────────────────────────────────────────
 
@@ -104,7 +104,6 @@ fun DropdownMenuContent(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val gapPx = with(density) { sideOffset.roundToPx() }
-    val triggerWidthDp = with(density) { state.triggerWidthPx.toDp() }
     val openSubMenu = remember { mutableStateOf<DropdownSubMenuState?>(null) }
     val tracker = remember { SafeTriangleTracker() }
     var contentCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
@@ -133,10 +132,11 @@ fun DropdownMenuContent(
         onDismissRequest = { state.close() },
         properties = PopupProperties(focusable = true)
     ) {
+        val debugTriangle = ClientMemoryHolder.settings().snapshot().showHoverTriangle
         Box(
             modifier = modifier
                 .then(
-                    if (matchTriggerWidth) Modifier.width(triggerWidthDp)
+                    if (matchTriggerWidth) Modifier.width(with(density) { state.triggerWidthPx.toDp() })
                     else Modifier.widthIn(min = minWidth).width(IntrinsicSize.Max)
                 )
                 .graphicsLayer {
@@ -146,14 +146,6 @@ fun DropdownMenuContent(
                     scaleY = 0.95f + 0.05f * p
                     transformOrigin = TransformOrigin(0f, originY)
                 }
-                .shadow(
-                    8.dp, contentShape,
-                    ambientColor = Color.Black.copy(alpha = 0.3f),
-                    spotColor = Color.Black.copy(alpha = 0.3f)
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
-                .background(StudioColors.Zinc900, contentShape)
-                .clip(contentShape)
                 .onGloballyPositioned { contentCoords = it }
                 .pointerInput(tracker) {
                     awaitPointerEventScope {
@@ -167,8 +159,17 @@ fun DropdownMenuContent(
                 }
                 .drawWithContent {
                     drawContent()
-                    if (DevFlags.SHOW_HOVER_TRIANGLE) drawSafeTriangle(tracker, contentCoords)
+                    if (debugTriangle) drawSafeTriangle(tracker, contentCoords)
                 }
+                .then(if (debugTriangle) Modifier.padding(horizontal = 4.dp) else Modifier)
+                .shadow(
+                    8.dp, contentShape,
+                    ambientColor = Color.Black.copy(alpha = 0.3f),
+                    spotColor = Color.Black.copy(alpha = 0.3f)
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
+                .background(StudioColors.Zinc900, contentShape)
+                .clip(contentShape)
                 .padding(4.dp)
         ) {
             CompositionLocalProvider(
@@ -526,6 +527,7 @@ fun DropdownMenuSubContent(
         popupPositionProvider = positionProvider,
         properties = PopupProperties(focusable = false)
     ) {
+        val debugTriangle = ClientMemoryHolder.settings().snapshot().showHoverTriangle
         Box(
             modifier = modifier
                 .widthIn(min = minWidth)
@@ -537,23 +539,7 @@ fun DropdownMenuSubContent(
                     scaleY = 0.95f + 0.05f * p
                     transformOrigin = TransformOrigin(0f, 0f)
                 }
-                .shadow(
-                    12.dp, contentShape,
-                    ambientColor = Color.Black.copy(alpha = 0.3f),
-                    spotColor = Color.Black.copy(alpha = 0.3f)
-                )
-                .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
-                .background(StudioColors.Zinc900, contentShape)
-                .clip(contentShape)
-                .onGloballyPositioned { lc ->
-                    boxCoords = lc
-                    val tl = lc.localToWindow(Offset.Zero)
-                    val sz = lc.size
-                    parentTracker?.onSubMenuBounds(
-                        Rect(tl.x, tl.y, tl.x + sz.width, tl.y + sz.height),
-                        subState
-                    )
-                }
+                .onGloballyPositioned { boxCoords = it }
                 .pointerInput(tracker) {
                     awaitPointerEventScope {
                         while (true) {
@@ -566,10 +552,24 @@ fun DropdownMenuSubContent(
                 }
                 .drawWithContent {
                     drawContent()
-                    if (DevFlags.SHOW_HOVER_TRIANGLE) {
-                        drawSafeTriangle(tracker, boxCoords)
-                        parentTracker?.let { drawSafeTriangle(it, boxCoords) }
-                    }
+                    if (debugTriangle) drawSafeTriangle(tracker, boxCoords)
+                }
+                .then(if (debugTriangle) Modifier.padding(horizontal = 4.dp) else Modifier)
+                .shadow(
+                    12.dp, contentShape,
+                    ambientColor = Color.Black.copy(alpha = 0.3f),
+                    spotColor = Color.Black.copy(alpha = 0.3f)
+                )
+                .border(1.dp, Color.White.copy(alpha = 0.10f), contentShape)
+                .background(StudioColors.Zinc900, contentShape)
+                .clip(contentShape)
+                .onGloballyPositioned { lc ->
+                    val tl = lc.localToWindow(Offset.Zero)
+                    val sz = lc.size
+                    parentTracker?.onSubMenuBounds(
+                        Rect(tl.x, tl.y, tl.x + sz.width, tl.y + sz.height),
+                        subState
+                    )
                 }
                 .padding(4.dp)
                 .hoverable(interactionSource)

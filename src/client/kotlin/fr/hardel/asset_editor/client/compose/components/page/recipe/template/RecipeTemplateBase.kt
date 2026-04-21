@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset
+import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import net.minecraft.resources.Identifier
 
@@ -47,10 +47,8 @@ fun RecipeTemplateBase(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(48.dp)
         ) {
-            RecipeGuiAsset(
+            ResourceImageIcon(
                 location = PROGRESS_LOCATION,
-                width = 24,
-                height = 16,
                 size = 32.dp
             )
         }

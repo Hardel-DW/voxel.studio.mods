@@ -7,12 +7,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
+
+    public static final String CATEGORY = "category";
 
     private static final Identifier SERIALIZER_ID = Identifier.withDefaultNamespace("crafting_shaped");
     private static final char[] SYMBOLS = "ABCDEFGHI".toCharArray();
@@ -76,6 +79,28 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     }
 
     @Override
+    protected Map<String, Object> extractProperties(ShapedRecipe recipe) {
+        var props = super.extractProperties(recipe);
+        props.put(CATEGORY, recipe.category().getSerializedName());
+        return props;
+    }
+
+    @Override
+    protected ShapedRecipe doSetProperty(ShapedRecipe recipe, String key, Object value) {
+        return switch (key) {
+            case GROUP -> copyOf(recipe, (String) value, recipe.category(), recipe.result.copy(), recipe.showNotification());
+            case CATEGORY -> {
+                var cat = Arrays.stream(CraftingBookCategory.values())
+                    .filter(c -> c.getSerializedName().equals(value))
+                    .findFirst().orElse(null);
+                yield cat != null ? copyOf(recipe, recipe.group(), cat, recipe.result.copy(), recipe.showNotification()) : null;
+            }
+            case SHOW_NOTIFICATION -> copyOf(recipe, recipe.group(), recipe.category(), recipe.result.copy(), (boolean) value);
+            default -> null;
+        };
+    }
+
+    @Override
     protected ShapedRecipe doSetResultCount(ShapedRecipe recipe, int count) {
         List<Optional<Ingredient>> ingredients = doExtractIngredients(recipe);
         BoundingBox box = computeBoundingBox(ingredients);
@@ -103,36 +128,6 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     @Override
     public boolean supportsResultCount() {
         return true;
-    }
-
-    @Override
-    public boolean supportsGroup() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsCraftingCategory() {
-        return true;
-    }
-
-    @Override
-    public boolean supportsShowNotification() {
-        return true;
-    }
-
-    @Override
-    protected ShapedRecipe doSetGroup(ShapedRecipe recipe, String group) {
-        return copyOf(recipe, group, recipe.category(), recipe.result.copy(), recipe.showNotification());
-    }
-
-    @Override
-    protected ShapedRecipe doSetCraftingCategory(ShapedRecipe recipe, CraftingBookCategory category) {
-        return copyOf(recipe, recipe.group(), category, recipe.result.copy(), recipe.showNotification());
-    }
-
-    @Override
-    protected ShapedRecipe doSetShowNotification(ShapedRecipe recipe, boolean value) {
-        return copyOf(recipe, recipe.group(), recipe.category(), recipe.result.copy(), value);
     }
 
     @Override

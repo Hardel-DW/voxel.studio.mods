@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,7 +36,8 @@ fun <T> DataTable(
     onToggleExpand: ((Long) -> Unit)? = null,
     expandContent: (@Composable (T) -> Unit)? = null,
     selectedIds: Set<Long> = emptySet(),
-    onSelectionChange: ((Set<Long>) -> Unit)? = null
+    onSelectionChange: ((Set<Long>) -> Unit)? = null,
+    lazy: Boolean = false
 ) {
     val rowBoundsById = remember { mutableStateMapOf<Long, DataTableRowBounds>() }
     val selectionMode = selectedIds.isNotEmpty()
@@ -53,10 +56,22 @@ fun <T> DataTable(
     Column(modifier = modifier.fillMaxWidth()) {
         DataTableHeader(columns, showCheckboxColumn = selectionMode)
 
-        if (items.isEmpty()) {
-            EmptyPlaceholder(placeholder)
-        } else {
-            DataTableBody(
+        when {
+            items.isEmpty() -> EmptyPlaceholder(placeholder)
+            lazy -> LazyDataTableBody(
+                modifier = Modifier.weight(1f),
+                visibleItems = visibleItems,
+                columns = columns,
+                rowIds = rowIds,
+                rowBoundsById = rowBoundsById,
+                selectionMode = selectionMode,
+                selectedIds = selectedIds,
+                onSelectionChange = onSelectionChange,
+                expandedIds = expandedIds,
+                onToggleExpand = onToggleExpand,
+                expandContent = expandContent
+            )
+            else -> ScrollableDataTableBody(
                 visibleItems = visibleItems,
                 columns = columns,
                 rowIds = rowIds,
@@ -81,8 +96,54 @@ fun <T> DataTable(
     }
 }
 
+private val BODY_SHAPE = RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp)
+
 @Composable
-private fun <T> DataTableBody(
+private fun <T> LazyDataTableBody(
+    modifier: Modifier,
+    visibleItems: List<T>,
+    columns: List<TableColumn<T>>,
+    rowIds: List<Long>,
+    rowBoundsById: MutableMap<Long, DataTableRowBounds>,
+    selectionMode: Boolean,
+    selectedIds: Set<Long>,
+    onSelectionChange: ((Set<Long>) -> Unit)?,
+    expandedIds: Set<Long>,
+    onToggleExpand: ((Long) -> Unit)?,
+    expandContent: (@Composable (T) -> Unit)?
+) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(BODY_SHAPE)
+            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), BODY_SHAPE)
+    ) {
+        itemsIndexed(visibleItems, key = { index, _ -> rowIds[index] }) { index, item ->
+            val rowId = rowIds[index]
+            DataTableRow(
+                item = item,
+                index = index,
+                columns = columns,
+                rowId = rowId,
+                allRowIds = rowIds,
+                rowBoundsById = rowBoundsById,
+                isEven = index % 2 == 0,
+                isSelected = selectedIds.contains(rowId),
+                isExpanded = expandedIds.contains(rowId),
+                selectionMode = selectionMode,
+                selectable = onSelectionChange != null,
+                selectedIds = selectedIds,
+                onSelectionChange = onSelectionChange,
+                onToggleExpand = onToggleExpand,
+                onRowBoundsChange = { bounds -> rowBoundsById[rowId] = bounds },
+                expandContent = expandContent
+            )
+        }
+    }
+}
+
+@Composable
+private fun <T> ScrollableDataTableBody(
     visibleItems: List<T>,
     columns: List<TableColumn<T>>,
     rowIds: List<Long>,
@@ -97,8 +158,8 @@ private fun <T> DataTableBody(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
-            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), RoundedCornerShape(bottomStart = 8.dp, bottomEnd = 8.dp))
+            .clip(BODY_SHAPE)
+            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.5f), BODY_SHAPE)
             .verticalScroll(rememberScrollState())
     ) {
         visibleItems.forEachIndexed { index, item ->

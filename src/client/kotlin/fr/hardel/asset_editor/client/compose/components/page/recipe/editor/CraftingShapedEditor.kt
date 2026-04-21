@@ -1,86 +1,143 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCategoryOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeGroupOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeShowNotificationOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotAddAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
+import fr.hardel.asset_editor.client.compose.components.ui.AnimatedTabs
+import net.minecraft.client.resources.language.I18n
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeInventory
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionCard
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionHeader
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSelector
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeAdvancedOptions
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCategoryOption
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeGroupOption
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeShowNotificationOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.CraftingTemplate
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.ShapedRecipeAdapter
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction
 import net.minecraft.world.item.crafting.CraftingBookCategory
-import net.minecraft.world.item.crafting.ShapedRecipe
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun CraftingShapedEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
-    val recipe = state.recipe as? ShapedRecipe
+fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) {
+    val s = state.editor
 
-    RecipeSection(
-        selection = state.selection,
-        recipeCounts = state.recipeCounts,
-        onSelectionChange = state.onSelectionChange,
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(32.dp),
+        verticalAlignment = Alignment.Top,
         modifier = modifier
+            .fillMaxSize()
+            .onPointerEvent(PointerEventType.Release) { state.onPaintReset() }
     ) {
-        CraftingTemplate(
-            slots = state.model.slots,
-            resultItemId = state.model.resultItemId,
-            resultCount = state.model.resultCount,
-            interactive = true,
-            onSlotPointerDown = { slot, button ->
-                slotPointerDownAction(slot, button, state.selectedItemId)?.let(state.onAction)
-            },
-            onSlotPointerEnter = { slot ->
-                when (state.paintMode) {
-                    PaintMode.PAINTING -> slotAddAction(slot, state.selectedItemId)?.let(state.onAction)
-                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
-                    PaintMode.NONE -> {}
-                }
-            },
-            onResultPointerDown = { button ->
-                if (button == PointerButton.Primary) {
-                    state.onResultItemChange()
-                }
-            },
-            onResultPointerEnter = {
-                if (state.paintMode == PaintMode.PAINTING) {
-                    state.onResultItemChange()
-                }
-            }
-        )
-
-        RecipeCountOption(state)
-
-        recipe?.let {
-            EditorCard {
-                RecipeGroupOption(
-                    value = it.group(),
-                    onValueChange = { value -> state.onAction(SetGroupAction(value)) }
+        RecipeSectionCard(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                RecipeSectionHeader(modifier = Modifier.weight(1f))
+                AnimatedTabs(
+                    options = linkedMapOf(
+                        "minecraft:crafting_shaped" to I18n.get("recipe:crafting.crafting_shaped.name"),
+                        "minecraft:crafting_shapeless" to I18n.get("recipe:crafting.crafting_shapeless.name")
+                    ),
+                    selectedValue = s.model.type,
+                    onValueChange = state.onSelectionChange
+                )
+                RecipeSelector(
+                    value = s.model.type,
+                    onChange = state.onSelectionChange,
+                    recipeCounts = state.recipeCounts,
+                    selectMode = true
                 )
             }
 
-            EditorCard {
-                RecipeCategoryOption(
-                    value = it.category().serializedName,
-                    options = CraftingBookCategory.entries.map { category -> category.serializedName },
-                    onValueChange = { value -> state.onAction(SetCategoryAction(value)) }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                CraftingTemplate(
+                    slots = s.model.slots,
+                    resultItemId = s.model.resultItemId,
+                    resultCount = s.model.resultCount,
+                    interactive = true,
+                    onSlotPointerDown = { slot, button ->
+                        slotPointerDownAction(slot, button, s.selectedItemId)?.let(s.onAction)
+                    },
+                    onSlotPointerEnter = { slot ->
+                        when (s.paintMode) {
+                            PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
+                            PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
+                            PaintMode.NONE -> {}
+                        }
+                    },
+                    onResultPointerDown = { button ->
+                        if (button == PointerButton.Primary) s.onResultItemChange()
+                    },
+                    onResultPointerEnter = {
+                        if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
+                    }
                 )
-            }
 
-            EditorCard {
-                RecipeShowNotificationOption(
-                    value = it.showNotification(),
-                    onValueChange = { value -> state.onAction(SetShowNotificationAction(value)) }
-                )
+                RecipeCountOption(s)
+
+                RecipeAdvancedOptions {
+                    EditorCard {
+                        RecipeGroupOption(
+                            value = s.model.property<String>(ShapedRecipeAdapter.GROUP) ?: "",
+                            onValueChange = { value -> s.onAction(SetGroupAction(value)) }
+                        )
+                    }
+                    s.model.property<String>(ShapedRecipeAdapter.CATEGORY)?.let { category ->
+                        EditorCard {
+                            RecipeCategoryOption(
+                                value = category,
+                                options = CraftingBookCategory.entries.map { it.serializedName },
+                                onValueChange = { value -> s.onAction(SetCategoryAction(value)) }
+                            )
+                        }
+                    }
+                    s.model.property<Boolean>(ShapedRecipeAdapter.SHOW_NOTIFICATION)?.let { showNotification ->
+                        EditorCard {
+                            RecipeShowNotificationOption(
+                                value = showNotification,
+                                onValueChange = { value -> s.onAction(SetShowNotificationAction(value)) }
+                            )
+                        }
+                    }
+                }
             }
         }
+
+        RecipeInventory(
+            context = state.context,
+            search = state.search,
+            onSearchChange = state.onSearchChange,
+            selectedItemId = s.selectedItemId,
+            onSelectItem = state.onSelectItem,
+            modifier = Modifier.weight(1f).fillMaxHeight()
+        )
     }
 }

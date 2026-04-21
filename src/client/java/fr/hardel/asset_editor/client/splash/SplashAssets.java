@@ -24,9 +24,6 @@ public final class SplashAssets {
 
     static final String ICON_LOGO = "logo.svg";
     static final String ICON_GITHUB = "company/github.svg";
-    static final String ICON_MINIMIZE = "window/minimize.svg";
-    static final String ICON_MAXIMIZE = "window/maximize.svg";
-    static final String ICON_CLOSE = "window/close.svg";
 
     static final String FONT_EXTRABOLD = "rubik-extrabold.ttf";
     static final String FONT_MEDIUM = "rubik-medium.ttf";
@@ -79,9 +76,6 @@ public final class SplashAssets {
     private static void preload() {
         shape(ICON_LOGO);
         shape(ICON_GITHUB);
-        shape(ICON_MINIMIZE);
-        shape(ICON_MAXIMIZE);
-        shape(ICON_CLOSE);
         font(FONT_EXTRABOLD);
         font(FONT_MEDIUM);
     }

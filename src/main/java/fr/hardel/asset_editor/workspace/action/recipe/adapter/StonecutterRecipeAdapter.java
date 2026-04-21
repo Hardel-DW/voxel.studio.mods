@@ -41,6 +41,14 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     }
 
     @Override
+    protected StonecutterRecipe doSetProperty(StonecutterRecipe recipe, String key, Object value) {
+        return switch (key) {
+            case GROUP -> new StonecutterRecipe((String) value, recipe.input(), recipe.result().copy());
+            default -> null;
+        };
+    }
+
+    @Override
     protected StonecutterRecipe doSetResultCount(StonecutterRecipe recipe, int count) {
         return new StonecutterRecipe(recipe.group(), recipe.input(), recipe.result().copyWithCount(count));
     }
@@ -53,16 +61,6 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     @Override
     public boolean supportsResultCount() {
         return true;
-    }
-
-    @Override
-    public boolean supportsGroup() {
-        return true;
-    }
-
-    @Override
-    protected StonecutterRecipe doSetGroup(StonecutterRecipe recipe, String group) {
-        return new StonecutterRecipe(group, recipe.input(), recipe.result().copy());
     }
 
     @Override

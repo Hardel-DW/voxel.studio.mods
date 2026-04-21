@@ -1,20 +1,20 @@
 package fr.hardel.asset_editor.client.compose.routes.recipe
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeInventory
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.PaintMode
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorDispatch
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.placeholderRecipeVisual
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.FallbackEditor
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorRegistry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipeEditorState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.placeholderRecipeVisual
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntries
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
@@ -37,8 +37,9 @@ fun RecipeMainPage(context: StudioContext) {
     val dialogs = rememberRegistryDialogState()
     val fallback = remember { placeholderRecipeVisual("minecraft:crafting_shaped") }
 
-    val model = runtimeEntry?.visual ?: fallback
     val recipe = workspaceEntry?.data
+    val properties = recipe?.let(RecipeAdapterRegistry::extractProperties) ?: emptyMap()
+    val model = (runtimeEntry?.visual ?: fallback).copy(properties = properties)
     val resultItemEditable = recipe?.let(RecipeAdapterRegistry::supportsResultItem) == true
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
@@ -59,32 +60,30 @@ fun RecipeMainPage(context: StudioContext) {
         counts
     }
 
+    val onSelectionChange: (String) -> Unit = { newSelection ->
+        val nextType = if (newSelection == "minecraft:barrier") {
+            RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
+        } else if (!RecipeTreeData.isEntryId(newSelection)) {
+            newSelection
+        } else {
+            RecipeTreeData.getEntryConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
+        }
+
+        if (nextType != model.type && targetId != null && workspaceEntry != null) {
+            context.dispatchRegistryAction(
+                workspace = ClientWorkspaceRegistries.RECIPE,
+                target = targetId,
+                action = ConvertRecipeTypeAction(Identifier.parse(nextType), true),
+                dialogs = dialogs
+            )
+        }
+    }
+
     val editorState = RecipeEditorState(
         model = model,
-        recipe = recipe,
-        selection = model.type,
-        recipeCounts = recipeCounts,
         selectedItemId = selectedItemId,
         paintMode = paintMode,
         resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,
-        onSelectionChange = { newSelection ->
-            val nextType = if (newSelection == "minecraft:barrier") {
-                RecipeTreeData.getAllRecipeTypes().firstOrNull() ?: model.type
-            } else if (!RecipeTreeData.isEntryId(newSelection)) {
-                newSelection
-            } else {
-                RecipeTreeData.getEntryConfig(newSelection)?.recipeTypes?.firstOrNull()?.toString() ?: model.type
-            }
-
-            if (nextType != model.type && targetId != null && workspaceEntry != null) {
-                context.dispatchRegistryAction(
-                    workspace = ClientWorkspaceRegistries.RECIPE,
-                    target = targetId,
-                    action = ConvertRecipeTypeAction(Identifier.parse(nextType), true),
-                    dialogs = dialogs
-                )
-            }
-        },
         onResultCountChange = { value ->
             if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeEditorState
             context.dispatchRegistryAction(
@@ -121,35 +120,20 @@ fun RecipeMainPage(context: StudioContext) {
         }
     )
 
-    @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-            .onPointerEvent(PointerEventType.Release) { paintMode = PaintMode.NONE }
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            RecipeEditorDispatch(
-                state = editorState,
-                modifier = Modifier.weight(1f)
-            )
+    val pageState = RecipePageState(
+        editor = editorState,
+        context = context,
+        recipeCounts = recipeCounts,
+        onSelectionChange = onSelectionChange,
+        search = search,
+        onSearchChange = { },
+        onSelectItem = { itemId -> selectedItemId = if (selectedItemId == itemId) null else itemId },
+        onPaintReset = { paintMode = PaintMode.NONE }
+    )
 
-            RecipeInventory(
-                context = context,
-                search = search,
-                onSearchChange = { search = it },
-                selectedItemId = selectedItemId,
-                onSelectItem = { itemId -> selectedItemId = if (selectedItemId == itemId) null else itemId },
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            )
-        }
-
+    Box(modifier = Modifier.fillMaxSize().padding(32.dp)) {
+        val editor = RecipeEditorRegistry.get(pageState.editor.model.type) ?: { s, m -> FallbackEditor(s, m) }
+        editor(pageState, Modifier.fillMaxSize())
         RegistryPageDialogs(context, dialogs)
     }
 }

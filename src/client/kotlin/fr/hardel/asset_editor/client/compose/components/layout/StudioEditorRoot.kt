@@ -23,20 +23,15 @@ private val contentShape = RoundedCornerShape(topStart = 24.dp)
 
 @Composable
 fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
-    // div: flex h-dvh w-full overflow-hidden bg-sidebar
     Row(modifier = modifier.fillMaxSize().background(StudioColors.Sidebar)) {
-        // aside: shrink-0 w-16 flex flex-col
         StudioPrimarySidebar(
             context = context,
             modifier = Modifier.width(64.dp).fillMaxHeight()
         )
 
-        // div: flex-1 flex flex-col min-w-0
         Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            // header: shrink-0 h-12 select-none flex items-center gap-4 pl-4
             StudioEditorTabsBar(context = context)
 
-            // main: flex-1 relative min-h-0 h-full bg-content overflow-hidden border-t border-l border-zinc-900 rounded-tl-3xl
             Box(
                 modifier = Modifier
                     .weight(1f)

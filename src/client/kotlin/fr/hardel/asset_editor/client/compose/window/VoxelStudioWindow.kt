@@ -2,48 +2,45 @@ package fr.hardel.asset_editor.client.compose.window
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableLongState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
-import androidx.compose.ui.composed
+import androidx.compose.ui.awt.RenderSettings
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.AwaitPointerEventScope
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalFocusManager
-import fr.hardel.asset_editor.DevFlags
+import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.layout.StudioEditorRoot
+import fr.hardel.asset_editor.client.compose.components.ui.FpsCounter
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
+import fr.hardel.asset_editor.client.compose.lib.selectAsFlow
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
-import fr.hardel.asset_editor.client.compose.window.chrome.NativeWindowChrome
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
 import fr.hardel.asset_editor.client.memory.core.Subscription
 import fr.hardel.asset_editor.client.splash.SwingSplashPanel
 import java.awt.CardLayout
-import java.awt.Rectangle
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import net.minecraft.client.resources.language.I18n
 
-private const val DOUBLE_CLICK_THRESHOLD_NANOS = 300_000_000L
-
-object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
+object VoxelStudioWindow : StageWindow(680, 440, java.awt.Color(0x101011)) {
 
     private const val HELP_URL = "https://github.com"
     private const val GITHUB_URL = "https://github.com"
@@ -53,7 +50,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private enum class Stage { SPLASH, EDITOR }
 
     private var stage = Stage.SPLASH
-    private var composeReady = false
+    private var splashUserAdvanced = false
     private var editorVersion by mutableIntStateOf(0)
 
     private var splashPanel: SwingSplashPanel? = null
@@ -63,10 +60,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private var activeContext: StudioContext? = null
     private var permissionSubscription: Subscription? = null
 
-    internal val windowChrome: NativeWindowChrome get() = chrome
-
     @JvmStatic
-    fun initialize() = MinecraftStageWindow.initializeRuntime()
+    fun initialize() = initializeRuntime()
 
     @JvmStatic
     fun requestOpen() = open()
@@ -75,13 +70,7 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     fun isUiThreadAvailable(): Boolean = isPlatformReady()
 
     @JvmStatic
-    fun requestToggleMaximize() = SwingUtilities.invokeLater(::toggleMaximize)
-
-    @JvmStatic
-    fun requestMinimize() = SwingUtilities.invokeLater(::minimizeWindow)
-
-    @JvmStatic
-    fun requestClose() = SwingUtilities.invokeLater(::closeWindow)
+    fun requestClose() = SwingUtilities.invokeLater { frame?.isVisible = false }
 
     @JvmStatic
     fun notifyWorldClosed() = fireWorldClosed()
@@ -89,17 +78,11 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     @JvmStatic
     fun notifyResourceReload() = fireResourceReload()
 
-    internal fun onDragStart() = SwingUtilities.invokeLater(::beginFrameDrag)
-    internal fun onDragMove() = SwingUtilities.invokeLater(::performFrameDrag)
-    internal fun onDragEnd() = SwingUtilities.invokeLater(::endFrameDrag)
-    internal fun onDragDoubleClick() = SwingUtilities.invokeLater(::toggleMaximize)
-
     override fun onBeforeShow() = enterSplashStage()
 
     override fun onCreated() {
         frame?.title = I18n.get("app:title")
         ensureComposePanel()
-        composeReady = true
         installPermissionWatcher()
         SwingUtilities.invokeLater(::tryTransitionFromSplash)
     }
@@ -118,21 +101,26 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
 
     private fun enterSplashStage() {
         stage = Stage.SPLASH
+        splashUserAdvanced = false
         val container = ensureContentContainer()
         val panel = ensureSplashPanel(container)
         panel.startAnimation()
         cardLayout?.show(container, CARD_SPLASH)
     }
 
+    private fun onSplashUserAdvance() {
+        splashUserAdvanced = true
+        SwingUtilities.invokeLater(::tryTransitionFromSplash)
+    }
+
     private fun tryTransitionFromSplash() {
         if (stage == Stage.EDITOR) return
-        if (DevFlags.STAY_ON_SPLASH) return
-        if (!composeReady) return
+        if (ClientMemoryHolder.settings().snapshot().stayOnSplash && !splashUserAdvanced) return
+        if (composePanel == null) return
         if (!ClientMemoryHolder.session().hasReceivedPermissions()) return
 
         val splash = splashPanel ?: return
         val container = contentContainer ?: return
-        composePanel ?: return
 
         stage = Stage.EDITOR
         editorVersion++
@@ -158,17 +146,21 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     private fun ensureSplashPanel(container: JPanel): SwingSplashPanel {
         splashPanel?.let { return it }
         val panel = SwingSplashPanel(SplashActions)
-        attachSwingContent(panel) { p -> panel.isCaptionAt(p.x, p.y) }
         splashPanel = panel
         container.add(panel, CARD_SPLASH)
         return panel
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     private fun ensureComposePanel() {
         if (composePanel != null) return
         val container = ensureContentContainer()
-        val panel = ComposePanel().apply { setContent { WindowContent() } }
-        attachComposeContent(panel)
+        val disableVsync = ClientMemoryHolder.settings().snapshot().disableVsync
+        val panel = if (disableVsync) {
+            ComposePanel(renderSettings = RenderSettings.SkiaSurface(isVsyncEnabled = false))
+        } else {
+            ComposePanel()
+        }.apply { setContent { WindowContent() } }
         composePanel = panel
         container.add(panel, CARD_EDITOR)
     }
@@ -185,9 +177,6 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
     }
 
     private object SplashActions : SwingSplashPanel.Actions {
-        override fun minimize() = requestMinimize()
-        override fun maximize() = requestToggleMaximize()
-        override fun close() = requestClose()
         override fun openHelp() {
             BrowserUtils.openBrowser(HELP_URL)
         }
@@ -195,10 +184,8 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         override fun openGithub() {
             BrowserUtils.openBrowser(GITHUB_URL)
         }
-        override fun dragStart() = onDragStart()
-        override fun dragMove() = onDragMove()
-        override fun dragEnd() = onDragEnd()
-        override fun dragDoubleClick() = onDragDoubleClick()
+
+        override fun userAdvance() = onSplashUserAdvance()
     }
 
     @Composable
@@ -214,6 +201,23 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
                 }
         ) {
             EditorContent(editorVersion)
+            Spacer(
+                Modifier
+                    .align(Alignment.TopStart)
+                    .fillMaxWidth()
+                    .height(1.5.dp)
+                    .background(StudioColors.Zinc900)
+            )
+            val showFps by ClientMemoryHolder.settings()
+                .selectAsFlow { it.showFpsCounter }
+                .collectAsState(initial = ClientMemoryHolder.settings().snapshot().showFpsCounter)
+            if (showFps) {
+                FpsCounter(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 12.dp, end = 12.dp)
+                )
+            }
         }
     }
 
@@ -238,70 +242,5 @@ object VoxelStudioWindow : MinecraftStageWindow(680, 440) {
         CompositionLocalProvider(LocalStudioAssetCache provides context.assetCache()) {
             StudioEditorRoot(context = context)
         }
-    }
-}
-
-/**
- * Marks a Compose region as a draggable window caption. Do not stack a clickable on the same
- * region: on Windows the OS hit-test consumes the events before Compose sees them.
- */
-fun Modifier.windowDragArea(id: String): Modifier = composed {
-    val chrome = VoxelStudioWindow.windowChrome
-    if (chrome.nativeDragHandled) nativeCaptionRegion(chrome, id)
-    else manualDragGesture(id)
-}
-
-@Composable
-private fun nativeCaptionRegion(chrome: NativeWindowChrome, id: String): Modifier {
-    DisposableEffect(id) {
-        onDispose { chrome.captionRegions.unregister(id) }
-    }
-    return Modifier.onGloballyPositioned { coords ->
-        val rect = coords.boundsInRoot()
-        chrome.captionRegions.register(
-            id,
-            Rectangle(rect.left.toInt(), rect.top.toInt(), rect.width.toInt(), rect.height.toInt())
-        )
-    }
-}
-
-@Composable
-private fun manualDragGesture(id: String): Modifier {
-    val lastReleaseNanos = remember { mutableLongStateOf(0L) }
-    return Modifier.pointerInput(id) {
-        awaitEachGesture { detectDragOrClick(lastReleaseNanos) }
-    }
-}
-
-private suspend fun AwaitPointerEventScope.detectDragOrClick(lastReleaseNanos: MutableLongState) {
-    awaitFirstDown(requireUnconsumed = false)
-    VoxelStudioWindow.onDragStart()
-
-    var moved = false
-    while (true) {
-        val event = awaitPointerEvent()
-        when (event.type) {
-            PointerEventType.Move -> {
-                moved = true
-                event.changes.forEach { it.consume() }
-                VoxelStudioWindow.onDragMove()
-            }
-
-            PointerEventType.Release -> {
-                VoxelStudioWindow.onDragEnd()
-                if (!moved) handleTap(lastReleaseNanos)
-                return
-            }
-        }
-    }
-}
-
-private fun handleTap(lastReleaseNanos: MutableLongState) {
-    val now = System.nanoTime()
-    if (now - lastReleaseNanos.longValue < DOUBLE_CLICK_THRESHOLD_NANOS) {
-        VoxelStudioWindow.onDragDoubleClick()
-        lastReleaseNanos.longValue = 0L
-    } else {
-        lastReleaseNanos.longValue = now
     }
 }

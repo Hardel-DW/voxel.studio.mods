@@ -1,49 +1,97 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeRenderer
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeCountOption
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSection
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotAddAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeInventory
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionCard
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionHeader
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSelector
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
+import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateRegistry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun FallbackEditor(state: RecipeEditorState, modifier: Modifier = Modifier) {
-    RecipeSection(
-        selection = state.selection,
-        recipeCounts = state.recipeCounts,
-        onSelectionChange = state.onSelectionChange,
-        modifier = modifier
-    ) {
-        RecipeRenderer(
-            element = state.model,
-            interactive = true,
-            onSlotPointerDown = { slot, button ->
-                slotPointerDownAction(slot, button, state.selectedItemId)?.let(state.onAction)
-            },
-            onSlotPointerEnter = { slot ->
-                when (state.paintMode) {
-                    PaintMode.PAINTING -> slotAddAction(slot, state.selectedItemId)?.let(state.onAction)
-                    PaintMode.ERASING -> slotRemoveAction(slot)?.let(state.onAction)
-                    PaintMode.NONE -> {}
-                }
-            },
-            onResultPointerDown = { button ->
-                if (button == PointerButton.Primary) {
-                    state.onResultItemChange()
-                }
-            },
-            onResultPointerEnter = {
-                if (state.paintMode == PaintMode.PAINTING) {
-                    state.onResultItemChange()
-                }
-            }
-        )
+fun FallbackEditor(state: RecipePageState, modifier: Modifier = Modifier) {
+    val s = state.editor
 
-        RecipeCountOption(state)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(32.dp),
+        verticalAlignment = Alignment.Top,
+        modifier = modifier
+            .fillMaxSize()
+            .onPointerEvent(PointerEventType.Release) { state.onPaintReset() }
+    ) {
+        RecipeSectionCard(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                RecipeSectionHeader(modifier = Modifier.weight(1f))
+                RecipeSelector(
+                    value = s.model.type,
+                    onChange = state.onSelectionChange,
+                    recipeCounts = state.recipeCounts,
+                    selectMode = true
+                )
+            }
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                RecipeTemplateRegistry.Render(
+                    kind = RecipeTreeData.getTemplateKind(s.model.type),
+                    element = s.model,
+                    interactive = true,
+                    onSlotPointerDown = { slot, button ->
+                        slotPointerDownAction(slot, button, s.selectedItemId)?.let(s.onAction)
+                    },
+                    onSlotPointerEnter = { slot ->
+                        when (s.paintMode) {
+                            PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
+                            PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
+                            PaintMode.NONE -> {}
+                        }
+                    },
+                    onResultPointerDown = { button ->
+                        if (button == PointerButton.Primary) s.onResultItemChange()
+                    },
+                    onResultPointerEnter = {
+                        if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
+                    }
+                )
+
+                RecipeCountOption(s)
+            }
+        }
+
+        RecipeInventory(
+            context = state.context,
+            search = state.search,
+            onSearchChange = state.onSearchChange,
+            selectedItemId = s.selectedItemId,
+            onSelectItem = state.onSelectItem,
+            modifier = Modifier.weight(1f).fillMaxHeight()
+        )
     }
 }

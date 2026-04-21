@@ -30,7 +30,7 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeOverviewCard
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext

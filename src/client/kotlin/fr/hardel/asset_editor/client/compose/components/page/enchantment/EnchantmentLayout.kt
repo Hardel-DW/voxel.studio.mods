@@ -84,7 +84,11 @@ fun EnchantmentLayout(context: StudioContext, modifier: Modifier = Modifier) {
             },
             onSelectChanges = { context.uiMemory().setShowAll(conceptId, false) },
             onSelectFolder = { path ->
-                context.uiMemory().updateFilterPath(conceptId, path)
+                if (path == conceptUi.filterPath) {
+                    context.uiMemory().updateFilterPath(conceptId, "")
+                } else {
+                    context.uiMemory().updateFilterPath(conceptId, path)
+                }
                 context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
             },
             onSelectElement = { elementId ->

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
+import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltipArea
 import net.minecraft.resources.Identifier
 
 @Composable
@@ -44,64 +45,72 @@ fun RecipeSlot(
     val hovered by interaction.collectIsHoveredAsState()
     val displayId = item.firstOrNull()?.let(Identifier::tryParse)
 
-    Box(contentAlignment = Alignment.Center) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(48.dp)
-                .aspectRatio(1f)
-                .clip(RoundedCornerShape(6.dp))
-                .background(StudioColors.Zinc800.copy(alpha = 0.5f))
-                .border(1.dp, if (hovered) StudioColors.Zinc500 else StudioColors.Zinc600, RoundedCornerShape(6.dp))
-                .hoverable(interaction)
-                .then(
-                    if (interactive && (onPointerDown != null || onPointerEnter != null)) {
-                        @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
-                        Modifier
-                            .pointerHoverIcon(PointerIcon.Hand)
-                            .onPointerEvent(PointerEventType.Press) { event ->
-                                val button = event.button ?: return@onPointerEvent
-                                onPointerDown?.invoke(button)
-                            }
-                            .onPointerEvent(PointerEventType.Enter) {
-                                onPointerEnter?.invoke()
-                            }
-                    } else {
-                        Modifier
-                    }
-                )
-        ) {
-            when {
-                isEmpty -> Unit
-                displayId != null -> ItemSprite(displayId, 32.dp)
-                item.isNotEmpty() -> Text(
-                    text = item.first().removePrefix("#"),
-                    style = StudioTypography.bold(8).copy(fontFamily = FontFamily.Monospace),
-                    color = StudioColors.Zinc400
-                )
-                isResult -> Text(
-                    text = "?",
-                    style = StudioTypography.bold(14),
-                    color = StudioColors.Zinc400
-                )
-            }
-        }
-
-        if ((count ?: item.size) > 1) {
+    val slot = @Composable {
+        Box(contentAlignment = Alignment.Center) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .background(StudioColors.Zinc900, RoundedCornerShape(4.dp))
-                    .border(1.dp, StudioColors.Zinc600, RoundedCornerShape(4.dp))
+                    .size(48.dp)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(StudioColors.Zinc800.copy(alpha = 0.5f))
+                    .border(1.dp, if (hovered) StudioColors.Zinc500 else StudioColors.Zinc600, RoundedCornerShape(6.dp))
+                    .hoverable(interaction)
+                    .then(
+                        if (interactive && (onPointerDown != null || onPointerEnter != null)) {
+                            @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+                            Modifier
+                                .pointerHoverIcon(PointerIcon.Hand)
+                                .onPointerEvent(PointerEventType.Press) { event ->
+                                    val button = event.button ?: return@onPointerEvent
+                                    onPointerDown?.invoke(button)
+                                }
+                                .onPointerEvent(PointerEventType.Enter) {
+                                    onPointerEnter?.invoke()
+                                }
+                        } else {
+                            Modifier
+                        }
+                    )
             ) {
-                Text(
-                    text = (count ?: item.size).toString(),
-                    style = StudioTypography.regular(9),
-                    color = StudioColors.Zinc300,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                )
+                when {
+                    isEmpty -> Unit
+                    displayId != null -> ItemSprite(displayId, 32.dp)
+                    item.isNotEmpty() -> Text(
+                        text = item.first().removePrefix("#"),
+                        style = StudioTypography.bold(8).copy(fontFamily = FontFamily.Monospace),
+                        color = StudioColors.Zinc400
+                    )
+                    isResult -> Text(
+                        text = "?",
+                        style = StudioTypography.bold(14),
+                        color = StudioColors.Zinc400
+                    )
+                }
+            }
+
+            if ((count ?: item.size) > 1) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .background(StudioColors.Zinc900, RoundedCornerShape(4.dp))
+                        .border(1.dp, StudioColors.Zinc600, RoundedCornerShape(4.dp))
+                ) {
+                    Text(
+                        text = (count ?: item.size).toString(),
+                        style = StudioTypography.regular(9),
+                        color = StudioColors.Zinc300,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                    )
+                }
             }
         }
+    }
+
+    if (displayId != null) {
+        MinecraftTooltipArea(itemId = displayId) { slot() }
+    } else {
+        slot()
     }
 }

@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.compose.routes.loot
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,8 +27,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -147,6 +154,9 @@ private fun EmptyOverviewState() {
     }
 }
 
+private const val PREVIEW_ITEM_COUNT = 5
+private const val STAGGER_DELAY_MS = 50L
+
 @Composable
 private fun OverviewRow(
     context: StudioContext,
@@ -155,7 +165,7 @@ private fun OverviewRow(
 ) {
     val conceptId = context.studioConceptId(Registries.LOOT_TABLE) ?: return
     val enabled = !LootTableFlushAdapter.disabled(entry)
-    val previewItem = remember(entry) { LootTableFlattener.firstPreviewItem(entry.data()) }
+    val previewItems = remember(entry) { LootTableFlattener.previewItems(entry.data(), PREVIEW_ITEM_COUNT) }
     val interaction = remember(entry.id()) { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val resourceName = remember(entry.id()) { humanizeLeaf(entry.id()) }
@@ -167,20 +177,44 @@ private fun OverviewRow(
         )
     }
 
+    val itemAnimations = remember(previewItems) {
+        List(previewItems.size) { Animatable(0f) }
+    }
+    val textShift = remember { Animatable(0f) }
+    LaunchedEffect(hovered) {
+        if (hovered) {
+            launch { textShift.animateTo(1f, tween(StudioMotion.Short4, easing = StudioMotion.EmphasizedDecelerate)) }
+            for ((i, anim) in itemAnimations.withIndex()) {
+                launch {
+                    delay(i * STAGGER_DELAY_MS)
+                    anim.animateTo(1f, tween(StudioMotion.Short4, easing = StudioMotion.EmphasizedDecelerate))
+                }
+            }
+        } else {
+            launch { textShift.animateTo(0f, tween(StudioMotion.Short3, easing = StudioMotion.EmphasizedAccelerate)) }
+            for ((i, anim) in itemAnimations.asReversed().withIndex()) {
+                launch {
+                    delay(i * STAGGER_DELAY_MS)
+                    anim.animateTo(0f, tween(StudioMotion.Short3, easing = StudioMotion.EmphasizedAccelerate))
+                }
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(if (hovered) StudioColors.Zinc900.copy(alpha = 0.6f) else StudioColors.Zinc950.copy(alpha = 0.3f))
             .drawBehind {
-                // Colored top line — TSX: h-0.5 opacity-35 linear-gradient(transparent, color, transparent)
-                val lineHeight = 2.dp.toPx()
+                // TSX: absolute left-0 top-0 bottom-0 w-0.5 opacity-35 linear-gradient(180deg, transparent, color, transparent)
+                val lineWidth = 2.dp.toPx()
                 drawRect(
-                    brush = Brush.horizontalGradient(
+                    brush = Brush.verticalGradient(
                         listOf(Color.Transparent, color.copy(alpha = 0.35f), Color.Transparent)
                     ),
-                    size = androidx.compose.ui.geometry.Size(size.width, lineHeight)
+                    size = androidx.compose.ui.geometry.Size(lineWidth, size.height)
                 )
-                // Bottom separator
+                // Bottom separator — TSX: border-b border-zinc-800/30
                 val stroke = 1.dp.toPx()
                 drawLine(
                     color = StudioColors.Zinc800.copy(alpha = 0.3f),
@@ -199,10 +233,21 @@ private fun OverviewRow(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.size(32.dp)
                 ) {
-                    if (previewItem != null) {
-                        ItemSprite(previewItem, 32.dp)
-                    } else {
+                    if (previewItems.isEmpty()) {
                         Text("?", style = StudioTypography.semiBold(10), color = StudioColors.Zinc500)
+                    } else {
+                        for ((i, itemId) in previewItems.withIndex()) {
+                            val progress = itemAnimations.getOrNull(i)?.value ?: 0f
+                            Box(
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        translationX = if (i == 0) 0f else (i * 20f).dp.toPx() * progress
+                                        alpha = if (i == 0) 1f else progress
+                                    }
+                            ) {
+                                ItemSprite(itemId, 32.dp, Modifier.size(32.dp))
+                            }
+                        }
                     }
                 }
             },
@@ -220,31 +265,36 @@ private fun OverviewRow(
                 )
             }
         ) {
-            Text(
-                text = resourceName,
-                style = StudioTypography.medium(14),
-                color = StudioColors.Zinc200
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            val textOffsetDp = (previewItems.size - 1).coerceAtLeast(0) * 20f * textShift.value
+            Column(
+                modifier = Modifier.graphicsLayer { translationX = textOffsetDp.dp.toPx() }
             ) {
                 Text(
-                    text = entry.id().toString(),
-                    style = StudioTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
-                    color = StudioColors.Zinc500
+                    text = resourceName,
+                    style = StudioTypography.medium(14),
+                    color = StudioColors.Zinc200
                 )
-                if (parentPath.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = "\u2022",
-                        style = StudioTypography.regular(10),
-                        color = StudioColors.Zinc600
-                    )
-                    Text(
-                        text = parentPath,
-                        style = StudioTypography.regular(10),
+                        text = entry.id().toString(),
+                        style = StudioTypography.regular(10).copy(fontFamily = FontFamily.Monospace),
                         color = StudioColors.Zinc500
                     )
+                    if (parentPath.isNotEmpty()) {
+                        Text(
+                            text = "\u2022",
+                            style = StudioTypography.regular(10),
+                            color = StudioColors.Zinc600
+                        )
+                        Text(
+                            text = parentPath,
+                            style = StudioTypography.regular(10),
+                            color = StudioColors.Zinc500
+                        )
+                    }
                 }
             }
         }

@@ -1,5 +1,11 @@
 package fr.hardel.asset_editor.client.compose.components.layout
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import fr.hardel.asset_editor.client.compose.components.ui.SettingsDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,17 +23,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import kotlinx.coroutines.delay
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.lib.ChangesDestination
@@ -53,14 +62,13 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
         is ElementEditorDestination -> destination.conceptId
         else -> null
     }
+    var showSettings by remember { mutableStateOf(false) }
 
-    // aside: shrink-0 w-16 flex flex-col bg-sidebar
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .background(StudioColors.Sidebar)
     ) {
-        // div: h-16 flex items-center justify-center
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -78,7 +86,6 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
             SvgIcon(location = LOGO, size = 20.dp, tint = Color.White)
         }
 
-        // div: overflow-y-auto overflow-x-hidden flex-1 flex flex-col items-center
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -90,30 +97,57 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
         ) {
             StudioUiRegistry.supportedConceptIds()
                 .filter { !permissions.isNone }
-                .forEach { conceptId ->
-                    ConceptButton(
-                        context = context,
-                        conceptId = conceptId,
-                        active = currentConcept == conceptId,
-                        onClick = {
-                            context.uiMemory().updateFilterPath(conceptId, "")
-                            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-                        }
-                    )
+                .forEachIndexed { index, conceptId ->
+                    SidebarItemEnter(delayIndex = index) {
+                        ConceptButton(
+                            context = context,
+                            conceptId = conceptId,
+                            active = currentConcept == conceptId,
+                            onClick = {
+                                context.uiMemory().updateFilterPath(conceptId, "")
+                                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
+                            }
+                        )
+                    }
                 }
         }
 
-        // div: shrink-0 flex flex-col-reverse items-center gap-2 mt-2
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            SidebarIconButton(icon = DEBUG_ICON) { context.navigationMemory().navigate(DebugDestination) }
-            SidebarIconButton(icon = CHANGES_ICON) { context.navigationMemory().navigate(ChangesDestination()) }
-            SidebarIconButton(icon = SETTINGS_ICON) {}
+            SidebarItemEnter(delayIndex = 0) {
+                SidebarIconButton(icon = DEBUG_ICON) { context.navigationMemory().navigate(DebugDestination) }
+            }
+            SidebarItemEnter(delayIndex = 1) {
+                SidebarIconButton(icon = CHANGES_ICON) { context.navigationMemory().navigate(ChangesDestination()) }
+            }
+            SidebarItemEnter(delayIndex = 2) {
+                SidebarIconButton(icon = SETTINGS_ICON) { showSettings = true }
+            }
         }
     }
+
+    if (showSettings) {
+        SettingsDialog(onDismiss = { showSettings = false })
+    }
+}
+
+@Composable
+private fun SidebarItemEnter(delayIndex: Int, content: @Composable () -> Unit) {
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(delayIndex * 40L)
+        progress.animateTo(1f, tween(StudioMotion.Medium2, easing = StudioMotion.EmphasizedDecelerate))
+    }
+    Box(
+        modifier = Modifier.graphicsLayer {
+            val p = progress.value
+            alpha = p
+            translationX = (1f - p) * -6.dp.toPx()
+        }
+    ) { content() }
 }
 
 @Composable
@@ -124,25 +158,39 @@ private fun ConceptButton(
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(16.dp)
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
 
-    // Link: block relative rounded-2xl overflow-hidden h-14 bg-transparent
-    // active -> bg-zinc-700/5 border border-zinc-800
+    val backgroundColor by animateColorAsState(
+        targetValue = when {
+            active -> StudioColors.Zinc700.copy(alpha = 0.05f)
+            hovered -> StudioColors.Zinc800.copy(alpha = 0.25f)
+            else -> Color.Transparent
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "concept-btn-bg"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (active) StudioColors.Zinc800 else Color.Transparent,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "concept-btn-border"
+    )
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(56.dp)
-            .background(
-                color = if (active) StudioColors.Zinc700.copy(alpha = 0.05f) else Color.Transparent,
-                shape = shape
-            )
-            .then(
-                if (active) Modifier.border(1.dp, StudioColors.Zinc800, shape)
-                else Modifier
-            )
+            .background(backgroundColor, shape)
+            .border(1.dp, borderColor, shape)
+            .hoverable(interaction)
             .then(if (!active) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
-            .clickable(onClick = onClick)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
-        ResourceImageIcon(context.studioIcon(conceptId), 24.dp, modifier = Modifier.alpha(if (active) 1f else 0.8f))
+        ResourceImageIcon(
+            context.studioIcon(conceptId),
+            24.dp,
+            modifier = Modifier.graphicsLayer { alpha = if (active) 1f else if (hovered) 0.9f else 0.8f }
+        )
     }
 }
 
@@ -150,8 +198,12 @@ private fun ConceptButton(
 private fun SidebarIconButton(icon: Identifier, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val isHovered by interaction.collectIsHoveredAsState()
+    val tint by animateColorAsState(
+        targetValue = if (isHovered) Color.White else StudioColors.Zinc400,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "sidebar-icon-tint"
+    )
 
-    // Compose-only: debug/settings actions at the bottom of the primary sidebar.
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -159,12 +211,8 @@ private fun SidebarIconButton(icon: Identifier, onClick: () -> Unit) {
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .alpha(if (isHovered) 1.0f else 0.7f)
+            .graphicsLayer { alpha = if (isHovered) 1.0f else 0.7f }
     ) {
-        SvgIcon(
-            location = icon,
-            size = 24.dp,
-            tint = if (isHovered) Color.White else StudioColors.Zinc400
-        )
+        SvgIcon(location = icon, size = 24.dp, tint = tint)
     }
 }

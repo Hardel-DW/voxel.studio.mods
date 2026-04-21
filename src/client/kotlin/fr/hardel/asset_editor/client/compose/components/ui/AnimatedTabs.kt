@@ -1,6 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,9 +20,12 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,7 +39,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import kotlin.collections.iterator
+import kotlinx.coroutines.launch
 
 @Composable
 fun AnimatedTabs(
@@ -47,16 +50,23 @@ fun AnimatedTabs(
 ) {
     val density = LocalDensity.current
     val tabPositions = remember { mutableStateMapOf<String, Pair<Float, Float>>() }
+    val indicatorX = remember { Animatable(0f) }
+    val indicatorWidth = remember { Animatable(0f) }
+    var measured by remember { mutableStateOf(false) }
 
     val activePos = tabPositions[selectedValue]
-    val indicatorX by animateDpAsState(
-        targetValue = with(density) { (activePos?.first ?: 0f).toDp() },
-        animationSpec = tween(300)
-    )
-    val indicatorWidth by animateDpAsState(
-        targetValue = with(density) { (activePos?.second ?: 0f).toDp() },
-        animationSpec = tween(300)
-    )
+
+    LaunchedEffect(activePos) {
+        if (activePos == null) return@LaunchedEffect
+        if (!measured) {
+            measured = true
+            indicatorX.snapTo(activePos.first)
+            indicatorWidth.snapTo(activePos.second)
+        } else {
+            launch { indicatorX.animateTo(activePos.first, tween(300)) }
+            launch { indicatorWidth.animateTo(activePos.second, tween(300)) }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -69,11 +79,12 @@ fun AnimatedTabs(
             opacity = 0.1f
         )
         Box(modifier = Modifier.padding(4.dp).height(IntrinsicSize.Min)) {
-            if (indicatorWidth > 0.dp) {
+            val widthDp = with(density) { indicatorWidth.value.toDp() }
+            if (widthDp > 0.dp) {
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset(indicatorX.roundToPx(), 0) }
-                        .width(indicatorWidth)
+                        .offset { IntOffset(indicatorX.value.toInt(), 0) }
+                        .width(widthDp)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color.White.copy(alpha = 0.1f))
@@ -95,8 +106,8 @@ fun AnimatedTabs(
                                 interactionSource = interaction,
                                 indication = null
                             ) { onValueChange(value) }
-                            .onGloballyPositioned { coords ->
-                                tabPositions[value] = coords.positionInParent().x to coords.size.width.toFloat()
+                            .onGloballyPositioned { cords ->
+                                tabPositions[value] = cords.positionInParent().x to cords.size.width.toFloat()
                             }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {

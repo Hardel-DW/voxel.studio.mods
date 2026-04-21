@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.rememberSelectedPack
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.coroutines.CoroutineScope
@@ -341,7 +342,7 @@ data class GitDiffPayload(val original: String, val working: String) {
 fun rememberGitState(context: StudioContext): GitState {
     val scope = rememberCoroutineScope()
     val state = remember(scope) { GitState(scope) }
-    val packId = context.packSelectionMemory().selectedPack()?.packId()
+    val packId = rememberSelectedPack(context)?.packId()
     LaunchedEffect(packId) {
         state.bind(packId?.let { PackRootResolver.resolveFromPackId(it) })
     }
