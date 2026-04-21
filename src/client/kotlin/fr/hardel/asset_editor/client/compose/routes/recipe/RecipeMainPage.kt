@@ -125,7 +125,7 @@ fun RecipeMainPage(context: StudioContext) {
         recipeCounts = recipeCounts,
         onSelectionChange = onSelectionChange,
         search = search,
-        onSearchChange = { search = it },
+        onSearchChange = { },
         onSelectItem = { itemId -> selectedItemId = if (selectedItemId == itemId) null else itemId },
         onPaintReset = { paintMode = PaintMode.NONE }
     )

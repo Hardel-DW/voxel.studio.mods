@@ -24,19 +24,19 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
     if (displayContext == null) return placeholderRecipeVisual(serializerId)
 
     val display = display().firstOrNull() ?: return placeholderRecipeVisual(serializerId)
-    val fallbackResult = RecipeTreeData.getEntryByRecipeType(serializerId).assetId.toString()
+    RecipeTreeData.getEntryByRecipeType(serializerId).assetId.toString()
 
     return when (display) {
         is ShapedCraftingRecipeDisplay -> buildIndexedSlotModel(
-            serializerId, display.ingredients(), display.result(), displayContext, fallbackResult
+            serializerId, display.ingredients(), display.result(), displayContext
         )
         is ShapelessCraftingRecipeDisplay -> buildIndexedSlotModel(
-            serializerId, display.ingredients(), display.result(), displayContext, fallbackResult
+            serializerId, display.ingredients(), display.result(), displayContext
         )
         is FurnaceRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
             slots = mapOf("0" to resolveSlotOptions(display.ingredient(), displayContext)).filterValues { it.isNotEmpty() },
-            resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
+            resultItemId = resolveFirstItemId(display.result(), displayContext),
             resultCount = resolveResultCount(display.result(), displayContext),
             resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
             resultCountMax = resolveResultMaxCount(display.result(), displayContext)
@@ -48,7 +48,7 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
                 "1" to resolveSlotOptions(display.base(), displayContext),
                 "2" to resolveSlotOptions(display.addition(), displayContext)
             ).filterValues { it.isNotEmpty() },
-            resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
+            resultItemId = resolveFirstItemId(display.result(), displayContext),
             resultCount = resolveResultCount(display.result(), displayContext),
             resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
             resultCountMax = resolveResultMaxCount(display.result(), displayContext)
@@ -56,7 +56,7 @@ fun Recipe<*>.toVisualModel(serializerId: String, displayContext: ContextMap?): 
         is StonecutterRecipeDisplay -> RecipeVisualModel(
             type = serializerId,
             slots = mapOf("0" to resolveSlotOptions(display.input(), displayContext)).filterValues { it.isNotEmpty() },
-            resultItemId = resolveFirstItemId(display.result(), displayContext) ?: fallbackResult,
+            resultItemId = resolveFirstItemId(display.result(), displayContext),
             resultCount = resolveResultCount(display.result(), displayContext),
             resultCountEditable = RecipeAdapterRegistry.supportsResultCount(this),
             resultCountMax = resolveResultMaxCount(display.result(), displayContext)
@@ -80,8 +80,7 @@ private fun buildIndexedSlotModel(
     serializerId: String,
     ingredients: List<SlotDisplay>,
     result: SlotDisplay,
-    displayContext: ContextMap,
-    fallbackResult: String
+    displayContext: ContextMap
 ): RecipeVisualModel = RecipeVisualModel(
     type = serializerId,
     slots = ingredients
@@ -91,7 +90,7 @@ private fun buildIndexedSlotModel(
                 ?.let { index.toString() to it }
         }
         .toMap(),
-    resultItemId = resolveFirstItemId(result, displayContext) ?: fallbackResult,
+    resultItemId = resolveFirstItemId(result, displayContext),
     resultCount = resolveResultCount(result, displayContext),
     resultCountEditable = Identifier.tryParse(serializerId)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false,
     resultCountMax = resolveResultMaxCount(result, displayContext)
@@ -103,7 +102,7 @@ private fun resolveSlotOptions(slot: SlotDisplay, displayContext: ContextMap): L
         .distinct()
         .take(16)
 
-private fun resolveFirstItemId(slot: SlotDisplay, displayContext: ContextMap): String? =
+private fun resolveFirstItemId(slot: SlotDisplay, displayContext: ContextMap): String =
     BuiltInRegistries.ITEM.getKey(slot.resolveForFirstStack(displayContext).item).toString()
 
 private fun resolveResultCount(slot: SlotDisplay, displayContext: ContextMap): Int =
