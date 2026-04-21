@@ -106,8 +106,8 @@ fun AnimatedTabs(
                                 interactionSource = interaction,
                                 indication = null
                             ) { onValueChange(value) }
-                            .onGloballyPositioned { coords ->
-                                tabPositions[value] = coords.positionInParent().x to coords.size.width.toFloat()
+                            .onGloballyPositioned { cords ->
+                                tabPositions[value] = cords.positionInParent().x to cords.size.width.toFloat()
                             }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {

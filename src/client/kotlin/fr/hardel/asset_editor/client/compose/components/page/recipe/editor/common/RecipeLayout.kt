@@ -28,8 +28,8 @@ import net.minecraft.core.registries.Registries
 @Composable
 fun RecipeLayout(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.RECIPE) ?: return
-    val recipeEntryDefs = rememberServerData(StudioDataSlots.RECIPE_ENTRIES)
-    val dataReady = recipeEntryDefs.isNotEmpty()
+    val recipeEntryDef = rememberServerData(StudioDataSlots.RECIPE_ENTRIES)
+    val dataReady = recipeEntryDef.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = if (dataReady) rememberRecipeEntries(context) else emptyList()
     val modifiedIds = rememberModifiedIds(ClientWorkspaceRegistries.RECIPE)

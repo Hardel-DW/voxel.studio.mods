@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeGuiAsset
+import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSlot
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateBase
 import net.minecraft.resources.Identifier
@@ -50,10 +50,8 @@ fun SmeltingTemplate(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.size(48.dp)
             ) {
-                RecipeGuiAsset(
+                ResourceImageIcon(
                     location = BURN_PROGRESS_LOCATION,
-                    width = 14,
-                    height = 14,
                     size = 32.dp
                 )
             }

@@ -7,8 +7,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.PaintMode
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorDispatch
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.FallbackEditor
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorRegistry
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipeEditorState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.placeholderRecipeVisual
@@ -131,7 +132,8 @@ fun RecipeMainPage(context: StudioContext) {
     )
 
     Box(modifier = Modifier.fillMaxSize().padding(32.dp)) {
-        RecipeEditorDispatch(state = pageState, modifier = Modifier.fillMaxSize())
+        val editor = RecipeEditorRegistry.get(pageState.editor.model.type) ?: { s, m -> FallbackEditor(s, m) }
+        editor(pageState, Modifier.fillMaxSize())
         RegistryPageDialogs(context, dialogs)
     }
 }
