@@ -3,20 +3,17 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
 import fr.hardel.asset_editor.workspace.flush.ElementEntry
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
-import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
-import net.minecraft.util.context.ContextMap
+import net.minecraft.resources.ResourceKey
+import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.crafting.Recipe
 
 fun loadWorkspaceRecipeEntries(
-    entries: List<ElementEntry<Recipe<*>>>,
-    registries: HolderLookup.Provider?
+    entries: List<ElementEntry<Recipe<*>>>
 ): List<RecipeRuntimeEntry> {
     if (entries.isEmpty()) return emptyList()
-
-    val displayContext = registries?.let(::createDisplayContext)
-    return entries.mapNotNull { it.toRuntimeEntry(displayContext) }
+    return entries.mapNotNull { it.toRuntimeEntry() }
         .sortedBy { it.id.toString() }
 }
 
@@ -42,15 +39,52 @@ fun RecipeCatalogEntry.toRuntimeEntry(): RecipeRuntimeEntry {
     )
 }
 
-private fun ElementEntry<Recipe<*>>.toRuntimeEntry(displayContext: ContextMap?): RecipeRuntimeEntry? {
+private fun ElementEntry<Recipe<*>>.toRuntimeEntry(): RecipeRuntimeEntry? {
     val recipe = data()
     val serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(recipe.serializer) ?: return null
     val serializer = serializerId.toString()
+
+    if (RecipeAdapterRegistry.isUnsupported(recipe)) {
+        return RecipeRuntimeEntry(
+            id = id(),
+            type = serializer,
+            serializer = serializer,
+            visual = placeholderRecipeVisual(serializer)
+        )
+    }
+
+    val adapter = RecipeAdapterRegistry.get(recipe)
+    val ingredients = adapter.extractIngredients(recipe)
+    val result = adapter.extractResult(recipe)
+
+    val slots = ingredients.mapIndexedNotNull { index, opt ->
+        val ingredient = opt.orElse(null) ?: return@mapIndexedNotNull null
+        val items = resolveIngredientItems(ingredient)
+        if (items.isNotEmpty()) index.toString() to items else null
+    }.toMap()
+
+    val resultItemId = BuiltInRegistries.ITEM.getKey(result.item).toString()
 
     return RecipeRuntimeEntry(
         id = id(),
         type = serializer,
         serializer = serializer,
-        visual = recipe.toVisualModel(serializer, displayContext)
+        visual = RecipeVisualModel(
+            type = serializer,
+            slots = slots,
+            resultItemId = resultItemId,
+            resultCount = result.count.coerceAtLeast(1),
+            resultCountEditable = adapter.supportsResultCount(),
+            resultCountMax = result.maxStackSize.coerceAtLeast(1)
+        )
     )
 }
+
+private fun resolveIngredientItems(ingredient: Ingredient): List<String> =
+    ingredient.values.stream()
+        .map { holder -> holder.unwrapKey().map(ResourceKey<*>::identifier).orElse(null) }
+        .filter { it != null }
+        .map { it.toString() }
+        .distinct()
+        .limit(16)
+        .toList()

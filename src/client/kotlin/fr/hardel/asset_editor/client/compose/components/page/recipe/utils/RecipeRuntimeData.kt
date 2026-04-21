@@ -8,7 +8,6 @@ import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
-import net.minecraft.client.Minecraft
 import net.minecraft.resources.Identifier
 import java.util.LinkedHashMap
 
@@ -16,9 +15,8 @@ import java.util.LinkedHashMap
 fun rememberRecipeEntries(context: StudioContext): List<RecipeRuntimeEntry> {
     val workspaceEntries = rememberRegistryEntries(context, ClientWorkspaceRegistries.RECIPE)
     val recipeCatalog = rememberServerData(StudioDataSlots.RECIPE_CATALOG)
-    val connection = Minecraft.getInstance().connection
-    return remember(workspaceEntries, recipeCatalog, connection, context.sessionMemory().worldSessionKey()) {
-        val workspaceRuntimeEntries = loadWorkspaceRecipeEntries(workspaceEntries, connection?.registryAccess())
+    return remember(workspaceEntries, recipeCatalog, context.sessionMemory().worldSessionKey()) {
+        val workspaceRuntimeEntries = loadWorkspaceRecipeEntries(workspaceEntries)
         val baseEntries = recipeCatalog.map(RecipeCatalogEntry::toRuntimeEntry)
         mergeRecipeEntries(baseEntries, workspaceRuntimeEntries)
     }

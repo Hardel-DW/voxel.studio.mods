@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
+import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
 import net.minecraft.resources.Identifier
 
 data class RecipeVisualModel(
@@ -20,3 +22,14 @@ data class RecipeRuntimeEntry(
     val serializer: String,
     val visual: RecipeVisualModel
 )
+
+fun placeholderRecipeVisual(type: String): RecipeVisualModel {
+    val fallbackResult = RecipeTreeData.getEntryByRecipeType(type).assetId.toString()
+    val resultCountEditable = Identifier.tryParse(type)?.let(RecipeAdapterRegistry::supportsResultCount) ?: false
+    return RecipeVisualModel(
+        type = type,
+        slots = emptyMap(),
+        resultItemId = fallbackResult,
+        resultCountEditable = resultCountEditable
+    )
+}
