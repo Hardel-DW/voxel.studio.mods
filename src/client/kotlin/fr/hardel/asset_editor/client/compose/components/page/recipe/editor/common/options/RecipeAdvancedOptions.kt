@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
@@ -6,11 +6,6 @@ import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.ui.CollapsibleSection
 import net.minecraft.client.resources.language.I18n
 
-/**
- * Collapsible wrapper around the non-essential per-recipe options (group, category, show
- * notification, experience, cooking time…). Keeps the editor focused on the primary recipe
- * configuration by default.
- */
 @Composable
 fun RecipeAdvancedOptions(
     modifier: Modifier = Modifier,

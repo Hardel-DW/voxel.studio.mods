@@ -1,6 +1,7 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options
 
 import androidx.compose.runtime.Composable
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.row.DropdownOptionRow
 import net.minecraft.client.resources.language.I18n
 
 @Composable

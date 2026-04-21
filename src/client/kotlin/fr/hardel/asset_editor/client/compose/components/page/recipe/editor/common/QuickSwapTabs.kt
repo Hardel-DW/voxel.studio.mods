@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.comm
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeQuickSwap
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 import fr.hardel.asset_editor.client.compose.components.ui.AnimatedTabs
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier

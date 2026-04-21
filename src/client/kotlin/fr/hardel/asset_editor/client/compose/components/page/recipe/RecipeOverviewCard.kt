@@ -38,7 +38,8 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.components.ui.topLeftBorder
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeRuntimeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipeRuntimeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.template.RecipeTemplateRegistry
 import net.minecraft.client.resources.language.I18n
 
 @Composable
@@ -50,7 +51,6 @@ fun RecipeOverviewCard(
     val interaction = remember(element.id) { MutableInteractionSource() }
     val entryConfig = RecipeTreeData.getEntryByRecipeType(element.type)
 
-    // TSX: bg-black/35 border-t-2 border-l-2 border-zinc-900 rounded-xl
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -67,7 +67,6 @@ fun RecipeOverviewCard(
         ShineOverlay(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f), opacity = 0.15f)
 
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            // Header: icon + name/id
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -93,9 +92,12 @@ fun RecipeOverviewCard(
                 }
             }
 
-            RecipeRenderer(element = element.visual, modifier = Modifier.weight(1f))
+            RecipeTemplateRegistry.Render(
+                kind = RecipeTreeData.getTemplateKind(element.visual.type),
+                element = element.visual,
+                modifier = Modifier.weight(1f)
+            )
 
-            // TSX: pt-4 border-t border-zinc-800/50 mt-auto
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

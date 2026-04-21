@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 
 enum class PaintMode { NONE, PAINTING, ERASING }
 

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
+package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry
 import fr.hardel.asset_editor.workspace.flush.ElementEntry

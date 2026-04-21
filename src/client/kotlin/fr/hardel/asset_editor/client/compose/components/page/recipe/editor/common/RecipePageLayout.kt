@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeInventory
-import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeSelector
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable

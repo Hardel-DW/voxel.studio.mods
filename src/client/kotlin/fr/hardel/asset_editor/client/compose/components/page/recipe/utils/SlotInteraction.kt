@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
+package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 
 import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.workspace.action.EditorAction

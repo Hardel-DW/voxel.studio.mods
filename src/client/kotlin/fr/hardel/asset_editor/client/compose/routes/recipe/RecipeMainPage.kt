@@ -9,11 +9,11 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.RecipeEditorDispatch
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.placeholderRecipeVisual
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntry
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipeEditorState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.placeholderRecipeVisual
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntries
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction

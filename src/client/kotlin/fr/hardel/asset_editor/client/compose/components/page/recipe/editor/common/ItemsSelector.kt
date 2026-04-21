@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

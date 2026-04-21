@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +39,7 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
 
 private fun recipeTypeLabel(type: String): String =
     recipeTranslationBase(type)?.let { base -> I18n.get("$base.name") } ?: type

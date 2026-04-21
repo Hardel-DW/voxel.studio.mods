@@ -1,11 +1,12 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayoutConfig
+import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeBuilder
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.rememberRecipeEntries
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry

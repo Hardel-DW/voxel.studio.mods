@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils
+package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.row
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

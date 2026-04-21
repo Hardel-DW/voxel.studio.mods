@@ -1,7 +1,9 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options
 
 import androidx.compose.runtime.Composable
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipeEditorState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.EditorCard
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.row.CounterOptionRow
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipeEditorState
 import net.minecraft.client.resources.language.I18n
 
 @Composable

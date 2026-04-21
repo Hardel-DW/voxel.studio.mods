@@ -1,7 +1,8 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common
+package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.row.CounterOptionRow
 import net.minecraft.client.resources.language.I18n
 import java.math.BigDecimal
 import java.math.RoundingMode

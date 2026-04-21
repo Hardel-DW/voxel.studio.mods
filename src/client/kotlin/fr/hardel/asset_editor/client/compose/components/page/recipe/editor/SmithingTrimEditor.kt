@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipePageLayout
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.RecipePageState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotAddAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotPointerDownAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.utils.slotRemoveAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.template.SmithingTemplate
 
 @Composable
