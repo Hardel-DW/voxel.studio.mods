@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.workspace.action.recipe;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
@@ -15,9 +16,9 @@ import java.util.List;
 
 public record AddShapelessIngredientAction(List<Identifier> items) implements EditorAction<Recipe<?>> {
 
-    private static final StreamCodec<io.netty.buffer.ByteBuf, List<Identifier>> IDENTIFIER_LIST_CODEC = ByteBufCodecs.collection(ArrayList::new, Identifier.STREAM_CODEC);
+    private static final StreamCodec<ByteBuf, List<Identifier>> IDENTIFIER_LIST_CODEC = ByteBufCodecs.collection(ArrayList::new, Identifier.STREAM_CODEC);
 
-    public static final StreamCodec<io.netty.buffer.ByteBuf, AddShapelessIngredientAction> CODEC = StreamCodec.composite(IDENTIFIER_LIST_CODEC, AddShapelessIngredientAction::items, AddShapelessIngredientAction::new);
+    public static final StreamCodec<ByteBuf, AddShapelessIngredientAction> CODEC = StreamCodec.composite(IDENTIFIER_LIST_CODEC, AddShapelessIngredientAction::items, AddShapelessIngredientAction::new);
 
     @Override
     public ElementEntry<Recipe<?>> apply(ElementEntry<Recipe<?>> entry, RegistryMutationContext ctx) {
