@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.memory.core;
 import fr.hardel.asset_editor.network.data.StudioDataKeys;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
+import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
 
 public final class StudioDataSlots {
@@ -18,6 +19,9 @@ public final class StudioDataSlots {
 
     public static final ServerDataStore.DataSlot<RecipeEntryDefinition> RECIPE_ENTRIES =
         ServerDataStore.register(StudioDataKeys.RECIPE_ENTRIES);
+
+    public static final ServerDataStore.DataSlot<StudioComponentTypeDef> COMPONENT_TYPES =
+        ServerDataStore.register(StudioDataKeys.COMPONENT_TYPES);
 
     public static void register() {
         // Force class loading to register all slots

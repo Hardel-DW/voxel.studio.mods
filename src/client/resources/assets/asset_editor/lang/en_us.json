@@ -816,6 +816,16 @@
     "settings:debug.clear_compose_cache.button": "Clear and close",
     "recipe:toast.min_ingredient": "A recipe requires at least one ingredient.",
 
+    "recipe:components.title": "Result components",
+    "recipe:components.description": "Data components applied to the crafted item.",
+    "recipe:components.add": "Add component",
+    "recipe:components.add.title": "Add a component",
+    "recipe:components.add.search": "Search components...",
+    "recipe:components.add.empty": "No component matches your search",
+    "recipe:components.unknown": "unknown",
+    "recipe:components.pending": "draft",
+    "recipe:components.unit_flag": "Flag present when component is set.",
+
     "component:minecraft:attack_range": "Attack Range",
     "component:minecraft:attack_range.desc": "Configures melee reach and hitbox margins.",
     "component:minecraft:attribute_modifiers": "Attribute Modifiers",

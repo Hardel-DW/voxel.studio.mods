@@ -806,6 +806,16 @@
     "settings:debug.clear_compose_cache.button": "Vider et fermer",
     "recipe:toast.min_ingredient": "Une recette nécessite au moins un ingrédient.",
 
+    "recipe:components.title": "Composants du résultat",
+    "recipe:components.description": "Data components appliqués à l'objet crafté.",
+    "recipe:components.add": "Ajouter un composant",
+    "recipe:components.add.title": "Ajouter un composant",
+    "recipe:components.add.search": "Rechercher un composant...",
+    "recipe:components.add.empty": "Aucun composant ne correspond à ta recherche",
+    "recipe:components.unknown": "inconnu",
+    "recipe:components.pending": "brouillon",
+    "recipe:components.unit_flag": "Flag présent lorsque le composant est défini.",
+
     "component:minecraft:attack_range": "Portée d'attaque",
     "component:minecraft:attack_range.desc": "Configure la portée et la marge de hitbox du corps-à-corps.",
     "component:minecraft:attribute_modifiers": "Modificateurs d'attributs",

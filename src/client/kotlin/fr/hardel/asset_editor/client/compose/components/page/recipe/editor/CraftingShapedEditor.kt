@@ -22,6 +22,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionCard
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionHeader
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSelector
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.ResultComponentsSection
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeAdvancedOptions
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCategoryOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
@@ -127,6 +128,11 @@ fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) 
                         }
                     }
                 }
+
+                ResultComponentsSection(
+                    context = state.context,
+                    onAction = s.onAction
+                )
             }
         }
 

@@ -2,12 +2,16 @@ package fr.hardel.asset_editor.network.data;
 
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
+import fr.hardel.asset_editor.data.component.ComponentTypeLoader;
+import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
 import net.minecraft.resources.Identifier;
+
+import java.util.List;
 
 public final class StudioDataKeys {
 
@@ -22,6 +26,9 @@ public final class StudioDataKeys {
 
     public static final ServerDataKey<RecipeEntryDefinition> RECIPE_ENTRIES = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "recipe_entries"), RecipeEntryDefinition.STREAM_CODEC, server -> RecipeEntryLoader.entries()));
+
+    public static final ServerDataKey<StudioComponentTypeDef> COMPONENT_TYPES = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "component_types"), StudioComponentTypeDef.STREAM_CODEC, server -> List.copyOf(ComponentTypeLoader.definitions().values())));
 
     public static void init() {
         // Force class loading to register all keys
