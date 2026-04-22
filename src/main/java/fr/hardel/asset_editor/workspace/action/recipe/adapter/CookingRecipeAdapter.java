@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -80,6 +81,13 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
     @Override
     protected T doSetResultItem(T recipe, Holder<Item> item) {
         return factory.create(recipe.group(), recipe.category(), recipe.input(), replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()), recipe.experience(), recipe.cookingTime());
+    }
+
+    @Override
+    protected T doSetResultComponents(T recipe, DataComponentPatch patch) {
+        ItemStack updated = validatedResultStack(recipe.result().getItemHolder(), recipe.result().getCount(), patch);
+        if (updated == null) return null;
+        return factory.create(recipe.group(), recipe.category(), recipe.input(), updated, recipe.experience(), recipe.cookingTime());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -99,6 +100,15 @@ public final class RecipeAdapterRegistry {
 
     public static boolean supportsResultItem(Recipe<?> recipe) {
         return get(recipe).supportsResultItem();
+    }
+
+    public static @Nullable Recipe<?> setResultComponents(Recipe<?> recipe, DataComponentPatch patch) {
+        return get(recipe).setResultComponents(recipe, patch);
+    }
+
+    public static boolean supportsResultComponents(Recipe<?> recipe) {
+        if (isUnsupported(recipe)) return false;
+        return get(recipe).supportsResultComponents();
     }
 
     public static Map<String, Object> extractProperties(Recipe<?> recipe) {

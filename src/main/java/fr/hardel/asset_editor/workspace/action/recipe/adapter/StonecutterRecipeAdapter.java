@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -56,6 +57,13 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     @Override
     protected StonecutterRecipe doSetResultItem(StonecutterRecipe recipe, Holder<Item> item) {
         return new StonecutterRecipe(recipe.group(), recipe.input(), replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()));
+    }
+
+    @Override
+    protected StonecutterRecipe doSetResultComponents(StonecutterRecipe recipe, DataComponentPatch patch) {
+        ItemStack updated = validatedResultStack(recipe.result().getItemHolder(), recipe.result().getCount(), patch);
+        if (updated == null) return null;
+        return new StonecutterRecipe(recipe.group(), recipe.input(), updated);
     }
 
     @Override

@@ -56,12 +56,20 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return doSetResultItem(recipeType.cast(recipe), item);
     }
 
+    public final @Nullable Recipe<?> setResultComponents(Recipe<?> recipe, DataComponentPatch patch) {
+        return doSetResultComponents(recipeType.cast(recipe), patch);
+    }
+
     public boolean supportsResultCount() {
         return false;
     }
 
     public boolean supportsResultItem() {
         return true;
+    }
+
+    public boolean supportsResultComponents() {
+        return supportsResultItem();
     }
 
     public abstract @Nullable Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result);
@@ -77,6 +85,10 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
     }
 
     protected @Nullable T doSetResultItem(T recipe, Holder<Item> item) {
+        return null;
+    }
+
+    protected @Nullable T doSetResultComponents(T recipe, DataComponentPatch patch) {
         return null;
     }
 
@@ -103,6 +115,11 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         int clampedCount = clampResultCount(item, count);
         ItemStack candidate = new ItemStack(item, clampedCount, components);
         return ItemStack.validateStrict(candidate).result().isPresent() ? candidate : new ItemStack(item, clampedCount);
+    }
+
+    protected static @Nullable ItemStack validatedResultStack(Holder<Item> item, int count, DataComponentPatch components) {
+        ItemStack candidate = new ItemStack(item, count, components);
+        return ItemStack.validateStrict(candidate).result().isPresent() ? candidate : null;
     }
 
     protected static TransmuteResult replaceTransmuteResult(Holder<Item> item, int count, DataComponentPatch components) {

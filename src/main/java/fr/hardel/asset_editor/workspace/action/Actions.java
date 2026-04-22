@@ -14,7 +14,9 @@ import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction;
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveItemEverywhereAction;
+import fr.hardel.asset_editor.workspace.action.recipe.RemoveResultComponentAction;
 import fr.hardel.asset_editor.workspace.action.recipe.ReplaceItemEverywhereAction;
+import fr.hardel.asset_editor.workspace.action.recipe.SetResultComponentAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingExperienceAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingTimeAction;
@@ -218,6 +220,18 @@ public final class Actions {
         "recipe/set_show_notification",
         SetShowNotificationAction.CODEC,
         SetShowNotificationAction.class);
+
+    public static final Action<Recipe<?>, SetResultComponentAction> SET_RESULT_COMPONENT = EditorActionRegistry.register(
+        Workspaces.RECIPE,
+        "recipe/set_result_component",
+        SetResultComponentAction.CODEC,
+        SetResultComponentAction.class);
+
+    public static final Action<Recipe<?>, RemoveResultComponentAction> REMOVE_RESULT_COMPONENT = EditorActionRegistry.register(
+        Workspaces.RECIPE,
+        "recipe/remove_result_component",
+        RemoveResultComponentAction.CODEC,
+        RemoveResultComponentAction.class);
 
     public static void register() {
         // Static fields are initialized on class load — this method triggers that.

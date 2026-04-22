@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -77,6 +78,14 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     protected TransmuteRecipe doSetResultItem(TransmuteRecipe recipe, Holder<Item> item) {
         return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
             replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
+    }
+
+    @Override
+    protected TransmuteRecipe doSetResultComponents(TransmuteRecipe recipe, DataComponentPatch patch) {
+        ItemStack validation = validatedResultStack(recipe.result.item(), recipe.result.count(), patch);
+        if (validation == null) return null;
+        return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
+            new TransmuteResult(recipe.result.item(), recipe.result.count(), patch));
     }
 
     @Override

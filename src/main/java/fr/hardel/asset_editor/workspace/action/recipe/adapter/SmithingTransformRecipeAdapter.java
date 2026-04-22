@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -59,6 +60,17 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
             recipe.baseIngredient(),
             recipe.additionIngredient(),
             replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
+    }
+
+    @Override
+    protected SmithingTransformRecipe doSetResultComponents(SmithingTransformRecipe recipe, DataComponentPatch patch) {
+        ItemStack validation = validatedResultStack(recipe.result.item(), recipe.result.count(), patch);
+        if (validation == null) return null;
+        return new SmithingTransformRecipe(
+            recipe.templateIngredient(),
+            recipe.baseIngredient(),
+            recipe.additionIngredient(),
+            new TransmuteResult(recipe.result.item(), recipe.result.count(), patch));
     }
 
     @Override
