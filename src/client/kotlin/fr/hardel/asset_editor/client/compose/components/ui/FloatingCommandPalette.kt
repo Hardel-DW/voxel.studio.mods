@@ -2,8 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -49,7 +47,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -67,6 +64,10 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.enabledAlpha
+import fr.hardel.asset_editor.client.compose.popupEnterTransform
+import fr.hardel.asset_editor.client.compose.slideEnterTransform
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
@@ -77,8 +78,6 @@ private val inputShape = RoundedCornerShape(10.dp)
 private val itemShape = RoundedCornerShape(8.dp)
 private val hintShape = RoundedCornerShape(8.dp)
 
-private const val ANIM_ENTER_MS = 180
-private const val HOVER_FADE_MS = 120
 
 // ── State ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +144,7 @@ fun CommandPalette(
     var inputFocused by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        animProgress.animateTo(1f, tween(ANIM_ENTER_MS, easing = FastOutSlowInEasing))
+        animProgress.animateTo(1f, StudioMotion.popupEnterSpec())
         runCatching { focusRequester.requestFocus() }
     }
 
@@ -161,7 +160,7 @@ fun CommandPalette(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = animProgress.value }
+                .slideEnterTransform(animProgress.value)
                 .background(Color.Black.copy(alpha = 0.55f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -174,12 +173,11 @@ fun CommandPalette(
                     .align(Alignment.TopCenter)
                     .padding(top = 96.dp)
                     .widthIn(min = 480.dp, max = 560.dp)
-                    .graphicsLayer {
-                        val p = animProgress.value
-                        alpha = p
-                        translationY = (1f - p) * 12.dp.toPx()
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    }
+                    .popupEnterTransform(
+                        animProgress.value,
+                        transformOrigin = TransformOrigin(0.5f, 0f),
+                        translateY = 12.dp
+                    )
                     .shadow(
                         24.dp, containerShape,
                         ambientColor = Color.Black.copy(alpha = 0.5f),
@@ -280,12 +278,12 @@ private fun PaletteInput(
 ) {
     val borderColor by animateColorAsState(
         targetValue = if (focused) StudioColors.Zinc700 else StudioColors.Zinc800.copy(alpha = 0.7f),
-        animationSpec = tween(HOVER_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "palette-input-border"
     )
     val iconTint by animateColorAsState(
         targetValue = if (focused) StudioColors.Zinc300 else StudioColors.Zinc500,
-        animationSpec = tween(HOVER_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "palette-input-icon"
     )
 
@@ -330,12 +328,15 @@ private fun PaletteInput(
                                 Key.Escape -> {
                                     onDismiss(); true
                                 }
+
                                 Key.DirectionDown -> {
                                     state.moveSelection(1); true
                                 }
+
                                 Key.DirectionUp -> {
                                     state.moveSelection(-1); true
                                 }
+
                                 Key.Enter, Key.NumPadEnter -> {
                                     if (state.activateSelected()) true
                                     else {
@@ -343,6 +344,7 @@ private fun PaletteInput(
                                         onSubmit != null
                                     }
                                 }
+
                                 else -> false
                             }
                         }
@@ -426,7 +428,7 @@ fun CommandPaletteItem(
             isSelected -> StudioColors.Zinc800.copy(alpha = 0.35f)
             else -> Color.Transparent
         },
-        animationSpec = tween(HOVER_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "palette-item-bg"
     )
     val textColor by animateColorAsState(
@@ -436,7 +438,7 @@ fun CommandPaletteItem(
             isSelected -> StudioColors.Zinc100
             else -> StudioColors.Zinc300
         },
-        animationSpec = tween(HOVER_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "palette-item-text"
     )
     val descColor by animateColorAsState(
@@ -446,7 +448,7 @@ fun CommandPaletteItem(
             isSelected -> StudioColors.Zinc500
             else -> StudioColors.Zinc500
         },
-        animationSpec = tween(HOVER_FADE_MS),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "palette-item-desc"
     )
 
@@ -466,7 +468,7 @@ fun CommandPaletteItem(
                 onClick = onClick
             )
             .padding(horizontal = 12.dp, vertical = 10.dp)
-            .graphicsLayer { alpha = if (enabled) 1f else 0.55f }
+            .enabledAlpha(enabled)
     ) {
         if (leading != null) leading()
         Column(

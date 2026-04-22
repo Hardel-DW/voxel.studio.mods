@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.enchantment.simulation
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,13 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.popupEnterTransform
+import fr.hardel.asset_editor.client.compose.slideEnterTransform
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
@@ -46,11 +47,19 @@ import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private data class WelcomeStep(val image: Identifier, val titleKey: String, val bodyKey: String, val listKeys: List<String>)
+private data class WelcomeStep(
+    val image: Identifier,
+    val titleKey: String,
+    val bodyKey: String,
+    val listKeys: List<String>
+)
 
 private val STEPS = listOf(
     WelcomeStep(
-        image = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/dialog/enchantment/simulation_1.webp"),
+        image = Identifier.fromNamespaceAndPath(
+            AssetEditor.MOD_ID,
+            "textures/studio/dialog/enchantment/simulation_1.webp"
+        ),
         titleKey = "enchantment:simulation.dialog.usage.title",
         bodyKey = "enchantment:simulation.dialog.usage.body",
         listKeys = listOf(
@@ -60,7 +69,10 @@ private val STEPS = listOf(
         )
     ),
     WelcomeStep(
-        image = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/dialog/enchantment/simulation_2.webp"),
+        image = Identifier.fromNamespaceAndPath(
+            AssetEditor.MOD_ID,
+            "textures/studio/dialog/enchantment/simulation_2.webp"
+        ),
         titleKey = "enchantment:simulation.dialog.stats.title",
         bodyKey = "enchantment:simulation.dialog.stats.body",
         listKeys = listOf(
@@ -70,7 +82,10 @@ private val STEPS = listOf(
         )
     ),
     WelcomeStep(
-        image = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/dialog/enchantment/simulation_3.webp"),
+        image = Identifier.fromNamespaceAndPath(
+            AssetEditor.MOD_ID,
+            "textures/studio/dialog/enchantment/simulation_3.webp"
+        ),
         titleKey = "enchantment:simulation.dialog.results.title",
         bodyKey = "enchantment:simulation.dialog.results.body",
         listKeys = listOf(
@@ -79,7 +94,10 @@ private val STEPS = listOf(
         )
     ),
     WelcomeStep(
-        image = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "textures/studio/dialog/enchantment/simulation_4.webp"),
+        image = Identifier.fromNamespaceAndPath(
+            AssetEditor.MOD_ID,
+            "textures/studio/dialog/enchantment/simulation_4.webp"
+        ),
         titleKey = "enchantment:simulation.dialog.item_selection.title",
         bodyKey = "enchantment:simulation.dialog.item_selection.body",
         listKeys = listOf(
@@ -95,7 +113,7 @@ fun SimulationWelcomeDialog(onDismiss: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     val multiStep = rememberMultiStepState(totalSteps = STEPS.size)
     val animProgress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { animProgress.animateTo(1f, tween(200)) }
+    LaunchedEffect(Unit) { animProgress.animateTo(1f, StudioMotion.popupEnterSpec()) }
 
     Popup(
         alignment = Alignment.Center,
@@ -106,7 +124,7 @@ fun SimulationWelcomeDialog(onDismiss: () -> Unit) {
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = animProgress.value }
+                .slideEnterTransform(animProgress.value)
                 .background(Color.Black.copy(alpha = 0.5f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -116,13 +134,7 @@ fun SimulationWelcomeDialog(onDismiss: () -> Unit) {
             Box(
                 modifier = Modifier
                     .widthIn(min = 600.dp, max = 800.dp)
-                    .graphicsLayer {
-                        val p = animProgress.value
-                        scaleX = 0.95f + 0.05f * p
-                        scaleY = 0.95f + 0.05f * p
-                        translationY = (1f - p) * 16.dp.toPx()
-                        alpha = p
-                    }
+                    .popupEnterTransform(animProgress.value, translateY = 12.dp)
                     .shadow(24.dp, shape)
                     .border(1.dp, StudioColors.Zinc800, shape)
                     .background(StudioColors.Zinc950, shape)

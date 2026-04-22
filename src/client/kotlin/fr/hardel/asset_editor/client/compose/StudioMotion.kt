@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -36,10 +38,11 @@ import androidx.compose.ui.unit.dp
  * - Section collapse  → [collapseEnterSpec] / [collapseExitSpec].
  * - Route / page enter→ [pageEnterSpec] + [PageEnterAnimation] (medium4, emphasized-decelerate).
  * - Tab content swap  → [tabFadeSpec].
+ *
+ * Material 3 duration tokens (ms). Use the named constants, not raw numbers, at call sites.
+ * Material 3 easing curves. `Standard` handles ~90% of cases; reach for the emphasized
  */
 object StudioMotion {
-
-    // Material 3 duration tokens (ms). Use the named constants, not raw numbers, at call sites.
     const val Short1 = 50
     const val Short2 = 100
     const val Short3 = 150
@@ -50,12 +53,8 @@ object StudioMotion {
     const val Medium4 = 400
     const val Long1 = 450
     const val Long2 = 500
-
-    // Press feedback sits below short1 on purpose — tactile response must feel instantaneous.
     const val Press = 75
 
-    // Material 3 easing curves. `Standard` handles ~90% of cases; reach for the emphasized
-    // pair only when motion needs a clear enter-vs-exit asymmetry (routes, dialogs, sections).
     val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
     val EmphasizedDecelerate: Easing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
     val EmphasizedAccelerate: Easing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
@@ -104,13 +103,72 @@ fun PageEnterAnimation(
     ) { content() }
 }
 
-/** Standard enter transition for AnimatedVisibility/AnimatedContent on tab / section content. */
+/**
+ * Standard popup/dropdown enter transform: fade + subtle scale + optional upward slide.
+ * Apply to any element that needs the standard appear animation driven by an external [progress] (0→1).
+ * Works for both enter (0→1) and exit (1→0) when paired with [StudioMotion.popupExitSpec].
+ */
+fun Modifier.popupEnterTransform(
+    progress: Float,
+    transformOrigin: TransformOrigin = TransformOrigin.Center,
+    translateY: Dp = 0.dp
+): Modifier = graphicsLayer {
+    alpha = progress
+    val scale = 0.96f + 0.04f * progress
+    scaleX = scale
+    scaleY = scale
+    if (translateY.value > 0f) translationY = (1f - progress) * translateY.toPx()
+    this.transformOrigin = transformOrigin
+}
+
+/**
+ * Convenience wrapper: manages its own progress and applies [popupEnterTransform].
+ * Use for simple popups that only need an enter animation. For popups with exit
+ * animation or a backdrop layer, use [popupEnterTransform] directly with your own [Animatable].
+ */
+@Composable
+fun PopupEnterAnimation(
+    transformOrigin: TransformOrigin = TransformOrigin.Center,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(1f, StudioMotion.popupEnterSpec())
+    }
+    Box(
+        modifier = modifier.popupEnterTransform(progress.value, transformOrigin, translateY = 8.dp)
+    ) { content() }
+}
+
+/**
+ * Slide-in enter transform: fade + directional translation (no scale).
+ * Use for toasts, sidebar items, or anything that slides into view.
+ */
+fun Modifier.slideEnterTransform(
+    progress: Float,
+    translateY: Dp = 0.dp,
+    translateX: Dp = 0.dp
+): Modifier = graphicsLayer {
+    alpha = progress
+    if (translateY.value != 0f) translationY = (1f - progress) * translateY.toPx()
+    if (translateX.value != 0f) translationX = (1f - progress) * translateX.toPx()
+}
+
+/** Disabled / enabled alpha toggle via graphicsLayer (no recomposition). */
+fun Modifier.enabledAlpha(enabled: Boolean): Modifier =
+    graphicsLayer { alpha = if (enabled) 1f else 0.5f }
+
+/** Uniform scale via graphicsLayer — use for press feedback driven by an animated Float. */
+fun Modifier.pressScale(scale: Float): Modifier =
+    graphicsLayer { scaleX = scale; scaleY = scale }
+
 fun standardTabEnter() = fadeIn(animationSpec = StudioMotion.tabFadeSpec())
 
 fun standardTabExit() = fadeOut(animationSpec = StudioMotion.popupExitSpec())
 
 fun standardCollapseEnter() = fadeIn(animationSpec = StudioMotion.collapseEnterSpec()) +
-    expandVertically(animationSpec = StudioMotion.collapseEnterSpec())
+        expandVertically(animationSpec = StudioMotion.collapseEnterSpec())
 
 fun standardCollapseExit() = fadeOut(animationSpec = StudioMotion.collapseExitSpec()) +
-    shrinkVertically(animationSpec = StudioMotion.collapseExitSpec())
+        shrinkVertically(animationSpec = StudioMotion.collapseExitSpec())

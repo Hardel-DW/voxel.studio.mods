@@ -11,7 +11,6 @@ import fr.hardel.asset_editor.workspace.action.enchantment.ToggleExclusiveAction
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleSlotAction;
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction;
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction;
-import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction;
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveItemEverywhereAction;
@@ -153,12 +152,6 @@ public final class Actions {
         "recipe/add_ingredient",
         AddIngredientAction.CODEC,
         AddIngredientAction.class);
-
-    public static final Action<Recipe<?>, AddShapelessIngredientAction> ADD_SHAPELESS_INGREDIENT = EditorActionRegistry.register(
-        Workspaces.RECIPE,
-        "recipe/add_shapeless_ingredient",
-        AddShapelessIngredientAction.CODEC,
-        AddShapelessIngredientAction.class);
 
     public static final Action<Recipe<?>, RemoveIngredientAction> REMOVE_INGREDIENT = EditorActionRegistry.register(
         Workspaces.RECIPE,

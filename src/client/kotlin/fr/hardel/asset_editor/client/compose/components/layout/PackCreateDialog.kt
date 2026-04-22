@@ -56,10 +56,13 @@ object PackCreateDialog {
                         errorMessage = when {
                             nextName.isEmpty() || nextNamespace.isEmpty() ->
                                 I18n.get("error:pack_name_and_namespace_required")
+
                             !Identifier.isValidNamespace(nextNamespace) ->
                                 I18n.get("error:invalid_namespace")
+
                             iconBytes.size > PackCreatePayload.MAX_ICON_BYTES ->
                                 I18n.get("error:pack_icon_too_large")
+
                             else -> null
                         }
                         if (errorMessage == null) {
@@ -73,7 +76,6 @@ object PackCreateDialog {
                 )
             }
         ) {
-            // div: flex flex-col gap-3
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(top = 8.dp)

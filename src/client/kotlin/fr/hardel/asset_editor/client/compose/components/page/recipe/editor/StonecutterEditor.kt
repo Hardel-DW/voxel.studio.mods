@@ -50,12 +50,11 @@ fun StonecutterEditor(state: RecipePageState, modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                RecipeSectionHeader(modifier = Modifier.weight(1f))
+                RecipeSectionHeader(recipeType = s.model.type, modifier = Modifier.weight(1f))
                 RecipeSelector(
                     value = s.model.type,
                     onChange = state.onSelectionChange,
                     recipeCounts = state.recipeCounts,
-                    selectMode = true
                 )
             }
 
@@ -69,12 +68,12 @@ fun StonecutterEditor(state: RecipePageState, modifier: Modifier = Modifier) {
                     resultCount = s.model.resultCount,
                     interactive = true,
                     onSlotPointerDown = { slot, button ->
-                        slotPointerDownAction(slot, button, s.selectedItemId)?.let(s.onAction)
+                        slotPointerDownAction(slot, button, s.selectedItemId, s.model.slots)?.let(s.onAction)
                     },
                     onSlotPointerEnter = { slot ->
-                        when (s.paintMode) {
+                        when (s.paintMode.value) {
                             PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
-                            PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
+                            PaintMode.ERASING -> slotRemoveAction(slot, s.model.slots)?.let(s.onAction)
                             PaintMode.NONE -> {}
                         }
                     },
@@ -82,7 +81,7 @@ fun StonecutterEditor(state: RecipePageState, modifier: Modifier = Modifier) {
                         if (button == PointerButton.Primary) s.onResultItemChange()
                     },
                     onResultPointerEnter = {
-                        if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
+                        if (s.paintMode.value == PaintMode.PAINTING) s.onResultItemChange()
                     }
                 )
 

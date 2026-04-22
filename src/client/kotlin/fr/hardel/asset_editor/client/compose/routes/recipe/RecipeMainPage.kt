@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.components.page.recipe.RecipeTreeData
@@ -17,8 +18,10 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememb
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.applySlotEdit
+import fr.hardel.asset_editor.client.compose.components.ui.StudioToast
+import fr.hardel.asset_editor.client.compose.components.ui.rememberToastState
 import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
-import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction
@@ -44,7 +47,11 @@ fun RecipeMainPage(context: StudioContext) {
     val targetId = runtimeEntry?.id ?: editor?.elementId?.let(Identifier::tryParse)
     var selectedItemId by remember(editor?.elementId) { mutableStateOf<String?>(null) }
     var search by remember(editor?.elementId) { mutableStateOf("") }
-    var paintMode by remember { mutableStateOf(PaintMode.NONE) }
+    val paintModeState = remember { mutableStateOf(PaintMode.NONE) }
+    var paintMode by paintModeState
+    var editingSlots by remember(editor?.elementId) { mutableStateOf<Map<String, List<String>>?>(null) }
+    var slotCache by remember(editor?.elementId) { mutableStateOf<Map<String, Map<String, List<String>>>>(emptyMap()) }
+    val toastState = rememberToastState()
 
     LaunchedEffect(editor?.elementId, workspaceEntry, context.sessionMemory().worldSessionKey()) {
         if (editor?.elementId == null || workspaceEntry != null) return@LaunchedEffect
@@ -70,6 +77,10 @@ fun RecipeMainPage(context: StudioContext) {
         }
 
         if (nextType != model.type && targetId != null && workspaceEntry != null) {
+            val currentSlots = editingSlots ?: model.slots
+            slotCache = slotCache + (model.type to currentSlots)
+            editingSlots = slotCache[nextType] ?: currentSlots
+
             context.dispatchRegistryAction(
                 workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
@@ -79,10 +90,12 @@ fun RecipeMainPage(context: StudioContext) {
         }
     }
 
+    val displayModel = model.copy(slots = editingSlots ?: model.slots)
+
     val editorState = RecipeEditorState(
-        model = model,
+        model = displayModel,
         selectedItemId = selectedItemId,
-        paintMode = paintMode,
+        paintMode = paintModeState,
         resultCountEnabled = model.resultCountEditable && model.resultCountMax > 1,
         onResultCountChange = { value ->
             if (!model.resultCountEditable || targetId == null || workspaceEntry == null) return@RecipeEditorState
@@ -105,12 +118,23 @@ fun RecipeMainPage(context: StudioContext) {
         },
         onAction = { action ->
             if (targetId == null || workspaceEntry == null) return@RecipeEditorState
-            if (action is AddIngredientAction ||
-                action is AddShapelessIngredientAction) {
+
+            val currentSlots = editingSlots ?: model.slots
+            val updatedSlots = applySlotEdit(currentSlots, action)
+            if (updatedSlots != null) {
+                if (action is RemoveIngredientAction && updatedSlots === currentSlots) {
+                    toastState.show("recipe:toast.min_ingredient")
+                    return@RecipeEditorState
+                }
+                editingSlots = updatedSlots
+            }
+
+            if (action is AddIngredientAction) {
                 paintMode = PaintMode.PAINTING
             } else if (action is RemoveIngredientAction) {
                 paintMode = PaintMode.ERASING
             }
+
             context.dispatchRegistryAction(
                 workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
@@ -134,6 +158,7 @@ fun RecipeMainPage(context: StudioContext) {
     Box(modifier = Modifier.fillMaxSize().padding(32.dp)) {
         val editor = RecipeEditorRegistry.get(pageState.editor.model.type) ?: { s, m -> FallbackEditor(s, m) }
         editor(pageState, Modifier.fillMaxSize())
+        StudioToast(toastState, modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp))
         RegistryPageDialogs(context, dialogs)
     }
 }

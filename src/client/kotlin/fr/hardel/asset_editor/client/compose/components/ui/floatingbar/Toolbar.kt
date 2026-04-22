@@ -72,11 +72,6 @@ private fun <T> islandCollapseSpec(): FiniteAnimationSpec<T> =
 private const val SNAP_THRESHOLD = 100f
 private val COLLAPSED_HEIGHT = 60.dp
 
-/**
- * Snapshot of the expansion target for the transition.
- * Using a data class as transition target batches all [updateTransition] animations
- * into a single invalidation per frame instead of one per animated value.
- */
 private data class IslandTarget(
     val expanded: Boolean,
     val width: Dp,
@@ -91,8 +86,6 @@ fun Toolbar(
 ) {
     val expansion = floatingBar.expansion
     val isExpanded = expansion is FloatingBarExpansion.Expanded
-
-    // Single transition batches all animations — one invalidation per frame (Skill §1.5 / §4)
     val target = remember(expansion) {
         when (expansion) {
             is FloatingBarExpansion.Expanded -> IslandTarget(true, expansion.size.width, expansion.size.height)
@@ -122,14 +115,11 @@ fun Toolbar(
         label = "scale"
     ) { t -> if (t.expanded) 1f else 0.98f }
 
-    // Cache shape — avoid recreating RoundedCornerShape every frame
     val shape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
-
-    // Defer heavy content composition by ~2 frames so the size animation starts first
     var contentReady by remember { mutableStateOf(false) }
     LaunchedEffect(isExpanded) {
         if (isExpanded) {
-            delay(32) // ~2 frames at 60fps — lets the morph animation start before composing content
+            delay(32)
             contentReady = true
         } else {
             contentReady = false
@@ -148,11 +138,13 @@ fun Toolbar(
                 floatingBar.offsetX += dragAmount.x
                 floatingBar.offsetY += dragAmount.y
                 isDragging = true
-                val distance = sqrt(floatingBar.offsetX * floatingBar.offsetX + floatingBar.offsetY * floatingBar.offsetY)
+                val distance =
+                    sqrt(floatingBar.offsetX * floatingBar.offsetX + floatingBar.offsetY * floatingBar.offsetY)
                 showSnapZone = distance < SNAP_THRESHOLD
             },
             onDragEnd = {
-                val distance = sqrt(floatingBar.offsetX * floatingBar.offsetX + floatingBar.offsetY * floatingBar.offsetY)
+                val distance =
+                    sqrt(floatingBar.offsetX * floatingBar.offsetX + floatingBar.offsetY * floatingBar.offsetY)
                 if (distance < SNAP_THRESHOLD) {
                     floatingBar.resetPosition()
                 }
@@ -170,7 +162,6 @@ fun Toolbar(
         contentAlignment = Alignment.BottomCenter,
         modifier = modifier.fillMaxSize()
     ) {
-        // Click-outside overlay — collapses toolbar when clicking outside (TSX: useClickOutside)
         if (isExpanded) {
             Box(
                 modifier = Modifier
@@ -185,15 +176,12 @@ fun Toolbar(
             )
         }
 
-        // Snap zone indicator
         if (isDragging) {
             SnapZoneIndicator(showSnapZone)
         }
 
-        // Dynamic island container
         Box(
             modifier = Modifier
-                // Offset in lambda — reads in Layout phase, skips Composition (Skill §1.5)
                 .offset { IntOffset(floatingBar.offsetX.roundToInt(), floatingBar.offsetY.roundToInt()) }
                 .padding(bottom = 32.dp)
                 .height(animatedHeight)
@@ -264,7 +252,6 @@ private fun SnapZoneIndicator(isNearSnap: Boolean) {
         label = "pulseAlpha"
     )
 
-    // Read pulseOpacity in Draw phase only via graphicsLayer (Skill §1.5)
     Box(
         modifier = Modifier
             .padding(bottom = 32.dp)
@@ -272,7 +259,6 @@ private fun SnapZoneIndicator(isNearSnap: Boolean) {
             .height(60.dp)
             .graphicsLayer { alpha = if (isNearSnap) pulseOpacity else 0.5f }
     ) {
-        // Static Canvas — drawn once, opacity handled by parent graphicsLayer
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawRoundRect(
                 color = StudioColors.Zinc400.copy(alpha = 0.1f),

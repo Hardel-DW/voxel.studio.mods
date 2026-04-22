@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.routes.changes
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
@@ -323,12 +323,12 @@ private fun ColoredAcceptButton(
             isHovered -> tint.copy(alpha = 0.22f)
             else -> tint.copy(alpha = 0.1f)
         },
-        animationSpec = tween(140),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "accept-bg"
     )
     val border by animateColorAsState(
         targetValue = tint.copy(alpha = if (isHovered && enabled) 0.55f else 0.3f),
-        animationSpec = tween(140),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "accept-border"
     )
     val textColor by animateColorAsState(
@@ -337,7 +337,7 @@ private fun ColoredAcceptButton(
             isHovered -> StudioColors.Zinc50
             else -> tint
         },
-        animationSpec = tween(140),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "accept-text"
     )
 

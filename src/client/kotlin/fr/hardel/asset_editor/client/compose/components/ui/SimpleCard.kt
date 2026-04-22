@@ -1,7 +1,7 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,8 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -42,7 +40,7 @@ fun SimpleCard(
     val isHovered by interactionSource.collectIsHoveredAsState()
     val offsetY by animateDpAsState(
         targetValue = if (isHovered) (-4).dp else 0.dp,
-        animationSpec = tween(150)
+        animationSpec = StudioMotion.hoverSpec()
     )
 
     Box(
@@ -75,13 +73,9 @@ fun SimpleCard(
                 .clip(RoundedCornerShape(12.dp))
         ) {
             ShineOverlay(
-                modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer {
-                        scaleY = 0.5f
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    },
-                opacity = 0.15f
+                modifier = Modifier.matchParentSize(),
+                opacity = 0.15f,
+                coverage = 0.5f
             )
 
             overlay?.invoke()

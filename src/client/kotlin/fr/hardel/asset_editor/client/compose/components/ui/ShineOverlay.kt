@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
@@ -14,15 +16,22 @@ private val SHINE_LOCATION = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID,
 @Composable
 fun ShineOverlay(
     modifier: Modifier = Modifier,
-    opacity: Float = 0.15f
+    opacity: Float = 0.15f,
+    coverage: Float = 1f
 ) {
     val bitmap = LocalStudioAssetCache.current.bitmap(SHINE_LOCATION) ?: return
+
+    val finalModifier = if (coverage < 1f) {
+        modifier.graphicsLayer {
+            scaleY = coverage
+            transformOrigin = TransformOrigin(0.5f, 0f)
+        }
+    } else modifier
 
     Image(
         bitmap = bitmap,
         contentDescription = null,
         contentScale = ContentScale.FillBounds,
-        modifier = modifier
-            .alpha(opacity)
+        modifier = finalModifier.alpha(opacity)
     )
 }

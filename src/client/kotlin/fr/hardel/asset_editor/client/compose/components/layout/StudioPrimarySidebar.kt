@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.slideEnterTransform
 import kotlinx.coroutines.delay
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.ResourceImageIcon
@@ -142,11 +143,7 @@ private fun SidebarItemEnter(delayIndex: Int, content: @Composable () -> Unit) {
         progress.animateTo(1f, tween(StudioMotion.Medium2, easing = StudioMotion.EmphasizedDecelerate))
     }
     Box(
-        modifier = Modifier.graphicsLayer {
-            val p = progress.value
-            alpha = p
-            translationX = (1f - p) * -6.dp.toPx()
-        }
+        modifier = Modifier.slideEnterTransform(progress.value, translateX = (-6).dp)
     ) { content() }
 }
 

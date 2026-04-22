@@ -7,12 +7,13 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public record RemoveIngredientAction(int slot, List<Identifier> items) implements EditorAction<Recipe<?>> {
 
@@ -27,6 +28,11 @@ public record RemoveIngredientAction(int slot, List<Identifier> items) implement
     public ElementEntry<Recipe<?>> apply(ElementEntry<Recipe<?>> entry, RegistryMutationContext ctx) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(ctx.registries());
         Recipe<?> recipe = entry.data();
+
+        if (recipe instanceof ShapelessRecipe shapeless) {
+            return applyShapeless(entry, shapeless);
+        }
+
         List<Optional<Ingredient>> ingredients = helper.extractIngredients(recipe);
         if (slot < 0 || slot >= ingredients.size())
             return entry;
@@ -40,5 +46,32 @@ public record RemoveIngredientAction(int slot, List<Identifier> items) implement
 
         ingredients.set(slot, updated);
         return entry.withData(helper.rebuild(recipe, ingredients));
+    }
+
+    private ElementEntry<Recipe<?>> applyShapeless(ElementEntry<Recipe<?>> entry, ShapelessRecipe shapeless) {
+        if (items.isEmpty())
+            return entry;
+
+        Set<Identifier> toRemove = new HashSet<>(items);
+        List<Ingredient> newIngredients = new ArrayList<>(shapeless.ingredients);
+        Iterator<Ingredient> it = newIngredients.iterator();
+        while (it.hasNext()) {
+            Set<Identifier> ingredientItems = it.next().values.stream()
+                .flatMap(h -> h.unwrapKey().stream())
+                .map(ResourceKey::identifier)
+                .collect(Collectors.toSet());
+            if (ingredientItems.equals(toRemove)) {
+                it.remove();
+                break;
+            }
+        }
+
+        if (newIngredients.size() == shapeless.ingredients.size())
+            return entry;
+
+        if (newIngredients.isEmpty())
+            return entry;
+
+        return entry.withData(new ShapelessRecipe(shapeless.group(), shapeless.category(), shapeless.result.copy(), newIngredients));
     }
 }

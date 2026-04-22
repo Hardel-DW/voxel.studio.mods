@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.changes
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.lib.git.GitSnapshot
 import fr.hardel.asset_editor.client.compose.lib.git.OperationInProgress
@@ -157,12 +157,12 @@ private fun CompactBannerButton(
     val shape = RoundedCornerShape(6.dp)
     val bg by animateColorAsState(
         targetValue = if (isHovered && enabled) tint.copy(alpha = 0.12f) else tint.copy(alpha = 0.04f),
-        animationSpec = tween(120),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "compact-bg"
     )
     val border by animateColorAsState(
         targetValue = if (isHovered && enabled) tint.copy(alpha = 0.4f) else tint.copy(alpha = 0.22f),
-        animationSpec = tween(120),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "compact-border"
     )
     val textColor by animateColorAsState(
@@ -171,7 +171,7 @@ private fun CompactBannerButton(
             isHovered -> tint
             else -> StudioColors.Zinc300
         },
-        animationSpec = tween(120),
+        animationSpec = StudioMotion.hoverSpec(),
         label = "compact-text"
     )
 

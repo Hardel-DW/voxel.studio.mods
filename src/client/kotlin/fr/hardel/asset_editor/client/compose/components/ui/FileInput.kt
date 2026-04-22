@@ -48,7 +48,7 @@ import androidx.compose.ui.draganddrop.dragData
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
+import fr.hardel.asset_editor.client.compose.pressScale
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -138,10 +138,7 @@ fun FileInput(
         modifier = modifier
             .fillMaxWidth()
             .height(containerHeight)
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
+            .pressScale(pressScale)
             .clip(RoundedCornerShape(12.dp))
             .background(bgColor)
             .border(2.dp, borderColor, RoundedCornerShape(12.dp))
@@ -221,10 +218,7 @@ private fun EmptyFileRow(promptText: String, helperText: String?, isDragOver: Bo
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(32.dp)
-                .graphicsLayer {
-                    scaleX = iconScale
-                    scaleY = iconScale
-                }
+                .pressScale(iconScale)
         ) {
             SvgIcon(UPLOAD_ICON, 18.dp, iconColor)
         }
@@ -324,10 +318,7 @@ private fun RemoveButton(onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(32.dp)
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-            }
+            .pressScale(scale)
             .clip(CircleShape)
             .background(bg)
             .hoverable(interaction)

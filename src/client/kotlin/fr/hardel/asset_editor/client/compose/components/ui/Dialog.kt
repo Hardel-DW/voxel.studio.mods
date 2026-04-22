@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -38,6 +36,9 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.popupEnterTransform
+import fr.hardel.asset_editor.client.compose.slideEnterTransform
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.resources.Identifier
 
@@ -55,7 +56,7 @@ fun Dialog(
 
     val animProgress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        animProgress.animateTo(1f, tween(200))
+        animProgress.animateTo(1f, StudioMotion.popupEnterSpec())
     }
 
     Popup(
@@ -67,7 +68,7 @@ fun Dialog(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = animProgress.value }
+                .slideEnterTransform(animProgress.value)
                 .background(Color.Black.copy(alpha = 0.5f))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -77,14 +78,13 @@ fun Dialog(
             Box(
                 modifier = modifier
                     .widthIn(min = 360.dp, max = 460.dp)
-                    .graphicsLayer {
-                        val p = animProgress.value
-                        scaleX = 0.95f + 0.05f * p
-                        scaleY = 0.95f + 0.05f * p
-                        translationY = (1f - p) * 16.dp.toPx()
-                        alpha = p
-                    }
-                    .shadow(24.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
+                    .popupEnterTransform(animProgress.value, translateY = 12.dp)
+                    .shadow(
+                        24.dp,
+                        shape,
+                        ambientColor = Color.Black.copy(alpha = 0.6f),
+                        spotColor = Color.Black.copy(alpha = 0.6f)
+                    )
                     .border(1.dp, StudioColors.Zinc800, shape)
                     .background(StudioColors.Zinc950, shape)
                     .clip(shape)
@@ -94,13 +94,9 @@ fun Dialog(
                     ) {}
             ) {
                 ShineOverlay(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer {
-                            scaleY = 0.4f
-                            transformOrigin = TransformOrigin(0.5f, 0f)
-                        },
-                    opacity = 0.15f
+                    modifier = Modifier.matchParentSize(),
+                    opacity = 0.15f,
+                    coverage = 0.4f
                 )
 
                 Column {

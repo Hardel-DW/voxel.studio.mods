@@ -813,5 +813,6 @@
     "settings:debug.show_hover_triangle.description": "Render the Radix-style safe triangle used by dropdown menus for debugging hover tracking.",
     "settings:debug.clear_compose_cache.title": "Clear Compose cache",
     "settings:debug.clear_compose_cache.description": "Delete the cached runtime and close the studio window. Next launch will re-download the Compose runtime.",
-    "settings:debug.clear_compose_cache.button": "Clear and close"
+    "settings:debug.clear_compose_cache.button": "Clear and close",
+    "recipe:toast.min_ingredient": "A recipe requires at least one ingredient."
 }

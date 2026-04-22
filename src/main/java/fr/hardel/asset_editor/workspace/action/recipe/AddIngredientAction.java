@@ -29,8 +29,12 @@ public record AddIngredientAction(int slot, List<Identifier> items, boolean repl
     public ElementEntry<Recipe<?>> apply(ElementEntry<Recipe<?>> entry, RegistryMutationContext ctx) {
         RecipeIngredientHelper helper = new RecipeIngredientHelper(ctx.registries());
         Recipe<?> recipe = entry.data();
-        if (recipe instanceof ShapelessRecipe)
-            return entry;
+
+        if (recipe instanceof ShapelessRecipe shapeless) {
+            List<Ingredient> newIngredients = new ArrayList<>(shapeless.ingredients);
+            newIngredients.add(helper.toIngredient(items));
+            return entry.withData(new ShapelessRecipe(shapeless.group(), shapeless.category(), shapeless.result.copy(), newIngredients));
+        }
 
         List<Optional<Ingredient>> ingredients = helper.extractIngredients(recipe);
         if (slot < 0 || slot >= ingredients.size())

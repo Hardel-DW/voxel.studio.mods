@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.tree
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -73,6 +75,12 @@ private fun TreeRow(
     val chevronInteraction = remember(row.key) { MutableInteractionSource() }
     val isHovered by rowInteraction.collectIsHoveredAsState()
     val chevronHovered by chevronInteraction.collectIsHoveredAsState()
+
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (row.isExpanded) 0f else -90f,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "tree-chevron"
+    )
 
     val isDefaultFolderIcon = !row.isElement && row.icon == DEFAULT_FOLDER_ICON
     val iconAlpha = when {
@@ -151,7 +159,7 @@ private fun TreeRow(
                             size = 12.dp,
                             tint = StudioColors.Zinc400,
                             modifier = Modifier
-                                .rotate(if (row.isExpanded) 0f else -90f)
+                                .rotate(chevronRotation)
                                 .alpha(if (row.isExpandable) 1f else 0.3f)
                         )
                     }

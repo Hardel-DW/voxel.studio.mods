@@ -10,11 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import fr.hardel.asset_editor.client.compose.PopupEnterAnimation
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -41,26 +40,24 @@ fun Popover(
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {
-        Box(
-            modifier = modifier
-                .then(if (matchTriggerWidth) Modifier.fillMaxWidth() else Modifier.widthIn(min = 160.dp))
-                .shadow(20.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
-                .border(1.dp, StudioColors.Zinc800, shape)
-                .background(StudioColors.Zinc950, shape)
-                .clip(shape)
-        ) {
+        PopupEnterAnimation {
+            Box(
+                modifier = modifier
+                    .then(if (matchTriggerWidth) Modifier.fillMaxWidth() else Modifier.widthIn(min = 160.dp))
+                    .shadow(20.dp, shape, ambientColor = Color.Black.copy(alpha = 0.6f), spotColor = Color.Black.copy(alpha = 0.6f))
+                    .border(1.dp, StudioColors.Zinc800, shape)
+                    .background(StudioColors.Zinc950, shape)
+                    .clip(shape)
+            ) {
             ShineOverlay(
-                modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer {
-                        scaleY = 0.35f
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    },
-                opacity = 0.12f
+                modifier = Modifier.matchParentSize(),
+                opacity = 0.12f,
+                coverage = 0.35f
             )
             Box(modifier = Modifier.padding(16.dp)) {
                 content()
             }
+        }
         }
     }
 }

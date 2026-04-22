@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.components.ui.HQBlockRender
 import net.minecraft.resources.Identifier
 
@@ -70,11 +71,11 @@ private fun AnimatedBlock(pos: BlockPos, visible: Boolean, itemId: Identifier) {
     val targetY = if (visible) baseYDp else baseYDp - FALL_HEIGHT
     val animatedY by animateDpAsState(
         targetValue = targetY,
-        animationSpec = tween(durationMillis = 260)
+        animationSpec = tween(StudioMotion.Medium1, easing = StudioMotion.EmphasizedDecelerate)
     )
     val animatedAlpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(durationMillis = 220)
+        animationSpec = tween(StudioMotion.Short4, easing = StudioMotion.EmphasizedDecelerate)
     )
     Box(
         modifier = Modifier

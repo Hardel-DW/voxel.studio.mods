@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.ui
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -46,7 +47,7 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 private val WIDTH_DEFAULT = 80.dp
 private val WIDTH_HOVER = 128.dp
 private val HEIGHT = 40.dp
-private const val ANIMATION_MS = 420
+private const val ANIMATION_MS = StudioMotion.Medium4
 
 @Composable
 fun Counter(

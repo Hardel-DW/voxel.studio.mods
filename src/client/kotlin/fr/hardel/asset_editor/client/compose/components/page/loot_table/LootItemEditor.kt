@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -52,7 +52,6 @@ import java.util.Locale
 private val PENCIL_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/pencil.svg")
 private val TRASH_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
-// Port 1:1 de decompiled/studio/src/components/tools/concept/loot/LootItemEditor.tsx
 @Composable
 fun LootItemEditor(
     reward: FlattenedReward,
@@ -87,7 +86,6 @@ fun LootItemEditor(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Header — flex items-center justify-between pb-4 border-b border-zinc-800/50
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -95,59 +93,52 @@ fun LootItemEditor(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp) // gap-3
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Pencil icon — size-8 rounded-lg bg-zinc-800/50
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(32.dp) // size-8
-                        .clip(RoundedCornerShape(8.dp)) // rounded-lg
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(StudioColors.Zinc800.copy(alpha = 0.5f))
                 ) {
-                    SvgIcon(PENCIL_ICON, 16.dp, Color.White.copy(alpha = 0.6f)) // size-4 invert opacity-60
+                    SvgIcon(PENCIL_ICON, 16.dp, Color.White.copy(alpha = 0.6f))
                 }
                 Column {
                     Text(
                         text = I18n.get("loot:editor.title"),
-                        style = StudioTypography.semiBold(14), // text-sm font-semibold
-                        color = StudioColors.Zinc100 // text-zinc-100
+                        style = StudioTypography.semiBold(14),
+                        color = StudioColors.Zinc100
                     )
                     Text(
                         text = displayName,
-                        style = StudioTypography.regular(12), // text-xs
-                        color = StudioColors.Zinc500 // text-zinc-500
+                        style = StudioTypography.regular(12),
+                        color = StudioColors.Zinc500
                     )
                 }
             }
 
-            // Delete button — size-9 hover:text-red-400 hover:bg-red-500/10 rounded-lg
             DeleteButton(onClick = {
                 onDelete()
                 onClose()
             })
         }
 
-        // Divider
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(StudioColors.Zinc800.copy(alpha = 0.5f)))
 
-        // Body — flex-1 py-4
         Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp), // gap-6
-            modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 16.dp) // py-4
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth().padding(vertical = 16.dp)
         ) {
-            // Item change button — size-28 (112dp), rounded-xl, border-zinc-800
             ChangeItemButton(reward.name) {
                 floatingBar.resize(ToolbarSize.LARGE)
                 selectingItem = true
             }
 
-            // Right side: Weight + Count
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp), // gap-5
+                verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                // Weight row
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -156,12 +147,12 @@ fun LootItemEditor(
                     Column {
                         Text(
                             text = I18n.get("loot:editor.weight_label"),
-                            style = StudioTypography.medium(14), // text-sm font-medium text-zinc-200
+                            style = StudioTypography.medium(14),
                             color = StudioColors.Zinc200
                         )
                         Text(
                             text = I18n.get("loot:editor.weight_description"),
-                            style = StudioTypography.regular(12), // text-xs text-zinc-500
+                            style = StudioTypography.regular(12),
                             color = StudioColors.Zinc500
                         )
                     }
@@ -177,10 +168,8 @@ fun LootItemEditor(
                     )
                 }
 
-                // Divider — h-px bg-zinc-800/50
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(StudioColors.Zinc800.copy(alpha = 0.5f)))
 
-                // Count row (read-only for now)
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -200,7 +189,7 @@ fun LootItemEditor(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) // gap-2
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Counter(
                             value = countMin,
@@ -212,7 +201,7 @@ fun LootItemEditor(
                                 onCountMinChange(newMin)
                             }
                         )
-                        Text("\u2014", style = StudioTypography.regular(14), color = StudioColors.Zinc600) // —
+                        Text("\u2014", style = StudioTypography.regular(14), color = StudioColors.Zinc600)
                         Counter(
                             value = countMax,
                             min = countMin,
@@ -228,19 +217,17 @@ fun LootItemEditor(
             }
         }
 
-        // Footer divider
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(StudioColors.Zinc800.copy(alpha = 0.5f)))
 
-        // Footer — pt-4 flex justify-between items-center
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp) // pt-4
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
         ) {
             Text(
                 text = I18n.get("loot:editor.footer_text"),
-                style = StudioTypography.medium(12), // text-xs font-medium
-                color = StudioColors.Zinc400 // text-zinc-400
+                style = StudioTypography.medium(12),
+                color = StudioColors.Zinc400
             )
             Button(
                 text = I18n.get("loot:editor.close"),
@@ -259,13 +246,16 @@ private fun ChangeItemButton(itemId: Identifier, onClick: () -> Unit) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically), // gap-1
+        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
         modifier = Modifier
-            .size(112.dp) // size-28
-            .clip(RoundedCornerShape(12.dp)) // rounded-xl
+            .size(112.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(
                 Brush.verticalGradient(
-                    if (hovered) listOf(StudioColors.Zinc700.copy(alpha = 0.3f), StudioColors.Zinc800.copy(alpha = 0.5f))
+                    if (hovered) listOf(
+                        StudioColors.Zinc700.copy(alpha = 0.3f),
+                        StudioColors.Zinc800.copy(alpha = 0.5f)
+                    )
                     else listOf(StudioColors.Zinc800.copy(alpha = 0.3f), StudioColors.Zinc900.copy(alpha = 0.5f))
                 )
             )
@@ -282,12 +272,11 @@ private fun ChangeItemButton(itemId: Identifier, onClick: () -> Unit) {
             ) { onClick() }
     ) {
         Box(contentAlignment = Alignment.Center) {
-            // Purple glow on hover — bg-purple-500/10 blur-xl
             if (hovered) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
-                        .graphicsLayer { alpha = 0.6f }
+                        .alpha(0.6f)
                         .background(StudioColors.Violet500.copy(alpha = 0.1f), RoundedCornerShape(50))
                 )
             }
@@ -309,8 +298,8 @@ private fun DeleteButton(onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(36.dp) // size-9
-            .clip(RoundedCornerShape(8.dp)) // rounded-lg
+            .size(36.dp)
+            .clip(RoundedCornerShape(8.dp))
             .background(if (hovered) StudioColors.Red500.copy(alpha = 0.1f) else Color.Transparent)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
@@ -320,7 +309,7 @@ private fun DeleteButton(onClick: () -> Unit) {
             ) { onClick() }
     ) {
         SvgIcon(
-            TRASH_ICON, 16.dp, // size-4
+            TRASH_ICON, 16.dp,
             if (hovered) StudioColors.Red400 else StudioColors.Zinc500
         )
     }

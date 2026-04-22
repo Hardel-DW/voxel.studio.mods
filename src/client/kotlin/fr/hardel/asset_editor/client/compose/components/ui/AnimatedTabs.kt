@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import kotlinx.coroutines.launch
 
@@ -63,8 +64,8 @@ fun AnimatedTabs(
             indicatorX.snapTo(activePos.first)
             indicatorWidth.snapTo(activePos.second)
         } else {
-            launch { indicatorX.animateTo(activePos.first, tween(300)) }
-            launch { indicatorWidth.animateTo(activePos.second, tween(300)) }
+            launch { indicatorX.animateTo(activePos.first, tween(StudioMotion.Medium2, easing = StudioMotion.Standard)) }
+            launch { indicatorWidth.animateTo(activePos.second, tween(StudioMotion.Medium2, easing = StudioMotion.Standard)) }
         }
     }
 

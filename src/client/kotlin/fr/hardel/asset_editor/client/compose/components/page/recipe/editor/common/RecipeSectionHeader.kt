@@ -10,7 +10,7 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun RecipeSectionHeader(modifier: Modifier = Modifier) {
+fun RecipeSectionHeader(recipeType: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(
             text = I18n.get("recipe:section.title"),
@@ -18,9 +18,9 @@ fun RecipeSectionHeader(modifier: Modifier = Modifier) {
             color = Color.White
         )
         Text(
-            text = I18n.get("recipe:section.description"),
-            style = StudioTypography.regular(14),
-            color = StudioColors.Zinc400
+            text = recipeType,
+            style = StudioTypography.regular(12),
+            color = StudioColors.Zinc500
         )
     }
 }

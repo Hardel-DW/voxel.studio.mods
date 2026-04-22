@@ -72,6 +72,8 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
             padded.add(Optional.empty());
         }
 
+        if (padded.stream().noneMatch(Optional::isPresent)) return original;
+
         BoundingBox box = computeBoundingBox(padded);
         List<Optional<Ingredient>> shrunk = extractRegion(padded, box);
         ShapedRecipePattern pattern = packPattern(shrunk, box.width());

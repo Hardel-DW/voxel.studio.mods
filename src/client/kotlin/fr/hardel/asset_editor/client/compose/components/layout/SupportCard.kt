@@ -60,11 +60,7 @@ fun SupportCard(modifier: Modifier = Modifier) {
                 drawLine(borderColor, Offset(r, hs), Offset(size.width, hs), strokeWidth = stroke)
             }
     ) {
-        // Background shine
         ShineOverlay(modifier = Modifier.matchParentSize(), opacity = 0.15f)
-
-        // absolute -top-24 -right-24 size-96 opacity-20
-        // matchParentSize so the icon doesn't inflate the Box height (CSS: position absolute)
         Box(
             contentAlignment = Alignment.TopEnd,
             modifier = Modifier.matchParentSize()
@@ -79,13 +75,11 @@ fun SupportCard(modifier: Modifier = Modifier) {
             )
         }
 
-        // flex flex-col justify-between h-full p-8 pl-12
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 48.dp, end = 32.dp, top = 32.dp, bottom = 32.dp)
         ) {
-            // Title + description
             Text(
                 text = I18n.get("supports:title"),
                 style = StudioTypography.semiBold(30),
@@ -98,14 +92,11 @@ fun SupportCard(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            // xl:flex justify-between gap-4 mt-4
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             ) {
-                // Advantages column
                 Column(modifier = Modifier.weight(1f)) {
-                    // h3: text-white font-bold text-xl pb-4 pt-6
                     Text(
                         text = I18n.get("supports:advantages"),
                         style = StudioTypography.bold(20),
@@ -113,7 +104,6 @@ fun SupportCard(modifier: Modifier = Modifier) {
                         modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
                     )
 
-                    // grid grid-cols-2 gap-x-8 gap-y-4
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(32.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -137,7 +127,6 @@ fun SupportCard(modifier: Modifier = Modifier) {
                     }
                 }
 
-                // Buttons: self-end gap-4 pt-8
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.Bottom,

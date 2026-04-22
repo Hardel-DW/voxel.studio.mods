@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.layout
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,19 +34,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
+import fr.hardel.asset_editor.client.compose.popupEnterTransform
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
@@ -59,6 +57,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
+import fr.hardel.asset_editor.client.compose.PopupEnterAnimation
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -75,7 +74,7 @@ import kotlinx.coroutines.withContext
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val FOLDER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/folder.svg")
+private val LOGO_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/logo.svg")
 private val CHEVRON_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 private val PLUS_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
 private val CHECK_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/check.svg")
@@ -86,15 +85,6 @@ private val itemShape = RoundedCornerShape(8.dp)
 private val iconShape = RoundedCornerShape(8.dp)
 private val POPUP_GAP = 8.dp
 
-private val FALLBACK_COLORS = listOf(
-    StudioColors.Violet500,
-    StudioColors.Emerald400,
-    StudioColors.Amber400,
-    StudioColors.Sky400,
-    StudioColors.Red400,
-    StudioColors.Blue500,
-    StudioColors.Green500
-)
 
 /** Aligns the popup left edge with the anchor and stacks it [gap] pixels below it. */
 private class BelowAnchorPositionProvider(private val gap: Int) : PopupPositionProvider {
@@ -164,7 +154,19 @@ fun PackSelector(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
         ) {
             if (selectedPack != null) {
-                PackIconAvatar(pack = selectedPack, size = 28.dp)
+                if (selectedPack.icon().isNotEmpty()) {
+                    PackIconAvatar(pack = selectedPack, size = 28.dp)
+                } else {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(iconShape)
+                            .background(StudioColors.Zinc900)
+                    ) {
+                        SvgIcon(LOGO_ICON, 14.dp, StudioColors.Zinc600)
+                    }
+                }
                 Text(
                     text = selectedPack.name(),
                     style = StudioTypography.medium(13),
@@ -180,7 +182,7 @@ fun PackSelector(
                         .clip(iconShape)
                         .background(StudioColors.Zinc900)
                 ) {
-                    SvgIcon(FOLDER_ICON, 14.dp, StudioColors.Zinc600)
+                    SvgIcon(LOGO_ICON, 14.dp, StudioColors.Zinc600)
                 }
                 Text(
                     text = I18n.get("studio:pack.none"),
@@ -194,7 +196,7 @@ fun PackSelector(
                 location = CHEVRON_ICON,
                 size = 10.dp,
                 tint = if (expanded) StudioColors.Zinc300 else StudioColors.Zinc500,
-                modifier = Modifier.graphicsLayer { rotationZ = chevronRotation }
+                modifier = Modifier.rotate(chevronRotation)
             )
         }
 
@@ -230,59 +232,54 @@ private fun PackSelectorPopup(
 ) {
     val gapPx = with(LocalDensity.current) { POPUP_GAP.roundToPx() }
     val positionProvider = remember(gapPx) { BelowAnchorPositionProvider(gapPx) }
-    val progress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) { progress.animateTo(1f, StudioMotion.popupEnterSpec()) }
-
     Popup(
         popupPositionProvider = positionProvider,
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {
-        Box(
-            modifier = Modifier
-                .width(280.dp)
-                .graphicsLayer {
-                    val p = progress.value
-                    alpha = p
-                    scaleX = 0.96f + 0.04f * p
-                    scaleY = 0.96f + 0.04f * p
-                    transformOrigin = TransformOrigin(0f, 0f)
-                }
-                .shadow(20.dp, popupShape, ambientColor = Color.Black.copy(alpha = 0.5f), spotColor = Color.Black.copy(alpha = 0.5f))
-                .clip(popupShape)
-                .background(StudioColors.Zinc950, popupShape)
-                .border(1.dp, StudioColors.Zinc800, popupShape)
+        PopupEnterAnimation(
+            transformOrigin = TransformOrigin(0f, 0f),
+            modifier = Modifier.width(280.dp)
         ) {
-            ShineOverlay(
+            Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer {
-                        scaleY = 0.3f
-                        transformOrigin = TransformOrigin(0.5f, 0f)
-                    },
-                opacity = 0.1f
-            )
+                    .shadow(
+                        20.dp,
+                        popupShape,
+                        ambientColor = Color.Black.copy(alpha = 0.5f),
+                        spotColor = Color.Black.copy(alpha = 0.5f)
+                    )
+                    .clip(popupShape)
+                    .background(StudioColors.Zinc950, popupShape)
+                    .border(1.dp, StudioColors.Zinc800, popupShape)
+            ) {
+                ShineOverlay(
+                    modifier = Modifier.matchParentSize(),
+                    opacity = 0.1f,
+                    coverage = 0.3f
+                )
 
-            Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                PopupHeader(count = availablePacks.size)
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    PopupHeader(count = availablePacks.size)
 
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 320.dp)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                ) {
-                    availablePacks.forEach { pack ->
-                        PackRow(
-                            pack = pack,
-                            selected = pack == selectedPack,
-                            onClick = { onSelect(pack) }
-                        )
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = 320.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                    ) {
+                        availablePacks.forEach { pack ->
+                            PackRow(
+                                pack = pack,
+                                selected = pack == selectedPack,
+                                onClick = { onSelect(pack) }
+                            )
+                        }
                     }
-                }
 
-                Separator()
-                CreatePackRow(onClick = onCreate)
+                    Separator()
+                    CreatePackRow(onClick = onCreate)
+                }
             }
         }
     }
@@ -481,22 +478,16 @@ private fun CreatePackRow(onClick: () -> Unit) {
 @Composable
 private fun PackIconAvatar(pack: ClientPackInfo, size: Dp) {
     val bitmap = rememberPackIcon(pack.icon())
-    val hasIconBytes = pack.icon().isNotEmpty()
     PackIconSurface(pack = pack, size = size, shape = iconShape) {
-        when {
-            bitmap != null -> Image(
+        if (bitmap != null) {
+            Image(
                 bitmap = bitmap,
                 contentDescription = pack.name(),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
-            // Pack has bytes but still decoding → show just the gradient, never a stale letter.
-            hasIconBytes -> Unit
-            else -> Text(
-                text = (pack.name().firstOrNull() ?: '?').uppercaseChar().toString(),
-                style = StudioTypography.medium((size.value * 0.42f).toInt()).copy(fontWeight = FontWeight.Bold),
-                color = Color.White.copy(alpha = 0.92f)
-            )
+        } else {
+            SvgIcon(LOGO_ICON, size * 0.5f, StudioColors.Zinc600)
         }
     }
 }
@@ -508,8 +499,8 @@ private fun PackIconSurface(pack: ClientPackInfo, size: Dp, shape: Shape, conten
         modifier = Modifier
             .size(size)
             .clip(shape)
-            .background(fallbackBrush(pack.packId()))
-            .border(1.dp, Color.Black.copy(alpha = 0.3f), shape)
+            .background(StudioColors.Zinc900)
+            .border(1.dp, StudioColors.Zinc800, shape)
     ) {
         content()
     }
@@ -527,15 +518,6 @@ private fun rememberPackIcon(icon: ByteArray): ImageBitmap? {
     return bitmap
 }
 
-private fun fallbackBrush(packId: String): Brush {
-    val hash = packId.hashCode()
-    val base = FALLBACK_COLORS[Math.floorMod(hash, FALLBACK_COLORS.size)]
-    val accent = FALLBACK_COLORS[Math.floorMod(hash / 31, FALLBACK_COLORS.size)]
-    return Brush.linearGradient(listOf(
-        base.copy(alpha = 0.85f),
-        accent.copy(alpha = 0.75f)
-    ))
-}
 
 private fun packSubtitle(pack: ClientPackInfo): String {
     return when (val count = pack.namespaces().size) {

@@ -30,23 +30,17 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.template.Cra
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.ShapelessRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
-import fr.hardel.asset_editor.workspace.action.recipe.AddShapelessIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
-import net.minecraft.resources.Identifier
 import net.minecraft.world.item.crafting.CraftingBookCategory
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifier) {
     val s = state.editor
-
-    fun addShapeless() {
-        val itemId = s.selectedItemId ?: return
-        val itemIdentifier = Identifier.tryParse(itemId) ?: return
-        s.onAction(AddShapelessIngredientAction(listOf(itemIdentifier)))
-    }
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(32.dp),
@@ -61,7 +55,7 @@ fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifie
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                RecipeSectionHeader(modifier = Modifier.weight(1f))
+                RecipeSectionHeader(recipeType = s.model.type, modifier = Modifier.weight(1f))
                 AnimatedTabs(
                     options = linkedMapOf(
                         "minecraft:crafting_shaped" to I18n.get("recipe:crafting.crafting_shaped.name"),
@@ -74,7 +68,6 @@ fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifie
                     value = s.model.type,
                     onChange = state.onSelectionChange,
                     recipeCounts = state.recipeCounts,
-                    selectMode = true
                 )
             }
 
@@ -88,16 +81,12 @@ fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifie
                     resultCount = s.model.resultCount,
                     interactive = true,
                     onSlotPointerDown = { slot, button ->
-                        when (button) {
-                            PointerButton.Primary -> addShapeless()
-                            PointerButton.Secondary -> slotRemoveAction(slot)?.let(s.onAction)
-                            else -> {}
-                        }
+                        slotPointerDownAction(slot, button, s.selectedItemId, s.model.slots)?.let(s.onAction)
                     },
                     onSlotPointerEnter = { slot ->
-                        when (s.paintMode) {
-                            PaintMode.PAINTING -> addShapeless()
-                            PaintMode.ERASING -> slotRemoveAction(slot)?.let(s.onAction)
+                        when (s.paintMode.value) {
+                            PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
+                            PaintMode.ERASING -> slotRemoveAction(slot, s.model.slots)?.let(s.onAction)
                             PaintMode.NONE -> {}
                         }
                     },
@@ -105,7 +94,7 @@ fun CraftingShapelessEditor(state: RecipePageState, modifier: Modifier = Modifie
                         if (button == PointerButton.Primary) s.onResultItemChange()
                     },
                     onResultPointerEnter = {
-                        if (s.paintMode == PaintMode.PAINTING) s.onResultItemChange()
+                        if (s.paintMode.value == PaintMode.PAINTING) s.onResultItemChange()
                     }
                 )
 

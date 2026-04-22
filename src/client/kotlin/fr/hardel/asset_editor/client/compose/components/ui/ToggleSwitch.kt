@@ -2,7 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.ui
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import fr.hardel.asset_editor.client.compose.StudioMotion
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -39,14 +39,14 @@ fun ToggleSwitch(
 ) {
     val knobOffset by animateDpAsState(
         targetValue = if (checked) SWITCH_WIDTH - PAD - KNOB_DIAMETER else PAD,
-        animationSpec = tween(200)
+        animationSpec = StudioMotion.tabFadeSpec()
     )
 
     val railBrush = if (checked) StudioColors.CheckedRail else Brush.linearGradient(listOf(StudioColors.UncheckedRail, StudioColors.UncheckedRail))
 
     val knobColor by animateColorAsState(
         targetValue = if (checked) StudioColors.CheckedCircle else StudioColors.UncheckedCircle,
-        animationSpec = tween(200)
+        animationSpec = StudioMotion.tabFadeSpec()
     )
 
     Box(

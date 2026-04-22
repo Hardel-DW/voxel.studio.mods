@@ -803,5 +803,6 @@
     "settings:debug.show_hover_triangle.description": "Affiche le triangle de securite style Radix utilise par les menus deroulants pour deboguer le suivi du curseur.",
     "settings:debug.clear_compose_cache.title": "Vider le cache Compose",
     "settings:debug.clear_compose_cache.description": "Supprime le runtime mis en cache et ferme la fenetre du studio. Le prochain lancement retelechargera le runtime Compose.",
-    "settings:debug.clear_compose_cache.button": "Vider et fermer"
+    "settings:debug.clear_compose_cache.button": "Vider et fermer",
+    "recipe:toast.min_ingredient": "Une recette nécessite au moins un ingrédient."
 }

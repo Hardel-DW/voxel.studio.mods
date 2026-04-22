@@ -13,15 +13,45 @@ fun slotAddAction(slot: String, selectedItemId: String?): EditorAction<*>? {
     return AddIngredientAction(slotIndex, listOf(itemIdentifier), true)
 }
 
-fun slotRemoveAction(slot: String): EditorAction<*>? {
+fun slotRemoveAction(slot: String, currentSlots: Map<String, List<String>>): EditorAction<*>? {
     val slotIndex = slot.toIntOrNull() ?: return null
-    return RemoveIngredientAction(slotIndex, emptyList())
+    val items = currentSlots[slot]?.mapNotNull { Identifier.tryParse(it) } ?: emptyList()
+    return RemoveIngredientAction(slotIndex, items)
 }
 
-fun slotPointerDownAction(slot: String, button: PointerButton, selectedItemId: String?): EditorAction<*>? {
+fun slotPointerDownAction(
+    slot: String,
+    button: PointerButton,
+    selectedItemId: String?,
+    currentSlots: Map<String, List<String>>
+): EditorAction<*>? {
     return when (button) {
-        PointerButton.Primary -> slotAddAction(slot, selectedItemId)
-        PointerButton.Secondary -> slotRemoveAction(slot)
+        PointerButton.Primary -> {
+            val itemId = selectedItemId ?: return null
+            val currentItems = currentSlots[slot].orEmpty()
+            if (currentItems.singleOrNull() == itemId) {
+                slotRemoveAction(slot, currentSlots)
+            } else {
+                slotAddAction(slot, selectedItemId)
+            }
+        }
+        PointerButton.Secondary -> slotRemoveAction(slot, currentSlots)
         else -> null
     }
+}
+
+fun applySlotEdit(
+    slots: Map<String, List<String>>,
+    action: EditorAction<*>
+): Map<String, List<String>>? = when (action) {
+    is AddIngredientAction -> {
+        val items = action.items.map { it.toString() }
+        if (items.isEmpty()) null
+        else slots + (action.slot.toString() to items)
+    }
+    is RemoveIngredientAction -> {
+        val result = slots - action.slot.toString()
+        if (result.isEmpty()) slots else result
+    }
+    else -> null
 }

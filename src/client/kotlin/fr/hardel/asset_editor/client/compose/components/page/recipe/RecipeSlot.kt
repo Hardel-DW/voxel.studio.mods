@@ -2,9 +2,6 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -13,15 +10,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
@@ -30,6 +31,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import fr.hardel.asset_editor.client.compose.components.ui.MinecraftTooltipArea
 import net.minecraft.resources.Identifier
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun RecipeSlot(
     slotIndex: String? = null,
@@ -41,8 +43,9 @@ fun RecipeSlot(
     onPointerDown: ((PointerButton) -> Unit)? = null,
     onPointerEnter: (() -> Unit)? = null
 ) {
-    val interaction = remember(slotIndex, item, interactive) { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
+    var hovered by remember { mutableStateOf(false) }
+    val currentOnPointerDown by rememberUpdatedState(onPointerDown)
+    val currentOnPointerEnter by rememberUpdatedState(onPointerEnter)
     val displayId = item.firstOrNull()?.let(Identifier::tryParse)
 
     val slot = @Composable {
@@ -55,23 +58,27 @@ fun RecipeSlot(
                     .clip(RoundedCornerShape(6.dp))
                     .background(StudioColors.Zinc800.copy(alpha = 0.5f))
                     .border(1.dp, if (hovered) StudioColors.Zinc500 else StudioColors.Zinc600, RoundedCornerShape(6.dp))
-                    .hoverable(interaction)
-                    .then(
-                        if (interactive && (onPointerDown != null || onPointerEnter != null)) {
-                            @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
-                            Modifier
-                                .pointerHoverIcon(PointerIcon.Hand)
-                                .onPointerEvent(PointerEventType.Press) { event ->
-                                    val button = event.button ?: return@onPointerEvent
-                                    onPointerDown?.invoke(button)
+                    .then(if (interactive) Modifier.pointerHoverIcon(PointerIcon.Hand) else Modifier)
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                when (event.type) {
+                                    PointerEventType.Enter -> {
+                                        hovered = true
+                                        currentOnPointerEnter?.invoke()
+                                    }
+                                    PointerEventType.Exit -> hovered = false
+                                    PointerEventType.Press -> {
+                                        val button = event.button ?: continue
+                                        currentOnPointerDown?.invoke(button)
+                                    }
+                                    PointerEventType.Release -> hovered = false
+                                    else -> {}
                                 }
-                                .onPointerEvent(PointerEventType.Enter) {
-                                    onPointerEnter?.invoke()
-                                }
-                        } else {
-                            Modifier
+                            }
                         }
-                    )
+                    }
             ) {
                 when {
                     isEmpty -> Unit

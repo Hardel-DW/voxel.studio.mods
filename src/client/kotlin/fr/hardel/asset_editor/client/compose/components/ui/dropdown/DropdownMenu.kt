@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.ui.dropdown
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -18,7 +17,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.input.pointer.pointerInput
@@ -30,6 +28,9 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.enabledAlpha
+import fr.hardel.asset_editor.client.compose.popupEnterTransform
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder
@@ -92,9 +93,9 @@ fun DropdownMenuContent(
         if (state.expanded) {
             showPopup = true
             animProgress.snapTo(0f)
-            animProgress.animateTo(1f, tween(100))
+            animProgress.animateTo(1f, StudioMotion.popupEnterSpec())
         } else if (showPopup) {
-            animProgress.animateTo(0f, tween(75))
+            animProgress.animateTo(0f, StudioMotion.popupExitSpec())
             showPopup = false
         }
     }
@@ -139,13 +140,7 @@ fun DropdownMenuContent(
                     if (matchTriggerWidth) Modifier.width(with(density) { state.triggerWidthPx.toDp() })
                     else Modifier.widthIn(min = minWidth).width(IntrinsicSize.Max)
                 )
-                .graphicsLayer {
-                    val p = animProgress.value
-                    alpha = p
-                    scaleX = 0.95f + 0.05f * p
-                    scaleY = 0.95f + 0.05f * p
-                    transformOrigin = TransformOrigin(0f, originY)
-                }
+                .popupEnterTransform(animProgress.value, TransformOrigin(0f, originY))
                 .onGloballyPositioned { contentCoords = it }
                 .pointerInput(tracker) {
                     awaitPointerEventScope {
@@ -259,7 +254,7 @@ fun DropdownMenuItem(
                 }
                 .padding(horizontal = 6.dp, vertical = 4.dp)
                 .then(if (inset) Modifier.padding(start = 22.dp) else Modifier)
-                .graphicsLayer { alpha = if (enabled) 1f else 0.5f }
+                .enabledAlpha(enabled)
         ) {
             if (leading != null) leading()
             content()
@@ -302,7 +297,7 @@ fun DropdownMenuCheckboxItem(
                     enabled = enabled
                 ) { onCheckedChange(!checked) }
                 .padding(start = if (inset) 28.dp else 6.dp, end = 6.dp, top = 4.dp, bottom = 4.dp)
-                .graphicsLayer { alpha = if (enabled) 1f else 0.5f }
+                .enabledAlpha(enabled)
         ) {
             content()
             Spacer(modifier = Modifier.weight(1f))
@@ -359,7 +354,7 @@ fun DropdownMenuRadioItem(
                     enabled = enabled
                 ) { radioState.onValueChange(value) }
                 .padding(start = if (inset) 28.dp else 6.dp, end = 6.dp, top = 4.dp, bottom = 4.dp)
-                .graphicsLayer { alpha = if (enabled) 1f else 0.5f }
+                .enabledAlpha(enabled)
         ) {
             content()
             Spacer(modifier = Modifier.weight(1f))
@@ -495,7 +490,7 @@ fun DropdownMenuSubContent(
     var boxCoords by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     LaunchedEffect(Unit) {
-        animProgress.animateTo(1f, tween(100))
+        animProgress.animateTo(1f, StudioMotion.popupEnterSpec())
     }
 
     LaunchedEffect(isHovered) {
@@ -532,13 +527,7 @@ fun DropdownMenuSubContent(
             modifier = modifier
                 .widthIn(min = minWidth)
                 .width(IntrinsicSize.Max)
-                .graphicsLayer {
-                    val p = animProgress.value
-                    alpha = p
-                    scaleX = 0.95f + 0.05f * p
-                    scaleY = 0.95f + 0.05f * p
-                    transformOrigin = TransformOrigin(0f, 0f)
-                }
+                .popupEnterTransform(animProgress.value, TransformOrigin(0f, 0f))
                 .onGloballyPositioned { boxCoords = it }
                 .pointerInput(tracker) {
                     awaitPointerEventScope {
@@ -598,7 +587,8 @@ fun DropdownMenuSelectTrigger(
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val borderColor = if (state.expanded || isHovered) StudioColors.Zinc700 else StudioColors.Zinc800
-    val bgColor = if (state.expanded || isHovered) StudioColors.Zinc700.copy(alpha = 0.2f) else StudioColors.Zinc800.copy(alpha = 0.3f)
+    val bgColor =
+        if (state.expanded || isHovered) StudioColors.Zinc700.copy(alpha = 0.2f) else StudioColors.Zinc800.copy(alpha = 0.3f)
 
     DropdownMenuTrigger(
         modifier = modifier
