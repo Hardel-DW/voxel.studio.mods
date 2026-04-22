@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "floats", "optional": true, "widget": { "type": "list", "item": { "type": "float" } } },
+    { "key": "flags", "optional": true, "widget": { "type": "list", "item": { "type": "boolean" } } },
+    { "key": "strings", "optional": true, "widget": { "type": "list", "item": { "type": "string" } } },
+    { "key": "colors", "optional": true, "widget": { "type": "list", "item": { "type": "integer" } } }
+  ]
+}

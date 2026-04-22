@@ -1,0 +1,4 @@
+{
+  "type": "enum",
+  "values": ["white", "creamy", "chestnut", "brown", "black", "gray", "dark_brown"]
+}

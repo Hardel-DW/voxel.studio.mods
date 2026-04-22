@@ -1,0 +1,6 @@
+{
+  "type": "integer",
+  "min": 1,
+  "max": 99,
+  "default": 64
+}

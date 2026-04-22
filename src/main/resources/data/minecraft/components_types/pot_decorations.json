@@ -1,0 +1,5 @@
+{
+  "type": "list",
+  "item": { "type": "identifier" },
+  "max_size": 4
+}

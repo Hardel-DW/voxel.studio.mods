@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "title", "widget": { "type": "string", "max_length": 32 } },
+    { "key": "author", "widget": { "type": "string" } },
+    { "key": "generation", "optional": true, "widget": { "type": "integer", "min": 0, "max": 3, "default": 0 } },
+    { "key": "pages", "optional": true, "widget": {
+      "type": "list",
+      "item": { "type": "text_component" },
+      "max_size": 256
+    } },
+    { "key": "resolved", "optional": true, "widget": { "type": "boolean", "default": false } }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "flight_duration", "optional": true, "widget": { "type": "integer", "min": 0, "max": 255, "default": 0 } },
+    { "key": "explosions", "optional": true, "widget": {
+      "type": "list",
+      "max_size": 256,
+      "item": {
+        "type": "object",
+        "fields": [
+          { "key": "shape", "widget": {
+            "type": "enum",
+            "values": ["small_ball", "large_ball", "star", "creeper", "burst"]
+          } },
+          { "key": "colors", "optional": true, "widget": { "type": "list", "item": { "type": "integer" } } },
+          { "key": "fade_colors", "optional": true, "widget": { "type": "list", "item": { "type": "integer" } } },
+          { "key": "has_trail", "optional": true, "widget": { "type": "boolean", "default": false } },
+          { "key": "has_twinkle", "optional": true, "widget": { "type": "boolean", "default": false } }
+        ]
+      }
+    } }
+  ]
+}

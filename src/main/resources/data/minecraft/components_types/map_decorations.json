@@ -1,0 +1,13 @@
+{
+  "type": "map",
+  "key": { "type": "string" },
+  "value": {
+    "type": "object",
+    "fields": [
+      { "key": "type", "widget": { "type": "holder", "registry": "minecraft:map_decoration_type" } },
+      { "key": "x", "widget": { "type": "float" } },
+      { "key": "z", "widget": { "type": "float" } },
+      { "key": "rotation", "widget": { "type": "float" } }
+    ]
+  }
+}

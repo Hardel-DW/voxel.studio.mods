@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "block_delay_seconds", "optional": true, "widget": { "type": "float", "min": 0.0, "default": 0.0 } },
+    { "key": "disable_cooldown_scale", "optional": true, "widget": { "type": "float", "min": 0.0, "default": 1.0 } },
+    { "key": "damage_reductions", "optional": true, "widget": {
+      "type": "list",
+      "item": {
+        "type": "object",
+        "fields": [
+          { "key": "horizontal_blocking_angle", "optional": true, "widget": { "type": "float", "min": 0.0, "default": 90.0 } },
+          { "key": "type", "optional": true, "widget": { "type": "holder_set", "registry": "minecraft:damage_type" } },
+          { "key": "base", "widget": { "type": "float" } },
+          { "key": "factor", "widget": { "type": "float" } }
+        ]
+      }
+    } },
+    { "key": "item_damage", "optional": true, "widget": {
+      "type": "object",
+      "fields": [
+        { "key": "threshold", "widget": { "type": "float", "min": 0.0 } },
+        { "key": "base", "widget": { "type": "float" } },
+        { "key": "factor", "widget": { "type": "float" } }
+      ]
+    } },
+    { "key": "bypassed_by", "optional": true, "widget": { "type": "tag", "registry": "minecraft:damage_type" } },
+    { "key": "block_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
+    { "key": "disabled_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } }
+  ]
+}

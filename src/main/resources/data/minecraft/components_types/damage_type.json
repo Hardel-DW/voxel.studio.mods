@@ -1,0 +1,5 @@
+{
+  "type": "either",
+  "left": { "type": "holder", "registry": "minecraft:damage_type" },
+  "right": { "type": "raw_json" }
+}

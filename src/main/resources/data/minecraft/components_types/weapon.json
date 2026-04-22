@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "item_damage_per_attack", "optional": true, "widget": { "type": "integer", "min": 0, "default": 1 } },
+    { "key": "disable_blocking_for_seconds", "optional": true, "widget": { "type": "float", "min": 0.0, "default": 0.0 } }
+  ]
+}

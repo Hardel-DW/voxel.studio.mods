@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "can_sprint", "optional": true, "widget": { "type": "boolean", "default": false } },
+    { "key": "interact_vibrations", "optional": true, "widget": { "type": "boolean", "default": true } },
+    { "key": "speed_multiplier", "optional": true, "widget": { "type": "float", "min": 0.0, "max": 1.0, "default": 0.2 } }
+  ]
+}

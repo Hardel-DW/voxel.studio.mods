@@ -1,0 +1,35 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "contact_cooldown_ticks", "optional": true, "widget": { "type": "integer", "min": 0, "default": 10 } },
+    { "key": "delay_ticks", "optional": true, "widget": { "type": "integer", "min": 0, "default": 0 } },
+    { "key": "dismount_conditions", "optional": true, "widget": {
+      "type": "object",
+      "fields": [
+        { "key": "max_duration_ticks", "widget": { "type": "integer", "min": 0 } },
+        { "key": "min_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } },
+        { "key": "min_relative_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } }
+      ]
+    } },
+    { "key": "knockback_conditions", "optional": true, "widget": {
+      "type": "object",
+      "fields": [
+        { "key": "max_duration_ticks", "widget": { "type": "integer", "min": 0 } },
+        { "key": "min_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } },
+        { "key": "min_relative_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } }
+      ]
+    } },
+    { "key": "damage_conditions", "optional": true, "widget": {
+      "type": "object",
+      "fields": [
+        { "key": "max_duration_ticks", "widget": { "type": "integer", "min": 0 } },
+        { "key": "min_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } },
+        { "key": "min_relative_speed", "optional": true, "widget": { "type": "float", "default": 0.0 } }
+      ]
+    } },
+    { "key": "forward_movement", "optional": true, "widget": { "type": "float", "default": 0.0 } },
+    { "key": "damage_multiplier", "optional": true, "widget": { "type": "float", "default": 1.0 } },
+    { "key": "sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
+    { "key": "hit_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } }
+  ]
+}

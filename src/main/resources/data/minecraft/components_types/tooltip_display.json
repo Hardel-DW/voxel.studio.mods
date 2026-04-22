@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "hide_tooltip", "optional": true, "widget": { "type": "boolean", "default": false } },
+    { "key": "hidden_components", "optional": true, "widget": { "type": "list", "item": { "type": "identifier" } } }
+  ]
+}

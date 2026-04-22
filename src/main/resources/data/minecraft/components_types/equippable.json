@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "slot", "widget": {
+      "type": "enum",
+      "values": ["head", "chest", "legs", "feet", "mainhand", "offhand"]
+    } },
+    { "key": "equip_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
+    { "key": "asset_id", "optional": true, "widget": { "type": "identifier" } },
+    { "key": "camera_overlay", "optional": true, "widget": { "type": "identifier" } },
+    { "key": "allowed_entities", "optional": true, "widget": { "type": "holder_set", "registry": "minecraft:entity_type" } },
+    { "key": "dispensable", "optional": true, "widget": { "type": "boolean", "default": true } },
+    { "key": "swappable", "optional": true, "widget": { "type": "boolean", "default": true } },
+    { "key": "damage_on_hurt", "optional": true, "widget": { "type": "boolean", "default": true } },
+    { "key": "equip_on_interact", "optional": true, "widget": { "type": "boolean", "default": false } },
+    { "key": "can_be_sheared", "optional": true, "widget": { "type": "boolean", "default": false } },
+    { "key": "shearing_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } }
+  ]
+}

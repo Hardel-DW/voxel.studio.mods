@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.data;
 
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
+import fr.hardel.asset_editor.data.component.ComponentTypeLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.resources.Identifier;
@@ -16,6 +17,9 @@ public final class StudioResourceLoaders {
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
             Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_recipe_entries"),
             new RecipeEntryLoader());
+        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
+            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_component_types"),
+            new ComponentTypeLoader());
     }
 
     private StudioResourceLoaders() {}

@@ -1,0 +1,18 @@
+{
+  "type": "list",
+  "item": {
+    "type": "object",
+    "fields": [
+      { "key": "type", "widget": { "type": "holder", "registry": "minecraft:attribute" } },
+      { "key": "modifier", "widget": { "type": "raw_json" } },
+      { "key": "slot", "optional": true, "widget": {
+        "type": "enum",
+        "values": ["any", "hand", "armor", "body", "offhand", "mainhand", "feet", "legs", "chest", "head"]
+      } },
+      { "key": "display", "optional": true, "widget": {
+        "type": "enum",
+        "values": ["default", "hidden", "override"]
+      } }
+    ]
+  }
+}

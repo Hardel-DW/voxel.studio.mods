@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "consume_seconds", "optional": true, "widget": { "type": "float", "min": 0.0, "default": 1.6 } },
+    { "key": "animation", "optional": true, "widget": {
+      "type": "enum",
+      "values": ["eat", "drink", "block", "bow", "crossbow", "spyglass", "toot_horn", "brush"]
+    } },
+    { "key": "sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
+    { "key": "has_consume_particles", "optional": true, "widget": { "type": "boolean", "default": true } },
+    { "key": "on_consume_effects", "optional": true, "widget": { "type": "list", "item": { "type": "raw_json" } } }
+  ]
+}

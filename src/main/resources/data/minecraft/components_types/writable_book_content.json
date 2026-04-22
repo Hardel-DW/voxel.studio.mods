@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "fields": [
+    { "key": "pages", "optional": true, "widget": {
+      "type": "list",
+      "item": { "type": "string", "max_length": 1024 },
+      "max_size": 100
+    } }
+  ]
+}

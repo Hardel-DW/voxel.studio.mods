@@ -1,0 +1,7 @@
+{
+  "type": "enum",
+  "values": [
+    "kob", "sunstreak", "snooper", "dasher", "brinely", "spotty",
+    "flopper", "stripey", "glitter", "blockfish", "betty", "clayfish"
+  ]
+}
