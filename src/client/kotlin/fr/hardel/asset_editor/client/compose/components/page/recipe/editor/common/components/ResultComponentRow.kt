@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.comm
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -51,6 +52,8 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val rowShape = RoundedCornerShape(10.dp)
+private val badgeShape = RoundedCornerShape(4.dp)
+private val deleteShape = RoundedCornerShape(6.dp)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-right.svg")
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 private const val SAVE_DEBOUNCE_MS = 250L
@@ -72,29 +75,47 @@ fun ResultComponentRow(
 
     LaunchedEffect(draft) {
         val current = draft
-        if (current != null && current != initialValue) {
+        val shouldSave = current != null && (isPending || current != initialValue)
+        if (shouldSave) {
             delay(SAVE_DEBOUNCE_MS)
-            if (validate(current)) onSave(current)
+            if (validate(current!!)) onSave(current)
         }
     }
 
+    val canExpand = widget != null
     val rowInteraction = remember { MutableInteractionSource() }
     val rowHovered by rowInteraction.collectIsHoveredAsState()
+
     val borderColor by animateColorAsState(
         targetValue = when {
+            isPending -> StudioColors.Violet500.copy(alpha = 0.45f)
             expanded -> StudioColors.Zinc700
             rowHovered -> StudioColors.Zinc800
             else -> StudioColors.Zinc900
         },
         animationSpec = StudioMotion.hoverSpec(),
-        label = "component-row-border"
+        label = "row-border"
+    )
+    val bg by animateColorAsState(
+        targetValue = when {
+            expanded -> StudioColors.Zinc900.copy(alpha = 0.55f)
+            rowHovered -> StudioColors.Zinc900.copy(alpha = 0.45f)
+            else -> StudioColors.Zinc900.copy(alpha = 0.3f)
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "row-bg"
+    )
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = StudioMotion.collapseEnterSpec(),
+        label = "row-chevron"
     )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(rowShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.35f), rowShape)
+            .background(bg, rowShape)
             .border(1.dp, borderColor, rowShape)
     ) {
         Row(
@@ -102,26 +123,22 @@ fun ResultComponentRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .hoverable(rowInteraction)
-                .pointerHoverIcon(if (widget != null) PointerIcon.Hand else PointerIcon.Default)
+                .pointerHoverIcon(if (canExpand) PointerIcon.Hand else PointerIcon.Default)
                 .clickable(
                     interactionSource = rowInteraction,
                     indication = null,
-                    enabled = widget != null,
+                    enabled = canExpand,
                     onClick = { expanded = !expanded }
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            if (widget != null) {
-                SvgIcon(
-                    location = CHEVRON,
-                    size = 14.dp,
-                    tint = if (expanded) StudioColors.Zinc300 else StudioColors.Zinc500,
-                    modifier = Modifier.rotate(if (expanded) 90f else 0f)
-                )
-                Spacer(Modifier.width(10.dp))
-            } else {
-                Spacer(Modifier.width(24.dp))
-            }
+            SvgIcon(
+                location = CHEVRON,
+                size = 12.dp,
+                tint = if (canExpand) StudioColors.Zinc400 else StudioColors.Zinc700,
+                modifier = Modifier.rotate(chevronRotation)
+            )
+            Spacer(Modifier.width(12.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -143,28 +160,25 @@ fun ResultComponentRow(
                 )
             }
 
-            if (widget == null) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = I18n.get("recipe:components.unknown"),
-                    style = StudioTypography.regular(10),
-                    color = StudioColors.Amber400
-                )
-            }
             if (isPending) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = I18n.get("recipe:components.pending"),
-                    style = StudioTypography.regular(10),
-                    color = StudioColors.Violet500
+                Badge(
+                    label = I18n.get("recipe:components.pending"),
+                    accent = StudioColors.Violet500
                 )
+                Spacer(Modifier.width(8.dp))
+            }
+            if (widget == null) {
+                Badge(
+                    label = I18n.get("recipe:components.unknown"),
+                    accent = StudioColors.Amber400
+                )
+                Spacer(Modifier.width(8.dp))
             }
 
-            Spacer(Modifier.width(12.dp))
             DeleteButton(onClick = onDelete)
         }
 
-        if (widget != null) {
+        if (canExpand) {
             AnimatedVisibility(
                 visible = expanded,
                 enter = standardCollapseEnter(),
@@ -173,16 +187,35 @@ fun ResultComponentRow(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp)
+                        .padding(start = 38.dp, end = 14.dp, bottom = 12.dp, top = 2.dp)
                 ) {
                     WidgetEditor(
-                        widget = widget,
+                        widget = widget!!,
                         value = draft,
                         onValueChange = { draft = it }
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun Badge(label: String, accent: Color) {
+    Box(
+        modifier = Modifier
+            .height(18.dp)
+            .clip(badgeShape)
+            .background(accent.copy(alpha = 0.14f), badgeShape)
+            .border(1.dp, accent.copy(alpha = 0.35f), badgeShape)
+            .padding(horizontal = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label.uppercase(),
+            style = StudioTypography.medium(9),
+            color = accent
+        )
     }
 }
 
@@ -198,16 +231,16 @@ private fun DeleteButton(onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(24.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg, RoundedCornerShape(6.dp))
+            .size(26.dp)
+            .clip(deleteShape)
+            .background(bg, deleteShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
         SvgIcon(
             location = TRASH,
-            size = 12.dp,
+            size = 13.dp,
             tint = if (hovered) StudioColors.Red400 else StudioColors.Zinc500
         )
     }
