@@ -1,9 +1,12 @@
 package fr.hardel.asset_editor.client.compose.routes.enchantment
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -171,10 +174,14 @@ private fun OverviewRow(
                     strokeWidth = stroke
                 )
             }
+            .hoverable(interaction)
+            .pointerHoverIcon(PointerIcon.Hand)
+            .clickable(
+                interactionSource = remember(entry.id()) { MutableInteractionSource() },
+                indication = null
+            ) { openEntry() }
     ) {
         ContentRow(
-            modifier = Modifier.hoverable(interaction),
-            onClick = { openEntry() },
             onAction = { openEntry() },
             icon = {
                 Box(
