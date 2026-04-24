@@ -135,7 +135,7 @@ fun Range(
                     .align(Alignment.CenterStart)
                     .fillMaxWidth()
                     .height(RANGE_TRACK_HEIGHT)
-                    .background(StudioColors.Tertiary, CircleShape)
+                    .background(StudioColors.Zinc500, CircleShape)
             )
 
             if (activeWidth > 0.dp) {
@@ -144,7 +144,7 @@ fun Range(
                         .align(Alignment.CenterStart)
                         .width(activeWidth)
                         .height(RANGE_HEIGHT)
-                        .background(StudioColors.Primary, RANGE_ACTIVE_SHAPE)
+                        .background(StudioColors.Zinc300, RANGE_ACTIVE_SHAPE)
                 )
             }
 
@@ -158,7 +158,7 @@ fun Range(
                         )
                     }
                     .size(RANGE_VISUAL_THUMB_SIZE)
-                    .border(RANGE_VISUAL_THUMB_BORDER, StudioColors.Primary, CircleShape)
+                    .border(RANGE_VISUAL_THUMB_BORDER, StudioColors.Zinc600, CircleShape)
                     .background(Color.Black, CircleShape)
             )
 

@@ -15,6 +15,7 @@ object StudioColors {
     val Zinc700 = Color(0xFF3F3F46)
     val Zinc800 = Color(0xFF27272A)
     val Zinc900 = Color(0xFF18181B)
+    val Zinc925 = Color(0xFF101011)
     val Zinc950 = Color(0xFF09090B)
     val Red300 = Color(0xFFFCA5A5)
     val Red400 = Color(0xFFF87171)
@@ -26,7 +27,6 @@ object StudioColors {
     val Blue500 = Color(0xFF3B82F6)
     val Violet500 = Color(0xFF8B5CF6)
     val Orange700 = Color(0xFFC2410C)
-    val Stone900 = Color(0xFF1C1917)
 
     // Syntax highlighting (One Dark palette)
     val SyntaxString = Color(0xFF98C379)
@@ -42,17 +42,6 @@ object StudioColors {
     val EnchantSelectedBg = Color(0xFF1A0026)
     val EnchantHoverBg = Color(0xFF120018)
 
-    // globals.css @theme variables
-    val Editor = Color(0xFF0F0E0E)
-    val Sidebar = Color(0xFF101011)
-    val SecondarySidebar = Color(0xFF0D0D0F)
-    val HeaderCloudy = Color(0xFF151418)
-    val Card = Color(0xC21C1B1E)
-    val Content = Color(0x3338373F)
-    val Background = Color(0xFF080507)
-    val Primary = Color(0xFFD2D2D2)
-    val Tertiary = Color(0x2E808080)
-
     // Switch
     val CheckedRail = Brush.linearGradient(listOf(Color(0xFF180909), Color(0xFF7A009F)))
     val CheckedCircle = Color(0xFFFFFFFF)
@@ -61,10 +50,6 @@ object StudioColors {
 
     // Minecraft in-game tooltip / experience palette
     val Experience = Color(0xFF80FF20)
-    val TooltipBackground = Color(0xF0100010)
-    val TooltipBorder = Color(0xFF2D0A63)
     val TooltipName = Color(0xFFFAFAFA)
     val TooltipEnchant = Color(0xFFA8A8A8)
-    val TooltipLore = Color(0xFF545454)
-    val TooltipAttribute = Color(0xFF5555FF)
 }

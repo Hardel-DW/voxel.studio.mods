@@ -23,7 +23,7 @@ private val contentShape = RoundedCornerShape(topStart = 24.dp)
 
 @Composable
 fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
-    Row(modifier = modifier.fillMaxSize().background(StudioColors.Sidebar)) {
+    Row(modifier = modifier.fillMaxSize().background(StudioColors.Zinc925)) {
         StudioPrimarySidebar(
             context = context,
             modifier = Modifier.width(64.dp).fillMaxHeight()
@@ -37,7 +37,7 @@ fun StudioEditorRoot(context: StudioContext, modifier: Modifier = Modifier) {
                     .weight(1f)
                     .fillMaxSize()
                     .clip(contentShape)
-                    .background(StudioColors.Content)
+                    .background(StudioColors.Zinc800)
                     .drawWithContent {
                         drawContent()
                         val stroke = 1.dp.toPx()

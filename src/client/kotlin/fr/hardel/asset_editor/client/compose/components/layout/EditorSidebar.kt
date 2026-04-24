@@ -58,7 +58,7 @@ fun EditorSidebar(
         modifier = modifier
             .width(288.dp)
             .fillMaxHeight()
-            .background(StudioColors.SecondarySidebar)
+            .background(StudioColors.Zinc925)
             .drawWithContent {
                 drawContent()
                 val stroke = 1.dp.toPx()
