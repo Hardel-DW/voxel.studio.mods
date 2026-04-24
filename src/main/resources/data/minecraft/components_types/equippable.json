@@ -4,17 +4,8 @@
     {
       "key": "slot",
       "widget": {
-        "type": "enum",
-        "values": [
-          "mainhand",
-          "offhand",
-          "feet",
-          "legs",
-          "chest",
-          "head",
-          "body",
-          "saddle"
-        ]
+        "type": "reference",
+        "id": "minecraft:equipment_slot"
       }
     },
     {

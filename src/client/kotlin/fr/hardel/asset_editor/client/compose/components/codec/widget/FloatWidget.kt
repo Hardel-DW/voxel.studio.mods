@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ComponentTextInput
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.CodecTextInput
 import fr.hardel.asset_editor.data.codec.CodecWidget
 
 @Composable
@@ -18,10 +18,10 @@ fun FloatWidget(
     modifier: Modifier = Modifier
 ) {
     val current = remember(value) { value?.asFloatOrNull()?.toPrettyString().orEmpty() }
-    ComponentTextInput(
+    CodecTextInput(
         value = current,
         onValueChange = { next ->
-            val parsed = next.toFloatOrNull() ?: return@ComponentTextInput
+            val parsed = next.toFloatOrNull() ?: return@CodecTextInput
             val clamped = parsed
                 .coerceAtLeast(widget.min().orElse(-Float.MAX_VALUE))
                 .coerceAtMost(widget.max().orElse(Float.MAX_VALUE))

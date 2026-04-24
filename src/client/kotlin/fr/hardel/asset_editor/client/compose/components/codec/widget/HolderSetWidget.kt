@@ -172,7 +172,7 @@ private fun TagModeContent(
     Box {
         RequiredFieldFrame(requiredMissing = requiredMissing, modifier = Modifier.fillMaxWidth()) {
             HolderSetTrigger(
-                label = currentTag?.let { "#$it" } ?: I18n.get("recipe:components.holder_set.tag.pick"),
+                label = currentTag?.let { "#$it" } ?: I18n.get("codec:holder_set.tag.pick"),
                 onClick = { pickerOpen = true }
             )
         }
@@ -210,7 +210,7 @@ private fun ListModeContent(
             if (ids.isEmpty()) {
                 RequiredFieldFrame(requiredMissing = requiredMissing, modifier = Modifier.weight(1f)) {
                     AddFieldButton(
-                        label = I18n.get("recipe:components.holder_set.list.add"),
+                        label = I18n.get("codec:holder_set.list.add"),
                         onClick = { pickerOpen = true },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -238,7 +238,7 @@ private fun ListModeContent(
                     }
                 }
                 AddFieldButton(
-                    label = I18n.get("recipe:components.holder_set.list.add"),
+                    label = I18n.get("codec:holder_set.list.add"),
                     onClick = { pickerOpen = true },
                     modifier = Modifier.width(132.dp)
                 )
@@ -355,6 +355,6 @@ private fun detectMode(value: JsonElement?): HolderSetMode {
 }
 
 private fun modeLabel(mode: HolderSetMode): String = when (mode) {
-    HolderSetMode.TAG -> I18n.get("recipe:components.holder_set.mode.tag")
-    HolderSetMode.LIST -> I18n.get("recipe:components.holder_set.mode.list")
+    HolderSetMode.TAG -> I18n.get("codec:holder_set.mode.tag")
+    HolderSetMode.LIST -> I18n.get("codec:holder_set.mode.list")
 }

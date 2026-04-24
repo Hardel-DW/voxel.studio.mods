@@ -98,7 +98,7 @@ fun MapWidget(
         }
 
         AddRow(
-            label = I18n.get("recipe:components.map.add"),
+            label = I18n.get("codec:map.add"),
             onClick = {
                 if (obj.has("")) return@AddRow
                 val next = obj.deepCopy()
@@ -150,7 +150,7 @@ private fun EntryRow(
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             FieldLabel(
-                text = I18n.get("recipe:components.map.value"),
+                text = I18n.get("codec:map.value"),
                 color = StudioColors.Zinc300
             )
             Box(modifier = Modifier.weight(1f)) {
@@ -169,7 +169,7 @@ private fun extractKeyString(json: JsonElement): String? {
 private fun mapKeyLabel(widget: CodecWidget): String = when (widget) {
     is CodecWidget.HolderWidget -> registryLabel(widget.registry())
     is CodecWidget.TagWidget -> registryLabel(widget.registry())
-    else -> I18n.get("recipe:components.map.key")
+    else -> I18n.get("codec:map.key")
 }
 
 private fun registryLabel(registry: Identifier): String {

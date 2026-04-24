@@ -17,7 +17,7 @@ fun UnitWidget(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = I18n.get("recipe:components.unit_flag"),
+            text = I18n.get("codec:unit_flag"),
             style = StudioTypography.regular(12),
             color = StudioColors.Zinc400
         )

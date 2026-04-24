@@ -74,7 +74,7 @@ fun ListWidget(
 
         if (showAddButton && items.size < maxSize) {
             AddRow(
-                label = I18n.get("recipe:components.list.add"),
+                label = I18n.get("codec:list.add"),
                 onClick = { onValueChange(addListItem(widget, array)) }
             )
         }

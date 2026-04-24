@@ -32,7 +32,7 @@ fun HolderWidget(
     Box(modifier = modifier.fillMaxWidth()) {
         RegistryTrigger(
             label = current?.toString(),
-            placeholder = I18n.get("recipe:components.widget.unset"),
+            placeholder = I18n.get("codec:widget.unset"),
             onClick = { pickerOpen = !pickerOpen },
             modifier = Modifier.fillMaxWidth()
         )

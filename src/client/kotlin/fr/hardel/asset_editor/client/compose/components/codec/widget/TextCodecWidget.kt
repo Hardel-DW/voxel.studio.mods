@@ -66,7 +66,7 @@ fun TextCodecWidget(
             )
         }
         Text(
-            text = I18n.get("recipe:components.text_component_hint"),
+            text = I18n.get("codec:text_component_hint"),
             style = StudioTypography.regular(10),
             color = StudioColors.Zinc600
         )

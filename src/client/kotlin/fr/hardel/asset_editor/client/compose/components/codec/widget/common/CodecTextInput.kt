@@ -31,7 +31,7 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 private val defaultInputShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
 
 @Composable
-internal fun ComponentTextInput(
+internal fun CodecTextInput(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,

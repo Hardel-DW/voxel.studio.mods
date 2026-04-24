@@ -29,7 +29,7 @@ import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ComponentTextInput
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.CodecTextInput
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.data.codec.CodecWidget
 
@@ -52,10 +52,10 @@ fun IntegerWidget(
             shape = RoundedCornerShape(0.dp),
             onClick = { onValueChange(JsonPrimitive(((currentInt ?: widget.defaultValue().orElse(0)) - 1).coerceIn(min, max))) }
         )
-        ComponentTextInput(
+        CodecTextInput(
             value = current,
             onValueChange = { next ->
-                val parsed = next.toIntOrNull() ?: return@ComponentTextInput
+                val parsed = next.toIntOrNull() ?: return@CodecTextInput
                 onValueChange(JsonPrimitive(parsed.coerceIn(min, max)))
             },
             placeholder = placeholder(widget),

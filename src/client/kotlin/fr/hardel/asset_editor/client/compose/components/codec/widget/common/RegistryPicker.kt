@@ -124,14 +124,14 @@ fun RegistryCommandPalette(
         onValueChange = { query = it },
         title = I18n.get(
             when (mode) {
-                RegistryPickerMode.ELEMENTS -> "recipe:components.picker.elements"
-                RegistryPickerMode.TAGS -> "recipe:components.picker.tags"
+                RegistryPickerMode.ELEMENTS -> "codec:picker.elements"
+                RegistryPickerMode.TAGS -> "codec:picker.tags"
             }
         ),
-        placeholder = I18n.get("recipe:components.picker.search")
+        placeholder = I18n.get("codec:picker.search")
     ) {
         if (filtered.isEmpty()) {
-            CommandPaletteEmpty(I18n.get("recipe:components.picker.empty"))
+            CommandPaletteEmpty(I18n.get("codec:picker.empty"))
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(items = filtered, key = { it.first.toString() }) { (id, name) ->

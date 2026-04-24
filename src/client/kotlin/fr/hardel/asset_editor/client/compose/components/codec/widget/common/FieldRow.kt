@@ -145,7 +145,7 @@ private fun RequiredWarningIcon(modifier: Modifier = Modifier) {
                     .padding(horizontal = 10.dp, vertical = 7.dp)
             ) {
                 Text(
-                    text = I18n.get("recipe:components.required"),
+                    text = I18n.get("codec:required"),
                     style = StudioTypography.regular(12),
                     color = StudioColors.Zinc100
                 )

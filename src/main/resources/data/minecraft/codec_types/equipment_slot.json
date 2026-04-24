@@ -1,0 +1,13 @@
+{
+  "type": "enum",
+  "values": [
+    "mainhand",
+    "offhand",
+    "feet",
+    "legs",
+    "chest",
+    "head",
+    "body",
+    "saddle"
+  ]
+}

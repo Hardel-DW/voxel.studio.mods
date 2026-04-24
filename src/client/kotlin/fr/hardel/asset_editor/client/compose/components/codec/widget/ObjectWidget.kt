@@ -164,7 +164,7 @@ private fun ComplexListFieldRow(
         ) {
             FieldLabel(text = label, color = fieldLabelColor(optional))
             AddFieldButton(
-                label = I18n.get("recipe:components.list.add"),
+                label = I18n.get("codec:list.add"),
                 enabled = canAdd,
                 onClick = onAddItem,
                 modifier = Modifier.weight(1f)
@@ -226,7 +226,7 @@ private fun OptionalComplexFieldRow(
         ) {
             FieldLabel(text = label, color = StudioColors.Zinc500)
             AddFieldButton(
-                label = I18n.get("recipe:components.field.add"),
+                label = I18n.get("codec:field.add"),
                 onClick = onAdd,
                 modifier = Modifier.weight(1f)
             )
@@ -272,7 +272,7 @@ private fun fieldLabelColor(optional: Boolean, faded: Boolean = false) =
     }
 
 private fun localizedFieldLabel(key: String): String {
-    val translationKey = "recipe:components.field.$key"
+    val translationKey = "codec:field.$key"
     val translated = I18n.get(translationKey)
     return if (translated == translationKey) humanizeField(key) else translated
 }

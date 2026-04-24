@@ -14,17 +14,8 @@
       "key": "animation",
       "optional": true,
       "widget": {
-        "type": "enum",
-        "values": [
-          "eat",
-          "drink",
-          "block",
-          "bow",
-          "crossbow",
-          "spyglass",
-          "toot_horn",
-          "brush"
-        ]
+        "type": "reference",
+        "id": "minecraft:use_animation"
       }
     },
     {

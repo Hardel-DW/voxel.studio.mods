@@ -158,7 +158,7 @@ fun ListEntryHeader(
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = I18n.get("recipe:components.list.entry", index + 1),
+            text = I18n.get("codec:list.entry", index + 1),
             style = StudioTypography.medium(12),
             color = if (hovered) StudioColors.Zinc100 else StudioColors.Zinc300
         )

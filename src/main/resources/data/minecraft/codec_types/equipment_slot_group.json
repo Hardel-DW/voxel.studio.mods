@@ -1,0 +1,16 @@
+{
+  "type": "enum",
+  "values": [
+    "any",
+    "mainhand",
+    "offhand",
+    "hand",
+    "feet",
+    "legs",
+    "chest",
+    "head",
+    "armor",
+    "body",
+    "saddle"
+  ]
+}

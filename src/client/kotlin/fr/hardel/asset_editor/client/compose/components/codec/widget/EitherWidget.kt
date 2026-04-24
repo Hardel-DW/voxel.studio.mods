@@ -52,8 +52,8 @@ fun EitherWidget(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SideToggle(
-            leftLabel = I18n.get("recipe:components.either.left"),
-            rightLabel = I18n.get("recipe:components.either.right"),
+            leftLabel = I18n.get("codec:either.left"),
+            rightLabel = I18n.get("codec:either.right"),
             isLeft = isLeft,
             onChange = { left ->
                 if (left != isLeft) {

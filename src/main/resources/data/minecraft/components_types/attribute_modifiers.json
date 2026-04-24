@@ -37,20 +37,8 @@
         "key": "slot",
         "optional": true,
         "widget": {
-          "type": "enum",
-          "values": [
-            "any",
-            "mainhand",
-            "offhand",
-            "hand",
-            "feet",
-            "legs",
-            "chest",
-            "head",
-            "armor",
-            "body",
-            "saddle"
-          ]
+          "type": "reference",
+          "id": "minecraft:equipment_slot_group"
         }
       },
       {
