@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,7 +31,7 @@ import net.minecraft.client.resources.language.I18n
 private val shape = RoundedCornerShape(8.dp)
 
 @Composable
-fun TextComponentWidget(
+fun TextCodecWidget(
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -42,18 +42,18 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.AddFieldButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryCommandPalette
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPickerMode
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RequiredFieldFrame
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.AddFieldButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryCommandPalette
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryPickerMode
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RequiredFieldFrame
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
 import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
 import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuRadioGroup
 import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuRadioItem
 import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuTrigger
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -67,7 +67,7 @@ private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons
 
 @Composable
 fun HolderSetWidget(
-    widget: ComponentWidget.HolderSetWidget,
+    widget: CodecWidget.HolderSetWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier,
@@ -302,7 +302,7 @@ private fun HolderSetChip(id: Identifier, onRemove: () -> Unit) {
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = Modifier.Companion
             .height(FieldRowHeight)
             .clip(chipShape)
             .background(StudioColors.Zinc800.copy(alpha = if (hovered) 0.72f else 0.45f), chipShape)

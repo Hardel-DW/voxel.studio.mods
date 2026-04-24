@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common
+package fr.hardel.asset_editor.client.compose.components.codec.widget.common
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background

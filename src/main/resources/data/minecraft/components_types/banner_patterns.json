@@ -13,25 +13,8 @@
       {
         "key": "color",
         "widget": {
-          "type": "enum",
-          "values": [
-            "white",
-            "orange",
-            "magenta",
-            "light_blue",
-            "yellow",
-            "lime",
-            "pink",
-            "gray",
-            "light_gray",
-            "cyan",
-            "purple",
-            "blue",
-            "brown",
-            "green",
-            "red",
-            "black"
-          ]
+          "type": "reference",
+          "id": "minecraft:dye_color"
         }
       }
     ]

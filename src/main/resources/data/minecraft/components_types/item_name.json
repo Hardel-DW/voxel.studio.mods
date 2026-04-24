@@ -1,3 +1,4 @@
 {
-  "type": "text_component"
+  "type": "reference",
+  "id": "minecraft:text_component"
 }

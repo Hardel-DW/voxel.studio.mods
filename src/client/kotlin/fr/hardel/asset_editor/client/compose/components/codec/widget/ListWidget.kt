@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -23,22 +23,22 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.AddFieldButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldControlShape
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.ListEntryHeader
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RemoveIconButton
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.AddFieldButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldControlShape
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ListEntryHeader
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RemoveIconButton
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 
 private val itemShape = RoundedCornerShape(6.dp)
 
 @Composable
 fun ListWidget(
-    widget: ComponentWidget.ListWidget,
+    widget: CodecWidget.ListWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier,
@@ -81,7 +81,7 @@ fun ListWidget(
     }
 }
 
-fun addListItem(widget: ComponentWidget.ListWidget, value: JsonElement?): JsonArray {
+fun addListItem(widget: CodecWidget.ListWidget, value: JsonElement?): JsonArray {
     val current = (value as? JsonArray) ?: JsonArray()
     return current.deepCopy().also { it.add(defaultJsonFor(widget.item())) }
 }
@@ -89,15 +89,15 @@ fun addListItem(widget: ComponentWidget.ListWidget, value: JsonElement?): JsonAr
 @Composable
 private fun ItemRow(
     index: Int,
-    widget: ComponentWidget,
+    widget: CodecWidget,
     value: JsonElement,
     onChange: (JsonElement) -> Unit,
     onRemove: () -> Unit
 ) {
-    val complex = widget is ComponentWidget.ObjectWidget ||
-        widget is ComponentWidget.MapWidget ||
-        widget is ComponentWidget.ListWidget ||
-        widget is ComponentWidget.DispatchedWidget
+    val complex = widget is CodecWidget.ObjectWidget ||
+        widget is CodecWidget.MapWidget ||
+        widget is CodecWidget.ListWidget ||
+        widget is CodecWidget.DispatchedWidget
     var expanded by remember(index) { mutableStateOf(true) }
 
     if (!complex) {
@@ -140,7 +140,7 @@ private fun ItemRow(
 
 @Composable
 private fun PrimitiveItemRow(
-    widget: ComponentWidget,
+    widget: CodecWidget,
     value: JsonElement,
     onChange: (JsonElement) -> Unit,
     onRemove: () -> Unit

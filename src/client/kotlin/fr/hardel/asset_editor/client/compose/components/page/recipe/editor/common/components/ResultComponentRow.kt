@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,9 +43,10 @@ import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import kotlinx.coroutines.delay
 import net.minecraft.resources.Identifier
 
@@ -59,7 +59,7 @@ private const val SAVE_DEBOUNCE_MS = 250L
 @Composable
 fun ResultComponentRow(
     componentId: Identifier,
-    widget: ComponentWidget?,
+    widget: CodecWidget?,
     initialValue: JsonElement?,
     isPending: Boolean,
     expanded: Boolean,
@@ -83,7 +83,7 @@ fun ResultComponentRow(
 
     LaunchedEffect(draft, locallyChanged, isPending) {
         val current = draft
-        val initialPendingUnit = isPending && widget is ComponentWidget.UnitWidget
+        val initialPendingUnit = isPending && widget is CodecWidget.UnitWidget
         val shouldSave = current != null && when {
             isPending -> locallyChanged || initialPendingUnit
             else -> locallyChanged && current != initialValue

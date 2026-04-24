@@ -1,0 +1,10 @@
+{
+  "type": "enum",
+  "values": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic"
+  ],
+  "default": "common"
+}

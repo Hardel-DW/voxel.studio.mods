@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,16 +10,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryCommandPalette
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPickerMode
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryTrigger
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryCommandPalette
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryPickerMode
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryTrigger
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 @Composable
-fun HolderWidget(
-    widget: ComponentWidget.HolderWidget,
+fun TagWidget(
+    widget: CodecWidget.TagWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -31,7 +31,7 @@ fun HolderWidget(
 
     Box(modifier = modifier.fillMaxWidth()) {
         RegistryTrigger(
-            label = current?.toString(),
+            label = current?.let { "#$it" },
             placeholder = I18n.get("recipe:components.widget.unset"),
             onClick = { pickerOpen = !pickerOpen },
             modifier = Modifier.fillMaxWidth()
@@ -40,7 +40,7 @@ fun HolderWidget(
         RegistryCommandPalette(
             visible = pickerOpen,
             registryId = widget.registry(),
-            mode = RegistryPickerMode.ELEMENTS,
+            mode = RegistryPickerMode.TAGS,
             selected = current,
             onPick = { id ->
                 onValueChange(JsonPrimitive(id.toString()))

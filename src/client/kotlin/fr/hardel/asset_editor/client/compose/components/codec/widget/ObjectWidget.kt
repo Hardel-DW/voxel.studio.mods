@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -18,19 +17,19 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.AddFieldButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldLabel
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RemoveIconButton
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RequiredFieldFrame
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.AddFieldButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldLabel
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RemoveIconButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RequiredFieldFrame
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 
 @Composable
 fun ObjectWidget(
-    widget: ComponentWidget.ObjectWidget,
+    widget: CodecWidget.ObjectWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -49,7 +48,7 @@ fun ObjectWidget(
 
 @Composable
 private fun ObjectField(
-    field: ComponentWidget.Field,
+    field: CodecWidget.Field,
     obj: JsonObject,
     onObjectChange: (JsonElement) -> Unit
 ) {
@@ -70,7 +69,7 @@ private fun ObjectField(
     }
 
     when (child) {
-        is ComponentWidget.ListWidget -> ComplexListFieldRow(
+        is CodecWidget.ListWidget -> ComplexListFieldRow(
             label = label,
             optional = field.optional(),
             value = fieldValue,
@@ -80,9 +79,9 @@ private fun ObjectField(
             onValueChange = updateField
         )
 
-        is ComponentWidget.ObjectWidget,
-        is ComponentWidget.MapWidget,
-        is ComponentWidget.DispatchedWidget -> ComplexFieldRow(
+        is CodecWidget.ObjectWidget,
+        is CodecWidget.MapWidget,
+        is CodecWidget.DispatchedWidget -> ComplexFieldRow(
             label = label,
             optional = field.optional(),
             onRemove = field.optionalRemoveAction(obj, key, onObjectChange)
@@ -90,7 +89,7 @@ private fun ObjectField(
             WidgetEditor(widget = child, value = fieldValue, onValueChange = updateField)
         }
 
-        is ComponentWidget.HolderSetWidget -> InlineFieldRow(
+        is CodecWidget.HolderSetWidget -> InlineFieldRow(
             label = label,
             optional = field.optional(),
             requiredMissing = requiredMissing,
@@ -133,7 +132,7 @@ private fun ComplexFieldRow(
             FieldLabel(text = label, color = fieldLabelColor(optional))
             Spacer(Modifier.weight(1f))
             if (onRemove != null) {
-                RemoveIconButton(onClick = onRemove, modifier = Modifier.width(FieldRowHeight))
+                RemoveIconButton(onClick = onRemove, modifier = Modifier.Companion.width(FieldRowHeight))
             }
         }
 
@@ -146,7 +145,7 @@ private fun ComplexListFieldRow(
     label: String,
     optional: Boolean,
     value: JsonElement?,
-    widget: ComponentWidget.ListWidget,
+    widget: CodecWidget.ListWidget,
     onAddItem: () -> Unit,
     onRemove: (() -> Unit)?,
     onValueChange: (JsonElement) -> Unit
@@ -171,7 +170,7 @@ private fun ComplexListFieldRow(
                 modifier = Modifier.weight(1f)
             )
             if (onRemove != null) {
-                RemoveIconButton(onClick = onRemove, modifier = Modifier.width(FieldRowHeight))
+                RemoveIconButton(onClick = onRemove, modifier = Modifier.Companion.width(FieldRowHeight))
             }
         }
 
@@ -235,7 +234,7 @@ private fun OptionalComplexFieldRow(
     }
 }
 
-private fun ComponentWidget.Field.optionalRemoveAction(
+private fun CodecWidget.Field.optionalRemoveAction(
     obj: JsonObject,
     key: String,
     onObjectChange: (JsonElement) -> Unit
@@ -250,15 +249,15 @@ private fun JsonObject.withField(key: String, value: JsonElement): JsonObject =
 private fun JsonObject.withoutField(key: String): JsonObject =
     deepCopy().also { it.remove(key) }
 
-private fun ComponentWidget.isComplex(): Boolean =
-    this is ComponentWidget.ObjectWidget ||
-        this is ComponentWidget.ListWidget ||
-        this is ComponentWidget.MapWidget ||
-        this is ComponentWidget.DispatchedWidget
+private fun CodecWidget.isComplex(): Boolean =
+    this is CodecWidget.ObjectWidget ||
+        this is CodecWidget.ListWidget ||
+        this is CodecWidget.MapWidget ||
+        this is CodecWidget.DispatchedWidget
 
-private fun ComponentWidget.isRequiredValueMissing(value: JsonElement?): Boolean {
+private fun CodecWidget.isRequiredValueMissing(value: JsonElement?): Boolean {
     if (value == null || value.isJsonNull) return true
-    if (this !is ComponentWidget.HolderSetWidget) return false
+    if (this !is CodecWidget.HolderSetWidget) return false
     if (value is JsonArray) return value.size() == 0
     if (!value.isJsonPrimitive || !value.asJsonPrimitive.isString) return false
     val raw = value.asString

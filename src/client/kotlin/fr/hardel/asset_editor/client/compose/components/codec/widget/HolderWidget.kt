@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,16 +10,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryCommandPalette
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPickerMode
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryTrigger
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryCommandPalette
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryPickerMode
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryTrigger
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 @Composable
-fun TagWidget(
-    widget: ComponentWidget.TagWidget,
+fun HolderWidget(
+    widget: CodecWidget.HolderWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -31,7 +31,7 @@ fun TagWidget(
 
     Box(modifier = modifier.fillMaxWidth()) {
         RegistryTrigger(
-            label = current?.let { "#$it" },
+            label = current?.toString(),
             placeholder = I18n.get("recipe:components.widget.unset"),
             onClick = { pickerOpen = !pickerOpen },
             modifier = Modifier.fillMaxWidth()
@@ -40,7 +40,7 @@ fun TagWidget(
         RegistryCommandPalette(
             visible = pickerOpen,
             registryId = widget.registry(),
-            mode = RegistryPickerMode.TAGS,
+            mode = RegistryPickerMode.ELEMENTS,
             selected = current,
             onPick = { id ->
                 onValueChange(JsonPrimitive(id.toString()))

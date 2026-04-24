@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -48,10 +48,10 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.popupEnterTransform
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.resources.Identifier
 
 private val triggerShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
@@ -61,7 +61,7 @@ private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons
 
 @Composable
 fun EnumWidget(
-    widget: ComponentWidget.EnumWidget,
+    widget: CodecWidget.EnumWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier

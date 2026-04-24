@@ -1,11 +1,11 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.ComponentTextInput
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ComponentTextInput
 import net.minecraft.client.resources.language.I18n
 
 @Composable

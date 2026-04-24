@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -30,12 +30,12 @@ import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
+import fr.hardel.asset_editor.data.codec.CodecWidget
 
 @Composable
 fun BooleanWidget(
-    widget: ComponentWidget.BooleanWidget,
+    widget: CodecWidget.BooleanWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier

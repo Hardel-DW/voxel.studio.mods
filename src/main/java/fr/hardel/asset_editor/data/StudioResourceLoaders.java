@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.data;
 
 import fr.hardel.asset_editor.AssetEditor;
+import fr.hardel.asset_editor.data.codec.CodecTypeLoader;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
 import fr.hardel.asset_editor.data.component.ComponentTypeLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
@@ -17,6 +18,9 @@ public final class StudioResourceLoaders {
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
             Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_recipe_entries"),
             new RecipeEntryLoader());
+        ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
+            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_codec_types"),
+            new CodecTypeLoader());
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
             Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_component_types"),
             new ComponentTypeLoader());

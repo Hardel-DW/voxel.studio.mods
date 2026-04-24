@@ -3,6 +3,9 @@ package fr.hardel.asset_editor.data.component;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
+import fr.hardel.asset_editor.data.codec.CodecTypeLoader;
+import fr.hardel.asset_editor.data.codec.CodecWidget;
+import fr.hardel.asset_editor.data.codec.CodecWidgetResolver;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -44,6 +47,7 @@ public final class ComponentTypeLoader implements PreparableReloadListener {
 
     private Map<Identifier, StudioComponentTypeDef> prepare(ResourceManager manager) {
         Map<Identifier, StudioComponentTypeDef> result = new LinkedHashMap<>();
+        Map<Identifier, CodecWidget> codecTypes = CodecTypeLoader.loadWidgets(manager);
 
         for (Map.Entry<Identifier, Resource> entry : LISTER.listMatchingResources(manager).entrySet()) {
             Identifier location = entry.getKey();
@@ -51,9 +55,10 @@ public final class ComponentTypeLoader implements PreparableReloadListener {
 
             try (Reader reader = entry.getValue().openAsReader()) {
                 JsonElement element = StrictJsonParser.parse(reader);
-                ComponentWidget widget = ComponentWidget.CODEC
+                CodecWidget widget = CodecWidget.CODEC
                     .parse(new Dynamic<>(JsonOps.INSTANCE, element))
                     .getOrThrow();
+                widget = CodecWidgetResolver.resolve(widget, codecTypes);
 
                 result.put(componentId, new StudioComponentTypeDef(componentId, widget));
             } catch (Exception e) {

@@ -1,7 +1,8 @@
 {
   "type": "list",
   "item": {
-    "type": "text_component"
+    "type": "reference",
+    "id": "minecraft:text_component"
   },
   "max_size": 256
 }

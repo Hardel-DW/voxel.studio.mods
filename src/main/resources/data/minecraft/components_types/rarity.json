@@ -1,10 +1,4 @@
 {
-  "type": "enum",
-  "values": [
-    "common",
-    "uncommon",
-    "rare",
-    "epic"
-  ],
-  "default": "common"
+  "type": "reference",
+  "id": "minecraft:rarity"
 }

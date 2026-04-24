@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
@@ -7,12 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.ComponentTextInput
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ComponentTextInput
+import fr.hardel.asset_editor.data.codec.CodecWidget
 
 @Composable
 fun FloatWidget(
-    widget: ComponentWidget.FloatWidget,
+    widget: CodecWidget.FloatWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -33,7 +33,7 @@ fun FloatWidget(
     )
 }
 
-private fun placeholder(widget: ComponentWidget.FloatWidget): String {
+private fun placeholder(widget: CodecWidget.FloatWidget): String {
     val min = widget.min().orElse(null)
     val max = widget.max().orElse(null)
     return when {

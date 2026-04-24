@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,13 +12,14 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
+import fr.hardel.asset_editor.data.codec.CodecWidget
+import java.util.Optional
 
 @Composable
 fun DispatchedWidget(
-    widget: ComponentWidget.DispatchedWidget,
+    widget: CodecWidget.DispatchedWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -36,7 +37,7 @@ fun DispatchedWidget(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             EnumWidget(
-                widget = ComponentWidget.EnumWidget(caseOptions, java.util.Optional.ofNullable(currentCase)),
+                widget = CodecWidget.EnumWidget(caseOptions, Optional.ofNullable(currentCase)),
                 value = currentCase?.let(::JsonPrimitive),
                 onValueChange = { picked ->
                     val pickedCase = runCatching { picked.asString }.getOrNull() ?: return@EnumWidget

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -29,13 +29,13 @@ import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.ComponentTextInput
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.ComponentTextInput
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
+import fr.hardel.asset_editor.data.codec.CodecWidget
 
 @Composable
 fun IntegerWidget(
-    widget: ComponentWidget.IntegerWidget,
+    widget: CodecWidget.IntegerWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -98,7 +98,7 @@ private fun StepButton(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
+        modifier = Modifier.Companion
             .size(FieldRowHeight)
             .clip(shape)
             .background(bg, shape)
@@ -111,7 +111,7 @@ private fun StepButton(
     }
 }
 
-private fun placeholder(widget: ComponentWidget.IntegerWidget): String {
+private fun placeholder(widget: CodecWidget.IntegerWidget): String {
     val min = widget.min().orElse(null)
     val max = widget.max().orElse(null)
     return when {

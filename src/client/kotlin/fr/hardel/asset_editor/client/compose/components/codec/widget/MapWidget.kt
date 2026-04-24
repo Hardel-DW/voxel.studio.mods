@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -36,12 +36,12 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldLabel
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RequiredFieldFrame
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldLabel
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RequiredFieldFrame
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -50,7 +50,7 @@ private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/t
 
 @Composable
 fun MapWidget(
-    widget: ComponentWidget.MapWidget,
+    widget: CodecWidget.MapWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -111,9 +111,9 @@ fun MapWidget(
 
 @Composable
 private fun EntryRow(
-    keyWidget: ComponentWidget,
+    keyWidget: CodecWidget,
     keyText: String,
-    valueWidget: ComponentWidget,
+    valueWidget: CodecWidget,
     valueElement: JsonElement,
     onKeyChange: (String) -> Unit,
     onValueChange: (JsonElement) -> Unit,
@@ -166,9 +166,9 @@ private fun extractKeyString(json: JsonElement): String? {
     return if (p.isString) p.asString else p.toString()
 }
 
-private fun mapKeyLabel(widget: ComponentWidget): String = when (widget) {
-    is ComponentWidget.HolderWidget -> registryLabel(widget.registry())
-    is ComponentWidget.TagWidget -> registryLabel(widget.registry())
+private fun mapKeyLabel(widget: CodecWidget): String = when (widget) {
+    is CodecWidget.HolderWidget -> registryLabel(widget.registry())
+    is CodecWidget.TagWidget -> registryLabel(widget.registry())
     else -> I18n.get("recipe:components.map.key")
 }
 

@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
+package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -30,16 +31,16 @@ import com.google.gson.JsonElement
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.data.component.ComponentWidget
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
+import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 
 private val tabShape = RoundedCornerShape(6.dp)
 
 @Composable
 fun EitherWidget(
-    widget: ComponentWidget.EitherWidget,
+    widget: CodecWidget.EitherWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
@@ -95,7 +96,7 @@ private fun SideTab(label: String, selected: Boolean, onClick: () -> Unit) {
         targetValue = when {
             selected -> StudioColors.Zinc700
             hovered -> StudioColors.Zinc800.copy(alpha = 0.6f)
-            else -> androidx.compose.ui.graphics.Color.Transparent
+            else -> Color.Transparent
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "either-tab-bg"
@@ -120,13 +121,13 @@ private fun SideTab(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-private fun detectSide(widget: ComponentWidget.EitherWidget, value: JsonElement?): Boolean {
+private fun detectSide(widget: CodecWidget.EitherWidget, value: JsonElement?): Boolean {
     if (value == null) return true
     return when (widget.left()) {
-        is ComponentWidget.HolderWidget -> value.isJsonPrimitive
-        is ComponentWidget.IdentifierWidget -> value.isJsonPrimitive
-        is ComponentWidget.ListWidget -> value.isJsonArray
-        is ComponentWidget.ObjectWidget -> value.isJsonObject
+        is CodecWidget.HolderWidget -> value.isJsonPrimitive
+        is CodecWidget.IdentifierWidget -> value.isJsonPrimitive
+        is CodecWidget.ListWidget -> value.isJsonArray
+        is CodecWidget.ObjectWidget -> value.isJsonObject
         else -> true
     }
 }
