@@ -26,9 +26,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.CodecTextInput
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.data.codec.CodecWidget
@@ -38,7 +38,8 @@ fun IntegerWidget(
     widget: CodecWidget.IntegerWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClear: (() -> Unit)? = null
 ) {
     val current = remember(value) { value?.asIntOrNull()?.toString().orEmpty() }
     val currentInt = value?.asIntOrNull()
@@ -55,6 +56,10 @@ fun IntegerWidget(
         CodecTextInput(
             value = current,
             onValueChange = { next ->
+                if (next.isEmpty()) {
+                    onClear?.invoke()
+                    return@CodecTextInput
+                }
                 val parsed = next.toIntOrNull() ?: return@CodecTextInput
                 onValueChange(JsonPrimitive(parsed.coerceIn(min, max)))
             },
@@ -66,7 +71,7 @@ fun IntegerWidget(
         StepButton(
             label = "+",
             enabled = currentInt == null || currentInt < max,
-            shape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp),
+            shape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius),
             onClick = { onValueChange(JsonPrimitive(((currentInt ?: widget.defaultValue().orElse(0)) + 1).coerceIn(min, max))) }
         )
     }
@@ -83,17 +88,17 @@ private fun StepButton(
     val hovered by interaction.collectIsHoveredAsState()
     val bg by animateColorAsState(
         targetValue = when {
-            !enabled -> StudioColors.Zinc900.copy(alpha = 0.35f)
-            hovered -> StudioColors.Zinc700.copy(alpha = 0.9f)
-            else -> StudioColors.Zinc800.copy(alpha = 0.75f)
+            !enabled -> CodecTokens.LabelBg
+            hovered -> CodecTokens.HoverBg
+            else -> CodecTokens.InputBg
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "integer-step-bg"
     )
     val fg = when {
-        !enabled -> StudioColors.Zinc700
-        hovered -> StudioColors.Zinc50
-        else -> StudioColors.Zinc300
+        !enabled -> CodecTokens.TextMuted
+        hovered -> CodecTokens.Text
+        else -> CodecTokens.TextDimmed
     }
 
     Box(
@@ -102,7 +107,7 @@ private fun StepButton(
             .size(FieldRowHeight)
             .clip(shape)
             .background(bg, shape)
-            .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.75f), shape)
+            .border(1.dp, CodecTokens.Border, shape)
             .hoverable(interaction)
             .pointerHoverIcon(if (enabled) PointerIcon.Hand else PointerIcon.Default)
             .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
@@ -118,7 +123,7 @@ private fun placeholder(widget: CodecWidget.IntegerWidget): String {
         min != null && max != null -> "$min – $max"
         min != null -> "≥ $min"
         max != null -> "≤ $max"
-        else -> "0"
+        else -> widget.defaultValue().map { it.toString() }.orElse("0")
     }
 }
 

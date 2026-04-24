@@ -24,11 +24,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import net.minecraft.client.resources.language.I18n
 
-private val shape = RoundedCornerShape(8.dp)
+private val shape = RoundedCornerShape(CodecTokens.RadiusLg)
 
 @Composable
 fun TextCodecWidget(
@@ -48,8 +48,8 @@ fun TextCodecWidget(
                 .fillMaxWidth()
                 .height(32.dp)
                 .clip(shape)
-                .background(StudioColors.Zinc950.copy(alpha = 0.5f), shape)
-                .border(1.dp, StudioColors.Zinc800, shape)
+                .background(CodecTokens.InputBg, shape)
+                .border(1.dp, CodecTokens.Border, shape)
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -59,8 +59,8 @@ fun TextCodecWidget(
                     text = next
                     onValueChange(JsonPrimitive(next.text))
                 },
-                textStyle = StudioTypography.regular(13).copy(color = StudioColors.Zinc100),
-                cursorBrush = SolidColor(StudioColors.Zinc100),
+                textStyle = StudioTypography.regular(13).copy(color = CodecTokens.Text),
+                cursorBrush = SolidColor(CodecTokens.Text),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -68,7 +68,7 @@ fun TextCodecWidget(
         Text(
             text = I18n.get("codec:text_component_hint"),
             style = StudioTypography.regular(10),
-            color = StudioColors.Zinc600
+            color = CodecTokens.TextMuted
         )
     }
 }

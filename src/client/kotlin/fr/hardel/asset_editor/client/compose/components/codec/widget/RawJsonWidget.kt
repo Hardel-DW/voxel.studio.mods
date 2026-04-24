@@ -19,10 +19,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonParser
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 
-private val shape = RoundedCornerShape(8.dp)
+private val shape = RoundedCornerShape(CodecTokens.RadiusLg)
 
 @Composable
 fun RawJsonWidget(
@@ -37,8 +37,8 @@ fun RawJsonWidget(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(StudioColors.Zinc950.copy(alpha = 0.5f), shape)
-            .border(1.dp, StudioColors.Zinc800, shape)
+            .background(CodecTokens.InputBg, shape)
+            .border(1.dp, CodecTokens.Border, shape)
             .padding(10.dp)
     ) {
         BasicTextField(
@@ -49,8 +49,8 @@ fun RawJsonWidget(
                     .getOrNull()
                     ?.let(onValueChange)
             },
-            textStyle = StudioTypography.regular(12).copy(color = StudioColors.Zinc100),
-            cursorBrush = SolidColor(StudioColors.Zinc100),
+            textStyle = StudioTypography.regular(12).copy(color = CodecTokens.Text),
+            cursorBrush = SolidColor(CodecTokens.Text),
             modifier = Modifier.fillMaxWidth()
         )
     }

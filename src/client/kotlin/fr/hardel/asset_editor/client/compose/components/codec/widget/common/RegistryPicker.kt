@@ -32,10 +32,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
@@ -47,7 +47,7 @@ import net.minecraft.resources.ResourceKey
 
 enum class RegistryPickerMode { ELEMENTS, TAGS }
 
-private val triggerShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
+private val triggerShape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
@@ -60,35 +60,40 @@ fun RegistryTrigger(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val border by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc600 else StudioColors.Zinc700.copy(alpha = 0.75f),
+        targetValue = if (hovered) CodecTokens.BorderStrong else CodecTokens.Border,
         animationSpec = StudioMotion.hoverSpec(),
         label = "registry-trigger-border"
+    )
+    val bg by animateColorAsState(
+        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "registry-trigger-bg"
     )
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .height(FieldRowHeight)
+            .height(CodecTokens.RowHeight)
             .clip(triggerShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.78f), triggerShape)
+            .background(bg, triggerShape)
             .border(1.dp, border, triggerShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = CodecTokens.PaddingX)
     ) {
         Text(
             text = label ?: placeholder,
             style = StudioTypography.regular(13).copy(
                 fontFamily = if (label != null) FontFamily.Monospace else FontFamily.Default
             ),
-            color = if (label != null) StudioColors.Zinc100 else StudioColors.Zinc500,
+            color = if (label != null) CodecTokens.Text else CodecTokens.TextMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))
-        SvgIcon(CHEVRON, 12.dp, tint = StudioColors.Zinc500)
+        SvgIcon(CHEVRON, 12.dp, tint = CodecTokens.TextDimmed)
     }
 }
 
@@ -150,7 +155,7 @@ fun RegistryCommandPalette(
                                         .width(6.dp)
                                         .height(6.dp)
                                         .clip(RoundedCornerShape(3.dp))
-                                        .background(StudioColors.Violet500)
+                                        .background(CodecTokens.Selected)
                                 )
                             }
                         } else null

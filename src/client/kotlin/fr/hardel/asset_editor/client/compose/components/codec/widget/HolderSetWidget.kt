@@ -4,20 +4,17 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
@@ -38,21 +34,16 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.AssetEditor
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.AddFieldButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.CodecSelect
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryCommandPalette
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RegistryPickerMode
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RequiredFieldFrame
-import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenu
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuContent
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuRadioGroup
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuRadioItem
-import fr.hardel.asset_editor.client.compose.components.ui.dropdown.DropdownMenuTrigger
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RemoveIconButton
+import fr.hardel.asset_editor.client.compose.components.codec.widget.common.SelectOption
 import fr.hardel.asset_editor.data.codec.CodecWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -60,49 +51,40 @@ import net.minecraft.resources.Identifier
 private enum class HolderSetMode { TAG, LIST }
 
 private val modeShape = RoundedCornerShape(0.dp)
-private val trailingShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
-private val chipShape = RoundedCornerShape(999.dp)
-private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
-private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
+private val trailingShape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius)
 
 @Composable
-fun HolderSetWidget(
+fun HolderSetHead(
     widget: CodecWidget.HolderSetWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier,
-    requiredMissing: Boolean = false
+    modifier: Modifier = Modifier
 ) {
-    val initialMode = remember(value) { detectMode(value) }
-    var mode by remember(initialMode) { mutableStateOf(initialMode) }
+    val mode = detectMode(value)
 
     Row(
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         modifier = modifier.fillMaxWidth()
     ) {
-        ModeDropdown(
+        ModeSelect(
             mode = mode,
             onChange = { next ->
-                if (next == mode) return@ModeDropdown
-                mode = next
+                if (next == mode) return@ModeSelect
                 onValueChange(if (next == HolderSetMode.TAG) JsonPrimitive("#") else JsonArray())
             }
         )
 
         Box(modifier = Modifier.weight(1f)) {
             when (mode) {
-                HolderSetMode.TAG -> TagModeContent(
+                HolderSetMode.TAG -> TagModeTrigger(
                     registry = widget.registry(),
                     value = value,
-                    requiredMissing = requiredMissing,
                     onValueChange = onValueChange
                 )
-
-                HolderSetMode.LIST -> ListModeContent(
+                HolderSetMode.LIST -> ListModeAddButton(
                     registry = widget.registry(),
                     value = value,
-                    requiredMissing = requiredMissing,
                     onValueChange = onValueChange
                 )
             }
@@ -111,56 +93,64 @@ fun HolderSetWidget(
 }
 
 @Composable
-private fun ModeDropdown(mode: HolderSetMode, onChange: (HolderSetMode) -> Unit) {
-    DropdownMenu {
-        ModeTrigger(label = modeLabel(mode))
+fun HolderSetBody(
+    widget: CodecWidget.HolderSetWidget,
+    value: JsonElement?,
+    onValueChange: (JsonElement) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val ids = remember(value) { holderSetIds(value) }
+    if (ids.isEmpty()) return
 
-        DropdownMenuContent(matchTriggerWidth = true, minWidth = 104.dp) {
-            DropdownMenuRadioGroup(
-                value = mode.name,
-                onValueChange = { selected -> onChange(HolderSetMode.valueOf(selected)) }
-            ) {
-                DropdownMenuRadioItem(HolderSetMode.TAG.name) {
-                    Text(modeLabel(HolderSetMode.TAG), style = StudioTypography.regular(13))
-                }
-                DropdownMenuRadioItem(HolderSetMode.LIST.name) {
-                    Text(modeLabel(HolderSetMode.LIST), style = StudioTypography.regular(13))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ModeTrigger(label: String) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    val bg by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc700.copy(alpha = 0.36f) else StudioColors.Zinc900.copy(alpha = 0.52f),
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "holder-set-mode-bg"
-    )
-
-    DropdownMenuTrigger(
-        modifier = Modifier
-            .width(96.dp)
-            .height(FieldRowHeight)
-            .clip(modeShape)
-            .background(bg, modeShape)
-            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.55f), modeShape)
-            .hoverable(interaction)
-            .padding(horizontal = 10.dp)
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(CodecTokens.Gap)
     ) {
-        Text(label, style = StudioTypography.medium(13), color = StudioColors.Zinc100, modifier = Modifier.weight(1f))
-        SvgIcon(CHEVRON, 12.dp, tint = StudioColors.Zinc500)
+        ids.forEachIndexed { index, id ->
+            key(index) {
+                IdentifierRow(
+                    id = id,
+                    registry = widget.registry(),
+                    onChange = { newId ->
+                        if (newId == id) return@IdentifierRow
+                        val next = JsonArray()
+                        ids.forEachIndexed { i, item ->
+                            next.add(if (i == index) newId.toString() else item.toString())
+                        }
+                        onValueChange(next)
+                    },
+                    onRemove = {
+                        val next = JsonArray()
+                        ids.forEachIndexed { i, item -> if (i != index) next.add(item.toString()) }
+                        onValueChange(next)
+                    }
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun TagModeContent(
+private fun ModeSelect(mode: HolderSetMode, onChange: (HolderSetMode) -> Unit) {
+    val options = remember {
+        listOf(
+            SelectOption(HolderSetMode.TAG.name, I18n.get("codec:holder_set.mode.tag")),
+            SelectOption(HolderSetMode.LIST.name, I18n.get("codec:holder_set.mode.list"))
+        )
+    }
+    CodecSelect(
+        options = options,
+        selected = mode.name,
+        onSelect = { picked -> onChange(HolderSetMode.valueOf(picked)) },
+        modifier = Modifier.width(96.dp),
+        shape = modeShape
+    )
+}
+
+@Composable
+private fun TagModeTrigger(
     registry: Identifier,
     value: JsonElement?,
-    requiredMissing: Boolean,
     onValueChange: (JsonElement) -> Unit
 ) {
     val currentTag = remember(value) {
@@ -170,13 +160,11 @@ private fun TagModeContent(
     var pickerOpen by remember { mutableStateOf(false) }
 
     Box {
-        RequiredFieldFrame(requiredMissing = requiredMissing, modifier = Modifier.fillMaxWidth()) {
-            HolderSetTrigger(
-                label = currentTag?.let { "#$it" } ?: I18n.get("codec:holder_set.tag.pick"),
-                onClick = { pickerOpen = true }
-            )
-        }
-
+        TriggerSurface(
+            label = currentTag?.let { "#$it" } ?: I18n.get("codec:holder_set.tag.pick"),
+            hasValue = currentTag != null,
+            onClick = { pickerOpen = true }
+        )
         RegistryCommandPalette(
             visible = pickerOpen,
             registryId = registry,
@@ -192,59 +180,21 @@ private fun TagModeContent(
 }
 
 @Composable
-private fun ListModeContent(
+private fun ListModeAddButton(
     registry: Identifier,
     value: JsonElement?,
-    requiredMissing: Boolean,
     onValueChange: (JsonElement) -> Unit
 ) {
     val ids = remember(value) { holderSetIds(value) }
     var pickerOpen by remember { mutableStateOf(false) }
 
     Box {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (ids.isEmpty()) {
-                RequiredFieldFrame(requiredMissing = requiredMissing, modifier = Modifier.weight(1f)) {
-                    AddFieldButton(
-                        label = I18n.get("codec:holder_set.list.add"),
-                        onClick = { pickerOpen = true },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            } else {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(FieldRowHeight)
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    ids.forEachIndexed { index, id ->
-                        key(id.toString()) {
-                            HolderSetChip(
-                                id = id,
-                                onRemove = {
-                                    val next = JsonArray()
-                                    ids.forEachIndexed { i, item -> if (i != index) next.add(item.toString()) }
-                                    onValueChange(next)
-                                }
-                            )
-                        }
-                    }
-                }
-                AddFieldButton(
-                    label = I18n.get("codec:holder_set.list.add"),
-                    onClick = { pickerOpen = true },
-                    modifier = Modifier.width(132.dp)
-                )
-            }
-        }
-
+        AddFieldButton(
+            label = I18n.get("codec:holder_set.list.add"),
+            onClick = { pickerOpen = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = trailingShape
+        )
         RegistryCommandPalette(
             visible = pickerOpen,
             registryId = registry,
@@ -263,13 +213,18 @@ private fun ListModeContent(
 }
 
 @Composable
-private fun HolderSetTrigger(label: String, onClick: () -> Unit) {
+private fun TriggerSurface(label: String, hasValue: Boolean, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val border by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc700.copy(alpha = 0.7f) else StudioColors.Zinc800.copy(alpha = 0.55f),
+        targetValue = if (hovered) CodecTokens.BorderStrong else CodecTokens.Border,
         animationSpec = StudioMotion.hoverSpec(),
         label = "holder-set-trigger-border"
+    )
+    val bg by animateColorAsState(
+        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "holder-set-trigger-bg"
     )
 
     Box(
@@ -278,17 +233,17 @@ private fun HolderSetTrigger(label: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(FieldRowHeight)
             .clip(trailingShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.52f), trailingShape)
+            .background(bg, trailingShape)
             .border(1.dp, border, trailingShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = CodecTokens.PaddingX)
     ) {
         Text(
             text = label,
             style = StudioTypography.regular(13).copy(fontFamily = FontFamily.Monospace),
-            color = StudioColors.Zinc100,
+            color = if (hasValue) CodecTokens.Text else CodecTokens.TextMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -296,47 +251,67 @@ private fun HolderSetTrigger(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun HolderSetChip(id: Identifier, onRemove: () -> Unit) {
+private fun IdentifierRow(
+    id: Identifier,
+    registry: Identifier,
+    onChange: (Identifier) -> Unit,
+    onRemove: () -> Unit
+) {
+    val rowShape = RoundedCornerShape(CodecTokens.Radius)
+    var pickerOpen by remember { mutableStateOf(false) }
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
+    val border by animateColorAsState(
+        targetValue = if (hovered) CodecTokens.BorderStrong else CodecTokens.Border,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "id-row-border"
+    )
+    val bg by animateColorAsState(
+        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "id-row-bg"
+    )
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.Companion
-            .height(FieldRowHeight)
-            .clip(chipShape)
-            .background(StudioColors.Zinc800.copy(alpha = if (hovered) 0.72f else 0.45f), chipShape)
-            .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.42f), chipShape)
-            .hoverable(interaction)
-            .padding(start = 12.dp, end = 4.dp)
+        horizontalArrangement = Arrangement.spacedBy(CodecTokens.Gap),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = id.toString(),
-            style = StudioTypography.regular(12).copy(fontFamily = FontFamily.Monospace),
-            color = StudioColors.Zinc200,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Spacer(Modifier.width(6.dp))
-        ChipRemove(onRemove)
-    }
-}
-
-@Composable
-private fun ChipRemove(onRemove: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(20.dp)
-            .clip(chipShape)
-            .background(if (hovered) StudioColors.Red500.copy(alpha = 0.18f) else Color.Transparent, chipShape)
-            .hoverable(interaction)
-            .pointerHoverIcon(PointerIcon.Hand)
-            .clickable(interactionSource = interaction, indication = null, onClick = onRemove)
-    ) {
-        SvgIcon(TRASH, 10.dp, tint = if (hovered) StudioColors.Red400 else StudioColors.Zinc500)
+        Box(modifier = Modifier.weight(1f)) {
+            Box(
+                contentAlignment = Alignment.CenterStart,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(FieldRowHeight)
+                    .clip(rowShape)
+                    .background(bg, rowShape)
+                    .border(1.dp, border, rowShape)
+                    .hoverable(interaction)
+                    .pointerHoverIcon(PointerIcon.Hand)
+                    .clickable(interactionSource = interaction, indication = null, onClick = { pickerOpen = true })
+                    .padding(horizontal = CodecTokens.PaddingX)
+            ) {
+                Text(
+                    text = id.toString(),
+                    style = StudioTypography.regular(13).copy(fontFamily = FontFamily.Monospace),
+                    color = CodecTokens.Text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            RegistryCommandPalette(
+                visible = pickerOpen,
+                registryId = registry,
+                mode = RegistryPickerMode.ELEMENTS,
+                selected = id,
+                onPick = { picked ->
+                    pickerOpen = false
+                    onChange(picked)
+                },
+                onDismiss = { pickerOpen = false }
+            )
+        }
+        RemoveIconButton(onClick = onRemove)
     }
 }
 
@@ -352,9 +327,4 @@ private fun detectMode(value: JsonElement?): HolderSetMode {
     val primitive = value.asJsonPrimitive
     if (!primitive.isString) return HolderSetMode.LIST
     return if (primitive.asString.startsWith("#")) HolderSetMode.TAG else HolderSetMode.LIST
-}
-
-private fun modeLabel(mode: HolderSetMode): String = when (mode) {
-    HolderSetMode.TAG -> I18n.get("codec:holder_set.mode.tag")
-    HolderSetMode.LIST -> I18n.get("codec:holder_set.mode.list")
 }

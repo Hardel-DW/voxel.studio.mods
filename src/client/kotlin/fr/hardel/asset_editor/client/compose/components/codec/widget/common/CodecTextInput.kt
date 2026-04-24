@@ -25,10 +25,10 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 
-private val defaultInputShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
+private val defaultInputShape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius)
 
 @Composable
 internal fun CodecTextInput(
@@ -50,21 +50,23 @@ internal fun CodecTextInput(
         }
     }
 
+    val borderColor = if (focused) CodecTokens.BorderStrong else CodecTokens.Border
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(FieldRowHeight)
+            .height(CodecTokens.RowHeight)
             .clip(shape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.78f), shape)
-            .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.75f), shape)
-            .padding(horizontal = 10.dp),
+            .background(CodecTokens.InputBg, shape)
+            .border(1.dp, borderColor, shape)
+            .padding(horizontal = CodecTokens.PaddingX),
         contentAlignment = Alignment.CenterStart
     ) {
         if (text.text.isEmpty()) {
             Text(
                 text = placeholder,
                 style = StudioTypography.regular(13),
-                color = StudioColors.Zinc500
+                color = CodecTokens.TextMuted
             )
         }
         BasicTextField(
@@ -79,10 +81,10 @@ internal fun CodecTextInput(
                 onValueChange(normalized)
             },
             textStyle = StudioTypography.regular(13).copy(
-                color = StudioColors.Zinc100,
+                color = CodecTokens.Text,
                 fontFamily = if (monospace) FontFamily.Monospace else FontFamily.Default
             ),
-            cursorBrush = SolidColor(StudioColors.Zinc100),
+            cursorBrush = SolidColor(CodecTokens.Text),
             singleLine = true,
             keyboardOptions = keyboardOptions,
             modifier = Modifier

@@ -12,12 +12,19 @@ import net.minecraft.client.resources.language.I18n
 fun IdentifierWidget(
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClear: (() -> Unit)? = null
 ) {
     val current = remember(value) { runCatching { value?.asString }.getOrNull().orEmpty() }
     CodecTextInput(
         value = current,
-        onValueChange = { onValueChange(JsonPrimitive(it)) },
+        onValueChange = { next ->
+            if (next.isEmpty() && onClear != null) {
+                onClear()
+            } else {
+                onValueChange(JsonPrimitive(next))
+            }
+        },
         placeholder = I18n.get("codec:widget.unset"),
         monospace = true,
         modifier = modifier

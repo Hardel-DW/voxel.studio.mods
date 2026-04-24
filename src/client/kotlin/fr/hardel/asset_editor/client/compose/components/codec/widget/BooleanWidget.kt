@@ -27,9 +27,9 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.data.codec.CodecWidget
 
@@ -38,9 +38,15 @@ fun BooleanWidget(
     widget: CodecWidget.BooleanWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClear: (() -> Unit)? = null
 ) {
     val current = remember(value) { value?.asBooleanOrNull() }
+
+    val pick: (Boolean) -> Unit = { target ->
+        if (current == target && onClear != null) onClear()
+        else onValueChange(JsonPrimitive(target))
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -51,14 +57,14 @@ fun BooleanWidget(
             label = "False",
             selected = current == false,
             shape = RoundedCornerShape(0.dp),
-            onClick = { onValueChange(JsonPrimitive(false)) },
+            onClick = { pick(false) },
             modifier = Modifier.width(88.dp)
         )
         BoolButton(
             label = "True",
             selected = current == true,
-            shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp),
-            onClick = { onValueChange(JsonPrimitive(true)) },
+            shape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius),
+            onClick = { pick(true) },
             modifier = Modifier.width(88.dp)
         )
     }
@@ -76,15 +82,15 @@ private fun BoolButton(
     val hovered by interaction.collectIsHoveredAsState()
     val bg by animateColorAsState(
         targetValue = when {
-            selected -> StudioColors.Amber400.copy(alpha = 0.14f)
-            hovered -> StudioColors.Zinc800.copy(alpha = 0.9f)
-            else -> StudioColors.Zinc900.copy(alpha = 0.72f)
+            selected -> CodecTokens.Selected
+            hovered -> CodecTokens.HoverBg
+            else -> CodecTokens.InputBg
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "bool-btn-bg"
     )
-    val border = if (selected) StudioColors.Amber400.copy(alpha = 0.46f) else StudioColors.Zinc800.copy(alpha = 0.58f)
-    val fg = if (selected) StudioColors.Zinc50 else StudioColors.Zinc300
+    val border = if (selected) CodecTokens.SelectedBorder else CodecTokens.Border
+    val fg = if (selected) CodecTokens.Text else CodecTokens.TextDimmed
 
     Box(
         contentAlignment = Alignment.Center,

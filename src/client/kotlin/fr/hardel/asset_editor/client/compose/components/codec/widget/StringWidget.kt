@@ -14,12 +14,19 @@ fun StringWidget(
     widget: CodecWidget.StringWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClear: (() -> Unit)? = null
 ) {
     val current = remember(value) { value?.asStringOrNull().orEmpty() }
     CodecTextInput(
         value = current,
-        onValueChange = { onValueChange(JsonPrimitive(it)) },
+        onValueChange = { next ->
+            if (next.isEmpty() && onClear != null) {
+                onClear()
+            } else {
+                onValueChange(JsonPrimitive(next))
+            }
+        },
         placeholder = I18n.get("codec:widget.unset"),
         normalize = { it.take(widget.maxLength().orElse(Int.MAX_VALUE)) },
         modifier = modifier
