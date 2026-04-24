@@ -1,6 +1,12 @@
 {
   "type": "object",
   "fields": [
-    { "key": "value", "widget": { "type": "integer", "min": 1 } }
+    {
+      "key": "value",
+      "widget": {
+        "type": "integer",
+        "min": 1
+      }
+    }
   ]
 }

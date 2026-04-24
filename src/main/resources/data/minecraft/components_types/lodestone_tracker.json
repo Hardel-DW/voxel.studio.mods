@@ -1,7 +1,20 @@
 {
   "type": "object",
   "fields": [
-    { "key": "target", "optional": true, "widget": { "type": "raw_json" } },
-    { "key": "tracked", "optional": true, "widget": { "type": "boolean", "default": true } }
+    {
+      "key": "target",
+      "optional": true,
+      "widget": {
+        "type": "raw_json"
+      }
+    },
+    {
+      "key": "tracked",
+      "optional": true,
+      "widget": {
+        "type": "boolean",
+        "default": true
+      }
+    }
   ]
 }

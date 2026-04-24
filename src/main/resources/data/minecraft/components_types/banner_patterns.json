@@ -3,15 +3,37 @@
   "item": {
     "type": "object",
     "fields": [
-      { "key": "pattern", "widget": { "type": "holder", "registry": "minecraft:banner_pattern" } },
-      { "key": "color", "widget": {
-        "type": "enum",
-        "values": [
-          "white", "orange", "magenta", "light_blue", "yellow", "lime",
-          "pink", "gray", "light_gray", "cyan", "purple", "blue",
-          "brown", "green", "red", "black"
-        ]
-      } }
+      {
+        "key": "pattern",
+        "widget": {
+          "type": "holder",
+          "registry": "minecraft:banner_pattern"
+        }
+      },
+      {
+        "key": "color",
+        "widget": {
+          "type": "enum",
+          "values": [
+            "white",
+            "orange",
+            "magenta",
+            "light_blue",
+            "yellow",
+            "lime",
+            "pink",
+            "gray",
+            "light_gray",
+            "cyan",
+            "purple",
+            "blue",
+            "brown",
+            "green",
+            "red",
+            "black"
+          ]
+        }
+      }
     ]
   }
 }

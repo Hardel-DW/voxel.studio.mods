@@ -3,8 +3,21 @@
   "item": {
     "type": "object",
     "fields": [
-      { "key": "id", "widget": { "type": "holder", "registry": "minecraft:mob_effect" } },
-      { "key": "duration", "optional": true, "widget": { "type": "integer", "default": 160 } }
+      {
+        "key": "id",
+        "widget": {
+          "type": "holder",
+          "registry": "minecraft:mob_effect"
+        }
+      },
+      {
+        "key": "duration",
+        "optional": true,
+        "widget": {
+          "type": "integer",
+          "default": 160
+        }
+      }
     ]
   }
 }

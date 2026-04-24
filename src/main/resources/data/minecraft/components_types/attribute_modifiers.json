@@ -3,31 +3,83 @@
   "item": {
     "type": "object",
     "fields": [
-      { "key": "type", "widget": { "type": "holder", "registry": "minecraft:attribute" } },
-      { "key": "id", "widget": { "type": "identifier" } },
-      { "key": "amount", "widget": { "type": "float" } },
-      { "key": "operation", "widget": {
-        "type": "enum",
-        "values": ["add_value", "add_multiplied_base", "add_multiplied_total"]
-      } },
-      { "key": "slot", "optional": true, "widget": {
-        "type": "enum",
-        "values": ["any", "mainhand", "offhand", "hand", "feet", "legs", "chest", "head", "armor", "body", "saddle"]
-      } },
-      { "key": "display", "optional": true, "widget": {
-        "type": "dispatched",
-        "discriminator": "type",
-        "cases": {
-          "default": { "type": "unit" },
-          "hidden": { "type": "unit" },
-          "override": {
-            "type": "object",
-            "fields": [
-              { "key": "value", "widget": { "type": "text_component" } }
-            ]
+      {
+        "key": "type",
+        "widget": {
+          "type": "holder",
+          "registry": "minecraft:attribute"
+        }
+      },
+      {
+        "key": "id",
+        "widget": {
+          "type": "identifier"
+        }
+      },
+      {
+        "key": "amount",
+        "widget": {
+          "type": "float"
+        }
+      },
+      {
+        "key": "operation",
+        "widget": {
+          "type": "enum",
+          "values": [
+            "add_value",
+            "add_multiplied_base",
+            "add_multiplied_total"
+          ]
+        }
+      },
+      {
+        "key": "slot",
+        "optional": true,
+        "widget": {
+          "type": "enum",
+          "values": [
+            "any",
+            "mainhand",
+            "offhand",
+            "hand",
+            "feet",
+            "legs",
+            "chest",
+            "head",
+            "armor",
+            "body",
+            "saddle"
+          ]
+        }
+      },
+      {
+        "key": "display",
+        "optional": true,
+        "widget": {
+          "type": "dispatched",
+          "discriminator": "type",
+          "cases": {
+            "default": {
+              "type": "unit"
+            },
+            "hidden": {
+              "type": "unit"
+            },
+            "override": {
+              "type": "object",
+              "fields": [
+                {
+                  "key": "value",
+                  "widget": {
+                    "type": "text_component"
+                  }
+                }
+              ]
+            }
           }
         }
-      } }
+      }
     ]
   }
 }

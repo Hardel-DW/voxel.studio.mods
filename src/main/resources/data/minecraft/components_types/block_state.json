@@ -1,5 +1,9 @@
 {
   "type": "map",
-  "key": { "type": "string" },
-  "value": { "type": "string" }
+  "key": {
+    "type": "string"
+  },
+  "value": {
+    "type": "string"
+  }
 }

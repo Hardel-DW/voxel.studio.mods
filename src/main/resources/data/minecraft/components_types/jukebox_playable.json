@@ -1,5 +1,10 @@
 {
   "type": "either",
-  "left": { "type": "holder", "registry": "minecraft:jukebox_song" },
-  "right": { "type": "raw_json" }
+  "left": {
+    "type": "holder",
+    "registry": "minecraft:jukebox_song"
+  },
+  "right": {
+    "type": "raw_json"
+  }
 }

@@ -1,5 +1,12 @@
 {
   "type": "map",
-  "key": { "type": "holder", "registry": "minecraft:enchantment" },
-  "value": { "type": "integer", "min": 1, "max": 255 }
+  "key": {
+    "type": "holder",
+    "registry": "minecraft:enchantment"
+  },
+  "value": {
+    "type": "integer",
+    "min": 1,
+    "max": 255
+  }
 }

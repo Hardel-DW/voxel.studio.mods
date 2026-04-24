@@ -1,4 +1,10 @@
 {
   "type": "enum",
-  "values": ["lucy", "wild", "gold", "cyan", "blue"]
+  "values": [
+    "lucy",
+    "wild",
+    "gold",
+    "cyan",
+    "blue"
+  ]
 }

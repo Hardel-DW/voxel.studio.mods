@@ -1,4 +1,12 @@
 {
   "type": "enum",
-  "values": ["brown", "white", "black", "white_splotched", "gold", "salt", "evil"]
+  "values": [
+    "brown",
+    "white",
+    "black",
+    "white_splotched",
+    "gold",
+    "salt",
+    "evil"
+  ]
 }

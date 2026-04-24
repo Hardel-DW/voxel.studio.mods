@@ -1,7 +1,19 @@
 {
   "type": "object",
   "fields": [
-    { "key": "seconds", "widget": { "type": "float", "min": 0.0 } },
-    { "key": "cooldown_group", "optional": true, "widget": { "type": "identifier" } }
+    {
+      "key": "seconds",
+      "widget": {
+        "type": "float",
+        "min": 0.0
+      }
+    },
+    {
+      "key": "cooldown_group",
+      "optional": true,
+      "widget": {
+        "type": "identifier"
+      }
+    }
   ]
 }

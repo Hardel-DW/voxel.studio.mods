@@ -1,6 +1,12 @@
 {
   "type": "object",
   "fields": [
-    { "key": "items", "widget": { "type": "holder_set", "registry": "minecraft:item" } }
+    {
+      "key": "items",
+      "widget": {
+        "type": "holder_set",
+        "registry": "minecraft:item"
+      }
+    }
   ]
 }

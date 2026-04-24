@@ -1,4 +1,6 @@
 {
   "type": "list",
-  "item": { "type": "raw_json" }
+  "item": {
+    "type": "raw_json"
+  }
 }

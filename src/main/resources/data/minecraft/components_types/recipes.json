@@ -1,4 +1,6 @@
 {
   "type": "list",
-  "item": { "type": "identifier" }
+  "item": {
+    "type": "identifier"
+  }
 }

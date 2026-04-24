@@ -1,7 +1,24 @@
 {
   "type": "object",
   "fields": [
-    { "key": "type", "optional": true, "widget": { "type": "enum", "values": ["whack", "catch"] } },
-    { "key": "duration", "optional": true, "widget": { "type": "integer", "min": 1 } }
+    {
+      "key": "type",
+      "optional": true,
+      "widget": {
+        "type": "enum",
+        "values": [
+          "whack",
+          "catch"
+        ]
+      }
+    },
+    {
+      "key": "duration",
+      "optional": true,
+      "widget": {
+        "type": "integer",
+        "min": 1
+      }
+    }
   ]
 }

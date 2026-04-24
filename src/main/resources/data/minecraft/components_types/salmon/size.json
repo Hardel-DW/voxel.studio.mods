@@ -1,4 +1,8 @@
 {
   "type": "enum",
-  "values": ["small", "medium", "large"]
+  "values": [
+    "small",
+    "medium",
+    "large"
+  ]
 }

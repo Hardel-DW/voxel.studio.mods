@@ -1,9 +1,37 @@
 {
   "type": "object",
   "fields": [
-    { "key": "deals_knockback", "optional": true, "widget": { "type": "boolean", "default": true } },
-    { "key": "dismounts", "optional": true, "widget": { "type": "boolean", "default": false } },
-    { "key": "sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
-    { "key": "hit_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } }
+    {
+      "key": "deals_knockback",
+      "optional": true,
+      "widget": {
+        "type": "boolean",
+        "default": true
+      }
+    },
+    {
+      "key": "dismounts",
+      "optional": true,
+      "widget": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    {
+      "key": "sound",
+      "optional": true,
+      "widget": {
+        "type": "holder",
+        "registry": "minecraft:sound_event"
+      }
+    },
+    {
+      "key": "hit_sound",
+      "optional": true,
+      "widget": {
+        "type": "holder",
+        "registry": "minecraft:sound_event"
+      }
+    }
   ]
 }

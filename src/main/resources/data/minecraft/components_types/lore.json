@@ -1,5 +1,7 @@
 {
   "type": "list",
-  "item": { "type": "text_component" },
+  "item": {
+    "type": "text_component"
+  },
   "max_size": 256
 }

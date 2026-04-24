@@ -1,7 +1,19 @@
 {
   "type": "object",
   "fields": [
-    { "key": "loot_table", "widget": { "type": "identifier" } },
-    { "key": "seed", "optional": true, "widget": { "type": "integer", "default": 0 } }
+    {
+      "key": "loot_table",
+      "widget": {
+        "type": "identifier"
+      }
+    },
+    {
+      "key": "seed",
+      "optional": true,
+      "widget": {
+        "type": "integer",
+        "default": 0
+      }
+    }
   ]
 }

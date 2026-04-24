@@ -1,4 +1,7 @@
 {
   "type": "enum",
-  "values": ["red", "brown"]
+  "values": [
+    "red",
+    "brown"
+  ]
 }
