@@ -44,6 +44,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import java.util.Locale
 
 private val rowShape = RoundedCornerShape(8.dp)
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
@@ -132,10 +133,10 @@ private fun EntryRow(
     ) {
         Row(verticalAlignment = Alignment.Top) {
             Text(
-                text = I18n.get("recipe:components.map.key"),
+                text = mapKeyLabel(keyWidget),
                 style = StudioTypography.medium(11),
                 color = StudioColors.Zinc500,
-                modifier = Modifier.width(48.dp).padding(top = 6.dp)
+                modifier = Modifier.width(92.dp).padding(top = 6.dp)
             )
             Box(modifier = Modifier.weight(1f)) {
                 WidgetEditor(
@@ -168,6 +169,25 @@ private fun extractKeyString(json: JsonElement): String? {
     if (!json.isJsonPrimitive) return null
     val p = json.asJsonPrimitive
     return if (p.isString) p.asString else p.toString()
+}
+
+private fun mapKeyLabel(widget: ComponentWidget): String = when (widget) {
+    is ComponentWidget.HolderWidget -> registryLabel(widget.registry())
+    is ComponentWidget.TagWidget -> registryLabel(widget.registry())
+    else -> I18n.get("recipe:components.map.key")
+}
+
+private fun registryLabel(registry: Identifier): String {
+    val key = "recipe:components.registry.${registry.namespace}.${registry.path.replace('/', '.')}"
+    if (I18n.exists(key)) return I18n.get(key)
+
+    return registry.path
+        .substringAfterLast('/')
+        .split('_')
+        .filter { it.isNotBlank() }
+        .joinToString(" ") { part ->
+            part.replaceFirstChar { ch -> ch.uppercase(Locale.ROOT) }
+        }
 }
 
 @Composable

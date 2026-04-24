@@ -73,13 +73,26 @@ fun ResultComponentRow(
 ) {
     val displayName = remember(componentId) { StudioTranslation.resolve("component", componentId) }
     var draft by remember(componentId) { mutableStateOf(initialValue) }
+    var locallyChanged by remember(componentId) { mutableStateOf(false) }
 
-    LaunchedEffect(draft) {
+    LaunchedEffect(initialValue) {
+        if (!locallyChanged) {
+            draft = initialValue
+        } else if (draft == initialValue) {
+            locallyChanged = false
+        }
+    }
+
+    LaunchedEffect(draft, locallyChanged, isPending) {
         val current = draft
-        val shouldSave = current != null && (isPending || current != initialValue)
+        val initialPendingUnit = isPending && widget is ComponentWidget.UnitWidget
+        val shouldSave = current != null && when {
+            isPending -> locallyChanged || initialPendingUnit
+            else -> locallyChanged && current != initialValue
+        }
         if (shouldSave) {
             delay(SAVE_DEBOUNCE_MS)
-            if (validate(current!!)) onSave(current)
+            if (validate(current)) onSave(current)
         }
     }
 
@@ -167,6 +180,13 @@ fun ResultComponentRow(
                 )
                 Spacer(Modifier.width(8.dp))
             }
+            if (isPending) {
+                Badge(
+                    label = I18n.get("recipe:components.pending"),
+                    accent = StudioColors.Sky400
+                )
+                Spacer(Modifier.width(8.dp))
+            }
 
             DeleteButton(onClick = onDelete)
         }
@@ -183,9 +203,12 @@ fun ResultComponentRow(
                         .padding(start = 38.dp, end = 14.dp, bottom = 12.dp, top = 2.dp)
                 ) {
                     WidgetEditor(
-                        widget = widget!!,
+                        widget = widget,
                         value = draft,
-                        onValueChange = { draft = it }
+                        onValueChange = {
+                            draft = it
+                            locallyChanged = true
+                        }
                     )
                 }
             }

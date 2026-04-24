@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.BooleanWidget
@@ -51,7 +50,6 @@ fun WidgetEditor(
         is ComponentWidget.DispatchedWidget -> DispatchedWidget(widget, value, onValueChange, modifier)
         is ComponentWidget.EitherWidget -> EitherWidget(widget, value, onValueChange, modifier)
         is ComponentWidget.RawJsonWidget -> RawJsonWidget(value, onValueChange, modifier)
-        else -> RawJsonWidget(value, onValueChange, modifier)
     }
 }
 
@@ -82,5 +80,4 @@ fun defaultJsonFor(widget: ComponentWidget): JsonElement = when (widget) {
     }
     is ComponentWidget.EitherWidget -> defaultJsonFor(widget.left())
     is ComponentWidget.RawJsonWidget -> JsonObject()
-    else -> JsonNull.INSTANCE
 }

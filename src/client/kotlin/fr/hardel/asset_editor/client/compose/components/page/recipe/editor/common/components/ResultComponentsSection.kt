@@ -175,11 +175,9 @@ private fun UnifiedRow(
     } ?: return
 
     val isPending = row is RowSource.Pending
-    val initialValue = remember(id) {
-        when (row) {
-            is RowSource.Existing -> row.entry.valueJson
-            is RowSource.Pending -> widget?.let { defaultJsonFor(it) }
-        }
+    val initialValue = when (row) {
+        is RowSource.Existing -> row.entry.valueJson
+        is RowSource.Pending -> widget?.let { defaultJsonFor(it) }
     }
 
     ResultComponentRow(
