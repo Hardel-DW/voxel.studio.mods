@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +21,12 @@ import fr.hardel.asset_editor.client.compose.components.ui.ShineOverlay
 import fr.hardel.asset_editor.client.compose.components.ui.topLeftBorder
 
 @Composable
-fun RecipeSectionCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun RecipeSectionCard(
+    modifier: Modifier = Modifier,
+    scrollable: Boolean = true,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val scrollState = rememberScrollState()
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
@@ -34,6 +41,11 @@ fun RecipeSectionCard(modifier: Modifier = Modifier, content: @Composable Column
             opacity = 0.12f
         )
 
-        Column(modifier = Modifier.padding(24.dp), content = content)
+        val columnModifier = if (scrollable) {
+            Modifier.verticalScroll(scrollState).padding(24.dp)
+        } else {
+            Modifier.padding(24.dp)
+        }
+        Column(modifier = columnModifier, content = content)
     }
 }

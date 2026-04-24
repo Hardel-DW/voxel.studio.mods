@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -65,6 +66,14 @@ private data class PatchEntry(
     val valueJson: JsonElement?
 )
 
+private sealed interface RowSource {
+    val componentId: Identifier
+    data class Existing(val entry: PatchEntry) : RowSource {
+        override val componentId: Identifier get() = entry.componentId
+    }
+    data class Pending(override val componentId: Identifier) : RowSource
+}
+
 @Composable
 fun ResultComponentsSection(
     context: StudioContext,
@@ -87,7 +96,18 @@ fun ResultComponentsSection(
         pendingIds.removeAll(patchIds)
     }
 
+    val expandedMap = remember { mutableStateMapOf<Identifier, Boolean>() }
+
     var addModalVisible by remember { mutableStateOf(false) }
+
+    val rows = remember(entries, pendingIds.toList(), patchIds) {
+        val out = mutableListOf<RowSource>()
+        for (entry in entries) out.add(RowSource.Existing(entry))
+        for (id in pendingIds) {
+            if (id !in patchIds) out.add(RowSource.Pending(id))
+        }
+        out
+    }
 
     CollapsibleSection(
         title = I18n.get("recipe:components.title"),
@@ -99,23 +119,19 @@ fun ResultComponentsSection(
             verticalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            entries.forEach { entry ->
-                key(entry.componentId.toString()) {
-                    ExistingRow(entry = entry, defsById = defsById, onAction = onAction)
-                }
-            }
-
-            pendingIds.forEach { pendingId ->
-                if (pendingId !in patchIds) {
-                    key("pending-$pendingId") {
-                        PendingRow(
-                            pendingId = pendingId,
-                            def = defsById[pendingId],
-                            type = BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(pendingId),
-                            onAction = onAction,
-                            onCancel = { pendingIds.remove(pendingId) }
-                        )
-                    }
+            rows.forEach { row ->
+                key(row.componentId.toString()) {
+                    UnifiedRow(
+                        row = row,
+                        defsById = defsById,
+                        expanded = expandedMap[row.componentId] ?: (row is RowSource.Pending),
+                        onExpandChange = { expandedMap[row.componentId] = it },
+                        onAction = onAction,
+                        onCancelPending = {
+                            pendingIds.remove(row.componentId)
+                            expandedMap.remove(row.componentId)
+                        }
+                    )
                 }
             }
 
@@ -133,50 +149,52 @@ fun ResultComponentsSection(
         definitions = definitions,
         excludedIds = excluded,
         onPick = { def ->
-            if (def.id() !in pendingIds) pendingIds.add(def.id())
+            if (def.id() !in pendingIds) {
+                pendingIds.add(def.id())
+                expandedMap[def.id()] = true
+            }
         }
     )
 }
 
 @Composable
-private fun ExistingRow(
-    entry: PatchEntry,
+private fun UnifiedRow(
+    row: RowSource,
     defsById: Map<Identifier, StudioComponentTypeDef>,
-    onAction: (EditorAction<*>) -> Unit
-) {
-    val componentId = entry.componentId
-    val type = entry.type
-    val widget = defsById[componentId]?.widget()
-    ResultComponentRow(
-        componentId = componentId,
-        widget = widget,
-        initialValue = entry.valueJson,
-        isPending = false,
-        validate = { json -> validate(type, json) },
-        onSave = { json -> onAction(SetResultComponentAction(componentId, json.toString())) },
-        onDelete = { onAction(RemoveResultComponentAction(componentId)) }
-    )
-}
-
-@Composable
-private fun PendingRow(
-    pendingId: Identifier,
-    def: StudioComponentTypeDef?,
-    type: DataComponentType<*>?,
+    expanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
     onAction: (EditorAction<*>) -> Unit,
-    onCancel: () -> Unit
+    onCancelPending: () -> Unit
 ) {
-    if (def == null || type == null) return
-    val widget = def.widget()
-    val initial = remember(widget) { defaultJsonFor(widget) }
+    val id = row.componentId
+    val def = defsById[id]
+    val widget = def?.widget()
+    val type = when (row) {
+        is RowSource.Existing -> row.entry.type
+        is RowSource.Pending -> BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(id)
+    } ?: return
+
+    val isPending = row is RowSource.Pending
+    val initialValue = remember(id) {
+        when (row) {
+            is RowSource.Existing -> row.entry.valueJson
+            is RowSource.Pending -> widget?.let { defaultJsonFor(it) }
+        }
+    }
+
     ResultComponentRow(
-        componentId = pendingId,
+        componentId = id,
         widget = widget,
-        initialValue = initial,
-        isPending = true,
+        initialValue = initialValue,
+        isPending = isPending,
+        expanded = expanded,
+        onExpandChange = onExpandChange,
         validate = { json -> validate(type, json) },
-        onSave = { json -> onAction(SetResultComponentAction(pendingId, json.toString())) },
-        onDelete = onCancel
+        onSave = { json -> onAction(SetResultComponentAction(id, json.toString())) },
+        onDelete = {
+            if (isPending) onCancelPending()
+            else onAction(RemoveResultComponentAction(id))
+        }
     )
 }
 

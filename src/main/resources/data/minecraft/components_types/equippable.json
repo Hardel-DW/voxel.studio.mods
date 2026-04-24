@@ -3,7 +3,7 @@
   "fields": [
     { "key": "slot", "widget": {
       "type": "enum",
-      "values": ["head", "chest", "legs", "feet", "mainhand", "offhand"]
+      "values": ["mainhand", "offhand", "feet", "legs", "chest", "head", "body", "saddle"]
     } },
     { "key": "equip_sound", "optional": true, "widget": { "type": "holder", "registry": "minecraft:sound_event" } },
     { "key": "asset_id", "optional": true, "widget": { "type": "identifier" } },

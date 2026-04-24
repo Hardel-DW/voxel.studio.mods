@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,9 +24,11 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.data.component.ComponentWidget
+import net.minecraft.client.resources.language.I18n
 
-private val shape = RoundedCornerShape(8.dp)
+private val shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
 
 @Composable
 fun StringWidget(
@@ -34,19 +37,26 @@ fun StringWidget(
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val current = remember(value) { value?.asStringOrNull().orEmpty() }
-    var text by remember(value) { mutableStateOf(TextFieldValue(current)) }
+    val initial = remember { value?.asStringOrNull().orEmpty() }
+    var text by remember { mutableStateOf(TextFieldValue(initial)) }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(FieldRowHeight)
             .clip(shape)
             .background(StudioColors.Zinc950.copy(alpha = 0.5f), shape)
             .border(1.dp, StudioColors.Zinc800, shape)
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
+        if (text.text.isEmpty()) {
+            Text(
+                text = I18n.get("recipe:components.widget.unset"),
+                style = StudioTypography.regular(12),
+                color = StudioColors.Zinc600
+            )
+        }
         BasicTextField(
             value = text,
             onValueChange = { next ->
@@ -55,7 +65,7 @@ fun StringWidget(
                 text = trimmed
                 onValueChange(JsonPrimitive(trimmed.text))
             },
-            textStyle = StudioTypography.regular(13).copy(color = StudioColors.Zinc100),
+            textStyle = StudioTypography.regular(12).copy(color = StudioColors.Zinc100),
             cursorBrush = SolidColor(StudioColors.Zinc100),
             singleLine = true,
             modifier = Modifier.fillMaxWidth()

@@ -18,24 +18,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
+import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.AssetEditor
@@ -50,7 +46,6 @@ import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val rowShape = RoundedCornerShape(8.dp)
-private val inputShape = RoundedCornerShape(6.dp)
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
 @Composable
@@ -70,10 +65,12 @@ fun MapWidget(
         entries.forEachIndexed { index, (k, v) ->
             key(index) {
                 EntryRow(
+                    keyWidget = widget.key(),
                     keyText = k,
                     valueWidget = widget.value(),
                     valueElement = v,
                     onKeyChange = { newKey ->
+                        if (newKey.isBlank() || newKey == k) return@EntryRow
                         val next = JsonObject()
                         entries.forEachIndexed { i, pair ->
                             if (i == index) next.add(newKey, pair.second)
@@ -103,8 +100,9 @@ fun MapWidget(
         AddRow(
             label = I18n.get("recipe:components.map.add"),
             onClick = {
+                if (obj.has("")) return@AddRow
                 val next = obj.deepCopy()
-                next.add(uniqueKey(next), defaultJsonFor(widget.value()))
+                next.add("", defaultJsonFor(widget.value()))
                 onValueChange(next)
             }
         )
@@ -113,6 +111,7 @@ fun MapWidget(
 
 @Composable
 private fun EntryRow(
+    keyWidget: ComponentWidget,
     keyText: String,
     valueWidget: ComponentWidget,
     valueElement: JsonElement,
@@ -120,7 +119,7 @@ private fun EntryRow(
     onValueChange: (JsonElement) -> Unit,
     onRemove: () -> Unit
 ) {
-    var keyField by remember(keyText) { mutableStateOf(TextFieldValue(keyText)) }
+    val keyJson: JsonElement = if (keyText.isEmpty()) JsonNull.INSTANCE else JsonPrimitive(keyText)
 
     Column(
         modifier = Modifier
@@ -131,33 +130,21 @@ private fun EntryRow(
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.Top) {
             Text(
                 text = I18n.get("recipe:components.map.key"),
                 style = StudioTypography.medium(11),
                 color = StudioColors.Zinc500,
-                modifier = Modifier.width(48.dp)
+                modifier = Modifier.width(48.dp).padding(top = 6.dp)
             )
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(28.dp)
-                    .clip(inputShape)
-                    .background(StudioColors.Zinc950.copy(alpha = 0.5f), inputShape)
-                    .border(1.dp, StudioColors.Zinc800, inputShape)
-                    .padding(horizontal = 10.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                BasicTextField(
-                    value = keyField,
-                    onValueChange = { next ->
-                        keyField = next
-                        if (next.text.isNotBlank()) onKeyChange(next.text)
-                    },
-                    textStyle = StudioTypography.regular(12).copy(color = StudioColors.Zinc100),
-                    cursorBrush = SolidColor(StudioColors.Zinc100),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+            Box(modifier = Modifier.weight(1f)) {
+                WidgetEditor(
+                    widget = keyWidget,
+                    value = keyJson,
+                    onValueChange = { newKeyJson ->
+                        val asString = extractKeyString(newKeyJson)
+                        if (asString != null) onKeyChange(asString)
+                    }
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -175,6 +162,12 @@ private fun EntryRow(
             }
         }
     }
+}
+
+private fun extractKeyString(json: JsonElement): String? {
+    if (!json.isJsonPrimitive) return null
+    val p = json.asJsonPrimitive
+    return if (p.isString) p.asString else p.toString()
 }
 
 @Composable
@@ -198,10 +191,4 @@ private fun RemoveButton(onClick: () -> Unit) {
     ) {
         SvgIcon(TRASH, 12.dp, tint = if (hovered) StudioColors.Red400 else StudioColors.Zinc500)
     }
-}
-
-private fun uniqueKey(obj: JsonObject): String {
-    var i = 1
-    while (obj.has("key_$i")) i++
-    return "key_$i"
 }

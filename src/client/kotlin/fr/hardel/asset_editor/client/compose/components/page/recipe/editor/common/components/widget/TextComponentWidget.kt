@@ -36,8 +36,8 @@ fun TextComponentWidget(
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val plain = remember(value) { extractPlainText(value) }
-    var text by remember(value) { mutableStateOf(TextFieldValue(plain)) }
+    val initial = remember { extractPlainText(value) }
+    var text by remember { mutableStateOf(TextFieldValue(initial)) }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -74,7 +74,7 @@ fun TextComponentWidget(
 }
 
 private fun extractPlainText(value: JsonElement?): String {
-    if (value == null) return ""
+    if (value == null || value.isJsonNull) return ""
     if (value.isJsonPrimitive && value.asJsonPrimitive.isString) return value.asString
     if (value.isJsonObject) {
         val obj = value.asJsonObject
@@ -83,5 +83,5 @@ private fun extractPlainText(value: JsonElement?): String {
             return textField.asString
         }
     }
-    return value.toString()
+    return ""
 }

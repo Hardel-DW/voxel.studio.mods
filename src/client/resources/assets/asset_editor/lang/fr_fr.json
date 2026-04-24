@@ -830,6 +830,7 @@
     "recipe:components.holder_set.mode.tag": "Tag",
     "recipe:components.holder_set.tag.pick": "Choisir un tag",
     "recipe:components.holder_set.list.add": "Ajouter une entrée",
+    "recipe:components.widget.unset": "À définir",
 
     "component:minecraft:attack_range": "Portée d'attaque",
     "component:minecraft:attack_range.desc": "Configure la portée et la marge de hitbox du corps-à-corps.",

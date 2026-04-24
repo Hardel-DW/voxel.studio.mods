@@ -1,4 +1,6 @@
 {
-  "type": "tag",
-  "registry": "minecraft:damage_type"
+  "type": "object",
+  "fields": [
+    { "key": "types", "widget": { "type": "tag", "registry": "minecraft:damage_type" } }
+  ]
 }

@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -9,10 +10,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPicker
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryDropdown
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPickerMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryTrigger
 import fr.hardel.asset_editor.data.component.ComponentWidget
+import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 @Composable
@@ -27,15 +29,16 @@ fun TagWidget(
     }
     var pickerOpen by remember { mutableStateOf(false) }
 
-    RegistryTrigger(
-        label = current?.let { "#$it" },
-        placeholder = "Select tag...",
-        onClick = { pickerOpen = true },
-        modifier = modifier.fillMaxWidth()
-    )
+    Box(modifier = modifier.fillMaxWidth()) {
+        RegistryTrigger(
+            label = current?.let { "#$it" },
+            placeholder = I18n.get("recipe:components.widget.unset"),
+            onClick = { pickerOpen = !pickerOpen },
+            modifier = Modifier.fillMaxWidth()
+        )
 
-    if (pickerOpen) {
-        RegistryPicker(
+        RegistryDropdown(
+            expanded = pickerOpen,
             registryId = widget.registry(),
             mode = RegistryPickerMode.TAGS,
             selected = current,

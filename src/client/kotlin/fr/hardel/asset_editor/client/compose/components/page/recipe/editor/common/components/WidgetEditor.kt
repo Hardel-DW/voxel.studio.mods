@@ -70,7 +70,16 @@ fun defaultJsonFor(widget: ComponentWidget): JsonElement = when (widget) {
     is ComponentWidget.ObjectWidget -> JsonObject()
     is ComponentWidget.ListWidget -> JsonArray()
     is ComponentWidget.MapWidget -> JsonObject()
-    is ComponentWidget.DispatchedWidget -> JsonObject()
+    is ComponentWidget.DispatchedWidget -> {
+        val firstCase = widget.cases().entries.firstOrNull()
+        if (firstCase == null) JsonObject()
+        else {
+            val inner = defaultJsonFor(firstCase.value)
+            val obj = if (inner is JsonObject) inner.deepCopy() else JsonObject()
+            obj.addProperty(widget.discriminator(), firstCase.key)
+            obj
+        }
+    }
     is ComponentWidget.EitherWidget -> defaultJsonFor(widget.left())
     is ComponentWidget.RawJsonWidget -> JsonObject()
     else -> JsonNull.INSTANCE

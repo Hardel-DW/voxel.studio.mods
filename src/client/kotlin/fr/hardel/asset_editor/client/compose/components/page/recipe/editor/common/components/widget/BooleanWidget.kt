@@ -2,17 +2,17 @@ package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.comm
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -29,9 +29,8 @@ import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.data.component.ComponentWidget
-
-private val trackShape = RoundedCornerShape(12.dp)
 
 @Composable
 fun BooleanWidget(
@@ -40,53 +39,65 @@ fun BooleanWidget(
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val current = remember(value, widget) { value?.asBooleanOrNull() ?: widget.defaultValue().orElse(false) }
-    val interaction = remember { MutableInteractionSource() }
-
-    val trackBg by animateColorAsState(
-        targetValue = if (current) StudioColors.Violet500 else StudioColors.Zinc700,
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "boolean-widget-track"
-    )
-    val knobOffsetX by androidx.compose.animation.core.animateDpAsState(
-        targetValue = if (current) 20.dp else 2.dp,
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "boolean-widget-knob"
-    )
+    val current = remember(value) { value?.asBooleanOrNull() }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        modifier = modifier
     ) {
-        Box(
-            modifier = Modifier
-                .width(42.dp)
-                .height(24.dp)
-                .clip(trackShape)
-                .background(trackBg, trackShape)
-                .hoverable(interaction)
-                .pointerHoverIcon(PointerIcon.Hand)
-                .clickable(
-                    interactionSource = interaction,
-                    indication = null,
-                    onClick = { onValueChange(JsonPrimitive(!current)) }
-                )
-        ) {
-            Box(
-                modifier = Modifier
-                    .offset(x = knobOffsetX)
-                    .align(Alignment.CenterStart)
-                    .size(20.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(StudioColors.Zinc50, RoundedCornerShape(10.dp))
-            )
-        }
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = if (current) "true" else "false",
-            style = StudioTypography.regular(12),
-            color = StudioColors.Zinc500
+        BoolButton(
+            label = "False",
+            selected = current == false,
+            shape = RoundedCornerShape(0.dp),
+            onClick = { onValueChange(JsonPrimitive(false)) },
+            modifier = Modifier.weight(1f)
         )
+        BoolButton(
+            label = "True",
+            selected = current == true,
+            shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp),
+            onClick = { onValueChange(JsonPrimitive(true)) },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun BoolButton(
+    label: String,
+    selected: Boolean,
+    shape: RoundedCornerShape,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    val bg by animateColorAsState(
+        targetValue = when {
+            selected -> StudioColors.Violet500.copy(alpha = 0.25f)
+            hovered -> StudioColors.Zinc800
+            else -> StudioColors.Zinc900.copy(alpha = 0.6f)
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "bool-btn-bg"
+    )
+    val border = if (selected) StudioColors.Violet500.copy(alpha = 0.55f) else StudioColors.Zinc800
+    val fg = if (selected) StudioColors.Zinc50 else StudioColors.Zinc400
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .height(FieldRowHeight)
+            .clip(shape)
+            .background(bg, shape)
+            .border(1.dp, border, shape)
+            .hoverable(interaction)
+            .pointerHoverIcon(PointerIcon.Hand)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+            .padding(horizontal = 8.dp)
+    ) {
+        Text(text = label, style = StudioTypography.medium(12), color = fg)
     }
 }
 

@@ -64,14 +64,15 @@ fun ResultComponentRow(
     widget: ComponentWidget?,
     initialValue: JsonElement?,
     isPending: Boolean,
+    expanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
     validate: (JsonElement) -> Boolean,
     onSave: (JsonElement) -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val displayName = remember(componentId) { StudioTranslation.resolve("component", componentId) }
-    var expanded by remember(componentId) { mutableStateOf(isPending) }
-    var draft by remember(componentId, initialValue) { mutableStateOf(initialValue) }
+    var draft by remember(componentId) { mutableStateOf(initialValue) }
 
     LaunchedEffect(draft) {
         val current = draft
@@ -88,7 +89,6 @@ fun ResultComponentRow(
 
     val borderColor by animateColorAsState(
         targetValue = when {
-            isPending -> StudioColors.Violet500.copy(alpha = 0.45f)
             expanded -> StudioColors.Zinc700
             rowHovered -> StudioColors.Zinc800
             else -> StudioColors.Zinc900
@@ -128,7 +128,7 @@ fun ResultComponentRow(
                     interactionSource = rowInteraction,
                     indication = null,
                     enabled = canExpand,
-                    onClick = { expanded = !expanded }
+                    onClick = { onExpandChange(!expanded) }
                 )
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
@@ -160,13 +160,6 @@ fun ResultComponentRow(
                 )
             }
 
-            if (isPending) {
-                Badge(
-                    label = I18n.get("recipe:components.pending"),
-                    accent = StudioColors.Violet500
-                )
-                Spacer(Modifier.width(8.dp))
-            }
             if (widget == null) {
                 Badge(
                     label = I18n.get("recipe:components.unknown"),

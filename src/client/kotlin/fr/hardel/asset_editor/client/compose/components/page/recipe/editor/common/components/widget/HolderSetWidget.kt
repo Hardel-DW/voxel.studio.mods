@@ -41,7 +41,7 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPicker
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryDropdown
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RegistryPickerMode
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.data.component.ComponentWidget
@@ -145,13 +145,14 @@ private fun TagInlineRow(
     }
     var pickerOpen by remember { mutableStateOf(false) }
 
-    TagChipRow(
-        label = currentTag?.let { "#$it" } ?: I18n.get("recipe:components.holder_set.tag.pick"),
-        onClick = { pickerOpen = true }
-    )
+    Box {
+        TagChipRow(
+            label = currentTag?.let { "#$it" } ?: I18n.get("recipe:components.holder_set.tag.pick"),
+            onClick = { pickerOpen = !pickerOpen }
+        )
 
-    if (pickerOpen) {
-        RegistryPicker(
+        RegistryDropdown(
+            expanded = pickerOpen,
             registryId = widget.registry(),
             mode = RegistryPickerMode.TAGS,
             selected = currentTag,
@@ -232,26 +233,27 @@ private fun ListModeContent(
             }
         }
 
-        AddChipRow(
-            label = I18n.get("recipe:components.holder_set.list.add"),
-            onClick = { pickerOpen = true }
-        )
-    }
+        Box {
+            AddChipRow(
+                label = I18n.get("recipe:components.holder_set.list.add"),
+                onClick = { pickerOpen = !pickerOpen }
+            )
 
-    if (pickerOpen) {
-        RegistryPicker(
-            registryId = widget.registry(),
-            mode = RegistryPickerMode.ELEMENTS,
-            selected = null,
-            onPick = { id ->
-                val next = JsonArray()
-                ids.forEach { next.add(it.toString()) }
-                if (id !in ids) next.add(id.toString())
-                onValueChange(next)
-                pickerOpen = false
-            },
-            onDismiss = { pickerOpen = false }
-        )
+            RegistryDropdown(
+                expanded = pickerOpen,
+                registryId = widget.registry(),
+                mode = RegistryPickerMode.ELEMENTS,
+                selected = null,
+                onPick = { id ->
+                    val next = JsonArray()
+                    ids.forEach { next.add(it.toString()) }
+                    if (id !in ids) next.add(id.toString())
+                    onValueChange(next)
+                    pickerOpen = false
+                },
+                onDismiss = { pickerOpen = false }
+            )
+        }
     }
 }
 

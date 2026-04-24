@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,12 +38,13 @@ import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val itemShape = RoundedCornerShape(8.dp)
+private val itemShape = RoundedCornerShape(4.dp)
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 private val PLUS = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
 
@@ -59,7 +61,7 @@ fun ListWidget(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items.forEachIndexed { index, item ->
             key(index) {
@@ -102,27 +104,42 @@ private fun ItemRow(
     onChange: (JsonElement) -> Unit,
     onRemove: () -> Unit
 ) {
-    Row(
-        verticalAlignment = Alignment.Top,
+    val complex = widget is ComponentWidget.ObjectWidget ||
+        widget is ComponentWidget.MapWidget ||
+        widget is ComponentWidget.ListWidget ||
+        widget is ComponentWidget.DispatchedWidget
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(itemShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.4f), itemShape)
-            .border(1.dp, StudioColors.Zinc900, itemShape)
-            .padding(10.dp)
+            .background(StudioColors.Zinc900.copy(alpha = 0.35f), itemShape)
+            .border(1.dp, StudioColors.Zinc800, itemShape)
+            .padding(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text(
-            text = "#${index + 1}",
-            style = StudioTypography.medium(11),
-            color = StudioColors.Zinc500,
-            modifier = Modifier.padding(top = 6.dp)
-        )
-        Spacer(Modifier.width(10.dp))
-        Box(modifier = Modifier.weight(1f)) {
-            WidgetEditor(widget = widget, value = value, onValueChange = onChange)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "#${index + 1}",
+                style = StudioTypography.medium(11),
+                color = StudioColors.Zinc500,
+                modifier = Modifier.width(28.dp)
+            )
+            if (!complex) {
+                Box(modifier = Modifier.weight(1f)) {
+                    WidgetEditor(widget = widget, value = value, onValueChange = onChange)
+                }
+                Spacer(Modifier.width(6.dp))
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
+            RemoveButton(onClick = onRemove)
         }
-        Spacer(Modifier.width(8.dp))
-        RemoveButton(onClick = onRemove)
+        if (complex) {
+            Box(modifier = Modifier.padding(start = 28.dp)) {
+                WidgetEditor(widget = widget, value = value, onValueChange = onChange)
+            }
+        }
     }
 }
 
@@ -138,9 +155,9 @@ private fun RemoveButton(onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(24.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg, RoundedCornerShape(6.dp))
+            .size(FieldRowHeight)
+            .clip(RoundedCornerShape(4.dp))
+            .background(bg, RoundedCornerShape(4.dp))
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
@@ -162,16 +179,17 @@ internal fun AddRow(label: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .height(FieldRowHeight)
             .clip(itemShape)
             .background(StudioColors.Zinc900.copy(alpha = 0.2f), itemShape)
             .border(1.dp, border, itemShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp)
     ) {
         SvgIcon(PLUS, 12.dp, tint = if (hovered) StudioColors.Zinc200 else StudioColors.Zinc500)
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(6.dp))
         Text(
             text = label,
             style = StudioTypography.regular(12),

@@ -840,6 +840,7 @@
     "recipe:components.holder_set.mode.tag": "Tag",
     "recipe:components.holder_set.tag.pick": "Pick a tag",
     "recipe:components.holder_set.list.add": "Add entry",
+    "recipe:components.widget.unset": "Not set",
 
     "component:minecraft:attack_range": "Attack Range",
     "component:minecraft:attack_range.desc": "Configures melee reach and hitbox margins.",

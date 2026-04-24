@@ -53,7 +53,7 @@ import fr.hardel.asset_editor.client.compose.popupEnterTransform
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.resources.Identifier
 
-private val triggerShape = RoundedCornerShape(8.dp)
+private val triggerShape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
 private val popupShape = RoundedCornerShape(10.dp)
 private val itemShape = RoundedCornerShape(6.dp)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
@@ -81,12 +81,12 @@ fun EnumWidget(
         label = "enum-trigger-border"
     )
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .widthIn(min = 160.dp)
-                .height(32.dp)
+                .fillMaxWidth()
+                .height(26.dp)
                 .clip(triggerShape)
                 .background(StudioColors.Zinc950.copy(alpha = 0.5f), triggerShape)
                 .border(1.dp, border, triggerShape)
@@ -96,9 +96,9 @@ fun EnumWidget(
                 .padding(horizontal = 12.dp)
         ) {
             Text(
-                text = humanize(label),
-                style = StudioTypography.regular(13),
-                color = StudioColors.Zinc100,
+                text = humanize(label.ifEmpty { "-- unset --" }),
+                style = StudioTypography.regular(12),
+                color = if (label.isEmpty()) StudioColors.Zinc600 else StudioColors.Zinc100,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
