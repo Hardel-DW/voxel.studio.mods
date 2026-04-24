@@ -37,6 +37,15 @@ object StudioTranslation {
         return resolve(domain, id)
     }
 
+    @JvmStatic
+    fun resolveRegistry(id: Identifier): String {
+        val key = "registry:${id.namespace}.${id.path.replace('/', '.')}"
+        if (I18n.exists(key))
+            return I18n.get(key)
+
+        return humanize(id.path)
+    }
+
     private fun humanize(raw: String?): String {
         if (raw.isNullOrBlank())
             return ""

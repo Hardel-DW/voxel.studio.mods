@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 
-private val inputShape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
+private val defaultInputShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
 
 @Composable
 internal fun ComponentTextInput(
@@ -38,7 +38,8 @@ internal fun ComponentTextInput(
     modifier: Modifier = Modifier,
     monospace: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    normalize: (String) -> String = { it }
+    normalize: (String) -> String = { it },
+    shape: RoundedCornerShape = defaultInputShape
 ) {
     var focused by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf(TextFieldValue(value)) }
@@ -53,17 +54,17 @@ internal fun ComponentTextInput(
         modifier = modifier
             .fillMaxWidth()
             .height(FieldRowHeight)
-            .clip(inputShape)
-            .background(StudioColors.Zinc950.copy(alpha = 0.5f), inputShape)
-            .border(1.dp, StudioColors.Zinc800, inputShape)
-            .padding(horizontal = 8.dp),
+            .clip(shape)
+            .background(StudioColors.Zinc900.copy(alpha = 0.78f), shape)
+            .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.75f), shape)
+            .padding(horizontal = 10.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         if (text.text.isEmpty()) {
             Text(
                 text = placeholder,
-                style = StudioTypography.regular(12),
-                color = StudioColors.Zinc600
+                style = StudioTypography.regular(13),
+                color = StudioColors.Zinc500
             )
         }
         BasicTextField(
@@ -77,7 +78,7 @@ internal fun ComponentTextInput(
                 }
                 onValueChange(normalized)
             },
-            textStyle = StudioTypography.regular(12).copy(
+            textStyle = StudioTypography.regular(13).copy(
                 color = StudioColors.Zinc100,
                 fontFamily = if (monospace) FontFamily.Monospace else FontFamily.Default
             ),

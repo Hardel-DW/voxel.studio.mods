@@ -40,7 +40,7 @@ private fun placeholder(widget: ComponentWidget.FloatWidget): String {
         min != null && max != null -> "${min.toPrettyString()} – ${max.toPrettyString()}"
         min != null -> "≥ ${min.toPrettyString()}"
         max != null -> "≤ ${max.toPrettyString()}"
-        else -> "-- unset --"
+        else -> "0.0"
     }
 }
 

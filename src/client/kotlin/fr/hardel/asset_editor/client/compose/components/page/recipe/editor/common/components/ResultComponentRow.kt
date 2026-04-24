@@ -48,11 +48,9 @@ import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import kotlinx.coroutines.delay
-import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val rowShape = RoundedCornerShape(10.dp)
-private val badgeShape = RoundedCornerShape(4.dp)
+private val rowShape = RoundedCornerShape(8.dp)
 private val deleteShape = RoundedCornerShape(6.dp)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-right.svg")
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
@@ -102,18 +100,18 @@ fun ResultComponentRow(
 
     val borderColor by animateColorAsState(
         targetValue = when {
-            expanded -> StudioColors.Zinc700
-            rowHovered -> StudioColors.Zinc800
-            else -> StudioColors.Zinc900
+            expanded -> StudioColors.Zinc700.copy(alpha = 0.52f)
+            rowHovered -> StudioColors.Zinc700.copy(alpha = 0.44f)
+            else -> StudioColors.Zinc800.copy(alpha = 0.42f)
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "row-border"
     )
     val bg by animateColorAsState(
         targetValue = when {
-            expanded -> StudioColors.Zinc900.copy(alpha = 0.55f)
-            rowHovered -> StudioColors.Zinc900.copy(alpha = 0.45f)
-            else -> StudioColors.Zinc900.copy(alpha = 0.3f)
+            expanded -> StudioColors.Zinc900.copy(alpha = 0.86f)
+            rowHovered -> StudioColors.Zinc900.copy(alpha = 0.76f)
+            else -> StudioColors.Zinc900.copy(alpha = 0.62f)
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "row-bg"
@@ -143,12 +141,12 @@ fun ResultComponentRow(
                     enabled = canExpand,
                     onClick = { onExpandChange(!expanded) }
                 )
-                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             SvgIcon(
                 location = CHEVRON,
                 size = 12.dp,
-                tint = if (canExpand) StudioColors.Zinc400 else StudioColors.Zinc700,
+                tint = if (canExpand) StudioColors.Zinc300 else StudioColors.Zinc700,
                 modifier = Modifier.rotate(chevronRotation)
             )
             Spacer(Modifier.width(12.dp))
@@ -159,7 +157,7 @@ fun ResultComponentRow(
             ) {
                 Text(
                     text = displayName,
-                    style = StudioTypography.medium(13),
+                    style = StudioTypography.medium(14),
                     color = StudioColors.Zinc100,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -167,25 +165,10 @@ fun ResultComponentRow(
                 Text(
                     text = componentId.toString(),
                     style = StudioTypography.regular(11).copy(fontFamily = FontFamily.Monospace),
-                    color = StudioColors.Zinc500,
+                    color = StudioColors.Zinc400,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
-
-            if (widget == null) {
-                Badge(
-                    label = I18n.get("recipe:components.unknown"),
-                    accent = StudioColors.Amber400
-                )
-                Spacer(Modifier.width(8.dp))
-            }
-            if (isPending) {
-                Badge(
-                    label = I18n.get("recipe:components.pending"),
-                    accent = StudioColors.Sky400
-                )
-                Spacer(Modifier.width(8.dp))
             }
 
             DeleteButton(onClick = onDelete)
@@ -200,7 +183,7 @@ fun ResultComponentRow(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 38.dp, end = 14.dp, bottom = 12.dp, top = 2.dp)
+                        .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp)
                 ) {
                     WidgetEditor(
                         widget = widget,
@@ -213,25 +196,6 @@ fun ResultComponentRow(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun Badge(label: String, accent: Color) {
-    Box(
-        modifier = Modifier
-            .height(18.dp)
-            .clip(badgeShape)
-            .background(accent.copy(alpha = 0.14f), badgeShape)
-            .border(1.dp, accent.copy(alpha = 0.35f), badgeShape)
-            .padding(horizontal = 6.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label.uppercase(),
-            style = StudioTypography.medium(9),
-            color = accent
-        )
     }
 }
 

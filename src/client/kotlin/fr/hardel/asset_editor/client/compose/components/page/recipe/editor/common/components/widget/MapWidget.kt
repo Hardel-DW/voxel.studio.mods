@@ -13,12 +13,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -37,16 +35,17 @@ import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
-import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldLabel
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RequiredFieldFrame
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
-import java.util.Locale
 
-private val rowShape = RoundedCornerShape(8.dp)
+private val rowShape = RoundedCornerShape(6.dp)
 private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
 @Composable
@@ -126,19 +125,17 @@ private fun EntryRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(rowShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.4f), rowShape)
-            .border(1.dp, StudioColors.Zinc900, rowShape)
+            .background(StudioColors.Zinc800.copy(alpha = 0.28f), rowShape)
+            .border(1.dp, StudioColors.Zinc700.copy(alpha = 0.42f), rowShape)
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(verticalAlignment = Alignment.Top) {
-            Text(
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FieldLabel(
                 text = mapKeyLabel(keyWidget),
-                style = StudioTypography.medium(11),
-                color = StudioColors.Zinc500,
-                modifier = Modifier.width(92.dp).padding(top = 6.dp)
+                color = StudioColors.Zinc200
             )
-            Box(modifier = Modifier.weight(1f)) {
+            RequiredFieldFrame(requiredMissing = keyText.isBlank(), modifier = Modifier.weight(1f)) {
                 WidgetEditor(
                     widget = keyWidget,
                     value = keyJson,
@@ -151,12 +148,10 @@ private fun EntryRow(
             Spacer(Modifier.width(8.dp))
             RemoveButton(onClick = onRemove)
         }
-        Row(verticalAlignment = Alignment.Top) {
-            Text(
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            FieldLabel(
                 text = I18n.get("recipe:components.map.value"),
-                style = StudioTypography.medium(11),
-                color = StudioColors.Zinc500,
-                modifier = Modifier.width(48.dp).padding(top = 6.dp)
+                color = StudioColors.Zinc300
             )
             Box(modifier = Modifier.weight(1f)) {
                 WidgetEditor(widget = valueWidget, value = valueElement, onValueChange = onValueChange)
@@ -178,16 +173,7 @@ private fun mapKeyLabel(widget: ComponentWidget): String = when (widget) {
 }
 
 private fun registryLabel(registry: Identifier): String {
-    val key = "recipe:components.registry.${registry.namespace}.${registry.path.replace('/', '.')}"
-    if (I18n.exists(key)) return I18n.get(key)
-
-    return registry.path
-        .substringAfterLast('/')
-        .split('_')
-        .filter { it.isNotBlank() }
-        .joinToString(" ") { part ->
-            part.replaceFirstChar { ch -> ch.uppercase(Locale.ROOT) }
-        }
+    return StudioTranslation.resolveRegistry(registry)
 }
 
 @Composable

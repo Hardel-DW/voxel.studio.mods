@@ -48,12 +48,13 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.popupEnterTransform
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.resources.Identifier
 
-private val triggerShape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
+private val triggerShape = RoundedCornerShape(topEnd = 6.dp, bottomEnd = 6.dp)
 private val popupShape = RoundedCornerShape(10.dp)
 private val itemShape = RoundedCornerShape(6.dp)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
@@ -74,8 +75,8 @@ fun EnumWidget(
     val border by animateColorAsState(
         targetValue = when {
             open -> StudioColors.Zinc700
-            hovered -> StudioColors.Zinc800
-            else -> StudioColors.Zinc800.copy(alpha = 0.7f)
+            hovered -> StudioColors.Zinc600
+            else -> StudioColors.Zinc700.copy(alpha = 0.75f)
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "enum-trigger-border"
@@ -86,9 +87,9 @@ fun EnumWidget(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(26.dp)
+                .height(FieldRowHeight)
                 .clip(triggerShape)
-                .background(StudioColors.Zinc950.copy(alpha = 0.5f), triggerShape)
+                .background(StudioColors.Zinc900.copy(alpha = 0.78f), triggerShape)
                 .border(1.dp, border, triggerShape)
                 .hoverable(interaction)
                 .pointerHoverIcon(PointerIcon.Hand)
@@ -97,8 +98,8 @@ fun EnumWidget(
         ) {
             Text(
                 text = humanize(label.ifEmpty { "-- unset --" }),
-                style = StudioTypography.regular(12),
-                color = if (label.isEmpty()) StudioColors.Zinc600 else StudioColors.Zinc100,
+                style = StudioTypography.regular(13),
+                color = if (label.isEmpty()) StudioColors.Zinc500 else StudioColors.Zinc100,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)

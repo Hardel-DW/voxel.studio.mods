@@ -201,16 +201,21 @@ private fun AddButton(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val borderColor by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc700 else StudioColors.Zinc800,
+        targetValue = if (hovered) StudioColors.Emerald400.copy(alpha = 0.42f) else StudioColors.Zinc800.copy(alpha = 0.42f),
         animationSpec = StudioMotion.hoverSpec(),
         label = "add-component-border"
+    )
+    val background by animateColorAsState(
+        targetValue = if (hovered) StudioColors.Emerald400.copy(alpha = 0.08f) else StudioColors.Zinc900.copy(alpha = 0.22f),
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "add-component-bg"
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clip(buttonShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.25f), buttonShape)
+            .background(background, buttonShape)
             .border(1.dp, borderColor, buttonShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
@@ -220,13 +225,13 @@ private fun AddButton(onClick: () -> Unit) {
         SvgIcon(
             location = PLUS,
             size = 14.dp,
-            tint = if (hovered) StudioColors.Zinc200 else StudioColors.Zinc400
+            tint = if (hovered) StudioColors.Emerald400 else StudioColors.Zinc300
         )
         Spacer(Modifier.width(10.dp))
         Text(
             text = I18n.get("recipe:components.add"),
             style = StudioTypography.medium(13),
-            color = if (hovered) StudioColors.Zinc100 else StudioColors.Zinc300
+            color = if (hovered) StudioColors.Zinc50 else StudioColors.Zinc300
         )
     }
 }

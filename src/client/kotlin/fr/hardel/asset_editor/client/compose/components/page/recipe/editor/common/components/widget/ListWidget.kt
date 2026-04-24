@@ -1,59 +1,48 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.hoverable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.StudioMotion
-import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.WidgetEditor
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.defaultJsonFor
-import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.AddFieldButton
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.FieldControlShape
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.ListEntryHeader
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.widget.common.RemoveIconButton
+import fr.hardel.asset_editor.client.compose.standardCollapseEnter
+import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.data.component.ComponentWidget
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.resources.Identifier
 
-private val itemShape = RoundedCornerShape(4.dp)
-private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
-private val PLUS = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
+private val itemShape = RoundedCornerShape(6.dp)
 
 @Composable
 fun ListWidget(
     widget: ComponentWidget.ListWidget,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showAddButton: Boolean = true
 ) {
     val array = remember(value) { (value as? JsonArray) ?: JsonArray() }
     val items = remember(array) { List(array.size()) { array.get(it) } }
@@ -83,17 +72,18 @@ fun ListWidget(
             }
         }
 
-        if (items.size < maxSize) {
+        if (showAddButton && items.size < maxSize) {
             AddRow(
                 label = I18n.get("recipe:components.list.add"),
-                onClick = {
-                    val next = array.deepCopy()
-                    next.add(defaultJsonFor(widget.item()))
-                    onValueChange(next)
-                }
+                onClick = { onValueChange(addListItem(widget, array)) }
             )
         }
     }
+}
+
+fun addListItem(widget: ComponentWidget.ListWidget, value: JsonElement?): JsonArray {
+    val current = (value as? JsonArray) ?: JsonArray()
+    return current.deepCopy().also { it.add(defaultJsonFor(widget.item())) }
 }
 
 @Composable
@@ -108,35 +98,40 @@ private fun ItemRow(
         widget is ComponentWidget.MapWidget ||
         widget is ComponentWidget.ListWidget ||
         widget is ComponentWidget.DispatchedWidget
+    var expanded by remember(index) { mutableStateOf(true) }
+
+    if (!complex) {
+        PrimitiveItemRow(
+            widget = widget,
+            value = value,
+            onChange = onChange,
+            onRemove = onRemove
+        )
+        return
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(itemShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.35f), itemShape)
-            .border(1.dp, StudioColors.Zinc800, itemShape)
+            .background(StudioColors.Zinc900.copy(alpha = 0.24f), itemShape)
+            .border(1.dp, StudioColors.Zinc800.copy(alpha = 0.42f), itemShape)
             .padding(6.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "#${index + 1}",
-                style = StudioTypography.medium(11),
-                color = StudioColors.Zinc500,
-                modifier = Modifier.width(28.dp)
-            )
-            if (!complex) {
-                Box(modifier = Modifier.weight(1f)) {
-                    WidgetEditor(widget = widget, value = value, onValueChange = onChange)
-                }
-                Spacer(Modifier.width(6.dp))
-            } else {
-                Spacer(Modifier.weight(1f))
-            }
-            RemoveButton(onClick = onRemove)
-        }
-        if (complex) {
-            Box(modifier = Modifier.padding(start = 28.dp)) {
+        ListEntryHeader(
+            index = index,
+            expanded = expanded,
+            onToggle = { expanded = !expanded },
+            onRemove = onRemove
+        )
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = standardCollapseEnter(),
+            exit = standardCollapseExit()
+        ) {
+            Box(modifier = Modifier.padding(top = 2.dp)) {
                 WidgetEditor(widget = widget, value = value, onValueChange = onChange)
             }
         }
@@ -144,56 +139,30 @@ private fun ItemRow(
 }
 
 @Composable
-private fun RemoveButton(onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    val bg by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Red500.copy(alpha = 0.2f) else Color.Transparent,
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "list-remove-bg"
-    )
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(FieldRowHeight)
-            .clip(RoundedCornerShape(4.dp))
-            .background(bg, RoundedCornerShape(4.dp))
-            .hoverable(interaction)
-            .pointerHoverIcon(PointerIcon.Hand)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+private fun PrimitiveItemRow(
+    widget: ComponentWidget,
+    value: JsonElement,
+    onChange: (JsonElement) -> Unit,
+    onRemove: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        SvgIcon(TRASH, 12.dp, tint = if (hovered) StudioColors.Red400 else StudioColors.Zinc500)
+        Box(modifier = Modifier.weight(1f)) {
+            WidgetEditor(widget = widget, value = value, onValueChange = onChange)
+        }
+        RemoveIconButton(onClick = onRemove)
     }
 }
 
 @Composable
 internal fun AddRow(label: String, onClick: () -> Unit) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    val border by animateColorAsState(
-        targetValue = if (hovered) StudioColors.Zinc700 else StudioColors.Zinc800.copy(alpha = 0.6f),
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "list-add-border"
+    AddFieldButton(
+        label = label,
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = FieldControlShape
     )
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(FieldRowHeight)
-            .clip(itemShape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.2f), itemShape)
-            .border(1.dp, border, itemShape)
-            .hoverable(interaction)
-            .pointerHoverIcon(PointerIcon.Hand)
-            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 8.dp)
-    ) {
-        SvgIcon(PLUS, 12.dp, tint = if (hovered) StudioColors.Zinc200 else StudioColors.Zinc500)
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = label,
-            style = StudioTypography.regular(12),
-            color = if (hovered) StudioColors.Zinc100 else StudioColors.Zinc400
-        )
-    }
 }

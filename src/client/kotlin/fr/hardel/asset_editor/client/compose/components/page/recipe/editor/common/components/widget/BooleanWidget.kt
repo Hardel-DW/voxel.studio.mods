@@ -10,9 +10,10 @@ import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -44,21 +45,21 @@ fun BooleanWidget(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(0.dp),
-        modifier = modifier
+        modifier = modifier.widthIn(max = 176.dp)
     ) {
         BoolButton(
             label = "False",
             selected = current == false,
             shape = RoundedCornerShape(0.dp),
             onClick = { onValueChange(JsonPrimitive(false)) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.width(88.dp)
         )
         BoolButton(
             label = "True",
             selected = current == true,
             shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp),
             onClick = { onValueChange(JsonPrimitive(true)) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.width(88.dp)
         )
     }
 }
@@ -75,15 +76,15 @@ private fun BoolButton(
     val hovered by interaction.collectIsHoveredAsState()
     val bg by animateColorAsState(
         targetValue = when {
-            selected -> StudioColors.Violet500.copy(alpha = 0.25f)
-            hovered -> StudioColors.Zinc800
-            else -> StudioColors.Zinc900.copy(alpha = 0.6f)
+            selected -> StudioColors.Amber400.copy(alpha = 0.14f)
+            hovered -> StudioColors.Zinc800.copy(alpha = 0.9f)
+            else -> StudioColors.Zinc900.copy(alpha = 0.72f)
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "bool-btn-bg"
     )
-    val border = if (selected) StudioColors.Violet500.copy(alpha = 0.55f) else StudioColors.Zinc800
-    val fg = if (selected) StudioColors.Zinc50 else StudioColors.Zinc400
+    val border = if (selected) StudioColors.Amber400.copy(alpha = 0.46f) else StudioColors.Zinc800.copy(alpha = 0.58f)
+    val fg = if (selected) StudioColors.Zinc50 else StudioColors.Zinc300
 
     Box(
         contentAlignment = Alignment.Center,
@@ -95,7 +96,7 @@ private fun BoolButton(
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 10.dp)
     ) {
         Text(text = label, style = StudioTypography.medium(12), color = fg)
     }
