@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.codec.widget
 
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +13,7 @@ import net.minecraft.client.resources.language.I18n
 fun UnitWidget(modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         Text(
             text = I18n.get("codec:unit_flag"),

@@ -88,6 +88,39 @@ fun isSelfClearable(widget: CodecWidget): Boolean = when (widget) {
     else -> false
 }
 
+/**
+ * Structural widgets nest children below their head (Object fields, List items,
+ * Map entries, etc.). Non-structural widgets are single-value primitives whose
+ * head can be rendered inline on a parent row without an expand body.
+ */
+fun isStructural(widget: CodecWidget): Boolean = when (widget) {
+    is CodecWidget.ObjectWidget,
+    is CodecWidget.ListWidget,
+    is CodecWidget.MapWidget,
+    is CodecWidget.DispatchedWidget,
+    is CodecWidget.HolderSetWidget,
+    is CodecWidget.EitherWidget -> true
+    else -> false
+}
+
+/**
+ * Widgets whose head fits cleanly on a single 32dp row, suitable for inlining
+ * on a parent header bar. Excludes structural widgets (need a body) and
+ * multi-line / hint-bearing widgets (Text, RawJson) that look awkward inline.
+ */
+fun isInlineable(widget: CodecWidget): Boolean = when (widget) {
+    is CodecWidget.IntegerWidget,
+    is CodecWidget.FloatWidget,
+    is CodecWidget.BooleanWidget,
+    is CodecWidget.StringWidget,
+    is CodecWidget.IdentifierWidget,
+    is CodecWidget.EnumWidget,
+    is CodecWidget.HolderWidget,
+    is CodecWidget.TagWidget,
+    is CodecWidget.UnitWidget -> true
+    else -> false
+}
+
 @Composable
 fun WidgetBody(
     widget: CodecWidget,

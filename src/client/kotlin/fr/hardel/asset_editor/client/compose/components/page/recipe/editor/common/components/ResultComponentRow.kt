@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +45,8 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.codec.WidgetHead
+import fr.hardel.asset_editor.client.compose.components.codec.isInlineable
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.data.codec.CodecWidget
@@ -94,7 +97,8 @@ fun ResultComponentRow(
         }
     }
 
-    val canExpand = widget != null
+    val inlineHead = widget != null && isInlineable(widget)
+    val canExpand = widget != null && !inlineHead
     val rowInteraction = remember { MutableInteractionSource() }
     val rowHovered by rowInteraction.collectIsHoveredAsState()
 
@@ -143,13 +147,15 @@ fun ResultComponentRow(
                 )
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            SvgIcon(
-                location = CHEVRON,
-                size = 12.dp,
-                tint = if (canExpand) StudioColors.Zinc300 else StudioColors.Zinc700,
-                modifier = Modifier.rotate(chevronRotation)
-            )
-            Spacer(Modifier.width(12.dp))
+            if (canExpand) {
+                SvgIcon(
+                    location = CHEVRON,
+                    size = 12.dp,
+                    tint = StudioColors.Zinc300,
+                    modifier = Modifier.rotate(chevronRotation)
+                )
+                Spacer(Modifier.width(12.dp))
+            }
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -169,6 +175,20 @@ fun ResultComponentRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+
+            if (inlineHead && widget != null) {
+                Spacer(Modifier.width(12.dp))
+                WidgetHead(
+                    widget = widget,
+                    value = draft,
+                    onValueChange = {
+                        draft = it
+                        locallyChanged = true
+                    },
+                    modifier = Modifier.widthIn(max = 360.dp)
+                )
+                Spacer(Modifier.width(12.dp))
             }
 
             DeleteButton(onClick = onDelete)
