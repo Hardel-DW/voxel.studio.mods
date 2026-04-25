@@ -21,7 +21,6 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,12 +45,18 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
@@ -62,17 +67,33 @@ public final class StructureSceneRenderer {
     private static final int MAX_HEIGHT = 4096;
     private static final float NEAR_PLANE = -32768.0F;
     private static final float FAR_PLANE = 32768.0F;
-    private static final int FULL_BRIGHT = 0xF000F0;
+    private static final int CACHE_CAPACITY = 3;
+    private static final int MAX_PENDING = 4;
 
     private static final AtomicReference<Request> pendingRequest = new AtomicReference<>();
     private static final CopyOnWriteArrayList<Consumer<String>> listeners = new CopyOnWriteArrayList<>();
     private static final Map<String, BlockState> stateCache = new ConcurrentHashMap<>();
 
+    private static final Map<Integer, CompiledScene> sceneCache = Collections.synchronizedMap(new LinkedHashMap<>(CACHE_CAPACITY + 1, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Integer, CompiledScene> eldest) {
+            return size() > CACHE_CAPACITY;
+        }
+    });
+    private static final Set<Integer> pendingHashes = ConcurrentHashMap.newKeySet();
+    private static final Queue<CompletedScene> completedScenes = new ConcurrentLinkedQueue<>();
+    private static final ExecutorService tessellationExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "StructureScene-Tessellate");
+        t.setDaemon(true);
+        return t;
+    });
+
     private static volatile Result result;
     private static volatile CachedLevel cachedLevel;
-    private static volatile CompiledScene cachedScene;
+    private static volatile int lastDrawnHash = 0;
 
     private record CachedLevel(int sceneHash, StructureBlockView view) {}
+    private record CompletedScene(int hash, CompiledScene scene) {}
 
     public record Camera(float yaw, float pitch, float zoom, float panX, float panY) {}
 
@@ -123,6 +144,24 @@ public final class StructureSceneRenderer {
     }
 
     private static void render(Request request) {
+        if (request.voxels().isEmpty()) {
+            return;
+        }
+
+        drainCompletedScenes();
+        int hash = sceneHash(request);
+        CompiledScene compiled = sceneCache.get(hash);
+        if (compiled == null) {
+            compiled = sceneCache.get(lastDrawnHash);
+        }
+
+        if (compiled == null) {
+            scheduleTessellation(request, hash);
+            pendingRequest.compareAndSet(null, request);
+            if (DEBUG_TIMING) LOGGER.info("[render] deferred (no cache, tessellation pending) hash={}", hash);
+            return;
+        }
+
         long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         int width = Math.min(request.width(), MAX_WIDTH);
         int height = Math.min(request.height(), MAX_HEIGHT);
@@ -147,7 +186,16 @@ public final class StructureSceneRenderer {
         RenderSystem.enableScissorForRenderTypeDraws(0, 0, width, height);
 
         long tSetup = DEBUG_TIMING ? System.nanoTime() : 0L;
-        renderVoxels(request, width, height);
+        Minecraft mc = Minecraft.getInstance();
+        mc.gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
+
+        boolean cacheHit = compiled.sceneHash == hash;
+        if (cacheHit) {
+            lastDrawnHash = hash;
+        } else {
+            scheduleTessellation(request, hash);
+        }
+        drawCompiled(compiled, request, width, height);
         long tRender = DEBUG_TIMING ? System.nanoTime() : 0L;
 
         RenderSystem.disableScissorForRenderTypeDraws();
@@ -162,45 +210,43 @@ public final class StructureSceneRenderer {
 
         if (DEBUG_TIMING) {
             long setupMs = (tSetup - t0) / 1_000_000L;
-            long voxelMs = (tRender - tSetup) / 1_000_000L;
+            long drawMs = (tRender - tSetup) / 1_000_000L;
             long endMs = (System.nanoTime() - tRender) / 1_000_000L;
-            LOGGER.info("[render] setup={}ms tessellate={}ms readback-submit={}ms", setupMs, voxelMs, endMs);
+            LOGGER.info("[render] cache={} setup={}ms draw={}ms readback-submit={}ms", cacheHit ? "HIT" : "FALLBACK", setupMs, drawMs, endMs);
         }
     }
 
-    private static void renderVoxels(Request request, int width, int height) {
-        if (request.voxels().isEmpty()) {
+    private static void scheduleTessellation(Request request, int hash) {
+        if (pendingHashes.size() >= MAX_PENDING || !pendingHashes.add(hash)) {
             return;
         }
-
-        int hash = sceneHash(request);
-        CompiledScene compiled = cachedScene;
-        boolean cacheHit = compiled != null && compiled.sceneHash == hash;
-
-        Minecraft mc = Minecraft.getInstance();
-        mc.gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
-
-        if (!cacheHit) {
+        tessellationExecutor.submit(() -> {
             long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
-            CompiledScene next = tessellate(request, mc, hash);
-            if (DEBUG_TIMING) {
-                long ms = (System.nanoTime() - t0) / 1_000_000L;
-                LOGGER.info("[tessellate] compile={}ms blocks={} layers={}", ms, request.voxels().size(), next.layers.size());
+            try {
+                CompiledScene compiled = tessellate(request, hash);
+                completedScenes.offer(new CompletedScene(hash, compiled));
+                if (DEBUG_TIMING) {
+                    long ms = (System.nanoTime() - t0) / 1_000_000L;
+                    LOGGER.info("[worker] tessellate={}ms blocks={} layers={}", ms, request.voxels().size(), compiled.layers.size());
+                }
+            } catch (Throwable t) {
+                LOGGER.error("Worker tessellation failed for hash {}", hash, t);
+            } finally {
+                pendingHashes.remove(hash);
             }
-            cachedScene = next;
-            compiled = next;
-        }
+        });
+    }
 
-        long tDraw = DEBUG_TIMING ? System.nanoTime() : 0L;
-        drawCompiled(compiled, request, width, height);
-        if (DEBUG_TIMING) {
-            long ms = (System.nanoTime() - tDraw) / 1_000_000L;
-            LOGGER.info("[draw] cached={} layers={} draw={}ms", cacheHit, compiled.layers.size(), ms);
+    private static void drainCompletedScenes() {
+        CompletedScene done;
+        while ((done = completedScenes.poll()) != null) {
+            sceneCache.put(done.hash(), done.scene());
         }
     }
 
-    private static CompiledScene tessellate(Request request, Minecraft mc, int hash) {
+    private static CompiledScene tessellate(Request request, int hash) {
         StructureBlockView level = resolveLevel(request);
+        Minecraft mc = Minecraft.getInstance();
         BlockRenderDispatcher blockRenderer = mc.getBlockRenderer();
         RandomSource random = RandomSource.create();
         List<BlockModelPart> parts = new ArrayList<>();
