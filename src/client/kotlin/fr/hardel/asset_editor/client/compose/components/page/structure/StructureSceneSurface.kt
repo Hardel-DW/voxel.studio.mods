@@ -31,7 +31,7 @@ fun StructureSceneSurface(
     highlight: String?,
     dropOffset: Float
 ) {
-    val pendingCameras = remember(template.id()) { java.util.concurrent.ConcurrentHashMap<String, Scene3DCamera>() }
+    val pendingCameras = remember(template.id()) { boundedCameraCache() }
 
     DisposableEffect(template.id()) {
         val subscription = StructureSceneBridge.subscribe { key ->
@@ -111,6 +111,7 @@ private fun toRendererRequest(request: SceneRenderRequest): StructureSceneRender
         .toList()
     return StructureSceneRenderer.Request(
         request.key,
+        sceneOnlyKey(request.template, request.viewMode, request.selectedStep, request.showJigsaws, request.sliceY, request.highlight, request.drop),
         request.viewport.width,
         request.viewport.height,
         request.template.sizeX(),
@@ -119,6 +120,24 @@ private fun toRendererRequest(request: SceneRenderRequest): StructureSceneRender
         voxels,
         StructureSceneRenderer.Camera(request.camera.yaw, request.camera.pitch, request.camera.zoom, request.camera.panX, request.camera.panY)
     )
+}
+
+private fun sceneOnlyKey(
+    template: StructureTemplateSnapshot,
+    viewMode: StructureViewMode,
+    selectedStep: Int,
+    showJigsaws: Boolean,
+    sliceY: Int,
+    highlight: String?,
+    drop: Float
+): String = buildString {
+    append(template.id()).append('|')
+    append(viewMode.id).append('|')
+    append(selectedStep).append('|')
+    append(showJigsaws).append('|')
+    append(sliceY).append('|')
+    append(highlight.orEmpty()).append('|')
+    append(encode(drop))
 }
 
 private fun sceneKey(
@@ -148,6 +167,13 @@ private fun sceneKey(
 }
 
 private fun encode(value: Float): Int = (value * 4f).toInt()
+
+private fun boundedCameraCache(): MutableMap<String, Scene3DCamera> {
+    val map = object : java.util.LinkedHashMap<String, Scene3DCamera>(64, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Scene3DCamera>?): Boolean = size > 64
+    }
+    return java.util.Collections.synchronizedMap(map)
+}
 
 private fun distance(voxel: StructureBlockVoxel, jigsaw: StructureJigsawNode): Int =
     abs(voxel.x() - jigsaw.x()) + abs(voxel.y() - jigsaw.y()) + abs(voxel.z() - jigsaw.z())

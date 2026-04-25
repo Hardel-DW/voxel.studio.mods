@@ -62,7 +62,6 @@ import java.util.function.Consumer;
 
 public final class StructureSceneRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
-    private static final boolean DEBUG_TIMING = true;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
     private static final float NEAR_PLANE = -32768.0F;
@@ -77,7 +76,11 @@ public final class StructureSceneRenderer {
     private static final Map<Integer, CompiledScene> sceneCache = Collections.synchronizedMap(new LinkedHashMap<>(CACHE_CAPACITY + 1, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<Integer, CompiledScene> eldest) {
-            return size() > CACHE_CAPACITY;
+            if (size() > CACHE_CAPACITY) {
+                eldest.getValue().close();
+                return true;
+            }
+            return false;
         }
     });
     private static final Set<Integer> pendingHashes = ConcurrentHashMap.newKeySet();
@@ -91,6 +94,7 @@ public final class StructureSceneRenderer {
     private static volatile Result result;
     private static volatile CachedLevel cachedLevel;
     private static volatile int lastDrawnHash = 0;
+    private static volatile String lastDrawnFamily = "";
 
     private record CachedLevel(int sceneHash, StructureBlockView view) {}
     private record CompletedScene(int hash, CompiledScene scene) {}
@@ -99,7 +103,7 @@ public final class StructureSceneRenderer {
 
     public record Voxel(Identifier blockId, String state, int x, int y, int z, float yOffset, boolean highlighted) {}
 
-    public record Request(String key, int width, int height, int sizeX, int sizeY, int sizeZ, List<Voxel> voxels, Camera camera) {}
+    public record Request(String key, String sceneKey, int width, int height, int sizeX, int sizeY, int sizeZ, List<Voxel> voxels, Camera camera) {}
 
     public record Result(String key, int width, int height, int[] argbPixels) {}
 
@@ -130,16 +134,10 @@ public final class StructureSceneRenderer {
         }
 
         RenderSystem.assertOnRenderThread();
-        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         try {
             render(request);
         } catch (Exception exception) {
             LOGGER.error("Structure scene render failed for {}", request.key(), exception);
-            return;
-        }
-        if (DEBUG_TIMING) {
-            long elapsedMs = (System.nanoTime() - t0) / 1_000_000L;
-            LOGGER.info("[render] total={}ms voxels={} viewport={}x{}", elapsedMs, request.voxels().size(), request.width(), request.height());
         }
     }
 
@@ -149,20 +147,19 @@ public final class StructureSceneRenderer {
         }
 
         drainCompletedScenes();
-        int hash = sceneHash(request);
+        int hash = request.sceneKey().hashCode();
+        String family = sceneFamily(request.sceneKey());
         CompiledScene compiled = sceneCache.get(hash);
-        if (compiled == null) {
+        if (compiled == null && family.equals(lastDrawnFamily)) {
             compiled = sceneCache.get(lastDrawnHash);
         }
 
         if (compiled == null) {
             scheduleTessellation(request, hash);
             pendingRequest.compareAndSet(null, request);
-            if (DEBUG_TIMING) LOGGER.info("[render] deferred (no cache, tessellation pending) hash={}", hash);
             return;
         }
 
-        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         int width = Math.min(request.width(), MAX_WIDTH);
         int height = Math.min(request.height(), MAX_HEIGHT);
 
@@ -185,18 +182,17 @@ public final class StructureSceneRenderer {
         RenderSystem.setProjectionMatrix(projection.getBuffer(width, height), ProjectionType.ORTHOGRAPHIC);
         RenderSystem.enableScissorForRenderTypeDraws(0, 0, width, height);
 
-        long tSetup = DEBUG_TIMING ? System.nanoTime() : 0L;
         Minecraft mc = Minecraft.getInstance();
         mc.gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
 
-        boolean cacheHit = compiled.sceneHash == hash;
-        if (cacheHit) {
+        if (compiled.sceneHash == hash) {
             lastDrawnHash = hash;
+            lastDrawnFamily = family;
         } else {
             scheduleTessellation(request, hash);
+            pendingRequest.compareAndSet(null, request);
         }
         drawCompiled(compiled, request, width, height);
-        long tRender = DEBUG_TIMING ? System.nanoTime() : 0L;
 
         RenderSystem.disableScissorForRenderTypeDraws();
         RenderSystem.outputColorTextureOverride = savedColorOverride;
@@ -207,13 +203,6 @@ public final class StructureSceneRenderer {
         depthTexture.close();
 
         readback(device, colorTexture, colorView, request.key(), width, height);
-
-        if (DEBUG_TIMING) {
-            long setupMs = (tSetup - t0) / 1_000_000L;
-            long drawMs = (tRender - tSetup) / 1_000_000L;
-            long endMs = (System.nanoTime() - tRender) / 1_000_000L;
-            LOGGER.info("[render] cache={} setup={}ms draw={}ms readback-submit={}ms", cacheHit ? "HIT" : "FALLBACK", setupMs, drawMs, endMs);
-        }
     }
 
     private static void scheduleTessellation(Request request, int hash) {
@@ -221,14 +210,9 @@ public final class StructureSceneRenderer {
             return;
         }
         tessellationExecutor.submit(() -> {
-            long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
             try {
                 CompiledScene compiled = tessellate(request, hash);
                 completedScenes.offer(new CompletedScene(hash, compiled));
-                if (DEBUG_TIMING) {
-                    long ms = (System.nanoTime() - t0) / 1_000_000L;
-                    LOGGER.info("[worker] tessellate={}ms blocks={} layers={}", ms, request.voxels().size(), compiled.layers.size());
-                }
             } catch (Throwable t) {
                 LOGGER.error("Worker tessellation failed for hash {}", hash, t);
             } finally {
@@ -284,7 +268,7 @@ public final class StructureSceneRenderer {
                 continue;
             }
             ByteBuffer src = mesh.vertexBuffer();
-            ByteBuffer cached = ByteBuffer.allocateDirect(src.remaining());
+            ByteBuffer cached = MemoryUtil.memAlloc(src.remaining());
             cached.put(src.duplicate());
             cached.flip();
             MeshData.DrawState drawState = mesh.drawState();
@@ -337,8 +321,16 @@ public final class StructureSceneRenderer {
         mvm.translate(-request.sizeX() * 0.5F, -request.sizeY() * 0.5F, -request.sizeZ() * 0.5F);
     }
 
+    private static String sceneFamily(String sceneKey) {
+        int p1 = sceneKey.indexOf('|');
+        if (p1 < 0) return sceneKey;
+        int p2 = sceneKey.indexOf('|', p1 + 1);
+        if (p2 < 0) return sceneKey;
+        return sceneKey.substring(0, p2);
+    }
+
     private static StructureBlockView resolveLevel(Request request) {
-        int hash = sceneHash(request);
+        int hash = request.sceneKey().hashCode();
         CachedLevel cached = cachedLevel;
         if (cached != null && cached.sceneHash() == hash) {
             return cached.view();
@@ -346,25 +338,6 @@ public final class StructureSceneRenderer {
         StructureBlockView view = new StructureBlockView(request.voxels(), request.sizeY());
         cachedLevel = new CachedLevel(hash, view);
         return view;
-    }
-
-    private static int sceneHash(Request request) {
-        int h = 1;
-        h = 31 * h + request.sizeX();
-        h = 31 * h + request.sizeY();
-        h = 31 * h + request.sizeZ();
-        h = 31 * h + request.voxels().size();
-        if (!request.voxels().isEmpty()) {
-            Voxel first = request.voxels().get(0);
-            Voxel last = request.voxels().get(request.voxels().size() - 1);
-            h = 31 * h + first.state().hashCode();
-            h = 31 * h + first.x() + first.y() * 17 + first.z() * 31;
-            h = 31 * h + Float.floatToIntBits(first.yOffset());
-            h = 31 * h + last.state().hashCode();
-            h = 31 * h + last.x() + last.y() * 17 + last.z() * 31;
-            h = 31 * h + Float.floatToIntBits(last.yOffset());
-        }
-        return h;
     }
 
     private static BlockState blockState(Voxel voxel) {
@@ -378,12 +351,10 @@ public final class StructureSceneRenderer {
     }
 
     private static void readback(GpuDevice device, GpuTexture colorTexture, GpuTextureView colorView, String key, int width, int height) {
-        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         int bufferSize = width * height * 4;
         GpuBuffer readbackBuffer = device.createBuffer(() -> "StructureScene/Readback", GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_MAP_READ, bufferSize);
 
         device.createCommandEncoder().copyTextureToBuffer(colorTexture, readbackBuffer, 0, () -> {
-            long tCallback = DEBUG_TIMING ? System.nanoTime() : 0L;
             try (GpuBuffer.MappedView view = device.createCommandEncoder().mapBuffer(readbackBuffer, true, false)) {
                 ByteBuffer pixels = view.data();
                 int[] argb = new int[width * height];
@@ -399,11 +370,6 @@ public final class StructureSceneRenderer {
                     }
                 }
                 result = new Result(key, width, height, argb);
-                if (DEBUG_TIMING) {
-                    long convertMs = (System.nanoTime() - tCallback) / 1_000_000L;
-                    long waitMs = (tCallback - t0) / 1_000_000L;
-                    LOGGER.info("[readback] gpu-wait={}ms argb-convert={}ms size={}KB", waitMs, convertMs, bufferSize / 1024);
-                }
                 for (Consumer<String> listener : listeners) {
                     listener.accept(key);
                 }
@@ -415,7 +381,7 @@ public final class StructureSceneRenderer {
         }, 0);
     }
 
-    private static final class CompiledScene {
+    private static final class CompiledScene implements AutoCloseable {
         final int sceneHash;
         final List<CompiledLayer> layers;
 
@@ -423,9 +389,16 @@ public final class StructureSceneRenderer {
             this.sceneHash = sceneHash;
             this.layers = layers;
         }
+
+        @Override
+        public void close() {
+            for (CompiledLayer layer : layers) {
+                layer.close();
+            }
+        }
     }
 
-    private static final class CompiledLayer {
+    private static final class CompiledLayer implements AutoCloseable {
         final RenderType renderType;
         final ByteBuffer vertexBytes;
         final MeshData.DrawState drawState;
@@ -434,6 +407,11 @@ public final class StructureSceneRenderer {
             this.renderType = renderType;
             this.vertexBytes = vertexBytes;
             this.drawState = drawState;
+        }
+
+        @Override
+        public void close() {
+            MemoryUtil.memFree(vertexBytes);
         }
     }
 

@@ -10,8 +10,12 @@ import fr.hardel.asset_editor.network.structure.StructureAssemblySnapshot
 import net.minecraft.resources.Identifier
 import java.util.concurrent.ConcurrentHashMap
 
+private const val MAX_CACHE_ENTRIES = 5
+
 object StructureAssemblyMemory {
     private val cache = mutableStateMapOf<Identifier, StructureAssemblySnapshot>()
+    private val insertionOrder = ArrayDeque<Identifier>()
+    private val orderLock = Any()
     private val pending = ConcurrentHashMap.newKeySet<Identifier>()
 
     fun get(id: Identifier): StructureAssemblySnapshot? = cache[id]
@@ -24,13 +28,30 @@ object StructureAssemblyMemory {
     fun invalidate(id: Identifier) {
         cache.remove(id)
         pending.remove(id)
+        synchronized(orderLock) { insertionOrder.remove(id) }
+    }
+
+    fun invalidateAll() {
+        cache.clear()
+        pending.clear()
+        synchronized(orderLock) { insertionOrder.clear() }
     }
 
     @JvmStatic
     fun receiveResponse(payload: StructureAssemblyResponsePayload) {
         val id = payload.structureId()
         pending.remove(id)
-        payload.snapshot().ifPresent { snapshot -> cache[id] = snapshot }
+        payload.snapshot().ifPresent { snapshot ->
+            synchronized(orderLock) {
+                insertionOrder.remove(id)
+                insertionOrder.addLast(id)
+                cache[id] = snapshot
+                while (insertionOrder.size > MAX_CACHE_ENTRIES) {
+                    val evict = insertionOrder.removeFirst()
+                    cache.remove(evict)
+                }
+            }
+        }
     }
 }
 

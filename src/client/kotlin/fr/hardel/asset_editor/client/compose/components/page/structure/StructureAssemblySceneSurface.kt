@@ -28,7 +28,7 @@ fun StructureAssemblySceneSurface(
     highlight: String?,
     dropOffset: Float
 ) {
-    val pendingCameras = remember(assembly.id()) { java.util.concurrent.ConcurrentHashMap<String, Scene3DCamera>() }
+    val pendingCameras = remember(assembly.id()) { boundedCameraCache() }
 
     DisposableEffect(assembly.id()) {
         val subscription = StructureSceneBridge.subscribe { key ->
@@ -106,6 +106,7 @@ private fun toRendererRequest(request: AssemblyRequest): StructureSceneRenderer.
         .toList()
     return StructureSceneRenderer.Request(
         request.key,
+        sceneKey(request.assembly, request.displayedStep, request.animatingPiece, request.showJigsaws, request.sliceY, request.highlight, request.drop),
         request.viewport.width,
         request.viewport.height,
         request.assembly.sizeX(),
@@ -114,6 +115,24 @@ private fun toRendererRequest(request: AssemblyRequest): StructureSceneRenderer.
         voxels,
         StructureSceneRenderer.Camera(request.camera.yaw, request.camera.pitch, request.camera.zoom, request.camera.panX, request.camera.panY)
     )
+}
+
+private fun sceneKey(
+    assembly: StructureAssemblySnapshot,
+    displayedStep: Int,
+    animatingPiece: Int,
+    showJigsaws: Boolean,
+    sliceY: Int,
+    highlight: String?,
+    drop: Float
+): String = buildString {
+    append("assembly|").append(assembly.id()).append('|')
+    append(displayedStep).append('|')
+    append(animatingPiece).append('|')
+    append(showJigsaws).append('|')
+    append(sliceY).append('|')
+    append(highlight.orEmpty()).append('|')
+    append(encode(drop))
 }
 
 private fun assemblyKey(
@@ -143,3 +162,10 @@ private fun assemblyKey(
 }
 
 private fun encode(value: Float): Int = (value * 4f).toInt()
+
+private fun boundedCameraCache(): MutableMap<String, Scene3DCamera> {
+    val map = object : java.util.LinkedHashMap<String, Scene3DCamera>(64, 0.75f, false) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Scene3DCamera>?): Boolean = size > 64
+    }
+    return java.util.Collections.synchronizedMap(map)
+}
