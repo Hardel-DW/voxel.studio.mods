@@ -10,12 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
+import fr.hardel.asset_editor.network.structure.StructureAssemblySnapshot
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun StructureTopOverlay(
-    template: StructureTemplateSnapshot,
+fun StructureAssemblyTopOverlay(
+    assembly: StructureAssemblySnapshot,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -24,7 +24,7 @@ fun StructureTopOverlay(
         modifier = modifier.padding(horizontal = 2.dp)
     ) {
         Text(
-            text = template.id().path,
+            text = assembly.id().path,
             style = StudioTypography.semiBold(13),
             color = StudioColors.Zinc100
         )
@@ -32,11 +32,11 @@ fun StructureTopOverlay(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            OverlayMetric("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", I18n.get("structure:overlay.size"))
+            OverlayMetric("${assembly.sizeX()}x${assembly.sizeY()}x${assembly.sizeZ()}", I18n.get("structure:overlay.size"))
             OverlayDivider()
-            OverlayMetric(template.totalBlocks().toString(), I18n.get("structure:overlay.blocks"))
+            OverlayMetric(assembly.pieceCount().toString(), I18n.get("structure:overlay.pieces"))
             OverlayDivider()
-            OverlayMetric(template.entityCount().toString(), I18n.get("structure:overlay.entities"))
+            OverlayMetric(assembly.voxels().size.toString(), I18n.get("structure:overlay.voxels"))
         }
     }
 }

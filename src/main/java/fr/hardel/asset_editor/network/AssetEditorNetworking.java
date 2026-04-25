@@ -14,6 +14,9 @@ import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyRequestPayload;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyResolver;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload;
 import fr.hardel.asset_editor.network.structure.StructureReplaceBlocksPayload;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
@@ -70,6 +73,10 @@ public final class AssetEditorNetworking {
 
         PayloadTypeRegistry.playC2S().register(StructureReplaceBlocksPayload.TYPE, StructureReplaceBlocksPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(StructureReplaceBlocksPayload.TYPE, AssetEditorNetworking::handleStructureReplaceBlocks);
+
+        PayloadTypeRegistry.playC2S().register(StructureAssemblyRequestPayload.TYPE, StructureAssemblyRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StructureAssemblyResponsePayload.TYPE, StructureAssemblyResponsePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureAssemblyRequestPayload.TYPE, AssetEditorNetworking::handleStructureAssemblyRequest);
 
         PayloadTypeRegistry.playC2S().register(ReloadRequestPayload.TYPE, ReloadRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ReloadRequestPayload.TYPE, AssetEditorNetworking::handleReloadRequest);
@@ -186,6 +193,13 @@ public final class AssetEditorNetworking {
                     }
                 });
             });
+        });
+    }
+
+    private static void handleStructureAssemblyRequest(StructureAssemblyRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var snapshot = StructureAssemblyResolver.resolve(context.server(), payload.structureId());
+            ServerPlayNetworking.send(context.player(), new StructureAssemblyResponsePayload(payload.structureId(), snapshot));
         });
     }
 

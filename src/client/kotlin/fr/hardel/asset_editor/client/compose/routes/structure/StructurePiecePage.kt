@@ -73,7 +73,7 @@ fun StructurePiecePage(context: StudioContext) {
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             )
             StructureBottomOverlay(
                 viewMode = StructureViewMode.PIECES,
@@ -88,7 +88,7 @@ fun StructurePiecePage(context: StudioContext) {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             )
             StructureYSlider(
                 value = sliceY,
