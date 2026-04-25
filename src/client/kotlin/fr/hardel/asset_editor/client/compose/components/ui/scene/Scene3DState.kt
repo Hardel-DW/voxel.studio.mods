@@ -16,12 +16,14 @@ private const val MIN_ZOOM = 0.02f
 private const val MAX_ZOOM = 2048f
 private const val MAX_PITCH = 89f
 
+data class Scene3DFrame(val image: ImageBitmap, val camera: Scene3DCamera)
+
 @Stable
 class Scene3DState(initialCamera: Scene3DCamera) {
     var camera by mutableStateOf(initialCamera)
         private set
     var viewport by mutableStateOf(IntSize.Zero)
-    var frame by mutableStateOf<ImageBitmap?>(null)
+    var frame by mutableStateOf<Scene3DFrame?>(null)
 
     private var lastFrameKey: String = ""
     private var dragging = false
@@ -100,9 +102,9 @@ class Scene3DState(initialCamera: Scene3DCamera) {
         velPanY = 0f
     }
 
-    fun publishFrame(key: String, image: ImageBitmap) {
+    fun publishFrame(key: String, image: ImageBitmap, sourceCamera: Scene3DCamera) {
         if (key == lastFrameKey) return
         lastFrameKey = key
-        frame = image
+        frame = Scene3DFrame(image, sourceCamera)
     }
 }

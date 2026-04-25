@@ -80,7 +80,7 @@ fun Scene3DCanvas(
         val frame = state.frame
         if (frame != null) {
             Image(
-                bitmap = frame,
+                bitmap = frame.image,
                 contentDescription = null,
                 contentScale = ContentScale.None,
                 modifier = Modifier.fillMaxSize()

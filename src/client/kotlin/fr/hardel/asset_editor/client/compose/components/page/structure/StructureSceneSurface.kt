@@ -3,6 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.structure
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.IntSize
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
@@ -30,10 +31,13 @@ fun StructureSceneSurface(
     highlight: String?,
     dropOffset: Float
 ) {
+    val pendingCameras = remember(template.id()) { java.util.concurrent.ConcurrentHashMap<String, Scene3DCamera>() }
+
     DisposableEffect(template.id()) {
         val subscription = StructureSceneBridge.subscribe { key ->
             val image = StructureSceneBridge.getImage(key) ?: return@subscribe
-            state.publishFrame(key, image)
+            val camera = pendingCameras.remove(key) ?: state.camera
+            state.publishFrame(key, image, camera)
         }
         onDispose(subscription::run)
     }
@@ -61,9 +65,10 @@ fun StructureSceneSurface(
                 if (request == null) return@collectLatest
                 val cached = StructureSceneBridge.getImage(request.key)
                 if (cached != null) {
-                    state.publishFrame(request.key, cached)
+                    state.publishFrame(request.key, cached, request.camera)
                     return@collectLatest
                 }
+                pendingCameras[request.key] = request.camera
                 StructureSceneBridge.request(toRendererRequest(request))
             }
     }

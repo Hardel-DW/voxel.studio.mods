@@ -18,7 +18,7 @@ fun IsometricGrid(
         val viewport = state.viewport
         if (viewport.width <= 0 || viewport.height <= 0) return@Canvas
 
-        val camera = state.camera
+        val camera = state.frame?.camera ?: state.camera
         val sx = bounds.sizeX
         val sz = bounds.sizeZ
         val cy = -bounds.sizeY * 0.5f

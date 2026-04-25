@@ -7,6 +7,8 @@ import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTabl
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeLayout
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLayout
 import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_REGISTRY_ID
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureUiState
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentExclusivePage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentFindPage
@@ -17,7 +19,8 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechn
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTablePoolsPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
-import fr.hardel.asset_editor.client.compose.routes.structure.StructureMainPage
+import fr.hardel.asset_editor.client.compose.routes.structure.StructurePiecePage
+import fr.hardel.asset_editor.client.compose.routes.structure.StructureViewerPage
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -92,6 +95,11 @@ fun registerStudioRoutes() {
     StudioUiRegistry.registerPage(
         registryId = STRUCTURE_REGISTRY_ID,
         tabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"),
-        render = { context -> StructureMainPage(context) }
+        render = { context ->
+            when (StructureUiState.viewMode) {
+                StructureViewMode.PIECES -> StructurePiecePage(context)
+                StructureViewMode.STRUCTURE -> StructureViewerPage(context)
+            }
+        }
     )
 }

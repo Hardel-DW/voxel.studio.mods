@@ -3,13 +3,11 @@ package fr.hardel.asset_editor.client.compose.routes.structure
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -20,43 +18,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureBottomOverlay
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureCameraReset
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureInspector
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneArea
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureTopOverlay
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureUiState
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureYSlider
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
-import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
-import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun StructureMainPage(context: StudioContext) {
+fun StructurePiecePage(context: StudioContext) {
     val destination = rememberCurrentElementDestination(context) ?: return
     val templates = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATES)
     val template = remember(templates, destination.elementId) {
         templates.firstOrNull { it.id().toString() == destination.elementId }
     } ?: return
 
-    val viewMode = StructureUiState.viewMode
-    if (viewMode == StructureViewMode.STRUCTURE) {
-        StructureComingSoon()
-        return
-    }
-
-    StructurePieceEditor(context, template)
-}
-
-@Composable
-private fun StructurePieceEditor(context: StudioContext, template: StructureTemplateSnapshot) {
-    val maxStep = template.jigsaws().size
-    var selectedStep by remember(template.id()) { mutableIntStateOf(0) }
     var showJigsaws by remember { mutableStateOf(true) }
     var sliceY by remember(template.id()) { mutableIntStateOf(template.sizeY()) }
     var blockQuery by remember(template.id()) { mutableStateOf("") }
@@ -80,7 +61,7 @@ private fun StructurePieceEditor(context: StudioContext, template: StructureTemp
             StructureSceneArea(
                 template = template,
                 viewMode = StructureViewMode.PIECES,
-                selectedStep = selectedStep,
+                selectedStep = 0,
                 animations = false,
                 showJigsaws = showJigsaws,
                 sliceY = sliceY,
@@ -96,9 +77,9 @@ private fun StructurePieceEditor(context: StudioContext, template: StructureTemp
             )
             StructureBottomOverlay(
                 viewMode = StructureViewMode.PIECES,
-                step = selectedStep,
-                maxStep = maxStep,
-                onStepChange = { selectedStep = it.coerceIn(0, maxStep) },
+                step = 0,
+                maxStep = 0,
+                onStepChange = {},
                 animations = false,
                 onAnimationsChange = {},
                 showJigsaws = showJigsaws,
@@ -128,30 +109,6 @@ private fun StructurePieceEditor(context: StudioContext, template: StructureTemp
             onFromBlockChange = { fromBlock = it },
             toBlock = toBlock,
             onToBlockChange = { toBlock = it }
-        )
-    }
-}
-
-@Composable
-private fun StructureComingSoon() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(StudioColors.Zinc950)
-            .padding(48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = I18n.get("structure:mode.structure.title"),
-            style = StudioTypography.semiBold(22),
-            color = StudioColors.Zinc100
-        )
-        Text(
-            text = I18n.get("structure:mode.structure.description"),
-            style = StudioTypography.regular(13),
-            color = StudioColors.Zinc500,
-            modifier = Modifier.padding(top = 12.dp)
         )
     }
 }

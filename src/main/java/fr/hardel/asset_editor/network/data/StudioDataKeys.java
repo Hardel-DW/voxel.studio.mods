@@ -7,6 +7,8 @@ import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
+import fr.hardel.asset_editor.network.structure.StructureWorldgenCatalog;
+import fr.hardel.asset_editor.network.structure.StructureWorldgenSnapshot;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogBuilder;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
@@ -34,6 +36,9 @@ public final class StudioDataKeys {
 
     public static final ServerDataKey<StructureTemplateSnapshot> STRUCTURE_TEMPLATES = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_templates"), StructureTemplateSnapshot.STREAM_CODEC, StructureTemplateCatalog::build));
+
+    public static final ServerDataKey<StructureWorldgenSnapshot> STRUCTURE_WORLDGEN = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_worldgen"), StructureWorldgenSnapshot.STREAM_CODEC, StructureWorldgenCatalog::build));
 
     public static void init() {
         // Force class loading to register all keys

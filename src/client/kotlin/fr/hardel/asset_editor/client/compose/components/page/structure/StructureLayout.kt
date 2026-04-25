@@ -11,6 +11,8 @@ import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayoutConf
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
 import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
+import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
+import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
@@ -37,45 +39,36 @@ val STRUCTURE_REGISTRY_KEY: ResourceKey<Registry<Any>> = ResourceKey.createRegis
 fun StructureLayout(context: StudioContext) {
     val conceptId = STRUCTURE_CONCEPT_ID
     val templates = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATES)
+    val worldgen = rememberServerData(StudioDataSlots.STRUCTURE_WORLDGEN)
     val conceptUi = rememberConceptUi(context, conceptId)
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
     val defaultEditorTab = remember(conceptId) { context.studioDefaultEditorTab(conceptId) }
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
-    val tree = remember(templates) { StructureTreeBuilder.build(templates) }
-    val treeState = remember(
-        tree,
-        conceptUi.filterPath,
-        conceptUi.treeExpansion,
-        currentEditor?.elementId
-    ) {
-        buildConceptTreeState(
-            conceptId = conceptId,
-            tree = tree,
-            filterPath = conceptUi.filterPath,
-            selectedElementId = currentEditor?.elementId,
-            treeExpansion = conceptUi.treeExpansion.toImmutableMap(),
-            elementIcon = conceptIcon,
-            folderIcons = emptyMap(),
-            disableAutoExpand = false,
-            totalCount = templates.size,
-            modifiedCount = 0,
-            showAll = true,
-            onSelectAll = {
-                context.uiMemory().setShowAll(conceptId, true)
-                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-            },
-            onSelectChanges = {},
-            onSelectFolder = { path ->
-                context.uiMemory().updateFilterPath(conceptId, path)
-                context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
-            },
-            onSelectElement = { elementId ->
-                context.navigationMemory().openElement(ElementEditorDestination(conceptId, elementId, defaultEditorTab))
-            },
-            onToggleExpanded = { path, expanded ->
-                context.uiMemory().setTreeExpanded(conceptId, path, expanded)
-            }
-        )
+    val viewMode = StructureUiState.viewMode
+
+    val tree = remember(viewMode, templates, worldgen) {
+        when (viewMode) {
+            StructureViewMode.PIECES -> StructureTreeBuilder.build(templates)
+            StructureViewMode.STRUCTURE -> StructureWorldgenTreeBuilder.build(worldgen, context.assetCache())
+        }
+    }
+    val totalCount = if (viewMode == StructureViewMode.PIECES) templates.size else worldgen.size
+
+    val treeState = buildTreeState(
+        context = context,
+        conceptId = conceptId,
+        tree = tree,
+        conceptIcon = conceptIcon,
+        totalCount = totalCount,
+        defaultEditorTab = defaultEditorTab,
+        currentElementId = currentEditor?.elementId,
+        filterPath = conceptUi.filterPath,
+        treeExpansion = conceptUi.treeExpansion
+    )
+
+    val isLoading = when (viewMode) {
+        StructureViewMode.PIECES -> templates.isEmpty()
+        StructureViewMode.STRUCTURE -> worldgen.isEmpty()
     }
 
     ConceptLayout(
@@ -87,10 +80,13 @@ fun StructureLayout(context: StudioContext) {
             sidebarTitleKey = "structure:overview.title",
             treeState = treeState,
             pageFactory = { destination: StudioDestination ->
-                if (templates.isEmpty()) {
+                if (isLoading) {
                     LoadingPlaceholder(I18n.get("structure:loading"))
                 } else when (destination) {
-                    is ConceptOverviewDestination -> StructureOverviewPage(context, templates)
+                    is ConceptOverviewDestination -> when (viewMode) {
+                        StructureViewMode.PIECES -> StructureOverviewPage(context, templates)
+                        StructureViewMode.STRUCTURE -> StructureWorldgenOverviewPage(context, worldgen)
+                    }
                     is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()
                     else -> EmptyPage()
                 }
@@ -107,5 +103,47 @@ fun StructureLayout(context: StudioContext) {
                 )
             })
         )
+    )
+}
+
+@Composable
+private fun buildTreeState(
+    context: StudioContext,
+    conceptId: Identifier,
+    tree: TreeNodeModel,
+    conceptIcon: Identifier,
+    totalCount: Int,
+    defaultEditorTab: Identifier,
+    currentElementId: String?,
+    filterPath: String,
+    treeExpansion: Map<String, Boolean>
+): ConceptTreeState = remember(tree, filterPath, treeExpansion, currentElementId) {
+    buildConceptTreeState(
+        conceptId = conceptId,
+        tree = tree,
+        filterPath = filterPath,
+        selectedElementId = currentElementId,
+        treeExpansion = treeExpansion.toImmutableMap(),
+        elementIcon = conceptIcon,
+        folderIcons = emptyMap(),
+        disableAutoExpand = false,
+        totalCount = totalCount,
+        modifiedCount = 0,
+        showAll = true,
+        onSelectAll = {
+            context.uiMemory().setShowAll(conceptId, true)
+            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
+        },
+        onSelectChanges = {},
+        onSelectFolder = { path ->
+            context.uiMemory().updateFilterPath(conceptId, path)
+            context.navigationMemory().navigate(ConceptOverviewDestination(conceptId))
+        },
+        onSelectElement = { elementId ->
+            context.navigationMemory().openElement(ElementEditorDestination(conceptId, elementId, defaultEditorTab))
+        },
+        onToggleExpanded = { path, expanded ->
+            context.uiMemory().setTreeExpanded(conceptId, path, expanded)
+        }
     )
 }
