@@ -14,6 +14,8 @@ import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.structure.StructureReplaceBlocksPayload;
+import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.PermissionManager;
@@ -65,6 +67,9 @@ public final class AssetEditorNetworking {
 
         PayloadTypeRegistry.playC2S().register(ServerDataRequestPayload.TYPE, ServerDataRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ServerDataRequestPayload.TYPE, AssetEditorNetworking::handleServerDataRequest);
+
+        PayloadTypeRegistry.playC2S().register(StructureReplaceBlocksPayload.TYPE, StructureReplaceBlocksPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureReplaceBlocksPayload.TYPE, AssetEditorNetworking::handleStructureReplaceBlocks);
 
         PayloadTypeRegistry.playC2S().register(ReloadRequestPayload.TYPE, ReloadRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ReloadRequestPayload.TYPE, AssetEditorNetworking::handleReloadRequest);
@@ -154,6 +159,34 @@ public final class AssetEditorNetworking {
 
     private static void handleServerDataRequest(ServerDataRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key()));
+    }
+
+    private static void handleStructureReplaceBlocks(StructureReplaceBlocksPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            PermissionManager permissionManager = PermissionManager.get();
+            if (permissionManager == null || !permissionManager.getEffectivePermissions(context.player()).canEdit())
+                return;
+
+            DataPackManager packManager = DataPackManager.get();
+            if (packManager == null)
+                return;
+
+            if (!net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(payload.fromBlock())
+                || !net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(payload.toBlock()))
+                return;
+
+            packManager.resolveWritablePack(payload.packId()).ifPresent(packRoot -> {
+                StructureTemplateCatalog.readRaw(context.server(), payload.structureId()).ifPresent(tag -> {
+                    if (StructureTemplateCatalog.replaceBlocks(tag, payload.fromBlock(), payload.toBlock()) <= 0)
+                        return;
+                    try {
+                        StructureTemplateCatalog.writeRaw(packRoot, payload.structureId(), tag);
+                        broadcastResolved(context.server(), StudioDataKeys.STRUCTURE_TEMPLATES);
+                    } catch (java.io.IOException ignored) {
+                    }
+                });
+            });
+        });
     }
 
     private static void handleReloadRequest(ReloadRequestPayload payload, ServerPlayNetworking.Context context) {

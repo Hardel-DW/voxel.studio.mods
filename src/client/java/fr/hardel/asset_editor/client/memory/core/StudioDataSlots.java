@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
 import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
+import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
 
 public final class StudioDataSlots {
 
@@ -22,6 +23,9 @@ public final class StudioDataSlots {
 
     public static final ServerDataStore.DataSlot<StudioComponentTypeDef> COMPONENT_TYPES =
         ServerDataStore.register(StudioDataKeys.COMPONENT_TYPES);
+
+    public static final ServerDataStore.DataSlot<StructureTemplateSnapshot> STRUCTURE_TEMPLATES =
+        ServerDataStore.register(StudioDataKeys.STRUCTURE_TEMPLATES);
 
     public static void register() {
         // Force class loading to register all slots

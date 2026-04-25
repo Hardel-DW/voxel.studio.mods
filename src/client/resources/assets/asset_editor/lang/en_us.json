@@ -1054,5 +1054,7 @@
     "component:minecraft:written_book_content": "Written Book Content",
     "component:minecraft:written_book_content.desc": "Title, author, pages and generation of a written book.",
     "component:minecraft:zombie_nautilus/variant": "Zombie Nautilus Variant",
-    "component:minecraft:zombie_nautilus/variant.desc": "Visual variant of the zombie nautilus."
+    "component:minecraft:zombie_nautilus/variant.desc": "Visual variant of the zombie nautilus.",
+    "structure:overview.title": "Structures",
+    "structure:loading": "Loading structure templates..."
 }
