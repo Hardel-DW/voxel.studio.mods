@@ -9,21 +9,18 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.textures.TextureFormat;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.math.Axis;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.CachedOrthoProjectionMatrixBuffer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
@@ -40,14 +37,17 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.Nullable;
+import org.joml.Matrix4fStack;
+import org.lwjgl.system.MemoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,6 +57,7 @@ import java.util.function.Consumer;
 
 public final class StructureSceneRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
+    private static final boolean DEBUG_TIMING = true;
     private static final int MAX_WIDTH = 4096;
     private static final int MAX_HEIGHT = 4096;
     private static final float NEAR_PLANE = -32768.0F;
@@ -68,6 +69,10 @@ public final class StructureSceneRenderer {
     private static final Map<String, BlockState> stateCache = new ConcurrentHashMap<>();
 
     private static volatile Result result;
+    private static volatile CachedLevel cachedLevel;
+    private static volatile CompiledScene cachedScene;
+
+    private record CachedLevel(int sceneHash, StructureBlockView view) {}
 
     public record Camera(float yaw, float pitch, float zoom, float panX, float panY) {}
 
@@ -104,14 +109,21 @@ public final class StructureSceneRenderer {
         }
 
         RenderSystem.assertOnRenderThread();
+        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         try {
             render(request);
         } catch (Exception exception) {
             LOGGER.error("Structure scene render failed for {}", request.key(), exception);
+            return;
+        }
+        if (DEBUG_TIMING) {
+            long elapsedMs = (System.nanoTime() - t0) / 1_000_000L;
+            LOGGER.info("[render] total={}ms voxels={} viewport={}x{}", elapsedMs, request.voxels().size(), request.width(), request.height());
         }
     }
 
     private static void render(Request request) {
+        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         int width = Math.min(request.width(), MAX_WIDTH);
         int height = Math.min(request.height(), MAX_HEIGHT);
 
@@ -134,7 +146,9 @@ public final class StructureSceneRenderer {
         RenderSystem.setProjectionMatrix(projection.getBuffer(width, height), ProjectionType.ORTHOGRAPHIC);
         RenderSystem.enableScissorForRenderTypeDraws(0, 0, width, height);
 
+        long tSetup = DEBUG_TIMING ? System.nanoTime() : 0L;
         renderVoxels(request, width, height);
+        long tRender = DEBUG_TIMING ? System.nanoTime() : 0L;
 
         RenderSystem.disableScissorForRenderTypeDraws();
         RenderSystem.outputColorTextureOverride = savedColorOverride;
@@ -145,6 +159,13 @@ public final class StructureSceneRenderer {
         depthTexture.close();
 
         readback(device, colorTexture, colorView, request.key(), width, height);
+
+        if (DEBUG_TIMING) {
+            long setupMs = (tSetup - t0) / 1_000_000L;
+            long voxelMs = (tRender - tSetup) / 1_000_000L;
+            long endMs = (System.nanoTime() - tRender) / 1_000_000L;
+            LOGGER.info("[render] setup={}ms tessellate={}ms readback-submit={}ms", setupMs, voxelMs, endMs);
+        }
     }
 
     private static void renderVoxels(Request request, int width, int height) {
@@ -152,29 +173,42 @@ public final class StructureSceneRenderer {
             return;
         }
 
-        Minecraft mc = Minecraft.getInstance();
-        StructureBlockView level = new StructureBlockView(request.voxels(), request.sizeY());
-        var fixedBuffers = new Object2ObjectLinkedOpenHashMap<RenderType, ByteBufferBuilder>();
-        fixedBuffers.put(Sheets.translucentItemSheet(), new ByteBufferBuilder(786432));
-        fixedBuffers.put(RenderTypes.armorEntityGlint(), new ByteBufferBuilder(RenderTypes.armorEntityGlint().bufferSize()));
-        fixedBuffers.put(RenderTypes.glint(), new ByteBufferBuilder(RenderTypes.glint().bufferSize()));
-        fixedBuffers.put(RenderTypes.glintTranslucent(), new ByteBufferBuilder(RenderTypes.glintTranslucent().bufferSize()));
-        fixedBuffers.put(RenderTypes.entityGlint(), new ByteBufferBuilder(RenderTypes.entityGlint().bufferSize()));
-        MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new ByteBufferBuilder(2_097_152));
+        int hash = sceneHash(request);
+        CompiledScene compiled = cachedScene;
+        boolean cacheHit = compiled != null && compiled.sceneHash == hash;
 
+        Minecraft mc = Minecraft.getInstance();
         mc.gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
 
-        PoseStack poseStack = new PoseStack();
-        applyCamera(poseStack, request, width, height);
+        if (!cacheHit) {
+            long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
+            CompiledScene next = tessellate(request, mc, hash);
+            if (DEBUG_TIMING) {
+                long ms = (System.nanoTime() - t0) / 1_000_000L;
+                LOGGER.info("[tessellate] compile={}ms blocks={} layers={}", ms, request.voxels().size(), next.layers.size());
+            }
+            cachedScene = next;
+            compiled = next;
+        }
 
+        long tDraw = DEBUG_TIMING ? System.nanoTime() : 0L;
+        drawCompiled(compiled, request, width, height);
+        if (DEBUG_TIMING) {
+            long ms = (System.nanoTime() - tDraw) / 1_000_000L;
+            LOGGER.info("[draw] cached={} layers={} draw={}ms", cacheHit, compiled.layers.size(), ms);
+        }
+    }
+
+    private static CompiledScene tessellate(Request request, Minecraft mc, int hash) {
+        StructureBlockView level = resolveLevel(request);
         BlockRenderDispatcher blockRenderer = mc.getBlockRenderer();
         RandomSource random = RandomSource.create();
         List<BlockModelPart> parts = new ArrayList<>();
-        List<Voxel> sorted = request.voxels().stream()
-            .sorted(Comparator.<Voxel>comparingInt(v -> v.y).thenComparingInt(v -> v.z).thenComparingInt(v -> v.x))
-            .toList();
 
-        for (Voxel voxel : sorted) {
+        Map<RenderType, LayerBuilder> builders = new LinkedHashMap<>();
+        PoseStack poseStack = new PoseStack();
+
+        for (Voxel voxel : request.voxels()) {
             BlockState state = blockState(voxel);
             poseStack.pushPose();
             poseStack.translate(voxel.x(), voxel.y() + voxel.yOffset(), voxel.z());
@@ -188,23 +222,103 @@ public final class StructureSceneRenderer {
                 random.setSeed(state.getSeed(pos));
                 parts.clear();
                 blockRenderer.getBlockModel(state).collectParts(random, parts);
-                VertexConsumer consumer = bufferSource.getBuffer(ItemBlockRenderTypes.getRenderType(state));
-                blockRenderer.renderBatched(state, pos, level, poseStack, consumer, true, parts);
-            } else {
-                blockRenderer.renderSingleBlock(state, poseStack, bufferSource, FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                RenderType type = ItemBlockRenderTypes.getRenderType(state);
+                LayerBuilder layer = builders.computeIfAbsent(type, LayerBuilder::create);
+                blockRenderer.renderBatched(state, pos, level, poseStack, layer.consumer, true, parts);
             }
             poseStack.popPose();
         }
-        bufferSource.endBatch();
+
+        List<CompiledLayer> layers = new ArrayList<>(builders.size());
+        for (Map.Entry<RenderType, LayerBuilder> entry : builders.entrySet()) {
+            LayerBuilder lb = entry.getValue();
+            MeshData mesh = lb.builder.build();
+            if (mesh == null) {
+                lb.byteBuilder.close();
+                continue;
+            }
+            ByteBuffer src = mesh.vertexBuffer();
+            ByteBuffer cached = ByteBuffer.allocateDirect(src.remaining());
+            cached.put(src.duplicate());
+            cached.flip();
+            MeshData.DrawState drawState = mesh.drawState();
+            mesh.close();
+            lb.byteBuilder.close();
+            layers.add(new CompiledLayer(entry.getKey(), cached, drawState));
+        }
+        return new CompiledScene(hash, layers);
     }
 
-    private static void applyCamera(PoseStack poseStack, Request request, int width, int height) {
+    private static void drawCompiled(CompiledScene compiled, Request request, int width, int height) {
+        if (compiled.layers.isEmpty()) {
+            return;
+        }
+        Matrix4fStack mvm = RenderSystem.getModelViewStack();
+        mvm.pushMatrix();
+        applyCameraToMvm(mvm, request, width, height);
+        try {
+            for (CompiledLayer layer : compiled.layers) {
+                drawLayer(layer);
+            }
+        } finally {
+            mvm.popMatrix();
+        }
+    }
+
+    private static void drawLayer(CompiledLayer layer) {
+        int size = layer.vertexBytes.remaining();
+        if (size == 0) return;
+        ByteBufferBuilder builder = new ByteBufferBuilder(size);
+        try {
+            long ptr = builder.reserve(size);
+            ByteBuffer target = MemoryUtil.memByteBuffer(ptr, size);
+            target.put(layer.vertexBytes.duplicate());
+            ByteBufferBuilder.Result result = builder.build();
+            if (result == null) return;
+            MeshData mesh = new MeshData(result, layer.drawState);
+            layer.renderType.draw(mesh);
+        } finally {
+            builder.close();
+        }
+    }
+
+    private static void applyCameraToMvm(Matrix4fStack mvm, Request request, int width, int height) {
         Camera camera = request.camera();
-        poseStack.translate(width * 0.5F + camera.panX(), height * 0.5F + camera.panY(), 0.0F);
-        poseStack.scale(camera.zoom(), -camera.zoom(), camera.zoom());
-        poseStack.mulPose(Axis.XP.rotationDegrees(camera.pitch()));
-        poseStack.mulPose(Axis.YP.rotationDegrees(camera.yaw()));
-        poseStack.translate(-request.sizeX() * 0.5F, -request.sizeY() * 0.5F, -request.sizeZ() * 0.5F);
+        mvm.translate(width * 0.5F + camera.panX(), height * 0.5F + camera.panY(), 0.0F);
+        mvm.scale(camera.zoom(), -camera.zoom(), camera.zoom());
+        mvm.rotateX((float) Math.toRadians(camera.pitch()));
+        mvm.rotateY((float) Math.toRadians(camera.yaw()));
+        mvm.translate(-request.sizeX() * 0.5F, -request.sizeY() * 0.5F, -request.sizeZ() * 0.5F);
+    }
+
+    private static StructureBlockView resolveLevel(Request request) {
+        int hash = sceneHash(request);
+        CachedLevel cached = cachedLevel;
+        if (cached != null && cached.sceneHash() == hash) {
+            return cached.view();
+        }
+        StructureBlockView view = new StructureBlockView(request.voxels(), request.sizeY());
+        cachedLevel = new CachedLevel(hash, view);
+        return view;
+    }
+
+    private static int sceneHash(Request request) {
+        int h = 1;
+        h = 31 * h + request.sizeX();
+        h = 31 * h + request.sizeY();
+        h = 31 * h + request.sizeZ();
+        h = 31 * h + request.voxels().size();
+        if (!request.voxels().isEmpty()) {
+            Voxel first = request.voxels().get(0);
+            Voxel last = request.voxels().get(request.voxels().size() - 1);
+            h = 31 * h + first.state().hashCode();
+            h = 31 * h + first.x() + first.y() * 17 + first.z() * 31;
+            h = 31 * h + Float.floatToIntBits(first.yOffset());
+            h = 31 * h + last.state().hashCode();
+            h = 31 * h + last.x() + last.y() * 17 + last.z() * 31;
+            h = 31 * h + Float.floatToIntBits(last.yOffset());
+        }
+        return h;
     }
 
     private static BlockState blockState(Voxel voxel) {
@@ -218,10 +332,12 @@ public final class StructureSceneRenderer {
     }
 
     private static void readback(GpuDevice device, GpuTexture colorTexture, GpuTextureView colorView, String key, int width, int height) {
+        long t0 = DEBUG_TIMING ? System.nanoTime() : 0L;
         int bufferSize = width * height * 4;
         GpuBuffer readbackBuffer = device.createBuffer(() -> "StructureScene/Readback", GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_MAP_READ, bufferSize);
 
         device.createCommandEncoder().copyTextureToBuffer(colorTexture, readbackBuffer, 0, () -> {
+            long tCallback = DEBUG_TIMING ? System.nanoTime() : 0L;
             try (GpuBuffer.MappedView view = device.createCommandEncoder().mapBuffer(readbackBuffer, true, false)) {
                 ByteBuffer pixels = view.data();
                 int[] argb = new int[width * height];
@@ -237,6 +353,11 @@ public final class StructureSceneRenderer {
                     }
                 }
                 result = new Result(key, width, height, argb);
+                if (DEBUG_TIMING) {
+                    long convertMs = (System.nanoTime() - tCallback) / 1_000_000L;
+                    long waitMs = (tCallback - t0) / 1_000_000L;
+                    LOGGER.info("[readback] gpu-wait={}ms argb-convert={}ms size={}KB", waitMs, convertMs, bufferSize / 1024);
+                }
                 for (Consumer<String> listener : listeners) {
                     listener.accept(key);
                 }
@@ -246,6 +367,46 @@ public final class StructureSceneRenderer {
                 colorTexture.close();
             }
         }, 0);
+    }
+
+    private static final class CompiledScene {
+        final int sceneHash;
+        final List<CompiledLayer> layers;
+
+        CompiledScene(int sceneHash, List<CompiledLayer> layers) {
+            this.sceneHash = sceneHash;
+            this.layers = layers;
+        }
+    }
+
+    private static final class CompiledLayer {
+        final RenderType renderType;
+        final ByteBuffer vertexBytes;
+        final MeshData.DrawState drawState;
+
+        CompiledLayer(RenderType renderType, ByteBuffer vertexBytes, MeshData.DrawState drawState) {
+            this.renderType = renderType;
+            this.vertexBytes = vertexBytes;
+            this.drawState = drawState;
+        }
+    }
+
+    private static final class LayerBuilder {
+        final ByteBufferBuilder byteBuilder;
+        final BufferBuilder builder;
+        final VertexConsumer consumer;
+
+        private LayerBuilder(ByteBufferBuilder byteBuilder, BufferBuilder builder) {
+            this.byteBuilder = byteBuilder;
+            this.builder = builder;
+            this.consumer = builder;
+        }
+
+        static LayerBuilder create(RenderType type) {
+            ByteBufferBuilder bb = new ByteBufferBuilder(Math.max(786432, type.bufferSize()));
+            BufferBuilder builder = new BufferBuilder(bb, type.mode(), type.format());
+            return new LayerBuilder(bb, builder);
+        }
     }
 
     private static final class StructureBlockView implements BlockAndTintGetter {
@@ -262,7 +423,7 @@ public final class StructureSceneRenderer {
         }
 
         @Override
-        public float getShade(Direction direction, boolean shade) {
+        public float getShade(@NotNull Direction direction, boolean shade) {
             if (!shade) {
                 return 1.0F;
             }
@@ -280,32 +441,32 @@ public final class StructureSceneRenderer {
         }
 
         @Override
-        public int getBrightness(LightLayer layer, BlockPos pos) {
+        public int getBrightness(@NotNull LightLayer layer, @NotNull BlockPos pos) {
             return 15;
         }
 
         @Override
-        public int getRawBrightness(BlockPos pos, int darkening) {
+        public int getRawBrightness(@NotNull BlockPos pos, int darkening) {
             return 15;
         }
 
         @Override
-        public int getBlockTint(BlockPos pos, ColorResolver color) {
+        public int getBlockTint(@NotNull BlockPos pos, @NotNull ColorResolver color) {
             return -1;
         }
 
         @Override
-        public @Nullable BlockEntity getBlockEntity(BlockPos pos) {
+        public @Nullable BlockEntity getBlockEntity(@NotNull BlockPos pos) {
             return null;
         }
 
         @Override
-        public BlockState getBlockState(BlockPos pos) {
+        public @NotNull BlockState getBlockState(@NotNull BlockPos pos) {
             return states.getOrDefault(pos.asLong(), Blocks.AIR.defaultBlockState());
         }
 
         @Override
-        public FluidState getFluidState(BlockPos pos) {
+        public @NotNull FluidState getFluidState(@NotNull BlockPos pos) {
             return states.getOrDefault(pos.asLong(), Blocks.AIR.defaultBlockState()).getFluidState();
         }
 
