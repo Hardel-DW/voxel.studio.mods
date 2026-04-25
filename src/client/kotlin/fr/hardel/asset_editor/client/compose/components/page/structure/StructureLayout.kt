@@ -1,11 +1,16 @@
 package fr.hardel.asset_editor.client.compose.components.page.structure
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayout
 import fr.hardel.asset_editor.client.compose.components.layout.ConceptLayoutConfig
 import fr.hardel.asset_editor.client.compose.components.ui.LoadingPlaceholder
+import fr.hardel.asset_editor.client.compose.components.ui.ToggleGroup
+import fr.hardel.asset_editor.client.compose.components.ui.ToggleOption
 import fr.hardel.asset_editor.client.compose.components.ui.tree.buildConceptTreeState
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
@@ -90,7 +95,17 @@ fun StructureLayout(context: StudioContext) {
                     else -> EmptyPage()
                 }
             },
-            sidebarExtras = emptyList()
+            sidebarExtras = listOf({
+                ToggleGroup(
+                    options = listOf(
+                        ToggleOption.TextOption(StructureViewMode.PIECES.id, I18n.get("structure:sidebar.pieces")),
+                        ToggleOption.TextOption(StructureViewMode.STRUCTURE.id, I18n.get("structure:sidebar.structure"))
+                    ),
+                    selectedValue = StructureUiState.viewMode.id,
+                    onValueChange = { StructureUiState.viewMode = StructureViewMode.fromId(it) },
+                    modifier = Modifier.padding(top = 16.dp)
+                )
+            })
         )
     )
 }

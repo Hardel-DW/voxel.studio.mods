@@ -32,6 +32,7 @@ import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
+import net.minecraft.client.resources.language.I18n
 
 @Composable
 fun StructureOverviewPage(context: StudioContext, templates: List<StructureTemplateSnapshot>) {
@@ -51,13 +52,13 @@ fun StructureOverviewPage(context: StudioContext, templates: List<StructureTempl
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Structures", style = StudioTypography.semiBold(28), color = StudioColors.Zinc100)
-                Text("${templates.size} templates NBT charges", style = StudioTypography.regular(13), color = StudioColors.Zinc500)
+                Text(I18n.get("structure:overview.title"), style = StudioTypography.semiBold(28), color = StudioColors.Zinc100)
+                Text(I18n.get("structure:overview.subtitle", templates.size), style = StudioTypography.regular(13), color = StudioColors.Zinc500)
             }
             InputText(
                 value = search,
                 onValueChange = { context.uiMemory().updateSearch(conceptId, it) },
-                placeholder = "Rechercher une structure",
+                placeholder = I18n.get("structure:overview.search"),
                 maxWidth = 360.dp,
                 focusExpand = false
             )
@@ -108,9 +109,9 @@ private fun StructureOverviewRow(template: StructureTemplateSnapshot, onClick: (
             Text(template.id().toString(), style = StudioTypography.semiBold(14), color = StudioColors.Zinc100)
             Text(template.sourcePack(), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
         }
-        Metric("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", "taille")
-        Metric(template.totalBlocks().toString(), "blocs")
-        Metric(template.jigsaws().size.toString(), "jigsaws")
+        Metric("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", I18n.get("structure:overlay.size"))
+        Metric(template.totalBlocks().toString(), I18n.get("structure:overlay.blocks"))
+        Metric(template.jigsaws().size.toString(), I18n.get("structure:overview.jigsaws"))
     }
 }
 

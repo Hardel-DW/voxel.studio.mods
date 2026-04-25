@@ -16,8 +16,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.math.Axis;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.CachedOrthoProjectionMatrixBuffer;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -40,10 +40,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.lighting.LevelLightEngine;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.material.Fluids;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -58,8 +57,11 @@ import java.util.function.Consumer;
 
 public final class StructureSceneRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
-    private static final int MAX_WIDTH = 1600;
-    private static final int MAX_HEIGHT = 1100;
+    private static final int MAX_WIDTH = 4096;
+    private static final int MAX_HEIGHT = 4096;
+    private static final float NEAR_PLANE = -32768.0F;
+    private static final float FAR_PLANE = 32768.0F;
+    private static final int FULL_BRIGHT = 0xF000F0;
 
     private static final AtomicReference<Request> pendingRequest = new AtomicReference<>();
     private static final CopyOnWriteArrayList<Consumer<String>> listeners = new CopyOnWriteArrayList<>();
@@ -76,7 +78,7 @@ public final class StructureSceneRenderer {
     public record Result(String key, int width, int height, int[] argbPixels) {}
 
     public static void request(Request request) {
-        if (request.width() <= 0 || request.height() <= 0 || request.voxels().isEmpty()) {
+        if (request.width() <= 0 || request.height() <= 0) {
             return;
         }
         pendingRequest.set(request);
@@ -128,7 +130,7 @@ public final class StructureSceneRenderer {
         RenderSystem.outputColorTextureOverride = colorView;
         RenderSystem.outputDepthTextureOverride = depthView;
 
-        CachedOrthoProjectionMatrixBuffer projection = new CachedOrthoProjectionMatrixBuffer("structureScene", -10000.0F, 10000.0F, true);
+        CachedOrthoProjectionMatrixBuffer projection = new CachedOrthoProjectionMatrixBuffer("structureScene", NEAR_PLANE, FAR_PLANE, true);
         RenderSystem.setProjectionMatrix(projection.getBuffer(width, height), ProjectionType.ORTHOGRAPHIC);
         RenderSystem.enableScissorForRenderTypeDraws(0, 0, width, height);
 
@@ -146,6 +148,10 @@ public final class StructureSceneRenderer {
     }
 
     private static void renderVoxels(Request request, int width, int height) {
+        if (request.voxels().isEmpty()) {
+            return;
+        }
+
         Minecraft mc = Minecraft.getInstance();
         StructureBlockView level = new StructureBlockView(request.voxels(), request.sizeY());
         var fixedBuffers = new Object2ObjectLinkedOpenHashMap<RenderType, ByteBufferBuilder>();
@@ -156,7 +162,7 @@ public final class StructureSceneRenderer {
         fixedBuffers.put(RenderTypes.entityGlint(), new ByteBufferBuilder(RenderTypes.entityGlint().bufferSize()));
         MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediateWithBuffers(fixedBuffers, new ByteBufferBuilder(2_097_152));
 
-        mc.gameRenderer.getLighting().setupFor(Lighting.Entry.ITEMS_3D);
+        mc.gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
 
         PoseStack poseStack = new PoseStack();
         applyCamera(poseStack, request, width, height);
@@ -165,15 +171,16 @@ public final class StructureSceneRenderer {
         RandomSource random = RandomSource.create();
         List<BlockModelPart> parts = new ArrayList<>();
         List<Voxel> sorted = request.voxels().stream()
-            .sorted(Comparator.comparingInt(Voxel::y).thenComparingInt(Voxel::z).thenComparingInt(Voxel::x))
+            .sorted(Comparator.<Voxel>comparingInt(v -> v.y).thenComparingInt(v -> v.z).thenComparingInt(v -> v.x))
             .toList();
+
         for (Voxel voxel : sorted) {
             BlockState state = blockState(voxel);
             poseStack.pushPose();
             poseStack.translate(voxel.x(), voxel.y() + voxel.yOffset(), voxel.z());
             if (voxel.highlighted()) {
                 poseStack.translate(0.5F, 0.5F, 0.5F);
-                poseStack.scale(1.035F, 1.035F, 1.035F);
+                poseStack.scale(1.04F, 1.04F, 1.04F);
                 poseStack.translate(-0.5F, -0.5F, -0.5F);
             }
             if (state.getRenderShape() == RenderShape.MODEL && voxel.yOffset() == 0f) {
@@ -184,7 +191,7 @@ public final class StructureSceneRenderer {
                 VertexConsumer consumer = bufferSource.getBuffer(ItemBlockRenderTypes.getRenderType(state));
                 blockRenderer.renderBatched(state, pos, level, poseStack, consumer, true, parts);
             } else {
-                blockRenderer.renderSingleBlock(state, poseStack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+                blockRenderer.renderSingleBlock(state, poseStack, bufferSource, FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
             }
             poseStack.popPose();
         }
@@ -193,7 +200,6 @@ public final class StructureSceneRenderer {
 
     private static void applyCamera(PoseStack poseStack, Request request, int width, int height) {
         Camera camera = request.camera();
-        poseStack.pushPose();
         poseStack.translate(width * 0.5F + camera.panX(), height * 0.5F + camera.panY(), 0.0F);
         poseStack.scale(camera.zoom(), -camera.zoom(), camera.zoom());
         poseStack.mulPose(Axis.XP.rotationDegrees(camera.pitch()));
@@ -261,7 +267,7 @@ public final class StructureSceneRenderer {
                 return 1.0F;
             }
             return switch (direction) {
-                case DOWN -> 0.5F;
+                case DOWN -> 0.45F;
                 case UP -> 1.0F;
                 case NORTH, SOUTH -> 0.8F;
                 case WEST, EAST -> 0.6F;
