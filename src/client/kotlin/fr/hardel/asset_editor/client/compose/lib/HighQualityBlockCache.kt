@@ -9,13 +9,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import fr.hardel.asset_editor.client.compose.lib.utils.argbPixelsToImageBitmap
 import fr.hardel.asset_editor.client.rendering.HighQualityBlockRenderer
-import java.util.concurrent.ConcurrentHashMap
+import java.util.Collections
 import javax.swing.SwingUtilities
 import net.minecraft.resources.Identifier
 
+private const val BITMAP_CACHE_CAPACITY = 256
+
 object HighQualityBlockCache {
 
-    private val bitmapCache = ConcurrentHashMap<HighQualityBlockRenderer.Key, ImageBitmap>()
+    private val bitmapCache: MutableMap<HighQualityBlockRenderer.Key, ImageBitmap> = Collections.synchronizedMap(
+        object : java.util.LinkedHashMap<HighQualityBlockRenderer.Key, ImageBitmap>(BITMAP_CACHE_CAPACITY + 1, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<HighQualityBlockRenderer.Key, ImageBitmap>): Boolean =
+                size > BITMAP_CACHE_CAPACITY
+        }
+    )
     private val listeners = java.util.concurrent.CopyOnWriteArrayList<(HighQualityBlockRenderer.Key) -> Unit>()
 
     init {
@@ -38,6 +45,12 @@ object HighQualityBlockCache {
     fun subscribe(listener: (HighQualityBlockRenderer.Key) -> Unit): Runnable {
         listeners.add(listener)
         return Runnable { listeners.remove(listener) }
+    }
+
+    @JvmStatic
+    fun dispose() {
+        bitmapCache.clear()
+        HighQualityBlockRenderer.dispose()
     }
 }
 

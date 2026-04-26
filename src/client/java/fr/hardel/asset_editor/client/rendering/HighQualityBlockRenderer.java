@@ -31,6 +31,8 @@ import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -52,9 +54,16 @@ public final class HighQualityBlockRenderer {
 
     public record Result(int[] argbPixels, int width, int height) {}
 
+    private static final int RESULT_CACHE_CAPACITY = 256;
+
     private static final Queue<Key> pendingQueue = new ConcurrentLinkedQueue<>();
     private static final Set<Key> pendingSet = ConcurrentHashMap.newKeySet();
-    private static final Map<Key, Result> results = new ConcurrentHashMap<>();
+    private static final Map<Key, Result> results = Collections.synchronizedMap(new LinkedHashMap<Key, Result>(RESULT_CACHE_CAPACITY + 1, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Key, Result> eldest) {
+            return size() > RESULT_CACHE_CAPACITY;
+        }
+    });
     private static final CopyOnWriteArrayList<Consumer<Key>> listeners = new CopyOnWriteArrayList<>();
 
     public static void request(Identifier itemId, int size) {
@@ -74,6 +83,12 @@ public final class HighQualityBlockRenderer {
     public static Runnable subscribe(Consumer<Key> listener) {
         listeners.add(listener);
         return () -> listeners.remove(listener);
+    }
+
+    public static void dispose() {
+        pendingQueue.clear();
+        pendingSet.clear();
+        synchronized (results) { results.clear(); }
     }
 
     public static void tryRenderPending() {
