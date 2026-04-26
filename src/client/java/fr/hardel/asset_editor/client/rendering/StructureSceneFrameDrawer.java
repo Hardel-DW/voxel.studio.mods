@@ -18,7 +18,6 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Consumer;
 
-import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.AnimatingMesh;
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.CompiledLayer;
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.StaticMesh;
 
@@ -33,7 +32,6 @@ final class StructureSceneFrameDrawer {
     static void drawAndReadback(
         StructureSceneRenderer.Request request,
         StaticMesh staticMesh,
-        AnimatingMesh animatingMesh,
         Consumer<StructureSceneRenderer.Result> onResult
     ) {
         int width = Math.min(request.width(), MAX_WIDTH);
@@ -58,7 +56,7 @@ final class StructureSceneFrameDrawer {
         RenderSystem.enableScissorForRenderTypeDraws(0, 0, width, height);
 
         Minecraft.getInstance().gameRenderer.getLighting().setupFor(Lighting.Entry.LEVEL);
-        drawScene(staticMesh, animatingMesh, request, width, height);
+        drawScene(staticMesh, request, width, height);
 
         RenderSystem.disableScissorForRenderTypeDraws();
         RenderSystem.outputColorTextureOverride = savedColorOverride;
@@ -73,36 +71,17 @@ final class StructureSceneFrameDrawer {
             argb -> onResult.accept(new StructureSceneRenderer.Result(request.key(), width, height, argb)));
     }
 
-    private static void drawScene(StaticMesh staticMesh, AnimatingMesh animatingMesh, StructureSceneRenderer.Request request, int width, int height) {
-        if (staticMesh.stackByY.isEmpty() && staticMesh.exposeByY.isEmpty() && animatingMesh.layers.isEmpty()) return;
+    private static void drawScene(StaticMesh staticMesh, StructureSceneRenderer.Request request, int width, int height) {
+        if (staticMesh.stackByY.isEmpty() && staticMesh.exposeByY.isEmpty()) return;
 
         Matrix4fStack mvm = RenderSystem.getModelViewStack();
         mvm.pushMatrix();
         applyCameraToMvm(mvm, request, width, height);
         try {
-            drawStaticSlice(staticMesh, request.sliceY());
-            drawAnimatingPiece(animatingMesh, mvm, request.pieceOffset());
-        } finally {
-            mvm.popMatrix();
-        }
-    }
-
-    private static void drawStaticSlice(StaticMesh staticMesh, int sliceY) {
-        if (sliceY < 0) return;
-        for (int y = 0; y < sliceY; y++) drawAll(staticMesh.stackByY.get(y));
-        drawAll(staticMesh.exposeByY.get(sliceY));
-    }
-
-    private static void drawAnimatingPiece(AnimatingMesh animatingMesh, Matrix4fStack mvm, float offset) {
-        if (animatingMesh.layers.isEmpty()) return;
-        if (offset == 0f) {
-            drawAll(animatingMesh.layers);
-            return;
-        }
-        mvm.pushMatrix();
-        mvm.translate(0f, offset, 0f);
-        try {
-            drawAll(animatingMesh.layers);
+            int sliceY = request.sliceY();
+            if (sliceY < 0) return;
+            for (int y = 0; y < sliceY; y++) drawAll(staticMesh.stackByY.get(y));
+            drawAll(staticMesh.exposeByY.get(sliceY));
         } finally {
             mvm.popMatrix();
         }

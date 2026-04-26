@@ -3,12 +3,7 @@ package fr.hardel.asset_editor.client.compose.components.page.structure
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.ui.scene.GridBounds
 import fr.hardel.asset_editor.client.compose.components.ui.scene.IsometricGrid
@@ -19,13 +14,10 @@ import fr.hardel.asset_editor.network.structure.StructurePieceBox
 import kotlin.math.max
 import net.minecraft.resources.Identifier
 
-private const val ANIM_DURATION_MS = 380f
-
 @Composable
 fun StructureSceneArea(
     subject: StructureSceneSubject,
     selectedStage: Int,
-    animations: Boolean,
     showJigsaws: Boolean,
     sliceY: Int,
     highlight: String?,
@@ -34,7 +26,6 @@ fun StructureSceneArea(
     onPieceSelected: ((Identifier) -> Unit)? = null
 ) {
     val state = remember(subject.id) { Scene3DState(defaultCamera(subject)) }
-    val animation = rememberStageAnimation(subject, selectedStage, animations)
     val bounds = remember(subject.id, subject.sizeX, subject.sizeY, subject.sizeZ) {
         GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ)
     }
@@ -47,12 +38,10 @@ fun StructureSceneArea(
     }
 
     val filters = StructureSceneFilters(
-        displayedStage = animation.displayedStage,
-        animatingStage = animation.animatingStage,
+        displayedStage = if (subject.stageCount > 0) selectedStage else Int.MAX_VALUE,
         sliceY = sliceY,
         showJigsaws = showJigsaws,
-        highlight = highlight,
-        drop = animation.dropOffset
+        highlight = highlight
     )
 
     StructureSceneSurface(state = state, subject = subject, filters = filters)
@@ -76,70 +65,6 @@ fun StructureSceneArea(
 private fun pieceBoxesOf(subject: StructureSceneSubject): List<StructurePieceBox> = when (subject) {
     is StructureSceneSubject.Assembly -> subject.assembly.pieceBoxes()
     is StructureSceneSubject.Template -> emptyList()
-}
-
-private data class StageAnimation(
-    val displayedStage: Int,
-    val animatingStage: Int,
-    val dropOffset: Float
-) {
-    companion object {
-        val ALL = StageAnimation(displayedStage = Int.MAX_VALUE, animatingStage = -1, dropOffset = 0f)
-    }
-}
-
-@Composable
-private fun rememberStageAnimation(
-    subject: StructureSceneSubject,
-    selectedStage: Int,
-    animations: Boolean
-): StageAnimation {
-    if (subject.stageCount <= 0) return StageAnimation.ALL
-
-    var lastSettledStage by remember(subject.id) { mutableIntStateOf(selectedStage) }
-    var displayedStage by remember(subject.id) { mutableIntStateOf(selectedStage) }
-    var animatingStage by remember(subject.id) { mutableIntStateOf(-1) }
-    var dropOffset by remember(subject.id) { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(subject.id, selectedStage, animations) {
-        val target = selectedStage
-        val current = lastSettledStage
-        if (target == current) return@LaunchedEffect
-
-        val forward = target > current
-        val piece = if (forward) target - 1 else current - 1
-
-        if (!animations || piece < 0) {
-            displayedStage = target
-            animatingStage = -1
-            dropOffset = 0f
-            lastSettledStage = target
-            return@LaunchedEffect
-        }
-
-        displayedStage = max(current, target)
-        animatingStage = piece
-        val drop = max(subject.sizeY, 12).toFloat()
-
-        try {
-            val startNanos = withFrameNanos { it }
-            while (true) {
-                val now = withFrameNanos { it }
-                val elapsed = ((now - startNanos) / 1_000_000f).coerceAtLeast(0f)
-                val progress = (elapsed / ANIM_DURATION_MS).coerceAtMost(1f)
-                val eased = 1f - (1f - progress) * (1f - progress) * (1f - progress)
-                dropOffset = if (forward) drop * (1f - eased) else drop * eased
-                if (progress >= 1f) break
-            }
-        } finally {
-            displayedStage = target
-            animatingStage = -1
-            dropOffset = 0f
-            lastSettledStage = target
-        }
-    }
-
-    return StageAnimation(displayedStage, animatingStage, dropOffset)
 }
 
 private fun defaultCamera(subject: StructureSceneSubject): Scene3DCamera {

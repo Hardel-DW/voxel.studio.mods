@@ -27,27 +27,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * CPU-side mesh build for the structure scene. Static voxels are tessellated per Y level in two
+ * CPU-side mesh build for the structure scene. Voxels are tessellated per Y level in two
  * variants: {@code stack} sees the full structure for occlusion (hidden faces culled), {@code expose}
- * truncates above the layer so the slice top reveals interior faces. Animating voxels share a single
- * mesh that's drawn with a translation offset.
+ * truncates above the layer so the slice top reveals interior faces.
  */
 final class StructureSceneTessellator {
 
     static final StaticMesh EMPTY_STATIC = new StaticMesh(Map.of(), Map.of());
-    static final AnimatingMesh EMPTY_ANIMATING = new AnimatingMesh(List.of());
 
     static StaticMesh tessellateStatic(StructureSceneRenderer.Request request) {
         Map<Integer, List<StructureSceneRenderer.Voxel>> byY = new HashMap<>();
-        List<StructureSceneRenderer.Voxel> staticOnly = new ArrayList<>();
         for (StructureSceneRenderer.Voxel v : request.voxels()) {
-            if (v.animating()) continue;
-            staticOnly.add(v);
             byY.computeIfAbsent(v.y(), k -> new ArrayList<>()).add(v);
         }
         if (byY.isEmpty()) return EMPTY_STATIC;
 
-        StructureBlockView fullLevel = new StructureBlockView(staticOnly, request.sizeY(), Integer.MAX_VALUE);
+        StructureBlockView fullLevel = new StructureBlockView(request.voxels(), request.sizeY(), Integer.MAX_VALUE);
         Map<Integer, List<CompiledLayer>> stackByY = new HashMap<>();
         Map<Integer, List<CompiledLayer>> exposeByY = new HashMap<>();
 
@@ -59,28 +54,11 @@ final class StructureSceneTessellator {
             int y = entry.getKey();
             List<StructureSceneRenderer.Voxel> voxelsAtY = entry.getValue();
             stackByY.put(y, tessellateLayer(voxelsAtY, fullLevel, dispatcher, random, parts));
-            StructureBlockView truncated = new StructureBlockView(staticOnly, request.sizeY(), y);
+            StructureBlockView truncated = new StructureBlockView(request.voxels(), request.sizeY(), y);
             exposeByY.put(y, tessellateLayer(voxelsAtY, truncated, dispatcher, random, parts));
         }
 
         return new StaticMesh(stackByY, exposeByY);
-    }
-
-    static AnimatingMesh tessellateAnimating(StructureSceneRenderer.Request request) {
-        List<StructureSceneRenderer.Voxel> animVoxels = new ArrayList<>();
-        List<StructureSceneRenderer.Voxel> staticOnly = new ArrayList<>();
-        for (StructureSceneRenderer.Voxel v : request.voxels()) {
-            if (v.animating()) animVoxels.add(v);
-            else staticOnly.add(v);
-        }
-        if (animVoxels.isEmpty()) return EMPTY_ANIMATING;
-
-        StructureBlockView level = new StructureBlockView(staticOnly, request.sizeY(), Integer.MAX_VALUE);
-        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-        RandomSource random = RandomSource.create();
-        List<BlockModelPart> parts = new ArrayList<>();
-
-        return new AnimatingMesh(tessellateLayer(animVoxels, level, dispatcher, random, parts));
     }
 
     private static List<CompiledLayer> tessellateLayer(
@@ -161,19 +139,6 @@ final class StructureSceneTessellator {
         private static void closeAll(Iterable<List<CompiledLayer>> groups) {
             for (List<CompiledLayer> layers : groups)
                 for (CompiledLayer l : layers) l.close();
-        }
-    }
-
-    static final class AnimatingMesh implements AutoCloseable {
-        final List<CompiledLayer> layers;
-
-        AnimatingMesh(List<CompiledLayer> layers) {
-            this.layers = layers;
-        }
-
-        @Override
-        public void close() {
-            for (CompiledLayer l : layers) l.close();
         }
     }
 

@@ -26,33 +26,12 @@ fun StructureSceneSurface(
 ) {
     val pendingCameras = remember(subject.id) { boundedCameraCache() }
 
-    val voxels = remember(
-        subject,
-        filters.showJigsaws,
-        filters.highlight,
-        filters.displayedStage,
-        filters.animatingStage
-    ) {
+    val voxels = remember(subject, filters.showJigsaws, filters.highlight, filters.displayedStage) {
         buildVoxels(subject, filters)
     }
 
-    val staticKey = remember(
-        subject.id,
-        filters.showJigsaws,
-        filters.highlight,
-        filters.displayedStage,
-        filters.animatingStage
-    ) {
+    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight, filters.displayedStage) {
         buildStaticKey(subject, filters)
-    }
-
-    val animatingKey = remember(
-        subject.id,
-        filters.showJigsaws,
-        filters.highlight,
-        filters.animatingStage
-    ) {
-        if (filters.animatingStage < 0) "" else buildAnimatingKey(subject, filters)
     }
 
     DisposableEffect(subject.id) {
@@ -64,11 +43,11 @@ fun StructureSceneSurface(
         onDispose(subscription::run)
     }
 
-    LaunchedEffect(subject.id, staticKey, animatingKey, filters.sliceY, filters.drop) {
+    LaunchedEffect(subject.id, staticKey, filters.sliceY) {
         snapshotFlow {
             val viewport = state.viewport
             if (viewport.width < 16 || viewport.height < 16) return@snapshotFlow null
-            buildRequest(subject, voxels, staticKey, animatingKey, filters, state.camera, viewport)
+            buildRequest(subject, voxels, staticKey, filters, state.camera, viewport)
         }
             .distinctUntilChanged { a, b -> a?.key() == b?.key() }
             .collectLatest { request ->
@@ -98,10 +77,9 @@ private fun buildVoxels(subject: StructureSceneSubject, filters: StructureSceneF
             resolvedStateId = finalStateId
             resolvedBlockId = BuiltInRegistries.BLOCK.getKey(Block.stateById(finalStateId).block)
         }
-        
-        val animating = stage == filters.animatingStage
+
         val highlighted = filters.highlight != null && resolvedBlockId.toString().contains(filters.highlight, ignoreCase = true)
-        out.add(StructureSceneRenderer.Voxel(resolvedBlockId, resolvedStateId, x, y, z, animating, highlighted))
+        out.add(StructureSceneRenderer.Voxel(resolvedBlockId, resolvedStateId, x, y, z, highlighted))
     }
     return out
 }
@@ -110,16 +88,14 @@ private fun buildRequest(
     subject: StructureSceneSubject,
     voxels: List<StructureSceneRenderer.Voxel>,
     staticKey: String,
-    animatingKey: String,
     filters: StructureSceneFilters,
     camera: Scene3DCamera,
     viewport: IntSize
 ): StructureSceneRenderer.Request {
-    val key = sceneKey(staticKey, animatingKey, filters.sliceY, filters.drop, camera, viewport)
+    val key = sceneKey(staticKey, filters.sliceY, camera, viewport)
     return StructureSceneRenderer.Request(
         key,
         staticKey,
-        animatingKey,
         viewport.width,
         viewport.height,
         subject.sizeX,
@@ -127,7 +103,6 @@ private fun buildRequest(
         subject.sizeZ,
         voxels,
         filters.sliceY,
-        filters.drop,
         StructureSceneRenderer.Camera(camera.yaw, camera.pitch, camera.zoom, camera.panX, camera.panY)
     )
 }
@@ -135,43 +110,25 @@ private fun buildRequest(
 private fun buildStaticKey(subject: StructureSceneSubject, filters: StructureSceneFilters): String = buildString {
     append(if (subject is StructureSceneSubject.Assembly) "asm" else "tpl").append('|')
     append(subject.id).append('|')
-    append(canonicalDisplayedStage(filters.displayedStage, filters.animatingStage)).append('|')
-    append(filters.animatingStage).append('|')
+    append(filters.displayedStage).append('|')
     append(filters.showJigsaws).append('|')
     append(filters.highlight.orEmpty())
 }
-
-private fun buildAnimatingKey(subject: StructureSceneSubject, filters: StructureSceneFilters): String = buildString {
-    append("anim|").append(subject.id).append('|')
-    append(filters.animatingStage).append('|')
-    append(filters.showJigsaws).append('|')
-    append(filters.highlight.orEmpty())
-}
-
-private fun canonicalDisplayedStage(displayedStage: Int, animatingStage: Int): Int =
-    if (animatingStage in 0 until displayedStage && animatingStage == displayedStage - 1)
-        displayedStage - 1
-    else
-        displayedStage
 
 private fun sceneKey(
     staticKey: String,
-    animatingKey: String,
     sliceY: Int,
-    drop: Float,
     camera: Scene3DCamera,
     viewport: IntSize
 ): String = buildString {
     append(staticKey).append('|')
-    append(animatingKey).append('|')
     append(sliceY).append('|')
     append(viewport.width).append('x').append(viewport.height).append('|')
     append(encode(camera.yaw)).append(':')
     append(encode(camera.pitch)).append(':')
     append(encode(camera.zoom)).append(':')
     append(encode(camera.panX)).append(':')
-    append(encode(camera.panY)).append('|')
-    append(encode(drop))
+    append(encode(camera.panY))
 }
 
 private fun encode(value: Float): Int = (value * 4f).toInt()

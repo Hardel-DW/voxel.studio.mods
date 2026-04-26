@@ -26,8 +26,6 @@ fun StructureBottomOverlay(
     step: Int = 0,
     maxStep: Int = 0,
     onStepChange: (Int) -> Unit = {},
-    animations: Boolean = false,
-    onAnimationsChange: (Boolean) -> Unit = {},
     showPoolToggle: Boolean = false,
     showPoolBoxes: Boolean = false,
     onShowPoolBoxesChange: (Boolean) -> Unit = {}
@@ -47,14 +45,6 @@ fun StructureBottomOverlay(
             }
         }
 
-        if (showStageControls) {
-            OverlayCheckbox(
-                label = I18n.get("structure:overlay.animations"),
-                checked = animations,
-                onCheckedChange = onAnimationsChange
-            )
-            Spacer(Modifier.width(12.dp))
-        }
         OverlayCheckbox(
             label = I18n.get("structure:overlay.jigsaws"),
             checked = showJigsaws,

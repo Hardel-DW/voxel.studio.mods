@@ -18,7 +18,7 @@ import net.minecraft.resources.Identifier
 
 /**
  * Wraps [StructureSceneArea] with the standard overlays (top title bar slot, bottom controls, Y slider)
- * and owns the locally-scoped UI state (slice Y, jigsaws, current stage, animations, pool boxes).
+ * and owns the locally-scoped UI state (slice Y, jigsaws, current stage, pool boxes).
  * Stage controls and the pool-boxes toggle appear automatically when the subject has stages
  * (i.e. it is an Assembly).
  */
@@ -34,7 +34,6 @@ fun StructureSceneScaffold(
     val showStageControls = subject.stageCount > 0
     val maxStep = subject.stageCount
     var step by remember(subject.id) { mutableIntStateOf(maxStep) }
-    var animations by remember { mutableStateOf(true) }
     var showJigsaws by remember { mutableStateOf(initialShowJigsaws) }
     var showPoolBoxes by remember { mutableStateOf(false) }
     var sliceY by remember(subject.id) { mutableIntStateOf(subject.sizeY) }
@@ -43,7 +42,6 @@ fun StructureSceneScaffold(
         StructureSceneArea(
             subject = subject,
             selectedStage = if (showStageControls) step.coerceIn(0, maxStep) else 0,
-            animations = animations && showStageControls,
             showJigsaws = showJigsaws,
             sliceY = sliceY,
             highlight = highlight,
@@ -57,8 +55,6 @@ fun StructureSceneScaffold(
             step = step,
             maxStep = maxStep,
             onStepChange = { step = it.coerceIn(0, maxStep) },
-            animations = animations,
-            onAnimationsChange = { animations = it },
             showJigsaws = showJigsaws,
             onShowJigsawsChange = { showJigsaws = it },
             showPoolToggle = showStageControls,

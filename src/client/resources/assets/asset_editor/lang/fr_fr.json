@@ -1066,7 +1066,6 @@
     "structure:overlay.size": "taille",
     "structure:overlay.blocks": "blocs",
     "structure:overlay.entities": "entites",
-    "structure:overlay.animations": "Animations",
     "structure:overlay.jigsaws": "Jigsaws",
     "structure:overlay.boxes": "Pool",
     "structure:scene.rendering": "Rendu en cours...",

@@ -13,27 +13,23 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.AnimatingMesh;
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.StaticMesh;
 
 /**
  * Off-screen scene renderer for the Structure viewer. Static voxels are cached per Y level
- * (stack/expose variants) so the slice slider is free at draw time; the animating piece is a
- * separate cache drawn with a translation offset. Tessellation runs in background threads via
- * {@link BackgroundTessQueue}; the GPU draw + read-back happens inside {@link #tick()} on the
- * render thread.
+ * (stack/expose variants) so the slice slider is free at draw time. Tessellation runs in a
+ * background thread via {@link BackgroundTessQueue}; the GPU draw + read-back happens inside
+ * {@link #tick()} on the render thread.
  */
 public final class StructureSceneRenderer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
     private static final int STATIC_CACHE_CAPACITY = 8;
-    private static final int ANIMATING_CACHE_CAPACITY = 32;
 
     private static final AtomicReference<Request> pendingRequest = new AtomicReference<>();
     private static final CopyOnWriteArrayList<Consumer<String>> listeners = new CopyOnWriteArrayList<>();
 
     private static final Map<Integer, StaticMesh> staticCache = lruCache(STATIC_CACHE_CAPACITY);
-    private static final Map<Integer, AnimatingMesh> animatingCache = lruCache(ANIMATING_CACHE_CAPACITY);
 
     private static final BackgroundTessQueue<Request, StaticMesh> staticTess = new BackgroundTessQueue<>(
         "StructureScene-Tess-Static", LOGGER,
@@ -42,25 +38,18 @@ public final class StructureSceneRenderer {
         StructureSceneTessellator::tessellateStatic
     );
 
-    private static final BackgroundTessQueue<Request, AnimatingMesh> animatingTess = new BackgroundTessQueue<>(
-        "StructureScene-Tess-Animating", LOGGER,
-        r -> r.animatingKey().hashCode(),
-        animatingCache::containsKey,
-        StructureSceneTessellator::tessellateAnimating
-    );
-
     private static volatile Result result;
 
     public record Camera(float yaw, float pitch, float zoom, float panX, float panY) {}
 
-    public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, boolean animating, boolean highlighted) {}
+    public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, boolean highlighted) {}
 
     public record Request(
-        String key, String staticKey, String animatingKey,
+        String key, String staticKey,
         int width, int height,
         int sizeX, int sizeY, int sizeZ,
         List<Voxel> voxels,
-        int sliceY, float pieceOffset,
+        int sliceY,
         Camera camera
     ) {}
 
@@ -96,33 +85,22 @@ public final class StructureSceneRenderer {
         pendingRequest.set(null);
         result = null;
         staticTess.clear();
-        animatingTess.clear();
         drainAndClose(staticCache);
-        drainAndClose(animatingCache);
     }
 
     private static void render(Request request) {
         staticTess.drainCompletedTo(StructureSceneRenderer::installStatic);
-        animatingTess.drainCompletedTo(StructureSceneRenderer::installAnimating);
 
-        boolean wantStatic = anyVoxelMatching(request, false);
-        boolean wantAnimating = !request.animatingKey().isEmpty() && anyVoxelMatching(request, true);
-
+        boolean wantStatic = !request.voxels().isEmpty();
         StaticMesh staticMesh = wantStatic ? staticCache.get(request.staticKey().hashCode()) : StructureSceneTessellator.EMPTY_STATIC;
-        AnimatingMesh animatingMesh = wantAnimating ? animatingCache.get(request.animatingKey().hashCode()) : StructureSceneTessellator.EMPTY_ANIMATING;
 
         if (wantStatic && staticMesh == null) {
             staticTess.schedule(request);
             pendingRequest.compareAndSet(null, request);
             return;
         }
-        if (wantAnimating && animatingMesh == null) {
-            animatingTess.schedule(request);
-            pendingRequest.compareAndSet(null, request);
-            return;
-        }
 
-        StructureSceneFrameDrawer.drawAndReadback(request, staticMesh, animatingMesh, r -> {
+        StructureSceneFrameDrawer.drawAndReadback(request, staticMesh, r -> {
             result = r;
             for (Consumer<String> listener : listeners) listener.accept(r.key());
         });
@@ -131,16 +109,6 @@ public final class StructureSceneRenderer {
     private static void installStatic(int hash, StaticMesh mesh) {
         StaticMesh old = staticCache.put(hash, mesh);
         if (old != null && old != mesh) closeQuietly(old);
-    }
-
-    private static void installAnimating(int hash, AnimatingMesh mesh) {
-        AnimatingMesh old = animatingCache.put(hash, mesh);
-        if (old != null && old != mesh) closeQuietly(old);
-    }
-
-    private static boolean anyVoxelMatching(Request r, boolean animating) {
-        for (Voxel v : r.voxels()) if (v.animating() == animating) return true;
-        return false;
     }
 
     private static <V extends AutoCloseable> Map<Integer, V> lruCache(int capacity) {
