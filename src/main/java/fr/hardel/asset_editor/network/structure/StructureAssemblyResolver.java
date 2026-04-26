@@ -131,9 +131,9 @@ public final class StructureAssemblyResolver {
                 int wx = position.getX() + rotatedPos.getX();
                 int wy = position.getY() + rotatedPos.getY();
                 int wz = position.getZ() + rotatedPos.getZ();
-                BlockState rotatedState = Block.stateById(voxel.blockStateId()).rotate(rotation);
-                int rotatedStateId = Block.BLOCK_STATE_REGISTRY.getId(rotatedState);
-                voxels.add(new StructureAssemblyVoxel(voxel.blockId(), rotatedStateId, wx, wy, wz, pieceIndex));
+                int rotatedStateId = rotateStateId(voxel.blockStateId(), rotation);
+                int rotatedFinalStateId = voxel.finalStateId() == 0 ? 0 : rotateStateId(voxel.finalStateId(), rotation);
+                voxels.add(new StructureAssemblyVoxel(voxel.blockId(), rotatedStateId, wx, wy, wz, pieceIndex, rotatedFinalStateId));
                 if (wx < minX) minX = wx;
                 if (wy < minY) minY = wy;
                 if (wz < minZ) minZ = wz;
@@ -150,7 +150,7 @@ public final class StructureAssemblyResolver {
 
         int finalMinX = minX, finalMinY = minY, finalMinZ = minZ;
         List<StructureAssemblyVoxel> normalized = voxels.stream()
-            .map(v -> new StructureAssemblyVoxel(v.blockId(), v.blockStateId(), v.x() - finalMinX, v.y() - finalMinY, v.z() - finalMinZ, v.pieceIndex()))
+            .map(v -> new StructureAssemblyVoxel(v.blockId(), v.blockStateId(), v.x() - finalMinX, v.y() - finalMinY, v.z() - finalMinZ, v.pieceIndex(), v.finalStateId()))
             .toList();
 
         return Optional.of(new StructureAssemblySnapshot(
@@ -161,6 +161,11 @@ public final class StructureAssemblyResolver {
             pieceIndex,
             normalized
         ));
+    }
+
+    private static int rotateStateId(int stateId, Rotation rotation) {
+        BlockState state = Block.stateById(stateId);
+        return Block.BLOCK_STATE_REGISTRY.getId(state.rotate(rotation));
     }
 
     private StructureAssemblyResolver() {}

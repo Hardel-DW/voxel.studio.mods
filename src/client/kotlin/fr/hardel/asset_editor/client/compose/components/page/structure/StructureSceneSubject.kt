@@ -11,7 +11,7 @@ sealed interface StructureSceneSubject {
     val sizeZ: Int
     val stageCount: Int
 
-    fun forEachVoxel(block: (blockId: Identifier, blockStateId: Int, x: Int, y: Int, z: Int, stage: Int) -> Unit)
+    fun forEachVoxel(block: (blockId: Identifier, blockStateId: Int, x: Int, y: Int, z: Int, stage: Int, finalStateId: Int) -> Unit)
 
     data class Template(val template: StructureTemplateSnapshot) : StructureSceneSubject {
         override val id get() = template.id()
@@ -19,8 +19,8 @@ sealed interface StructureSceneSubject {
         override val sizeY get() = template.sizeY()
         override val sizeZ get() = template.sizeZ()
         override val stageCount get() = 0
-        override fun forEachVoxel(block: (Identifier, Int, Int, Int, Int, Int) -> Unit) {
-            for (v in template.voxels()) block(v.blockId(), v.blockStateId(), v.x(), v.y(), v.z(), 0)
+        override fun forEachVoxel(block: (Identifier, Int, Int, Int, Int, Int, Int) -> Unit) {
+            for (v in template.voxels()) block(v.blockId(), v.blockStateId(), v.x(), v.y(), v.z(), 0, v.finalStateId())
         }
     }
 
@@ -30,8 +30,8 @@ sealed interface StructureSceneSubject {
         override val sizeY get() = assembly.sizeY()
         override val sizeZ get() = assembly.sizeZ()
         override val stageCount get() = assembly.pieceCount()
-        override fun forEachVoxel(block: (Identifier, Int, Int, Int, Int, Int) -> Unit) {
-            for (v in assembly.voxels()) block(v.blockId(), v.blockStateId(), v.x(), v.y(), v.z(), v.pieceIndex())
+        override fun forEachVoxel(block: (Identifier, Int, Int, Int, Int, Int, Int) -> Unit) {
+            for (v in assembly.voxels()) block(v.blockId(), v.blockStateId(), v.x(), v.y(), v.z(), v.pieceIndex(), v.finalStateId())
         }
     }
 }

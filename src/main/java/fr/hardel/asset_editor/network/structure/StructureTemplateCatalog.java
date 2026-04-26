@@ -1,5 +1,7 @@
 package fr.hardel.asset_editor.network.structure;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -173,15 +175,17 @@ public final class StructureTemplateCatalog {
                 continue;
             }
             int stateId = stateId(blockStateIds, paletteIndex);
+            CompoundTag blockNbt = block.getCompound("nbt").orElse(null);
+            int finalStateId = JIGSAW.equals(blockId) ? parseFinalStateId(blockNbt) : 0;
 
             ListTag pos = block.getListOrEmpty("pos");
-            RawVoxel voxel = new RawVoxel(blockId, stateId, pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0));
+            RawVoxel voxel = new RawVoxel(blockId, stateId, pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0), finalStateId);
             counts.merge(blockId, 1, Integer::sum);
             if (!STRUCTURE_VOID.equals(blockId)) {
                 rawVoxels.add(voxel);
             }
             if (JIGSAW.equals(blockId)) {
-                jigsaws.add(jigsaw(voxel, block.getCompound("nbt").orElse(null)));
+                jigsaws.add(jigsaw(voxel, blockNbt));
             }
         }
 
@@ -269,8 +273,21 @@ public final class StructureTemplateCatalog {
         return rawVoxels.stream()
             .filter(voxel -> isSurface(voxel, byPos))
             .sorted(Comparator.comparingInt((RawVoxel voxel) -> voxel.x + voxel.y + voxel.z).thenComparingInt(voxel -> voxel.y))
-            .map(voxel -> new StructureBlockVoxel(voxel.blockId, voxel.stateId, voxel.x, voxel.y, voxel.z))
+            .map(voxel -> new StructureBlockVoxel(voxel.blockId, voxel.stateId, voxel.x, voxel.y, voxel.z, voxel.finalStateId))
             .toList();
+    }
+
+    private static int parseFinalStateId(CompoundTag nbt) {
+        if (nbt == null) return 0;
+        String value = nbt.getStringOr("final_state", "");
+        if (value.isBlank() || "minecraft:air".equals(value)) return 0;
+        try {
+            BlockStateParser.BlockResult result = BlockStateParser.parseForBlock(BuiltInRegistries.BLOCK, value, false);
+            return Block.BLOCK_STATE_REGISTRY.getId(result.blockState());
+        } catch (CommandSyntaxException exception) {
+            LOGGER.debug("Unparseable jigsaw final_state '{}': {}", value, exception.getMessage());
+            return 0;
+        }
     }
 
     private static boolean isSurface(RawVoxel voxel, Map<Long, RawVoxel> byPos) {
@@ -298,7 +315,7 @@ public final class StructureTemplateCatalog {
         return (((long)x & 0x1FFFFFL) << 42) | (((long)y & 0xFFFFFL) << 22) | ((long)z & 0x3FFFFFL);
     }
 
-    private record RawVoxel(Identifier blockId, int stateId, int x, int y, int z) {
+    private record RawVoxel(Identifier blockId, int stateId, int x, int y, int z, int finalStateId) {
     }
 
     private StructureTemplateCatalog() {}

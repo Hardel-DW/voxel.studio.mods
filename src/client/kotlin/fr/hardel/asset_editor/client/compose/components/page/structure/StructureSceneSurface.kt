@@ -12,7 +12,9 @@ import fr.hardel.asset_editor.client.compose.lib.StructureSceneBridge
 import fr.hardel.asset_editor.client.rendering.StructureSceneRenderer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
+import net.minecraft.world.level.block.Block
 
 private val JIGSAW_ID = Identifier.withDefaultNamespace("jigsaw")
 
@@ -87,12 +89,19 @@ private fun StructureSceneRenderer.Request.cameraSnapshot(): Scene3DCamera =
 
 private fun buildVoxels(subject: StructureSceneSubject, filters: StructureSceneFilters): List<StructureSceneRenderer.Voxel> {
     val out = ArrayList<StructureSceneRenderer.Voxel>()
-    subject.forEachVoxel { blockId, blockStateId, x, y, z, stage ->
+    subject.forEachVoxel { blockId, blockStateId, x, y, z, stage, finalStateId ->
         if (stage >= filters.displayedStage) return@forEachVoxel
-        if (!filters.showJigsaws && blockId == JIGSAW_ID) return@forEachVoxel
+        var resolvedBlockId = blockId
+        var resolvedStateId = blockStateId
+        if (!filters.showJigsaws && blockId == JIGSAW_ID) {
+            if (finalStateId == 0) return@forEachVoxel
+            resolvedStateId = finalStateId
+            resolvedBlockId = BuiltInRegistries.BLOCK.getKey(Block.stateById(finalStateId).block)
+        }
+        
         val animating = stage == filters.animatingStage
-        val highlighted = filters.highlight != null && blockId.toString().contains(filters.highlight, ignoreCase = true)
-        out.add(StructureSceneRenderer.Voxel(blockId, blockStateId, x, y, z, animating, highlighted))
+        val highlighted = filters.highlight != null && resolvedBlockId.toString().contains(filters.highlight, ignoreCase = true)
+        out.add(StructureSceneRenderer.Voxel(resolvedBlockId, resolvedStateId, x, y, z, animating, highlighted))
     }
     return out
 }
