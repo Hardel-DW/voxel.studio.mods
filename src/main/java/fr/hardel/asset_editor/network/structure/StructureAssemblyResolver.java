@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
@@ -90,6 +91,7 @@ public final class StructureAssemblyResolver {
             .collect(HashMap::new, (m, s) -> m.put(s.id(), s), HashMap::putAll);
 
         List<StructureAssemblyVoxel> voxels = new ArrayList<>();
+        List<StructurePieceBox> pieceBoxes = new ArrayList<>();
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         int pieceIndex = 0;
@@ -120,6 +122,8 @@ public final class StructureAssemblyResolver {
 
             BlockPos position = pool.position;
             Rotation rotation = pool.rotation;
+            BoundingBox box = pool.getBoundingBox();
+            pieceBoxes.add(new StructurePieceBox(templateId, pieceIndex, box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
 
             for (StructureBlockVoxel voxel : template.voxels()) {
                 BlockPos rotatedPos = StructureTemplate.transform(
@@ -152,6 +156,13 @@ public final class StructureAssemblyResolver {
         List<StructureAssemblyVoxel> normalized = voxels.stream()
             .map(v -> new StructureAssemblyVoxel(v.blockId(), v.blockStateId(), v.x() - finalMinX, v.y() - finalMinY, v.z() - finalMinZ, v.pieceIndex(), v.finalStateId()))
             .toList();
+        List<StructurePieceBox> normalizedBoxes = pieceBoxes.stream()
+            .map(b -> new StructurePieceBox(
+                b.templateId(),
+                b.pieceIndex(),
+                b.minX() - finalMinX, b.minY() - finalMinY, b.minZ() - finalMinZ,
+                b.maxX() - finalMinX, b.maxY() - finalMinY, b.maxZ() - finalMinZ))
+            .toList();
 
         return Optional.of(new StructureAssemblySnapshot(
             structureId,
@@ -159,7 +170,8 @@ public final class StructureAssemblyResolver {
             maxY - minY + 1,
             maxZ - minZ + 1,
             pieceIndex,
-            normalized
+            normalized,
+            normalizedBoxes
         ));
     }
 

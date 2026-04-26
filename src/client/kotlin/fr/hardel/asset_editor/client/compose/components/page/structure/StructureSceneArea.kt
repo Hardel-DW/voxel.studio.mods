@@ -15,7 +15,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.scene.IsometricGrid
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCanvas
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DState
+import fr.hardel.asset_editor.network.structure.StructurePieceBox
 import kotlin.math.max
+import net.minecraft.resources.Identifier
 
 private const val ANIM_DURATION_MS = 380f
 
@@ -27,10 +29,16 @@ fun StructureSceneArea(
     showJigsaws: Boolean,
     sliceY: Int,
     highlight: String?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showPoolBoxes: Boolean = false,
+    onPieceSelected: ((Identifier) -> Unit)? = null
 ) {
     val state = remember(subject.id) { Scene3DState(defaultCamera(subject)) }
     val animation = rememberStageAnimation(subject, selectedStage, animations)
+    val bounds = remember(subject.id, subject.sizeX, subject.sizeY, subject.sizeZ) {
+        GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ)
+    }
+    val pieceBoxes = pieceBoxesOf(subject)
 
     LaunchedEffect(state, subject.id) {
         StructureCameraReset.requests.collect {
@@ -54,13 +62,20 @@ fun StructureSceneArea(
         inputKey = subject.id,
         modifier = modifier,
         overlay = {
-            IsometricGrid(
-                state = state,
-                bounds = GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ),
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+            IsometricGrid(state = state, bounds = bounds, modifier = Modifier.fillMaxSize())
+        },
+        foreground = if (showPoolBoxes && pieceBoxes.isNotEmpty()) {
+            { StructurePoolBoxes(state = state, boxes = pieceBoxes, bounds = bounds, modifier = Modifier.fillMaxSize()) }
+        } else null,
+        onClick = if (showPoolBoxes && pieceBoxes.isNotEmpty() && onPieceSelected != null) {
+            { offset -> pickPieceBoxAt(state, pieceBoxes, bounds, offset)?.let { onPieceSelected(it.templateId()) } }
+        } else null
     )
+}
+
+private fun pieceBoxesOf(subject: StructureSceneSubject): List<StructurePieceBox> = when (subject) {
+    is StructureSceneSubject.Assembly -> subject.assembly.pieceBoxes()
+    is StructureSceneSubject.Template -> emptyList()
 }
 
 private data class StageAnimation(

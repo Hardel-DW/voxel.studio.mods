@@ -13,10 +13,12 @@ public record StructureAssemblySnapshot(
     int sizeY,
     int sizeZ,
     int pieceCount,
-    List<StructureAssemblyVoxel> voxels
+    List<StructureAssemblyVoxel> voxels,
+    List<StructurePieceBox> pieceBoxes
 ) {
     public StructureAssemblySnapshot {
         voxels = List.copyOf(voxels == null ? List.of() : voxels);
+        pieceBoxes = List.copyOf(pieceBoxes == null ? List.of() : pieceBoxes);
     }
 
     public static final StreamCodec<ByteBuf, StructureAssemblySnapshot> STREAM_CODEC = StreamCodec.composite(
@@ -26,5 +28,6 @@ public record StructureAssemblySnapshot(
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeZ,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::pieceCount,
         StructureAssemblyVoxel.STREAM_CODEC.apply(ByteBufCodecs.list()), StructureAssemblySnapshot::voxels,
+        StructurePieceBox.STREAM_CODEC.apply(ByteBufCodecs.list()), StructureAssemblySnapshot::pieceBoxes,
         StructureAssemblySnapshot::new);
 }

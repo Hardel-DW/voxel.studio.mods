@@ -27,7 +27,10 @@ fun StructureBottomOverlay(
     maxStep: Int = 0,
     onStepChange: (Int) -> Unit = {},
     animations: Boolean = false,
-    onAnimationsChange: (Boolean) -> Unit = {}
+    onAnimationsChange: (Boolean) -> Unit = {},
+    showPoolToggle: Boolean = false,
+    showPoolBoxes: Boolean = false,
+    onShowPoolBoxesChange: (Boolean) -> Unit = {}
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -57,6 +60,14 @@ fun StructureBottomOverlay(
             checked = showJigsaws,
             onCheckedChange = onShowJigsawsChange
         )
+        if (showPoolToggle) {
+            Spacer(Modifier.width(12.dp))
+            OverlayCheckbox(
+                label = I18n.get("structure:overlay.boxes"),
+                checked = showPoolBoxes,
+                onCheckedChange = onShowPoolBoxesChange
+            )
+        }
         Spacer(Modifier.width(12.dp))
         OverlayDivider()
         Spacer(Modifier.width(8.dp))

@@ -14,11 +14,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import net.minecraft.resources.Identifier
 
 /**
  * Wraps [StructureSceneArea] with the standard overlays (top title bar slot, bottom controls, Y slider)
- * and owns the locally-scoped UI state (slice Y, jigsaws, current stage, animations). Stage controls
- * appear automatically when the subject has stages.
+ * and owns the locally-scoped UI state (slice Y, jigsaws, current stage, animations, pool boxes).
+ * Stage controls and the pool-boxes toggle appear automatically when the subject has stages
+ * (i.e. it is an Assembly).
  */
 @Composable
 fun StructureSceneScaffold(
@@ -26,6 +28,7 @@ fun StructureSceneScaffold(
     initialShowJigsaws: Boolean,
     modifier: Modifier = Modifier,
     highlight: String? = null,
+    onSelectPiece: ((Identifier) -> Unit)? = null,
     topOverlay: @Composable BoxScope.() -> Unit
 ) {
     val showStageControls = subject.stageCount > 0
@@ -33,6 +36,7 @@ fun StructureSceneScaffold(
     var step by remember(subject.id) { mutableIntStateOf(maxStep) }
     var animations by remember { mutableStateOf(true) }
     var showJigsaws by remember { mutableStateOf(initialShowJigsaws) }
+    var showPoolBoxes by remember { mutableStateOf(false) }
     var sliceY by remember(subject.id) { mutableIntStateOf(subject.sizeY) }
 
     Box(modifier) {
@@ -43,7 +47,9 @@ fun StructureSceneScaffold(
             showJigsaws = showJigsaws,
             sliceY = sliceY,
             highlight = highlight,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            showPoolBoxes = showPoolBoxes && showStageControls,
+            onPieceSelected = onSelectPiece
         )
         topOverlay()
         StructureBottomOverlay(
@@ -55,6 +61,9 @@ fun StructureSceneScaffold(
             onAnimationsChange = { animations = it },
             showJigsaws = showJigsaws,
             onShowJigsawsChange = { showJigsaws = it },
+            showPoolToggle = showStageControls,
+            showPoolBoxes = showPoolBoxes,
+            onShowPoolBoxesChange = { showPoolBoxes = it },
             onReset = { StructureCameraReset.requestReset() },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

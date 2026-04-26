@@ -39,6 +39,7 @@ private const val ROTATE_Y = 0.24f
 private const val KEY_PAN_STEP = 36f
 private const val KEY_ROTATE_STEP = 8f
 private const val KEY_DELTA_SECONDS = 0.04f
+private const val TAP_SLOP = 4f
 
 @Composable
 fun Scene3DCanvas(
@@ -46,7 +47,9 @@ fun Scene3DCanvas(
     inputKey: Any,
     modifier: Modifier = Modifier,
     overlay: (@Composable () -> Unit)? = null,
-    placeholder: (@Composable () -> Unit)? = null
+    foreground: (@Composable () -> Unit)? = null,
+    placeholder: (@Composable () -> Unit)? = null,
+    onClick: ((Offset) -> Unit)? = null
 ) {
     val shape = RoundedCornerShape(10.dp)
     val focusRequester = remember(inputKey) { FocusRequester() }
@@ -72,7 +75,7 @@ fun Scene3DCanvas(
             .focusable()
             .onPreviewKeyEvent { event -> handleKey(event, state) }
             .pointerHoverIcon(PointerIcon.Hand)
-            .pointerInput(inputKey) { handlePointers(state, focusRequester) }
+            .pointerInput(inputKey, onClick) { handlePointers(state, focusRequester, onClick) }
             .onSizeChanged { state.viewport = it }
             .clipToBounds()
     ) {
@@ -88,6 +91,7 @@ fun Scene3DCanvas(
         } else {
             placeholder?.let { Box(modifier = Modifier.fillMaxSize().align(Alignment.Center)) { it() } }
         }
+        foreground?.invoke()
     }
 }
 
@@ -110,11 +114,14 @@ private fun handleKey(
 
 private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.handlePointers(
     state: Scene3DState,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
+    onClick: ((Offset) -> Unit)?
 ) {
     awaitPointerEventScope {
         var lastPosition: Offset? = null
         var lastTimeMillis = 0L
+        var pressStart: Offset? = null
+        var dragged = false
         while (true) {
             val event = awaitPointerEvent()
             if (event.type == PointerEventType.Scroll) {
@@ -127,11 +134,16 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.handlePo
 
             val change = event.changes.firstOrNull() ?: continue
             if (!change.pressed) {
+                if (!dragged && pressStart != null) onClick?.invoke(change.position)
                 lastPosition = null
+                pressStart = null
+                dragged = false
                 state.endDrag()
                 continue
             }
             if (lastPosition == null) {
+                pressStart = change.position
+                dragged = false
                 state.beginDrag()
                 runCatching { focusRequester.requestFocus() }
             }
@@ -139,6 +151,8 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.handlePo
             val previous = lastPosition
             val current = change.position
             if (previous != null) {
+                val start = pressStart
+                if (start != null && !dragged && (current - start).getDistance() > TAP_SLOP) dragged = true
                 val delta = current - previous
                 val deltaSeconds = ((change.uptimeMillis - lastTimeMillis) / 1000f).coerceAtLeast(0.001f)
                 state.applyRotation(delta.x * ROTATE_X, delta.y * ROTATE_Y, deltaSeconds)

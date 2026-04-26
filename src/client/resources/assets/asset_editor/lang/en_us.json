@@ -1078,6 +1078,7 @@
     "structure:overlay.entities": "entities",
     "structure:overlay.animations": "Animations",
     "structure:overlay.jigsaws": "Jigsaws",
+    "structure:overlay.boxes": "Pool boxes",
     "structure:scene.rendering": "Rendering...",
     "structure:inspector.blocks": "Blocks",
     "structure:inspector.search_blocks": "Filter blocks",
