@@ -37,10 +37,6 @@ val STRUCTURE_REGISTRY_ID: Identifier = Identifier.withDefaultNamespace("structu
 val STRUCTURE_REGISTRY_KEY: ResourceKey<Registry<Any>> = ResourceKey.createRegistryKey(STRUCTURE_REGISTRY_ID)
 val STRUCTURE_JIGSAW_FALLBACK_ICON: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/jigsaw.svg")
 
-/**
- * Resolves a per-structure SVG icon (e.g. `<ns>/icons/structure/<path>.svg`) and falls back to
- * the shared jigsaw icon when the asset is not packaged for that namespace.
- */
 fun resolveStructureIcon(id: Identifier, assetCache: StudioAssetCache): Identifier {
     val custom = Identifier.fromNamespaceAndPath(id.namespace, "icons/structure/${id.path}.svg")
     return if (assetCache.svg(custom) != null) custom else STRUCTURE_JIGSAW_FALLBACK_ICON

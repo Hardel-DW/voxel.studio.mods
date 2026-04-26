@@ -11,6 +11,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public final class StructureTemplateCatalog {
@@ -267,19 +267,31 @@ public final class StructureTemplateCatalog {
         }
 
         return rawVoxels.stream()
-            .filter(voxel -> isSurface(voxel, byPos.keySet()))
+            .filter(voxel -> isSurface(voxel, byPos))
             .sorted(Comparator.comparingInt((RawVoxel voxel) -> voxel.x + voxel.y + voxel.z).thenComparingInt(voxel -> voxel.y))
             .map(voxel -> new StructureBlockVoxel(voxel.blockId, voxel.stateId, voxel.x, voxel.y, voxel.z))
             .toList();
     }
 
-    private static boolean isSurface(RawVoxel voxel, Set<Long> occupied) {
-        return !occupied.contains(key(voxel.x + 1, voxel.y, voxel.z))
-            || !occupied.contains(key(voxel.x - 1, voxel.y, voxel.z))
-            || !occupied.contains(key(voxel.x, voxel.y + 1, voxel.z))
-            || !occupied.contains(key(voxel.x, voxel.y - 1, voxel.z))
-            || !occupied.contains(key(voxel.x, voxel.y, voxel.z + 1))
-            || !occupied.contains(key(voxel.x, voxel.y, voxel.z - 1));
+    private static boolean isSurface(RawVoxel voxel, Map<Long, RawVoxel> byPos) {
+        return !occludesFace(byPos, voxel.x + 1, voxel.y, voxel.z, Direction.WEST)
+            || !occludesFace(byPos, voxel.x - 1, voxel.y, voxel.z, Direction.EAST)
+            || !occludesFace(byPos, voxel.x, voxel.y + 1, voxel.z, Direction.DOWN)
+            || !occludesFace(byPos, voxel.x, voxel.y - 1, voxel.z, Direction.UP)
+            || !occludesFace(byPos, voxel.x, voxel.y, voxel.z + 1, Direction.NORTH)
+            || !occludesFace(byPos, voxel.x, voxel.y, voxel.z - 1, Direction.SOUTH);
+    }
+
+    private static boolean occludesFace(Map<Long, RawVoxel> byPos, int x, int y, int z, Direction faceTowardUs) {
+        RawVoxel neighbor = byPos.get(key(x, y, z));
+        if (neighbor == null) {
+            return false;
+        }
+        BlockState state = Block.stateById(neighbor.stateId);
+        if (state == null || !state.canOcclude()) {
+            return false;
+        }
+        return Block.isFaceFull(state.getOcclusionShape(), faceTowardUs);
     }
 
     private static long key(int x, int y, int z) {

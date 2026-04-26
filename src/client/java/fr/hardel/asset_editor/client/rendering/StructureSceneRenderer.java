@@ -58,29 +58,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 /**
- * Off-screen scene renderer for the Structure viewer.
- *
- * <h2>Architecture (post Phase A+C refactor)</h2>
- *
- * Two independent caches keyed on what actually drives geometry:
- * <ul>
- *   <li><b>staticCache</b> — static structure mesh, indexed per Y level. Slice Y, drop offset and
- *       camera are <i>not</i> in the cache key — they are applied at draw time. Each Y level is
- *       tessellated twice: a {@code stack} variant (full level — top hidden by neighbour above)
- *       and an {@code expose} variant (level truncated above Y — top exposed). Drawing the
- *       slice plane combines stack[0..sliceY-1] + expose[sliceY], so the user keeps the
- *       open-top "look inside" behaviour for free.</li>
- *   <li><b>animatingCache</b> — single mesh for the currently animating piece, regardless of Y
- *       slicing. The drop offset is applied as a {@link Matrix4fStack} translate at draw time,
- *       so animation frames hit the cache at every interpolation step.</li>
- * </ul>
- *
- * Two single-thread executors run static and animating tessellation in parallel — the animating
- * piece is small (~one piece) so it almost always finishes within one frame, which means the
- * user sees the falling piece immediately even when the static mesh is mid-build.
- *
- * The Compose-side {@link Request} carries the full voxel list (no slice filter) plus a {@code sliceY}
- * field that is consumed only at draw time.
+ * Off-screen scene renderer for the Structure viewer. Static voxels are cached per Y level (stack/expose variants) so the slice slider is free at
+ * draw time; the animating piece is a separate cache drawn with a translate offset.
  */
 public final class StructureSceneRenderer {
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
@@ -133,36 +112,14 @@ public final class StructureSceneRenderer {
     private static volatile Result result;
 
     private record CompletedStatic(int hash, StaticMesh mesh) {}
+
     private record CompletedAnimating(int hash, AnimatingMesh mesh) {}
 
     public record Camera(float yaw, float pitch, float zoom, float panX, float panY) {}
 
     public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, boolean animating, boolean highlighted) {}
 
-    /**
-     * @param key            Image key — distinct per visible frame (camera + viewport + sliceY + drop).
-     * @param staticKey      Static-mesh cache key — covers everything that affects the static
-     *                       geometry (subject, displayed stages, animating exclusion, jigsaws,
-     *                       highlight). Excludes sliceY/drop/camera.
-     * @param animatingKey   Animating-mesh cache key, or empty string when no piece is animating.
-     * @param voxels         Full voxel list, NOT pre-filtered by sliceY. The renderer slices at draw time.
-     * @param sliceY         Vertical clip — applied at draw time only.
-     * @param pieceOffset    Drop offset for the animating mesh — applied via Matrix4fStack.
-     */
-    public record Request(
-        String key,
-        String staticKey,
-        String animatingKey,
-        int width,
-        int height,
-        int sizeX,
-        int sizeY,
-        int sizeZ,
-        List<Voxel> voxels,
-        int sliceY,
-        float pieceOffset,
-        Camera camera
-    ) {}
+    public record Request(String key, String staticKey, String animatingKey, int width, int height, int sizeX, int sizeY, int sizeZ, List<Voxel> voxels, int sliceY, float pieceOffset, Camera camera) {}
 
     public record Result(String key, int width, int height, int[] argbPixels) {}
 
@@ -219,9 +176,6 @@ public final class StructureSceneRenderer {
             animatingMesh = EMPTY_ANIMATING;
         }
 
-        // If both the static cache *and* the animating cache missed for the very first frame,
-        // we have nothing to show yet — let the next tick try again instead of producing a
-        // blank readback that would overwrite the previous frame.
         if (wantStatic && staticMesh == EMPTY_STATIC && wantAnimating && animatingMesh == EMPTY_ANIMATING) {
             return;
         }
@@ -230,12 +184,16 @@ public final class StructureSceneRenderer {
     }
 
     private static boolean hasStaticVoxels(Request r) {
-        for (Voxel v : r.voxels()) if (!v.animating()) return true;
+        for (Voxel v : r.voxels())
+            if (!v.animating())
+                return true;
         return false;
     }
 
     private static boolean hasAnimatingVoxels(Request r) {
-        for (Voxel v : r.voxels()) if (v.animating()) return true;
+        for (Voxel v : r.voxels())
+            if (v.animating())
+                return true;
         return false;
     }
 
@@ -291,12 +249,14 @@ public final class StructureSceneRenderer {
                 for (int y = 0; y < sliceY; y++) {
                     List<CompiledLayer> layers = staticMesh.stackByY.get(y);
                     if (layers != null) {
-                        for (CompiledLayer layer : layers) drawLayer(layer);
+                        for (CompiledLayer layer : layers)
+                            drawLayer(layer);
                     }
                 }
                 List<CompiledLayer> top = staticMesh.exposeByY.get(sliceY);
                 if (top != null) {
-                    for (CompiledLayer layer : top) drawLayer(layer);
+                    for (CompiledLayer layer : top)
+                        drawLayer(layer);
                 }
             }
             if (!animatingMesh.layers.isEmpty()) {
@@ -305,12 +265,14 @@ public final class StructureSceneRenderer {
                     mvm.pushMatrix();
                     mvm.translate(0f, offset, 0f);
                     try {
-                        for (CompiledLayer layer : animatingMesh.layers) drawLayer(layer);
+                        for (CompiledLayer layer : animatingMesh.layers)
+                            drawLayer(layer);
                     } finally {
                         mvm.popMatrix();
                     }
                 } else {
-                    for (CompiledLayer layer : animatingMesh.layers) drawLayer(layer);
+                    for (CompiledLayer layer : animatingMesh.layers)
+                        drawLayer(layer);
                 }
             }
         } finally {
@@ -319,7 +281,8 @@ public final class StructureSceneRenderer {
     }
 
     private static void scheduleStaticTess(Request request) {
-        if (staticCache.containsKey(request.staticKey().hashCode())) return;
+        if (staticCache.containsKey(request.staticKey().hashCode()))
+            return;
         queuedStaticTess.set(request);
         if (staticTessRunning.compareAndSet(false, true)) {
             staticTessExecutor.submit(StructureSceneRenderer::staticTessLoop);
@@ -327,7 +290,8 @@ public final class StructureSceneRenderer {
     }
 
     private static void scheduleAnimatingTess(Request request) {
-        if (animatingCache.containsKey(request.animatingKey().hashCode())) return;
+        if (animatingCache.containsKey(request.animatingKey().hashCode()))
+            return;
         queuedAnimatingTess.set(request);
         if (animatingTessRunning.compareAndSet(false, true)) {
             animatingTessExecutor.submit(StructureSceneRenderer::animatingTessLoop);
@@ -340,11 +304,13 @@ public final class StructureSceneRenderer {
                 Request next = queuedStaticTess.getAndSet(null);
                 if (next == null) {
                     staticTessRunning.set(false);
-                    if (queuedStaticTess.get() == null || !staticTessRunning.compareAndSet(false, true)) return;
+                    if (queuedStaticTess.get() == null || !staticTessRunning.compareAndSet(false, true))
+                        return;
                     continue;
                 }
                 int hash = next.staticKey().hashCode();
-                if (staticCache.containsKey(hash)) continue;
+                if (staticCache.containsKey(hash))
+                    continue;
                 try {
                     StaticMesh mesh = tessellateStatic(next);
                     completedStatic.offer(new CompletedStatic(hash, mesh));
@@ -364,11 +330,13 @@ public final class StructureSceneRenderer {
                 Request next = queuedAnimatingTess.getAndSet(null);
                 if (next == null) {
                     animatingTessRunning.set(false);
-                    if (queuedAnimatingTess.get() == null || !animatingTessRunning.compareAndSet(false, true)) return;
+                    if (queuedAnimatingTess.get() == null || !animatingTessRunning.compareAndSet(false, true))
+                        return;
                     continue;
                 }
                 int hash = next.animatingKey().hashCode();
-                if (animatingCache.containsKey(hash)) continue;
+                if (animatingCache.containsKey(hash))
+                    continue;
                 try {
                     AnimatingMesh mesh = tessellateAnimating(next);
                     completedAnimating.offer(new CompletedAnimating(hash, mesh));
@@ -397,11 +365,13 @@ public final class StructureSceneRenderer {
         Map<Integer, List<Voxel>> byY = new HashMap<>();
         List<Voxel> staticOnly = new ArrayList<>();
         for (Voxel v : request.voxels()) {
-            if (v.animating()) continue;
+            if (v.animating())
+                continue;
             staticOnly.add(v);
             byY.computeIfAbsent(v.y(), k -> new ArrayList<>()).add(v);
         }
-        if (byY.isEmpty()) return EMPTY_STATIC;
+        if (byY.isEmpty())
+            return EMPTY_STATIC;
 
         StructureBlockView fullLevel = new StructureBlockView(staticOnly, request.sizeY(), Integer.MAX_VALUE);
 
@@ -428,10 +398,13 @@ public final class StructureSceneRenderer {
         List<Voxel> animVoxels = new ArrayList<>();
         List<Voxel> staticOnly = new ArrayList<>();
         for (Voxel v : request.voxels()) {
-            if (v.animating()) animVoxels.add(v);
-            else staticOnly.add(v);
+            if (v.animating())
+                animVoxels.add(v);
+            else
+                staticOnly.add(v);
         }
-        if (animVoxels.isEmpty()) return EMPTY_ANIMATING;
+        if (animVoxels.isEmpty())
+            return EMPTY_ANIMATING;
 
         StructureBlockView level = new StructureBlockView(staticOnly, request.sizeY(), Integer.MAX_VALUE);
         Minecraft mc = Minecraft.getInstance();
@@ -447,14 +420,14 @@ public final class StructureSceneRenderer {
         BlockAndTintGetter level,
         BlockRenderDispatcher dispatcher,
         RandomSource random,
-        List<BlockModelPart> partsScratch
-    ) {
+        List<BlockModelPart> partsScratch) {
         Map<RenderType, LayerBuilder> builders = new LinkedHashMap<>();
         PoseStack poseStack = new PoseStack();
 
         for (Voxel voxel : voxels) {
             BlockState state = blockState(voxel);
-            if (state.getRenderShape() != RenderShape.MODEL) continue;
+            if (state.getRenderShape() != RenderShape.MODEL)
+                continue;
             poseStack.pushPose();
             poseStack.translate(voxel.x(), voxel.y(), voxel.z());
             if (voxel.highlighted()) {
@@ -476,7 +449,8 @@ public final class StructureSceneRenderer {
     }
 
     private static List<CompiledLayer> finalizeLayers(Map<RenderType, LayerBuilder> builders) {
-        if (builders.isEmpty()) return List.of();
+        if (builders.isEmpty())
+            return List.of();
         List<CompiledLayer> layers = new ArrayList<>(builders.size());
         for (Map.Entry<RenderType, LayerBuilder> entry : builders.entrySet()) {
             LayerBuilder lb = entry.getValue();
@@ -499,14 +473,16 @@ public final class StructureSceneRenderer {
 
     private static void drawLayer(CompiledLayer layer) {
         int size = layer.vertexBytes.remaining();
-        if (size == 0) return;
+        if (size == 0)
+            return;
         ByteBufferBuilder builder = new ByteBufferBuilder(size);
         try {
             long ptr = builder.reserve(size);
             ByteBuffer target = MemoryUtil.memByteBuffer(ptr, size);
             target.put(layer.vertexBytes.duplicate());
             ByteBufferBuilder.Result result = builder.build();
-            if (result == null) return;
+            if (result == null)
+                return;
             MeshData mesh = new MeshData(result, layer.drawState);
             layer.renderType.draw(mesh);
         } finally {
@@ -576,8 +552,12 @@ public final class StructureSceneRenderer {
 
         @Override
         public void close() {
-            for (List<CompiledLayer> layers : stackByY.values()) for (CompiledLayer l : layers) l.close();
-            for (List<CompiledLayer> layers : exposeByY.values()) for (CompiledLayer l : layers) l.close();
+            for (List<CompiledLayer> layers : stackByY.values())
+                for (CompiledLayer l : layers)
+                    l.close();
+            for (List<CompiledLayer> layers : exposeByY.values())
+                for (CompiledLayer l : layers)
+                    l.close();
         }
     }
 
@@ -590,7 +570,8 @@ public final class StructureSceneRenderer {
 
         @Override
         public void close() {
-            for (CompiledLayer l : layers) l.close();
+            for (CompiledLayer l : layers)
+                l.close();
         }
     }
 
@@ -645,7 +626,8 @@ public final class StructureSceneRenderer {
 
         @Override
         public float getShade(@NotNull Direction direction, boolean shade) {
-            if (!shade) return 1.0F;
+            if (!shade)
+                return 1.0F;
             return switch (direction) {
                 case DOWN -> 0.45F;
                 case UP -> 1.0F;
@@ -654,26 +636,54 @@ public final class StructureSceneRenderer {
             };
         }
 
-        @Override public LevelLightEngine getLightEngine() { return LevelLightEngine.EMPTY; }
-        @Override public int getBrightness(@NotNull LightLayer layer, @NotNull BlockPos pos) { return 15; }
-        @Override public int getRawBrightness(@NotNull BlockPos pos, int darkening) { return 15; }
-        @Override public int getBlockTint(@NotNull BlockPos pos, @NotNull ColorResolver color) { return -1; }
-        @Override public @Nullable BlockEntity getBlockEntity(@NotNull BlockPos pos) { return null; }
+        @Override
+        public LevelLightEngine getLightEngine() {
+            return LevelLightEngine.EMPTY;
+        }
+
+        @Override
+        public int getBrightness(@NotNull LightLayer layer, @NotNull BlockPos pos) {
+            return 15;
+        }
+
+        @Override
+        public int getRawBrightness(@NotNull BlockPos pos, int darkening) {
+            return 15;
+        }
+
+        @Override
+        public int getBlockTint(@NotNull BlockPos pos, @NotNull ColorResolver color) {
+            return -1;
+        }
+
+        @Override
+        public @Nullable BlockEntity getBlockEntity(@NotNull BlockPos pos) {
+            return null;
+        }
 
         @Override
         public @NotNull BlockState getBlockState(@NotNull BlockPos pos) {
-            if (pos.getY() > maxYInclusive) return Blocks.AIR.defaultBlockState();
+            if (pos.getY() > maxYInclusive)
+                return Blocks.AIR.defaultBlockState();
             return states.getOrDefault(pos.asLong(), Blocks.AIR.defaultBlockState());
         }
 
         @Override
         public @NotNull FluidState getFluidState(@NotNull BlockPos pos) {
-            if (pos.getY() > maxYInclusive) return Blocks.AIR.defaultBlockState().getFluidState();
+            if (pos.getY() > maxYInclusive)
+                return Blocks.AIR.defaultBlockState().getFluidState();
             return states.getOrDefault(pos.asLong(), Blocks.AIR.defaultBlockState()).getFluidState();
         }
 
-        @Override public int getHeight() { return height; }
-        @Override public int getMinY() { return 0; }
+        @Override
+        public int getHeight() {
+            return height;
+        }
+
+        @Override
+        public int getMinY() {
+            return 0;
+        }
     }
 
     private StructureSceneRenderer() {}

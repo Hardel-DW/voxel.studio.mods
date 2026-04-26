@@ -16,16 +16,6 @@ import net.minecraft.resources.Identifier
 
 private val JIGSAW_ID = Identifier.withDefaultNamespace("jigsaw")
 
-/**
- * Bridge between Compose state and the off-screen [StructureSceneRenderer].
- *
- * Phase A+C performance contract:
- *  - The voxel list is built once per geometry-affecting filter combo (`remember`) and reused
- *    across camera/sliceY/drop changes — those drive the image cache key but not the geometry.
- *  - The renderer maintains two independent caches keyed on [staticKey] / [animatingKey].
- *    Slicing in Y and the falling drop are draw-time operations, so dragging the slider after
- *    the first tessellation is a pure cache hit.
- */
 @Composable
 fun StructureSceneSurface(
     state: Scene3DState,
@@ -149,12 +139,6 @@ private fun buildAnimatingKey(subject: StructureSceneSubject, filters: Structure
     append(filters.highlight.orEmpty())
 }
 
-/**
- * Canonical stage normalization: the static voxel set "stages 0..N excluding the topmost N-1
- * (because it is animating)" is identical to "stages 0..N-2 with no exclusion". Normalizing the
- * cache key here lets the "after backward animation" frame reuse the static mesh built during
- * the animation itself.
- */
 private fun canonicalDisplayedStage(displayedStage: Int, animatingStage: Int): Int =
     if (animatingStage in 0 until displayedStage && animatingStage == displayedStage - 1)
         displayedStage - 1

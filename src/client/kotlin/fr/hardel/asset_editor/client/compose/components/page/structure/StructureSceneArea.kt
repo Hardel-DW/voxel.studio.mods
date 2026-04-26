@@ -19,18 +19,6 @@ import kotlin.math.max
 
 private const val ANIM_DURATION_MS = 380f
 
-/**
- * Generic scene container for any [StructureSceneSubject].
- *
- * Drives:
- *  - the off-screen renderer via [StructureSceneSurface]
- *  - the 2D grid overlay
- *  - the camera (default framing, reset signal, inertia)
- *  - the staged drop animation when pagination is enabled
- *
- * @param selectedStage   meaningful only when [StructureSceneSubject.stageCount] > 0.
- *                        For templates pass any value (it is ignored).
- */
 @Composable
 fun StructureSceneArea(
     subject: StructureSceneSubject,

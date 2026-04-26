@@ -4,12 +4,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeUtils
 import net.minecraft.resources.Identifier
 
-/**
- * Builds a folder/leaf tree from a list of namespaced identifiers.
- *
- * Both PIECES (.nbt templates, no icon override) and STRUCTURE (worldgen entries with optional
- * per-id SVG icon) flow through here — the [iconResolver] is the only behavioural axis.
- */
 object StructureTreeBuilder {
     fun <T> build(
         entries: List<T>,

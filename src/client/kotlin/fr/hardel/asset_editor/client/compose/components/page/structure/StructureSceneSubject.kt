@@ -4,26 +4,13 @@ import fr.hardel.asset_editor.network.structure.StructureAssemblySnapshot
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
 import net.minecraft.resources.Identifier
 
-/**
- * Geometry source feeding [StructureSceneArea].
- *
- * The structure viewer draws two distinct payloads with the same shader / camera pipeline:
- *  - [Template]  — a single .nbt template (PIECES tab). All voxels are static, no pagination.
- *  - [Assembly]  — a multi-piece worldgen assembly (STRUCTURE tab). Each voxel carries a
- *                  pieceIndex and the user paginates through them.
- *
- * Exposing them through one interface lets the rest of the rendering stack be generic.
- */
 sealed interface StructureSceneSubject {
     val id: Identifier
     val sizeX: Int
     val sizeY: Int
     val sizeZ: Int
-
-    /** Number of pagination stages. 0 means the subject is single-stage (no pagination). */
     val stageCount: Int
 
-    /** Iterates voxels with their stage index (0 for templates). [blockStateId] indexes [Block.BLOCK_STATE_REGISTRY]. */
     fun forEachVoxel(block: (blockId: Identifier, blockStateId: Int, x: Int, y: Int, z: Int, stage: Int) -> Unit)
 
     data class Template(val template: StructureTemplateSnapshot) : StructureSceneSubject {
