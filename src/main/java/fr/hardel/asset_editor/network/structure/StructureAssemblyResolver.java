@@ -8,8 +8,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.PoolElementStructurePiece;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
@@ -120,16 +122,18 @@ public final class StructureAssemblyResolver {
             Rotation rotation = pool.rotation;
 
             for (StructureBlockVoxel voxel : template.voxels()) {
-                BlockPos rotated = StructureTemplate.transform(
+                BlockPos rotatedPos = StructureTemplate.transform(
                     new BlockPos(voxel.x(), voxel.y(), voxel.z()),
                     Mirror.NONE,
                     rotation,
                     BlockPos.ZERO
                 );
-                int wx = position.getX() + rotated.getX();
-                int wy = position.getY() + rotated.getY();
-                int wz = position.getZ() + rotated.getZ();
-                voxels.add(new StructureAssemblyVoxel(voxel.blockId(), voxel.state(), wx, wy, wz, pieceIndex));
+                int wx = position.getX() + rotatedPos.getX();
+                int wy = position.getY() + rotatedPos.getY();
+                int wz = position.getZ() + rotatedPos.getZ();
+                BlockState rotatedState = Block.stateById(voxel.blockStateId()).rotate(rotation);
+                int rotatedStateId = Block.BLOCK_STATE_REGISTRY.getId(rotatedState);
+                voxels.add(new StructureAssemblyVoxel(voxel.blockId(), rotatedStateId, wx, wy, wz, pieceIndex));
                 if (wx < minX) minX = wx;
                 if (wy < minY) minY = wy;
                 if (wz < minZ) minZ = wz;
@@ -146,7 +150,7 @@ public final class StructureAssemblyResolver {
 
         int finalMinX = minX, finalMinY = minY, finalMinZ = minZ;
         List<StructureAssemblyVoxel> normalized = voxels.stream()
-            .map(v -> new StructureAssemblyVoxel(v.blockId(), v.state(), v.x() - finalMinX, v.y() - finalMinY, v.z() - finalMinZ, v.pieceIndex()))
+            .map(v -> new StructureAssemblyVoxel(v.blockId(), v.blockStateId(), v.x() - finalMinX, v.y() - finalMinY, v.z() - finalMinZ, v.pieceIndex()))
             .toList();
 
         return Optional.of(new StructureAssemblySnapshot(

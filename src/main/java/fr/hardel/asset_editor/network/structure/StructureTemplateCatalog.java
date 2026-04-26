@@ -5,13 +5,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -157,7 +159,7 @@ public final class StructureTemplateCatalog {
         int sizeZ = size.getIntOr(2, 0);
         ListTag palette = palette(root);
         List<Identifier> blockIds = blockIds(palette);
-        List<String> blockStates = blockStates(palette, blockIds);
+        List<Integer> blockStateIds = blockStateIds(palette);
         ListTag blocks = root.getListOrEmpty("blocks");
         List<RawVoxel> rawVoxels = new ArrayList<>();
         List<StructureJigsawNode> jigsaws = new ArrayList<>();
@@ -165,14 +167,15 @@ public final class StructureTemplateCatalog {
 
         for (int i = 0; i < blocks.size(); i++) {
             CompoundTag block = blocks.getCompoundOrEmpty(i);
-            Identifier blockId = blockId(blockIds, block.getIntOr("state", -1));
+            int paletteIndex = block.getIntOr("state", -1);
+            Identifier blockId = blockId(blockIds, paletteIndex);
             if (blockId == null || AIR.equals(blockId)) {
                 continue;
             }
-            String blockState = blockState(blockStates, block.getIntOr("state", -1), blockId);
+            int stateId = stateId(blockStateIds, paletteIndex);
 
             ListTag pos = block.getListOrEmpty("pos");
-            RawVoxel voxel = new RawVoxel(blockId, blockState, pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0));
+            RawVoxel voxel = new RawVoxel(blockId, stateId, pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0));
             counts.merge(blockId, 1, Integer::sum);
             if (!STRUCTURE_VOID.equals(blockId)) {
                 rawVoxels.add(voxel);
@@ -219,13 +222,13 @@ public final class StructureTemplateCatalog {
         return ids;
     }
 
-    private static List<String> blockStates(ListTag palette, List<Identifier> blockIds) {
-        List<String> states = new ArrayList<>(palette.size());
+    private static List<Integer> blockStateIds(ListTag palette) {
+        List<Integer> ids = new ArrayList<>(palette.size());
         for (int i = 0; i < palette.size(); i++) {
-            Identifier blockId = i < blockIds.size() ? blockIds.get(i) : null;
-            states.add(blockStateString(blockId, palette.getCompoundOrEmpty(i)));
+            BlockState state = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, palette.getCompoundOrEmpty(i));
+            ids.add(Block.BLOCK_STATE_REGISTRY.getId(state));
         }
-        return states;
+        return ids;
     }
 
     private static Identifier blockId(List<Identifier> ids, int index) {
@@ -235,31 +238,11 @@ public final class StructureTemplateCatalog {
         return ids.get(index);
     }
 
-    private static String blockState(List<String> states, int index, Identifier fallback) {
-        if (index < 0 || index >= states.size()) {
-            return fallback.toString();
+    private static int stateId(List<Integer> ids, int index) {
+        if (index < 0 || index >= ids.size()) {
+            return Block.BLOCK_STATE_REGISTRY.getId(Blocks.AIR.defaultBlockState());
         }
-        return states.get(index);
-    }
-
-    private static String blockStateString(Identifier blockId, CompoundTag paletteEntry) {
-        String id = blockId == null ? paletteEntry.getStringOr("Name", "minecraft:air") : blockId.toString();
-        CompoundTag properties = paletteEntry.getCompoundOrEmpty("Properties");
-        if (properties.isEmpty()) {
-            return id;
-        }
-
-        List<String> keys = new ArrayList<>(properties.keySet());
-        Collections.sort(keys);
-        StringBuilder builder = new StringBuilder(id).append('[');
-        for (int i = 0; i < keys.size(); i++) {
-            if (i > 0) {
-                builder.append(',');
-            }
-            String key = keys.get(i);
-            builder.append(key).append('=').append(properties.getStringOr(key, ""));
-        }
-        return builder.append(']').toString();
+        return ids.get(index);
     }
 
     private static StructureJigsawNode jigsaw(RawVoxel voxel, CompoundTag nbt) {
@@ -286,7 +269,7 @@ public final class StructureTemplateCatalog {
         return rawVoxels.stream()
             .filter(voxel -> isSurface(voxel, byPos.keySet()))
             .sorted(Comparator.comparingInt((RawVoxel voxel) -> voxel.x + voxel.y + voxel.z).thenComparingInt(voxel -> voxel.y))
-            .map(voxel -> new StructureBlockVoxel(voxel.blockId, voxel.state, voxel.x, voxel.y, voxel.z))
+            .map(voxel -> new StructureBlockVoxel(voxel.blockId, voxel.stateId, voxel.x, voxel.y, voxel.z))
             .toList();
     }
 
@@ -303,7 +286,7 @@ public final class StructureTemplateCatalog {
         return (((long)x & 0x1FFFFFL) << 42) | (((long)y & 0xFFFFFL) << 22) | ((long)z & 0x3FFFFFL);
     }
 
-    private record RawVoxel(Identifier blockId, String state, int x, int y, int z) {
+    private record RawVoxel(Identifier blockId, int stateId, int x, int y, int z) {
     }
 
     private StructureTemplateCatalog() {}

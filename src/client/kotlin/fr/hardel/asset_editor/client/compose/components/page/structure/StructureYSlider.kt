@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +41,10 @@ fun StructureYSlider(
     if (max <= 1) return
     val shape = RoundedCornerShape(10.dp)
     val coerced = value.coerceIn(0, max)
+    val valueRef = rememberUpdatedState(coerced)
+    val maxRef = rememberUpdatedState(max)
+    val onChangeRef = rememberUpdatedState(onValueChange)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -53,22 +59,24 @@ fun StructureYSlider(
             modifier = Modifier
                 .width(20.dp)
                 .height(RAIL_HEIGHT)
-                .pointerInput(max) {
+                .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
                             val event = awaitPointerEvent()
                             val change = event.changes.firstOrNull() ?: continue
-                            if (!change.pressed && event.type != PointerEventType.Scroll) continue
+                            val currentValue = valueRef.value
+                            val currentMax = maxRef.value
                             if (event.type == PointerEventType.Scroll) {
                                 val delta = if (change.scrollDelta.y > 0f) -1 else 1
-                                val next = (coerced + delta).coerceIn(0, max)
-                                if (next != coerced) onValueChange(next)
+                                val next = (currentValue + delta).coerceIn(0, currentMax)
+                                if (next != currentValue) onChangeRef.value(next)
                                 change.consume()
                                 continue
                             }
+                            if (!change.pressed) continue
                             val ratio = 1f - (change.position.y / size.height).coerceIn(0f, 1f)
-                            val next = (ratio * max).toInt().coerceIn(0, max)
-                            if (next != coerced) onValueChange(next)
+                            val next = (ratio * currentMax).toInt().coerceIn(0, currentMax)
+                            if (next != currentValue) onChangeRef.value(next)
                             change.consume()
                         }
                     }

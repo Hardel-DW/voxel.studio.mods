@@ -22,6 +22,7 @@ import fr.hardel.asset_editor.client.compose.components.page.structure.Structure
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureCameraReset
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureInspector
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneArea
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneSubject
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureTopOverlay
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureYSlider
@@ -38,8 +39,9 @@ fun StructurePiecePage(context: StudioContext) {
         templates.firstOrNull { it.id().toString() == destination.elementId }
     } ?: return
 
+    val subject = remember(template) { StructureSceneSubject.Template(template) }
     var showJigsaws by remember { mutableStateOf(true) }
-    var sliceY by remember(template.id()) { mutableIntStateOf(template.sizeY()) }
+    var sliceY by remember(template.id()) { mutableIntStateOf(subject.sizeY) }
     var blockQuery by remember(template.id()) { mutableStateOf("") }
     var fromBlock by remember(template.id()) { mutableStateOf("") }
     var toBlock by remember(template.id()) { mutableStateOf("") }
@@ -59,9 +61,8 @@ fun StructurePiecePage(context: StudioContext) {
                 .fillMaxHeight()
         ) {
             StructureSceneArea(
-                template = template,
-                viewMode = StructureViewMode.PIECES,
-                selectedStep = 0,
+                subject = subject,
+                selectedStage = 0,
                 animations = false,
                 showJigsaws = showJigsaws,
                 sliceY = sliceY,
@@ -92,7 +93,7 @@ fun StructurePiecePage(context: StudioContext) {
             )
             StructureYSlider(
                 value = sliceY,
-                max = template.sizeY(),
+                max = subject.sizeY,
                 onValueChange = { sliceY = it },
                 modifier = Modifier
                     .align(Alignment.CenterEnd)

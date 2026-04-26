@@ -19,10 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblySceneArea
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyTopOverlay
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureBottomOverlay
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureCameraReset
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneArea
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneSubject
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureYSlider
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureAssembly
@@ -53,12 +54,12 @@ fun StructureViewerPage(context: StudioContext) {
         return
     }
 
-    var selectedStep by remember(structureId) { mutableIntStateOf(assembly.pieceCount()) }
+    val subject = remember(assembly) { StructureSceneSubject.Assembly(assembly) }
+    val maxStep = subject.stageCount
+    var selectedStep by remember(structureId) { mutableIntStateOf(maxStep) }
     var animations by remember { mutableStateOf(true) }
     var showJigsaws by remember { mutableStateOf(false) }
-    var sliceY by remember(structureId) { mutableIntStateOf(assembly.sizeY()) }
-
-    val maxStep = assembly.pieceCount()
+    var sliceY by remember(structureId) { mutableIntStateOf(subject.sizeY) }
 
     Box(
         modifier = Modifier
@@ -66,9 +67,9 @@ fun StructureViewerPage(context: StudioContext) {
             .background(StudioColors.Zinc950)
             .padding(16.dp)
     ) {
-        StructureAssemblySceneArea(
-            assembly = assembly,
-            selectedStep = selectedStep.coerceIn(0, maxStep),
+        StructureSceneArea(
+            subject = subject,
+            selectedStage = selectedStep.coerceIn(0, maxStep),
             animations = animations,
             showJigsaws = showJigsaws,
             sliceY = sliceY,
@@ -99,7 +100,7 @@ fun StructureViewerPage(context: StudioContext) {
         )
         StructureYSlider(
             value = sliceY,
-            max = assembly.sizeY(),
+            max = subject.sizeY,
             onValueChange = { sliceY = it },
             modifier = Modifier
                 .align(Alignment.CenterEnd)

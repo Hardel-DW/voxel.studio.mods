@@ -19,6 +19,7 @@ import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
+import fr.hardel.asset_editor.client.compose.lib.assets.StudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
@@ -34,6 +35,16 @@ import net.minecraft.core.Registry
 val STRUCTURE_CONCEPT_ID: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure")
 val STRUCTURE_REGISTRY_ID: Identifier = Identifier.withDefaultNamespace("structure")
 val STRUCTURE_REGISTRY_KEY: ResourceKey<Registry<Any>> = ResourceKey.createRegistryKey(STRUCTURE_REGISTRY_ID)
+val STRUCTURE_JIGSAW_FALLBACK_ICON: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/jigsaw.svg")
+
+/**
+ * Resolves a per-structure SVG icon (e.g. `<ns>/icons/structure/<path>.svg`) and falls back to
+ * the shared jigsaw icon when the asset is not packaged for that namespace.
+ */
+fun resolveStructureIcon(id: Identifier, assetCache: StudioAssetCache): Identifier {
+    val custom = Identifier.fromNamespaceAndPath(id.namespace, "icons/structure/${id.path}.svg")
+    return if (assetCache.svg(custom) != null) custom else STRUCTURE_JIGSAW_FALLBACK_ICON
+}
 
 @Composable
 fun StructureLayout(context: StudioContext) {
@@ -48,8 +59,12 @@ fun StructureLayout(context: StudioContext) {
 
     val tree = remember(viewMode, templates, worldgen) {
         when (viewMode) {
-            StructureViewMode.PIECES -> StructureTreeBuilder.build(templates)
-            StructureViewMode.STRUCTURE -> StructureWorldgenTreeBuilder.build(worldgen, context.assetCache())
+            StructureViewMode.PIECES -> StructureTreeBuilder.build(templates, idOf = { it.id() })
+            StructureViewMode.STRUCTURE -> StructureTreeBuilder.build(
+                worldgen,
+                idOf = { it.id() },
+                iconResolver = { resolveStructureIcon(it, context.assetCache()) }
+            )
         }
     }
     val totalCount = if (viewMode == StructureViewMode.PIECES) templates.size else worldgen.size

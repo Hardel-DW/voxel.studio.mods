@@ -22,9 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.InputText
@@ -35,8 +33,6 @@ import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.network.structure.StructureWorldgenSnapshot
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
-
-private val JIGSAW_FALLBACK = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/jigsaw.svg")
 
 @Composable
 fun StructureWorldgenOverviewPage(
@@ -97,10 +93,7 @@ private fun StructureWorldgenRow(
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(8.dp)
-    val customIcon = remember(entry.id()) {
-        Identifier.fromNamespaceAndPath(entry.id().namespace, "icons/structure/${entry.id().path}.svg")
-    }
-    val resolvedIcon = if (context.assetCache().svg(customIcon) != null) customIcon else JIGSAW_FALLBACK
+    val resolvedIcon = remember(entry.id()) { resolveStructureIcon(entry.id(), context.assetCache()) }
 
     Row(
         modifier = Modifier

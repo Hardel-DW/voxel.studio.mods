@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -31,6 +30,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.InputText
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
+import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
 import net.minecraft.client.resources.language.I18n
 
@@ -85,6 +85,7 @@ fun StructureOverviewPage(context: StudioContext, templates: List<StructureTempl
 @Composable
 private fun StructureOverviewRow(template: StructureTemplateSnapshot, onClick: () -> Unit) {
     val shape = RoundedCornerShape(8.dp)
+    val accent = ColorUtils.accentColor(template.id().toString())
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,8 +102,8 @@ private fun StructureOverviewRow(template: StructureTemplateSnapshot, onClick: (
                 .width(42.dp)
                 .height(42.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(accentColor(template.id().toString()).copy(alpha = 0.22f))
-                .border(1.dp, accentColor(template.id().toString()).copy(alpha = 0.45f), RoundedCornerShape(6.dp))
+                .background(accent.copy(alpha = 0.22f))
+                .border(1.dp, accent.copy(alpha = 0.45f), RoundedCornerShape(6.dp))
         )
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -124,16 +125,4 @@ private fun Metric(value: String, label: String) {
         Text(value, style = StudioTypography.semiBold(13), color = StudioColors.Zinc200)
         Text(label, style = StudioTypography.regular(10), color = StudioColors.Zinc500)
     }
-}
-
-internal fun accentColor(seed: String): Color {
-    val colors = listOf(
-        StudioColors.Sky400,
-        StudioColors.Emerald400,
-        StudioColors.Amber400,
-        StudioColors.Red400,
-        StudioColors.Blue500,
-        StudioColors.Violet500
-    )
-    return colors[kotlin.math.abs(seed.hashCode()) % colors.size]
 }
