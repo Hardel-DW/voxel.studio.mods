@@ -18,24 +18,23 @@ private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "i
 
 @Composable
 fun StructureBottomOverlay(
-    viewMode: StructureViewMode,
-    step: Int,
-    maxStep: Int,
-    onStepChange: (Int) -> Unit,
-    animations: Boolean,
-    onAnimationsChange: (Boolean) -> Unit,
     showJigsaws: Boolean,
     onShowJigsawsChange: (Boolean) -> Unit,
     onReset: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showStageControls: Boolean = false,
+    step: Int = 0,
+    maxStep: Int = 0,
+    onStepChange: (Int) -> Unit = {},
+    animations: Boolean = false,
+    onAnimationsChange: (Boolean) -> Unit = {}
 ) {
-    val isStructureMode = viewMode == StructureViewMode.STRUCTURE
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(horizontal = 2.dp)
     ) {
         Box(modifier = Modifier.weight(1f)) {
-            if (isStructureMode && maxStep > 0) {
+            if (showStageControls && maxStep > 0) {
                 Pagination(
                     currentPage = step,
                     totalPages = maxStep + 1,
@@ -45,7 +44,7 @@ fun StructureBottomOverlay(
             }
         }
 
-        if (isStructureMode) {
+        if (showStageControls) {
             OverlayCheckbox(
                 label = I18n.get("structure:overlay.animations"),
                 checked = animations,

@@ -10,12 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
-import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun StructureTopOverlay(
-    template: StructureTemplateSnapshot,
+fun StructureSceneTitleBar(
+    title: String,
+    metrics: List<Pair<String, String>>,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -24,7 +23,7 @@ fun StructureTopOverlay(
         modifier = modifier.padding(horizontal = 2.dp)
     ) {
         Text(
-            text = template.id().path,
+            text = title,
             style = StudioTypography.semiBold(13),
             color = StudioColors.Zinc100
         )
@@ -32,11 +31,10 @@ fun StructureTopOverlay(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            OverlayMetric("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", I18n.get("structure:overlay.size"))
-            OverlayDivider()
-            OverlayMetric(template.totalBlocks().toString(), I18n.get("structure:overlay.blocks"))
-            OverlayDivider()
-            OverlayMetric(template.entityCount().toString(), I18n.get("structure:overlay.entities"))
+            metrics.forEachIndexed { index, (value, label) ->
+                if (index > 0) OverlayDivider()
+                OverlayMetric(value, label)
+            }
         }
     }
 }

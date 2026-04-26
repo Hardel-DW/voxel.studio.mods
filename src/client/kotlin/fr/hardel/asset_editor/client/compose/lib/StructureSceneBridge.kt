@@ -31,6 +31,13 @@ object StructureSceneBridge {
         return Runnable { listeners.remove(listener) }
     }
 
+    @JvmStatic
+    fun dispose() {
+        images.clear()
+        imageOrder.clear()
+        StructureSceneRenderer.dispose()
+    }
+
     private fun onSceneReady(key: String) {
         val result = StructureSceneRenderer.getResult(key) ?: return
         CompletableFuture

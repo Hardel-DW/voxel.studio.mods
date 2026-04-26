@@ -2,30 +2,21 @@ package fr.hardel.asset_editor.client.compose.routes.structure
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyTopOverlay
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureBottomOverlay
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureCameraReset
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneArea
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneScaffold
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneSubject
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureYSlider
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneTitleBar
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureAssembly
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
@@ -38,79 +29,40 @@ import net.minecraft.resources.Identifier
 @Composable
 fun StructureViewerPage(context: StudioContext) {
     val destination = rememberCurrentElementDestination(context)
-    val structureId = destination?.elementId?.let(Identifier::tryParse)
-
-    if (structureId == null) {
-        StructureViewerEmpty()
-        return
-    }
+    val structureId = destination?.elementId?.let(Identifier::tryParse) ?: return StructureViewerMessage(I18n.get("structure:viewer.empty"))
 
     val worldgen = rememberServerData(StudioDataSlots.STRUCTURE_WORLDGEN)
     val info = remember(worldgen, structureId) { worldgen.firstOrNull { it.id() == structureId } }
-    val assembly = rememberStructureAssembly(structureId)
-
-    if (assembly == null) {
-        StructureViewerLoading(structureId, info)
-        return
-    }
+    val assembly = rememberStructureAssembly(structureId) ?: return StructureViewerLoading(structureId, info)
 
     val subject = remember(assembly) { StructureSceneSubject.Assembly(assembly) }
-    val maxStep = subject.stageCount
-    var selectedStep by remember(structureId) { mutableIntStateOf(maxStep) }
-    var animations by remember { mutableStateOf(true) }
-    var showJigsaws by remember { mutableStateOf(false) }
-    var sliceY by remember(structureId) { mutableIntStateOf(subject.sizeY) }
 
-    Box(
+    StructureSceneScaffold(
+        subject = subject,
+        initialShowJigsaws = false,
         modifier = Modifier
             .fillMaxSize()
             .background(StudioColors.Zinc950)
-            .padding(16.dp)
-    ) {
-        StructureSceneArea(
-            subject = subject,
-            selectedStage = selectedStep.coerceIn(0, maxStep),
-            animations = animations,
-            showJigsaws = showJigsaws,
-            sliceY = sliceY,
-            highlight = null,
-            modifier = Modifier.fillMaxSize()
-        )
-        StructureAssemblyTopOverlay(
-            assembly = assembly,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        StructureBottomOverlay(
-            viewMode = StructureViewMode.STRUCTURE,
-            step = selectedStep,
-            maxStep = maxStep,
-            onStepChange = { selectedStep = it.coerceIn(0, maxStep) },
-            animations = animations,
-            onAnimationsChange = { animations = it },
-            showJigsaws = showJigsaws,
-            onShowJigsawsChange = { showJigsaws = it },
-            onReset = { StructureCameraReset.requestReset() },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        )
-        StructureYSlider(
-            value = sliceY,
-            max = subject.sizeY,
-            onValueChange = { sliceY = it },
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 12.dp)
-        )
-    }
+            .padding(16.dp),
+        topOverlay = {
+            StructureSceneTitleBar(
+                title = assembly.id().path,
+                metrics = listOf(
+                    "${assembly.sizeX()}x${assembly.sizeY()}x${assembly.sizeZ()}" to I18n.get("structure:overlay.size"),
+                    assembly.pieceCount().toString() to I18n.get("structure:overlay.pieces"),
+                    assembly.voxels().size.toString() to I18n.get("structure:overlay.voxels")
+                ),
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            )
+        }
+    )
 }
 
 @Composable
-private fun StructureViewerEmpty() {
+private fun StructureViewerMessage(message: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,11 +71,7 @@ private fun StructureViewerEmpty() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = I18n.get("structure:viewer.empty"),
-            style = StudioTypography.regular(14),
-            color = StudioColors.Zinc400
-        )
+        Text(text = message, style = StudioTypography.regular(14), color = StudioColors.Zinc400)
     }
 }
 
@@ -137,11 +85,7 @@ private fun StructureViewerLoading(structureId: Identifier, info: StructureWorld
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = structureId.toString(),
-            style = StudioTypography.semiBold(18),
-            color = StudioColors.Zinc100
-        )
+        Text(structureId.toString(), style = StudioTypography.semiBold(18), color = StudioColors.Zinc100)
         info?.let {
             Text(
                 text = it.type(),

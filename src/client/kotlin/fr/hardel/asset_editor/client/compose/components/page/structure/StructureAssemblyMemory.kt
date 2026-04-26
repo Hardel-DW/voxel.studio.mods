@@ -31,6 +31,7 @@ object StructureAssemblyMemory {
         synchronized(orderLock) { insertionOrder.remove(id) }
     }
 
+    @JvmStatic
     fun invalidateAll() {
         cache.clear()
         pending.clear()

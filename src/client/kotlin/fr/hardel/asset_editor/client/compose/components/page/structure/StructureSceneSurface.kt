@@ -57,7 +57,7 @@ fun StructureSceneSurface(
         val subscription = StructureSceneBridge.subscribe { key ->
             val image = StructureSceneBridge.getImage(key) ?: return@subscribe
             val camera = pendingCameras.remove(key) ?: state.camera
-            state.publishFrame(key, image, camera)
+            state.publishFrame(image, camera)
         }
         onDispose(subscription::run)
     }
@@ -73,7 +73,7 @@ fun StructureSceneSurface(
                 if (request == null) return@collectLatest
                 val cached = StructureSceneBridge.getImage(request.key())
                 if (cached != null) {
-                    state.publishFrame(request.key(), cached, request.cameraSnapshot())
+                    state.publishFrame(cached, request.cameraSnapshot())
                     return@collectLatest
                 }
                 pendingCameras[request.key()] = request.cameraSnapshot()
@@ -167,9 +167,7 @@ private fun sceneKey(
 
 private fun encode(value: Float): Int = (value * 4f).toInt()
 
-private fun boundedCameraCache(): MutableMap<String, Scene3DCamera> {
-    val map = object : java.util.LinkedHashMap<String, Scene3DCamera>(64, 0.75f, false) {
+private fun boundedCameraCache(): MutableMap<String, Scene3DCamera> =
+    object : java.util.LinkedHashMap<String, Scene3DCamera>(64, 0.75f, false) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Scene3DCamera>?): Boolean = size > 64
     }
-    return java.util.Collections.synchronizedMap(map)
-}

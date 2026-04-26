@@ -25,7 +25,6 @@ class Scene3DState(initialCamera: Scene3DCamera) {
     var viewport by mutableStateOf(IntSize.Zero)
     var frame by mutableStateOf<Scene3DFrame?>(null)
 
-    private var lastFrameKey: String = ""
     private var dragging = false
     private var velYaw = 0f
     private var velPitch = 0f
@@ -102,9 +101,7 @@ class Scene3DState(initialCamera: Scene3DCamera) {
         velPanY = 0f
     }
 
-    fun publishFrame(key: String, image: ImageBitmap, sourceCamera: Scene3DCamera) {
-        if (key == lastFrameKey) return
-        lastFrameKey = key
+    fun publishFrame(image: ImageBitmap, sourceCamera: Scene3DCamera) {
         frame = Scene3DFrame(image, sourceCamera)
     }
 }
