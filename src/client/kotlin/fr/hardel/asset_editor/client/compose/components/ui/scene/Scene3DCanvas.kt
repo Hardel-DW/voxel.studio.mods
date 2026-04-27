@@ -23,6 +23,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -31,15 +32,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import kotlin.math.max
+import kotlin.math.sqrt
 
 private const val ZOOM_IN = 1.12f
 private const val ZOOM_OUT = 0.88f
 private const val ROTATE_X = 0.32f
 private const val ROTATE_Y = 0.24f
+private const val ZOOM_REFERENCE = 8f
 private const val KEY_PAN_STEP = 36f
-private const val KEY_ROTATE_STEP = 8f
+private const val KEY_MOVE_STEP = 4f
 private const val KEY_DELTA_SECONDS = 0.04f
 private const val TAP_SLOP = 4f
+
+private fun rotateScale(zoom: Float): Float = sqrt(ZOOM_REFERENCE / max(ZOOM_REFERENCE, zoom))
+
+/** Linear inverse-zoom factor: keeps the visual step roughly constant in pixels regardless of zoom. */
+private fun moveScale(zoom: Float): Float = ZOOM_REFERENCE / max(ZOOM_REFERENCE, zoom)
 
 @Composable
 fun Scene3DCanvas(
@@ -75,6 +84,16 @@ fun Scene3DCanvas(
             .focusable()
             .onPreviewKeyEvent { event -> handleKey(event, state) }
             .pointerHoverIcon(PointerIcon.Hand)
+            .pointerInput(inputKey) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        if (event.type == PointerEventType.Press) {
+                            runCatching { focusRequester.requestFocus() }
+                        }
+                    }
+                }
+            }
             .pointerInput(inputKey, onClick) { handlePointers(state, focusRequester, onClick) }
             .onSizeChanged { state.viewport = it }
             .clipToBounds()
@@ -100,13 +119,18 @@ private fun handleKey(
     state: Scene3DState
 ): Boolean {
     if (event.type != KeyEventType.KeyDown) return false
+    val moveStep = KEY_MOVE_STEP * moveScale(state.camera.zoom)
     when (event.key) {
-        Key.Z, Key.DirectionUp -> state.applyPan(0f, -KEY_PAN_STEP, KEY_DELTA_SECONDS)
-        Key.S, Key.DirectionDown -> state.applyPan(0f, KEY_PAN_STEP, KEY_DELTA_SECONDS)
-        Key.Q, Key.DirectionLeft -> state.applyPan(-KEY_PAN_STEP, 0f, KEY_DELTA_SECONDS)
-        Key.D, Key.DirectionRight -> state.applyPan(KEY_PAN_STEP, 0f, KEY_DELTA_SECONDS)
-        Key.A -> state.applyRotation(-KEY_ROTATE_STEP, 0f, KEY_DELTA_SECONDS)
-        Key.E -> state.applyRotation(KEY_ROTATE_STEP, 0f, KEY_DELTA_SECONDS)
+        Key.Z -> state.applyKeyboardMove(forward = +moveStep, right = 0f, up = 0f, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.S -> state.applyKeyboardMove(forward = -moveStep, right = 0f, up = 0f, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.Q -> state.applyKeyboardMove(forward = 0f, right = -moveStep, up = 0f, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.D -> state.applyKeyboardMove(forward = 0f, right = +moveStep, up = 0f, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.Spacebar -> state.applyKeyboardMove(forward = 0f, right = 0f, up = +moveStep, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.ShiftLeft, Key.ShiftRight -> state.applyKeyboardMove(forward = 0f, right = 0f, up = -moveStep, deltaSeconds = KEY_DELTA_SECONDS)
+        Key.DirectionUp -> state.applyPan(0f, -KEY_PAN_STEP, KEY_DELTA_SECONDS)
+        Key.DirectionDown -> state.applyPan(0f, KEY_PAN_STEP, KEY_DELTA_SECONDS)
+        Key.DirectionLeft -> state.applyPan(-KEY_PAN_STEP, 0f, KEY_DELTA_SECONDS)
+        Key.DirectionRight -> state.applyPan(KEY_PAN_STEP, 0f, KEY_DELTA_SECONDS)
         else -> return false
     }
     return true
@@ -155,7 +179,8 @@ private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.handlePo
                 if (start != null && !dragged && (current - start).getDistance() > TAP_SLOP) dragged = true
                 val delta = current - previous
                 val deltaSeconds = ((change.uptimeMillis - lastTimeMillis) / 1000f).coerceAtLeast(0.001f)
-                state.applyRotation(delta.x * ROTATE_X, delta.y * ROTATE_Y, deltaSeconds)
+                val scale = rotateScale(state.camera.zoom)
+                state.applyRotation(delta.x * ROTATE_X * scale, delta.y * ROTATE_Y * scale, deltaSeconds)
                 change.consume()
             }
             lastPosition = current

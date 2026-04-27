@@ -8,7 +8,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntSize
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.exp
+import kotlin.math.sin
 
 private const val INERTIA_DAMPING = 7.5f
 private const val MIN_VELOCITY = 1f
@@ -56,6 +58,21 @@ class Scene3DState(initialCamera: Scene3DCamera) {
         camera = camera.copy(panX = camera.panX + deltaX, panY = camera.panY + deltaY)
         velPanX = deltaX / deltaSeconds
         velPanY = deltaY / deltaSeconds
+    }
+
+    /**
+     * Minecraft-style world-aware translation: [forward]/[right] move along the camera's horizontal
+     * axes (XZ plane, ignoring pitch tilt), [up] moves along the world Y axis. Inputs are world-step
+     * units; the resulting screen pan factors in zoom and pitch so the visual feel stays consistent.
+     */
+    fun applyKeyboardMove(forward: Float, right: Float, up: Float, deltaSeconds: Float) {
+        if (forward == 0f && right == 0f && up == 0f) return
+        val pitchRad = Math.toRadians(camera.pitch.toDouble()).toFloat()
+        val sinPitch = sin(pitchRad)
+        val cosPitch = cos(pitchRad)
+        val deltaX = -right * camera.zoom
+        val deltaY = (forward * sinPitch + up * cosPitch) * camera.zoom
+        applyPan(deltaX, deltaY, deltaSeconds)
     }
 
     fun applyZoom(factor: Float, anchor: Offset) {

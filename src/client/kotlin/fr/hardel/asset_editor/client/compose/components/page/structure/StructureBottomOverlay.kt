@@ -14,7 +14,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.Pagination
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
-private val RELOAD_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/reload.svg")
+private val RECENTER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/recenter.svg")
 
 @Composable
 fun StructureBottomOverlay(
@@ -61,6 +61,6 @@ fun StructureBottomOverlay(
         Spacer(Modifier.width(12.dp))
         OverlayDivider()
         Spacer(Modifier.width(8.dp))
-        OverlayIconButton(RELOAD_ICON, iconSize = 12, boxSize = 24, onClick = onReset)
+        OverlayIconButton(RECENTER_ICON, iconSize = 12, boxSize = 24, onClick = onReset)
     }
 }
