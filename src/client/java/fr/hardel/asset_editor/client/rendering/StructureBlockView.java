@@ -18,21 +18,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Minimal {@link BlockAndTintGetter} backed by a structure's voxel list, with optional Y truncation for "expose" cuts. */
+/** Minimal {@link BlockAndTintGetter} backed by a pre-built state map; multiple views can share the same map. */
 final class StructureBlockView implements BlockAndTintGetter {
 
     private final Map<Long, BlockState> states;
     private final int height;
     private final int maxYInclusive;
 
-    StructureBlockView(List<StructureSceneRenderer.Voxel> voxels, int sizeY, int maxYInclusive) {
+    StructureBlockView(Map<Long, BlockState> states, int sizeY, int maxYInclusive) {
         this.height = Math.max(1, sizeY + 2);
         this.maxYInclusive = maxYInclusive;
-        this.states = new HashMap<>(Math.max(16, voxels.size()));
+        this.states = states;
+    }
+
+    static Map<Long, BlockState> buildStateMap(List<StructureSceneRenderer.Voxel> voxels) {
+        Map<Long, BlockState> map = new HashMap<>(Math.max(16, voxels.size()));
         for (StructureSceneRenderer.Voxel v : voxels) {
             BlockState state = Block.stateById(v.blockStateId());
-            states.put(BlockPos.asLong(v.x(), v.y(), v.z()), state == null ? Blocks.AIR.defaultBlockState() : state);
+            map.put(BlockPos.asLong(v.x(), v.y(), v.z()), state == null ? Blocks.AIR.defaultBlockState() : state);
         }
+        return map;
     }
 
     @Override

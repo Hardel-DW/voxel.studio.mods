@@ -26,7 +26,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** CPU mesh build per (pieceIndex, y) cell: {@code stack} = full occlusion, {@code expose} = truncated for slice reveal. */
+// Occlusion is intra-piece only: each piece sees only its own voxels, so faces
+// between pieces survive tessellation and re-appear when an adjacent piece is hidden.
+// Backface culling at draw time prevents z-fighting when both pieces are visible.
 final class StructureSceneTessellator {
 
     static final StaticMesh EMPTY_STATIC = new StaticMesh(Map.of(), Map.of());
@@ -35,22 +37,33 @@ final class StructureSceneTessellator {
         Map<Cell, List<StructureSceneRenderer.Voxel>> grouped = groupByPieceAndY(request.voxels());
         if (grouped.isEmpty()) return EMPTY_STATIC;
 
-        StructureBlockView fullLevel = new StructureBlockView(request.voxels(), request.sizeY(), Integer.MAX_VALUE);
+        Map<Integer, Map<Long, BlockState>> stateMapByPiece = new HashMap<>();
+        for (StructureSceneRenderer.Voxel v : request.voxels()) {
+            stateMapByPiece.computeIfAbsent(v.pieceIndex(), k -> new HashMap<>())
+                .put(BlockPos.asLong(v.x(), v.y(), v.z()), stateOf(v));
+        }
+
+        Map<Integer, StructureBlockView> fullViews = new HashMap<>();
+        for (Map.Entry<Integer, Map<Long, BlockState>> e : stateMapByPiece.entrySet()) {
+            fullViews.put(e.getKey(), new StructureBlockView(e.getValue(), request.sizeY(), Integer.MAX_VALUE));
+        }
+
         BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
         RandomSource random = RandomSource.create();
         List<BlockModelPart> parts = new ArrayList<>();
 
         Map<Cell, List<CompiledLayer>> stack = new HashMap<>();
         Map<Cell, List<CompiledLayer>> expose = new HashMap<>();
-        Map<Integer, StructureBlockView> truncatedByY = new HashMap<>();
+        Map<Cell, StructureBlockView> truncatedByCell = new HashMap<>();
 
         for (Map.Entry<Cell, List<StructureSceneRenderer.Voxel>> entry : grouped.entrySet()) {
             Cell cell = entry.getKey();
             List<StructureSceneRenderer.Voxel> bucket = entry.getValue();
-            stack.put(cell, tessellateLayer(bucket, fullLevel, dispatcher, random, parts));
-            BlockAndTintGetter truncated = truncatedByY.computeIfAbsent(cell.y,
-                y -> new StructureBlockView(request.voxels(), request.sizeY(), y));
-            expose.put(cell, tessellateLayer(bucket, truncated, dispatcher, random, parts));
+            BlockAndTintGetter pieceFull = fullViews.get(cell.pieceIndex);
+            stack.put(cell, tessellateLayer(bucket, pieceFull, dispatcher, random, parts));
+            BlockAndTintGetter pieceTruncated = truncatedByCell.computeIfAbsent(cell, c ->
+                new StructureBlockView(stateMapByPiece.get(c.pieceIndex), request.sizeY(), c.y));
+            expose.put(cell, tessellateLayer(bucket, pieceTruncated, dispatcher, random, parts));
         }
 
         return new StaticMesh(stack, expose);

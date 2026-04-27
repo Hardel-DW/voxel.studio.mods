@@ -33,6 +33,10 @@ fun StructureSceneArea(
         GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ)
     }
     val pieceBoxes = pieceBoxesOf(subject)
+    val visibleStage = if (subject.stageCount > 0) selectedStage else 1
+    val visibleBoxes = remember(pieceBoxes, visibleStage) {
+        pieceBoxes.filter { it.pieceIndex() < visibleStage }
+    }
 
     LaunchedEffect(state, subject.id) {
         StructureCameraReset.requests.collect {
@@ -41,7 +45,7 @@ fun StructureSceneArea(
     }
 
     val filters = StructureSceneFilters(
-        displayedStage = if (subject.stageCount > 0) selectedStage else 1,
+        displayedStage = visibleStage,
         sliceY = sliceY,
         showJigsaws = showJigsaws,
         highlight = highlight
@@ -57,11 +61,11 @@ fun StructureSceneArea(
         overlay = {
             IsometricGrid(state = state, bounds = bounds, modifier = Modifier.fillMaxSize())
         },
-        foreground = if (showPoolBoxes && pieceBoxes.isNotEmpty()) {
-            { StructurePoolBoxes(state = state, boxes = pieceBoxes, bounds = bounds, modifier = Modifier.fillMaxSize()) }
+        foreground = if (showPoolBoxes && visibleBoxes.isNotEmpty()) {
+            { StructurePoolBoxes(state = state, boxes = visibleBoxes, bounds = bounds, modifier = Modifier.fillMaxSize()) }
         } else null,
-        onClick = if (showPoolBoxes && pieceBoxes.isNotEmpty() && onPieceSelected != null) {
-            { offset -> pickPieceBoxAt(state, pieceBoxes, bounds, offset)?.let { onPieceSelected(it.templateId()) } }
+        onClick = if (showPoolBoxes && visibleBoxes.isNotEmpty() && onPieceSelected != null) {
+            { offset -> pickPieceBoxAt(state, visibleBoxes, bounds, offset)?.let { onPieceSelected(it.templateId()) } }
         } else null
     )
 }
