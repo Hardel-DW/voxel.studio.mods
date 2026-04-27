@@ -107,7 +107,7 @@ public final class StructureWorldgenCatalog {
         String startPool = json.has("start_pool") ? readStartPool(json.get("start_pool")) : "";
         int size = json.has("size") ? json.get("size").getAsInt() : 0;
         int maxDistance = json.has("max_distance_from_center") ? json.get("max_distance_from_center").getAsInt() : 0;
-        return new StructureWorldgenSnapshot(id, sourcePack, type, startPool, size, maxDistance, "");
+        return new StructureWorldgenSnapshot(id, sourcePack, type, startPool, size, maxDistance, "", StructureTypeSupport.isPreviewable(type));
     }
 
     private static String readStartPool(JsonElement element) {

@@ -42,3 +42,6 @@ accessible method net/minecraft/world/level/storage/loot/entries/EntryGroup <ini
 accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece element Lnet/minecraft/world/level/levelgen/structure/pools/StructurePoolElement;
 accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece position Lnet/minecraft/core/BlockPos;
 accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece rotation Lnet/minecraft/world/level/block/Rotation;
+
+# Template-based (non-jigsaw) structure assembly preview
+accessible method net/minecraft/world/level/levelgen/structure/TemplateStructurePiece makeTemplateLocation ()Lnet/minecraft/resources/Identifier;

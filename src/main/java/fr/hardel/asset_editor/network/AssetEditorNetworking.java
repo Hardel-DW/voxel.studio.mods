@@ -19,6 +19,7 @@ import fr.hardel.asset_editor.network.structure.StructureAssemblyResolver;
 import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload;
 import fr.hardel.asset_editor.network.structure.StructureReplaceBlocksPayload;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
+import fr.hardel.asset_editor.network.structure.StructureTemplateRepository;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.PermissionManager;
@@ -193,6 +194,7 @@ public final class AssetEditorNetworking {
                         return;
                     try {
                         StructureTemplateCatalog.writeRaw(packRoot, payload.structureId(), tag);
+                        StructureTemplateRepository.get().invalidate(payload.structureId());
                         broadcastPartialResolved(context.server(), StudioDataKeys.STRUCTURE_TEMPLATES, java.util.List.of(payload.structureId()));
                     } catch (java.io.IOException ignored) {
                     }

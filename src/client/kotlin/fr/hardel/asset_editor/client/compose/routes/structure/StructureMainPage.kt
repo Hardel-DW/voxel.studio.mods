@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_CONCEPT_ID
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyState
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureInspector
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLoadingScreen
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureMessageScreen
@@ -30,7 +31,7 @@ import fr.hardel.asset_editor.client.compose.components.page.structure.Structure
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneTitleBar
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureUiState
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
-import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureAssembly
+import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureAssemblyState
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureSceneState
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureTemplate
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
@@ -38,6 +39,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
+import fr.hardel.asset_editor.network.structure.StructureAssemblySnapshot
+import fr.hardel.asset_editor.network.structure.StructureWorldgenSnapshot
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -48,31 +51,37 @@ fun StructureMainPage(context: StudioContext) {
     val templateIndex = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATE_INDEX)
     val elementId = destination.elementId
 
-    val isWorldgen = remember(worldgen, elementId) {
-        worldgen.any { it.id().toString() == elementId }
+    val worldgenEntry = remember(worldgen, elementId) {
+        worldgen.firstOrNull { it.id().toString() == elementId }
     }
     val isTemplate = remember(templateIndex, elementId) {
         templateIndex.any { it.id().toString() == elementId }
     }
 
     when {
-        isWorldgen -> StructureViewerPage(context)
+        worldgenEntry != null -> StructureViewerPage(context, worldgenEntry)
         isTemplate -> StructurePiecePage(context)
         else -> StructureMessageScreen(I18n.get("structure:viewer.empty"))
     }
 }
 
 @Composable
-private fun StructureViewerPage(context: StudioContext) {
-    val destination = rememberCurrentElementDestination(context)
-    val structureId = destination?.elementId?.let(Identifier::tryParse)
-        ?: return StructureMessageScreen(I18n.get("structure:viewer.empty"))
+private fun StructureViewerPage(context: StudioContext, entry: StructureWorldgenSnapshot) {
+    if (!entry.previewSupported()) {
+        StructureMessageScreen(I18n.get("structure:viewer.unsupported_type"))
+        return
+    }
 
-    val assembly = rememberStructureAssembly(structureId)
-        ?: return StructureLoadingScreen()
+    when (val state = rememberStructureAssemblyState(entry.id())) {
+        StructureAssemblyState.Idle, StructureAssemblyState.Loading -> StructureLoadingScreen()
+        StructureAssemblyState.Empty -> StructureMessageScreen(I18n.get("structure:viewer.no_preview_data"))
+        is StructureAssemblyState.Ready -> AssemblyScene(context, state.snapshot)
+    }
+}
 
+@Composable
+private fun AssemblyScene(context: StudioContext, assembly: StructureAssemblySnapshot) {
     val subject = remember(assembly) { StructureSceneSubject.Assembly(assembly) }
-
     StructureSceneWithInspector(
         subject = subject,
         initialShowJigsaws = false,

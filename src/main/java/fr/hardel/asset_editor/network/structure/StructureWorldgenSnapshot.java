@@ -12,7 +12,8 @@ public record StructureWorldgenSnapshot(
     String startPool,
     int size,
     int maxDistanceFromCenter,
-    String iconPath
+    String iconPath,
+    boolean previewSupported
 ) {
     public StructureWorldgenSnapshot {
         sourcePack = sourcePack == null ? "" : sourcePack;
@@ -29,5 +30,6 @@ public record StructureWorldgenSnapshot(
         ByteBufCodecs.VAR_INT, StructureWorldgenSnapshot::size,
         ByteBufCodecs.VAR_INT, StructureWorldgenSnapshot::maxDistanceFromCenter,
         ByteBufCodecs.STRING_UTF8, StructureWorldgenSnapshot::iconPath,
+        ByteBufCodecs.BOOL, StructureWorldgenSnapshot::previewSupported,
         StructureWorldgenSnapshot::new);
 }

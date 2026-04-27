@@ -8,56 +8,73 @@ import fr.hardel.asset_editor.network.structure.StructureAssemblyRequestPayload
 import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload
 import fr.hardel.asset_editor.network.structure.StructureAssemblySnapshot
 import net.minecraft.resources.Identifier
-import java.util.concurrent.ConcurrentHashMap
 
 private const val MAX_CACHE_ENTRIES = 5
 
-object StructureAssemblyMemory {
-    private val cache = mutableStateMapOf<Identifier, StructureAssemblySnapshot>()
-    private val insertionOrder = ArrayDeque<Identifier>()
-    private val orderLock = Any()
-    private val pending = ConcurrentHashMap.newKeySet<Identifier>()
+sealed interface StructureAssemblyState {
+    object Idle : StructureAssemblyState
+    object Loading : StructureAssemblyState
+    object Empty : StructureAssemblyState
+    data class Ready(val snapshot: StructureAssemblySnapshot) : StructureAssemblyState
+}
 
-    fun get(id: Identifier): StructureAssemblySnapshot? = cache[id]
+object StructureAssemblyMemory {
+    private val cache = mutableStateMapOf<Identifier, StructureAssemblyState>()
+    private val insertionOrder = ArrayDeque<Identifier>()
+    private val lock = Any()
+
+    fun state(id: Identifier): StructureAssemblyState = cache[id] ?: StructureAssemblyState.Idle
 
     fun request(id: Identifier) {
-        if (cache.containsKey(id) || !pending.add(id)) return
+        synchronized(lock) {
+            val current = cache[id]
+            if (current != null && current !== StructureAssemblyState.Idle) return
+            store(id, StructureAssemblyState.Loading)
+        }
+        
         ClientPayloadSender.send(StructureAssemblyRequestPayload(id))
     }
 
     fun invalidate(id: Identifier) {
-        cache.remove(id)
-        pending.remove(id)
-        synchronized(orderLock) { insertionOrder.remove(id) }
+        synchronized(lock) {
+            cache.remove(id)
+            insertionOrder.remove(id)
+        }
     }
 
     @JvmStatic
     fun invalidateAll() {
-        cache.clear()
-        pending.clear()
-        synchronized(orderLock) { insertionOrder.clear() }
+        synchronized(lock) {
+            cache.clear()
+            insertionOrder.clear()
+        }
     }
 
     @JvmStatic
     fun receiveResponse(payload: StructureAssemblyResponsePayload) {
-        val id = payload.structureId()
-        pending.remove(id)
-        payload.snapshot().ifPresent { snapshot ->
-            synchronized(orderLock) {
-                insertionOrder.remove(id)
-                insertionOrder.addLast(id)
-                cache[id] = snapshot
-                while (insertionOrder.size > MAX_CACHE_ENTRIES) {
-                    val evict = insertionOrder.removeFirst()
-                    cache.remove(evict)
-                }
-            }
+        synchronized(lock) {
+            val id = payload.structureId()
+            if (cache[id] !== StructureAssemblyState.Loading) return
+            val next = payload.snapshot()
+                .map<StructureAssemblyState> { StructureAssemblyState.Ready(it) }
+                .orElse(StructureAssemblyState.Empty)
+            store(id, next)
+        }
+    }
+
+    private fun store(id: Identifier, state: StructureAssemblyState) {
+        insertionOrder.remove(id)
+        insertionOrder.addLast(id)
+        cache[id] = state
+        while (insertionOrder.size > MAX_CACHE_ENTRIES) {
+            val evict = insertionOrder.removeFirst()
+            cache.remove(evict)
         }
     }
 }
 
 @Composable
-fun rememberStructureAssembly(id: Identifier): StructureAssemblySnapshot? {
+fun rememberStructureAssemblyState(id: Identifier): StructureAssemblyState {
     LaunchedEffect(id) { StructureAssemblyMemory.request(id) }
-    return StructureAssemblyMemory.get(id)
+    return StructureAssemblyMemory.state(id)
 }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -65,6 +66,8 @@ private fun WorldgenRow(
     entry: StructureWorldgenSnapshot,
     onClick: () -> Unit
 ) {
+    val supported = entry.previewSupported()
+    val palette = if (supported) RowPalette.SUPPORTED else RowPalette.UNSUPPORTED
     val shape = RoundedCornerShape(8.dp)
     val resolvedIcon = remember(entry.id()) { resolveStructureIcon(entry.id(), context.assetCache()) }
 
@@ -73,23 +76,28 @@ private fun WorldgenRow(
             .fillMaxWidth()
             .height(74.dp)
             .clip(shape)
-            .background(StudioColors.Zinc900.copy(alpha = 0.55f))
+            .background(StudioColors.Zinc900.copy(alpha = palette.backgroundAlpha))
             .border(1.dp, StudioColors.Zinc800, shape)
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconBadge(resolvedIcon)
+        IconBadge(resolvedIcon, palette.iconTint)
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(entry.id().toString(), style = StudioTypography.semiBold(14), color = StudioColors.Zinc100)
-            Text(entry.sourcePack(), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
+            Text(entry.id().toString(), style = StudioTypography.semiBold(14), color = palette.title)
+            Text(entry.sourcePack(), style = StudioTypography.regular(11), color = palette.subtitle)
         }
+        if (!supported) {
+            UnsupportedBadge()
+        }
+
         MetricColumn(
             value = entry.type().substringAfterLast(':').ifEmpty { "?" },
             label = I18n.get("structure:worldgen.type"),
             modifier = Modifier.width(96.dp)
         )
+        
         MetricColumn(
             value = entry.size().toString(),
             label = I18n.get("structure:worldgen.size"),
@@ -99,7 +107,7 @@ private fun WorldgenRow(
 }
 
 @Composable
-private fun IconBadge(icon: Identifier) {
+private fun IconBadge(icon: Identifier, tint: Color) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -108,6 +116,34 @@ private fun IconBadge(icon: Identifier) {
             .background(StudioColors.Zinc950)
             .border(1.dp, StudioColors.Zinc800, RoundedCornerShape(6.dp))
     ) {
-        SvgIcon(icon, 22.dp, StudioColors.Zinc200)
+        SvgIcon(icon, 22.dp, tint)
     }
+}
+
+@Composable
+private fun UnsupportedBadge() {
+    Box(
+        modifier = Modifier
+            .padding(end = 12.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(StudioColors.Zinc800.copy(alpha = 0.6f))
+            .border(1.dp, StudioColors.Zinc700, RoundedCornerShape(4.dp))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = I18n.get("structure:worldgen.preview_unavailable"),
+            style = StudioTypography.regular(10),
+            color = StudioColors.Zinc400
+        )
+    }
+}
+
+private enum class RowPalette(
+    val backgroundAlpha: Float,
+    val title: Color,
+    val subtitle: Color,
+    val iconTint: Color
+) {
+    SUPPORTED(0.55f, StudioColors.Zinc100, StudioColors.Zinc500, StudioColors.Zinc200),
+    UNSUPPORTED(0.32f, StudioColors.Zinc500, StudioColors.Zinc600, StudioColors.Zinc600)
 }
