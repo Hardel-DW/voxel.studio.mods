@@ -191,7 +191,7 @@ fun Toolbar(
                 .background(StudioColors.Zinc950)
                 .border(1.dp, StudioColors.Zinc800, shape)
         ) {
-            if (isExpanded && expansion is FloatingBarExpansion.Expanded) {
+            if (expansion is FloatingBarExpansion.Expanded) {
                 // Content reads alpha/scale in Draw phase via graphicsLayer (Skill §1.5)
                 Column(
                     modifier = Modifier

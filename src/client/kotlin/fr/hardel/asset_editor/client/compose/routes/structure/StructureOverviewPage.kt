@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,17 +23,20 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_CONCEPT_ID
+import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureTemplate
 import fr.hardel.asset_editor.client.compose.components.ui.MetricColumn
 import fr.hardel.asset_editor.client.compose.components.ui.OverviewListShell
+import fr.hardel.asset_editor.client.compose.components.ui.SkeletonBox
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberConceptUi
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
+import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun StructureOverviewPage(context: StudioContext, templates: List<StructureTemplateSnapshot>) {
+fun StructureOverviewPage(context: StudioContext, templates: List<StructureTemplateIndexEntry>) {
     val conceptId = STRUCTURE_CONCEPT_ID
     val conceptUi = rememberConceptUi(context, conceptId)
 
@@ -55,9 +59,10 @@ fun StructureOverviewPage(context: StudioContext, templates: List<StructureTempl
 }
 
 @Composable
-private fun StructureTemplateRow(template: StructureTemplateSnapshot, onClick: () -> Unit) {
+private fun StructureTemplateRow(entry: StructureTemplateIndexEntry, onClick: () -> Unit) {
     val shape = RoundedCornerShape(8.dp)
-    val accent = ColorUtils.accentColor(template.id().toString())
+    val template = rememberStructureTemplate(entry.id())
+    val accent = remember(entry.id()) { ColorUtils.accentColor(entry.id().toString()) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -79,11 +84,31 @@ private fun StructureTemplateRow(template: StructureTemplateSnapshot, onClick: (
         )
         Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(template.id().toString(), style = StudioTypography.semiBold(14), color = StudioColors.Zinc100)
-            Text(template.sourcePack(), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
+            Text(entry.id().toString(), style = StudioTypography.semiBold(14), color = StudioColors.Zinc100)
+            Text(entry.sourcePack(), style = StudioTypography.regular(11), color = StudioColors.Zinc500)
         }
-        MetricColumn("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", I18n.get("structure:overlay.size"), Modifier.width(88.dp))
-        MetricColumn(template.totalBlocks().toString(), I18n.get("structure:overlay.blocks"), Modifier.width(88.dp))
-        MetricColumn(template.jigsaws().size.toString(), I18n.get("structure:overview.jigsaws"), Modifier.width(88.dp))
+        StructureTemplateMetrics(template)
+    }
+}
+
+@Composable
+private fun StructureTemplateMetrics(template: StructureTemplateSnapshot?) {
+    if (template == null) {
+        SkeletonMetric(I18n.get("structure:overlay.size"), Modifier.width(88.dp))
+        SkeletonMetric(I18n.get("structure:overlay.blocks"), Modifier.width(88.dp))
+        SkeletonMetric(I18n.get("structure:overview.jigsaws"), Modifier.width(88.dp))
+        return
+    }
+
+    MetricColumn("${template.sizeX()}x${template.sizeY()}x${template.sizeZ()}", I18n.get("structure:overlay.size"), Modifier.width(88.dp))
+    MetricColumn(template.totalBlocks().toString(), I18n.get("structure:overlay.blocks"), Modifier.width(88.dp))
+    MetricColumn(template.jigsaws().size.toString(), I18n.get("structure:overview.jigsaws"), Modifier.width(88.dp))
+}
+
+@Composable
+private fun SkeletonMetric(label: String, modifier: Modifier = Modifier) {
+    Column(horizontalAlignment = Alignment.End, modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        SkeletonBox(width = 42.dp, height = 13.dp)
+        Text(label, style = StudioTypography.regular(10), color = StudioColors.Zinc500)
     }
 }

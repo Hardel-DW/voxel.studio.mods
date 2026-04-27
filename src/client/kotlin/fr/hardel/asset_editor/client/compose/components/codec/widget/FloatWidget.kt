@@ -131,7 +131,7 @@ private fun stepFor(widget: CodecWidget.FloatWidget): Float {
 
 private fun roundToStep(value: Float, step: Float): Float {
     val precision = if (step >= 1f) 1f else 100f
-    return (Math.round(value * precision) / precision).toFloat()
+    return Math.round(value * precision) / precision
 }
 
 private fun placeholder(widget: CodecWidget.FloatWidget): String {

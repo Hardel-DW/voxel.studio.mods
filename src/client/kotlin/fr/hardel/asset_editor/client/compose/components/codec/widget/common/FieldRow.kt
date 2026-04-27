@@ -232,7 +232,7 @@ fun StructField(
             when {
                 absent -> AddFieldButton(
                     label = I18n.get("codec:field.add"),
-                    onClick = onAddOptional!!,
+                    onClick = onAddOptional,
                     modifier = Modifier.weight(1f)
                 )
 

@@ -177,7 +177,7 @@ fun ResultComponentRow(
                 )
             }
 
-            if (inlineHead && widget != null) {
+            if (inlineHead) {
                 Spacer(Modifier.width(12.dp))
                 WidgetHead(
                     widget = widget,

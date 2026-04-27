@@ -70,6 +70,19 @@ All communication uses Fabric Networking API with `CustomPacketPayload` records 
 | C->S | `ServerDataRequestPayload` | Lazy-fetch studio data (recipe catalog, compendiums) |
 | S->C | `ServerDataSyncPayload` | Send studio data response |
 
+### Server Data
+`ServerDataKey` supports two loading models:
+- **Full slots** use `ServerDataKey.of(...)`. They can be requested as a complete list and are automatically broadcast on datapack reload.
+- **Lazy detail slots** use `ServerDataKey.lazy(...)`. They declare an element id extractor and a provider by ids. Full requests and automatic reload broadcasts are disabled for these slots by default, so large payloads are not sent accidentally.
+
+For large concepts, use an explicit lightweight index slot plus a lazy detail slot:
+- the index slot contains only the data needed for navigation, sidebars, and instant overview rows;
+- the detail slot contains the heavy snapshot and is requested by id when a row or editor page actually needs it;
+- `ServerDataRequestPayload` may include ids to request a partial response;
+- `ServerDataSyncPayload.partial` tells the client to merge received elements into the existing slot cache instead of replacing the whole list.
+
+Structure follows this convention with `STRUCTURE_TEMPLATE_INDEX` for the sidebar/overview and `STRUCTURE_TEMPLATES` as the lazy detail slot.
+
 ## Mutation Flow
 
 ```text

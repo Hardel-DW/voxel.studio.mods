@@ -38,7 +38,7 @@ public final class ClientSessionDispatch {
     }
 
     public void handleServerDataSync(ServerDataSyncPayload payload) {
-        runSessionUpdate(() -> ServerDataStore.applyRaw(payload.key(), payload.rawData()));
+        runSessionUpdate(() -> ServerDataStore.applyRaw(payload.key(), payload.rawData(), payload.partial()));
     }
 
     public void handleWorkspaceSync(WorkspaceSyncPayload payload) {

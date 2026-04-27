@@ -103,8 +103,13 @@ public final class AssetEditorNetworking {
     }
 
     public static void broadcastAllServerData(MinecraftServer server) {
-        for (ServerDataKey<?> key : ServerDataKeys.all())
-            broadcastResolved(server, key);
+        for (ServerDataKey<?> key : ServerDataKeys.all()) {
+            if (key.automaticBroadcast()) {
+                broadcastResolved(server, key);
+            } else {
+                broadcastServerData(server, key, java.util.List.of());
+            }
+        }
     }
 
     private static <T> void broadcastResolved(MinecraftServer server, ServerDataKey<T> key) {
@@ -165,7 +170,7 @@ public final class AssetEditorNetworking {
     }
 
     private static void handleServerDataRequest(ServerDataRequestPayload payload, ServerPlayNetworking.Context context) {
-        context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key()));
+        context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key(), payload.ids()));
     }
 
     private static void handleStructureReplaceBlocks(StructureReplaceBlocksPayload payload, ServerPlayNetworking.Context context) {
@@ -188,7 +193,7 @@ public final class AssetEditorNetworking {
                         return;
                     try {
                         StructureTemplateCatalog.writeRaw(packRoot, payload.structureId(), tag);
-                        broadcastResolved(context.server(), StudioDataKeys.STRUCTURE_TEMPLATES);
+                        broadcastPartialResolved(context.server(), StudioDataKeys.STRUCTURE_TEMPLATES, java.util.List.of(payload.structureId()));
                     } catch (java.io.IOException ignored) {
                     }
                 });
@@ -213,8 +218,14 @@ public final class AssetEditorNetworking {
         });
     }
 
-    private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key) {
-        ServerPlayNetworking.send(player, ServerDataKeys.resolve(key, server));
+    private static <T> void broadcastPartialResolved(MinecraftServer server, ServerDataKey<T> key, java.util.List<net.minecraft.resources.Identifier> ids) {
+        ServerDataSyncPayload payload = ServerDataSyncPayload.createPartial(key, key.partialProvider().apply(server, ids));
+        for (ServerPlayer player : server.getPlayerList().getPlayers())
+            ServerPlayNetworking.send(player, payload);
+    }
+
+    private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key, java.util.List<net.minecraft.resources.Identifier> ids) {
+        ServerPlayNetworking.send(player, ServerDataKeys.resolve(key, ids, server));
     }
 
     private AssetEditorNetworking() {}

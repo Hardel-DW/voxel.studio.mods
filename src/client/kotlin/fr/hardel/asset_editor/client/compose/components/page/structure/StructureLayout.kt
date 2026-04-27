@@ -45,7 +45,7 @@ fun resolveStructureIcon(id: Identifier, assetCache: StudioAssetCache): Identifi
 @Composable
 fun StructureLayout(context: StudioContext) {
     val conceptId = STRUCTURE_CONCEPT_ID
-    val templates = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATES)
+    val templateIndex = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATE_INDEX)
     val worldgen = rememberServerData(StudioDataSlots.STRUCTURE_WORLDGEN)
     val conceptUi = rememberConceptUi(context, conceptId)
     val currentEditor = rememberCurrentElementDestination(context, conceptId)
@@ -53,9 +53,9 @@ fun StructureLayout(context: StudioContext) {
     val conceptIcon = remember(conceptId) { context.studioIcon(conceptId) }
     val viewMode = StructureUiState.viewMode
 
-    val tree = remember(viewMode, templates, worldgen) {
+    val tree = remember(viewMode, templateIndex, worldgen) {
         when (viewMode) {
-            StructureViewMode.PIECES -> StructureTreeBuilder.build(templates, idOf = { it.id() })
+            StructureViewMode.PIECES -> StructureTreeBuilder.build(templateIndex, idOf = { it.id() })
             StructureViewMode.STRUCTURE -> StructureTreeBuilder.build(
                 worldgen,
                 idOf = { it.id() },
@@ -63,7 +63,7 @@ fun StructureLayout(context: StudioContext) {
             )
         }
     }
-    val totalCount = if (viewMode == StructureViewMode.PIECES) templates.size else worldgen.size
+    val totalCount = if (viewMode == StructureViewMode.PIECES) templateIndex.size else worldgen.size
 
     val treeState = buildTreeState(
         context = context,
@@ -78,7 +78,7 @@ fun StructureLayout(context: StudioContext) {
     )
 
     val isLoading = when (viewMode) {
-        StructureViewMode.PIECES -> templates.isEmpty()
+        StructureViewMode.PIECES -> templateIndex.isEmpty()
         StructureViewMode.STRUCTURE -> worldgen.isEmpty()
     }
 
@@ -95,7 +95,7 @@ fun StructureLayout(context: StudioContext) {
                     LoadingPlaceholder(I18n.get("structure:loading"))
                 } else when (destination) {
                     is ConceptOverviewDestination -> when (viewMode) {
-                        StructureViewMode.PIECES -> StructureOverviewPage(context, templates)
+                        StructureViewMode.PIECES -> StructureOverviewPage(context, templateIndex)
                         StructureViewMode.STRUCTURE -> StructureWorldgenOverviewPage(context, worldgen)
                     }
                     is ElementEditorDestination -> if (!StudioUiRegistry.renderPage(context, destination)) EmptyPage()

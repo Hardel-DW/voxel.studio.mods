@@ -35,10 +35,26 @@ public final class ServerDataKeys {
     }
 
     public static ServerDataSyncPayload resolve(Identifier id, MinecraftServer server) {
-        return createPayload(get(id), server);
+        return resolve(id, List.of(), server);
     }
 
-    private static <T> ServerDataSyncPayload createPayload(ServerDataKey<T> key, MinecraftServer server) {
-        return ServerDataSyncPayload.create(key, key.provider().apply(server));
+    public static ServerDataSyncPayload resolve(Identifier id, List<Identifier> requestedIds, MinecraftServer server) {
+        ServerDataKey<?> key = get(id);
+        if (requestedIds == null || requestedIds.isEmpty()) {
+            return createFullPayload(key, server);
+        }
+        return createPartialPayload(key, requestedIds, server);
+    }
+
+    private static <T> ServerDataSyncPayload createFullPayload(ServerDataKey<T> key, MinecraftServer server) {
+        List<T> data = key.fullRequestsEnabled() ? key.provider().apply(server) : List.of();
+        return ServerDataSyncPayload.create(key, data);
+    }
+
+    private static <T> ServerDataSyncPayload createPartialPayload(ServerDataKey<T> key, List<Identifier> requestedIds, MinecraftServer server) {
+        if (!key.supportsPartialRequests()) {
+            return createFullPayload(key, server);
+        }
+        return ServerDataSyncPayload.createPartial(key, key.partialProvider().apply(server, requestedIds));
     }
 }

@@ -6,6 +6,7 @@ import fr.hardel.asset_editor.data.component.ComponentTypeLoader;
 import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
+import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry;
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
 import fr.hardel.asset_editor.network.structure.StructureWorldgenCatalog;
 import fr.hardel.asset_editor.network.structure.StructureWorldgenSnapshot;
@@ -34,8 +35,11 @@ public final class StudioDataKeys {
     public static final ServerDataKey<StudioComponentTypeDef> COMPONENT_TYPES = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "component_types"), StudioComponentTypeDef.STREAM_CODEC, server -> List.copyOf(ComponentTypeLoader.definitions().values())));
 
+    public static final ServerDataKey<StructureTemplateIndexEntry> STRUCTURE_TEMPLATE_INDEX = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_template_index"), StructureTemplateIndexEntry.STREAM_CODEC, StructureTemplateCatalog::buildIndex));
+
     public static final ServerDataKey<StructureTemplateSnapshot> STRUCTURE_TEMPLATES = ServerDataKeys.register(
-        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_templates"), StructureTemplateSnapshot.STREAM_CODEC, StructureTemplateCatalog::build));
+        ServerDataKey.lazy(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_templates"), StructureTemplateSnapshot.STREAM_CODEC, StructureTemplateCatalog::build, StructureTemplateSnapshot::id, StructureTemplateCatalog::build));
 
     public static final ServerDataKey<StructureWorldgenSnapshot> STRUCTURE_WORLDGEN = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_worldgen"), StructureWorldgenSnapshot.STREAM_CODEC, StructureWorldgenCatalog::build));

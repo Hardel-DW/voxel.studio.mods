@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
 import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
+import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry;
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
 import fr.hardel.asset_editor.network.structure.StructureWorldgenSnapshot;
 
@@ -24,6 +25,9 @@ public final class StudioDataSlots {
 
     public static final ServerDataStore.DataSlot<StudioComponentTypeDef> COMPONENT_TYPES =
         ServerDataStore.register(StudioDataKeys.COMPONENT_TYPES);
+
+    public static final ServerDataStore.DataSlot<StructureTemplateIndexEntry> STRUCTURE_TEMPLATE_INDEX =
+        ServerDataStore.register(StudioDataKeys.STRUCTURE_TEMPLATE_INDEX);
 
     public static final ServerDataStore.DataSlot<StructureTemplateSnapshot> STRUCTURE_TEMPLATES =
         ServerDataStore.register(StudioDataKeys.STRUCTURE_TEMPLATES);

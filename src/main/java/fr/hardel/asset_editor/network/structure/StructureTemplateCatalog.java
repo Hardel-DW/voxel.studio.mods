@@ -55,6 +55,42 @@ public final class StructureTemplateCatalog {
             .toList();
     }
 
+    public static List<StructureTemplateSnapshot> build(MinecraftServer server, List<Identifier> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        ResourceManager resources = server.getResourceManager();
+        Map<Identifier, StructureTemplateSnapshot> snapshots = new LinkedHashMap<>();
+        for (Identifier id : ids) {
+            Identifier fileId = LISTER.idToFile(id);
+            resources.getResource(fileId)
+                .flatMap(resource -> read(fileId, resource))
+                .ifPresent(snapshot -> snapshots.put(snapshot.id(), snapshot));
+        }
+        readWorldDatapacks(server, ids).stream()
+            .filter(snapshot -> ids.contains(snapshot.id()))
+            .forEach(snapshot -> snapshots.put(snapshot.id(), snapshot));
+
+        return ids.stream()
+            .map(snapshots::get)
+            .filter(java.util.Objects::nonNull)
+            .toList();
+    }
+
+    public static List<StructureTemplateIndexEntry> buildIndex(MinecraftServer server) {
+        ResourceManager resources = server.getResourceManager();
+        Map<Identifier, StructureTemplateIndexEntry> entries = new LinkedHashMap<>();
+        LISTER.listMatchingResources(resources).forEach((fileId, resource) -> {
+            Identifier id = LISTER.fileToId(fileId);
+            entries.put(id, new StructureTemplateIndexEntry(id, resource.sourcePackId()));
+        });
+        readWorldDatapackIndex(server).forEach(entry -> entries.put(entry.id(), entry));
+        return entries.values().stream()
+            .sorted(Comparator.comparing(entry -> entry.id().toString()))
+            .toList();
+    }
+
     public static Optional<CompoundTag> readRaw(MinecraftServer server, Identifier structureId) {
         Identifier fileId = LISTER.idToFile(structureId);
         return server.getResourceManager().getResource(fileId).flatMap(StructureTemplateCatalog::readTag);
@@ -114,6 +150,49 @@ public final class StructureTemplateCatalog {
             LOGGER.warn("Failed to scan world datapack structures: {}", exception.getMessage());
         }
         return snapshots;
+    }
+
+    private static List<StructureTemplateSnapshot> readWorldDatapacks(MinecraftServer server, List<Identifier> ids) {
+        Path datapacks = server.getWorldPath(LevelResource.DATAPACK_DIR);
+        if (!Files.isDirectory(datapacks)) {
+            return List.of();
+        }
+
+        List<StructureTemplateSnapshot> snapshots = new ArrayList<>();
+        try (Stream<Path> packs = Files.list(datapacks)) {
+            packs.filter(Files::isDirectory).forEach(packRoot -> {
+                String sourcePack = "file/" + datapacks.relativize(packRoot).getName(0);
+                for (Identifier id : ids) {
+                    Path file = structurePath(packRoot, id);
+                    if (!Files.isRegularFile(file)) {
+                        continue;
+                    }
+                    readTag(file)
+                        .map(tag -> fromTag(id, sourcePack, tag))
+                        .ifPresent(snapshots::add);
+                }
+            });
+        } catch (IOException exception) {
+            LOGGER.warn("Failed to read world datapack structures by id: {}", exception.getMessage());
+        }
+        return snapshots;
+    }
+
+    private static List<StructureTemplateIndexEntry> readWorldDatapackIndex(MinecraftServer server) {
+        Path datapacks = server.getWorldPath(LevelResource.DATAPACK_DIR);
+        if (!Files.isDirectory(datapacks)) {
+            return List.of();
+        }
+
+        List<StructureTemplateIndexEntry> entries = new ArrayList<>();
+        try (Stream<Path> files = Files.find(datapacks, Integer.MAX_VALUE, (path, attrs) -> attrs.isRegularFile() && path.toString().endsWith(".nbt"))) {
+            files.forEach(file -> structureId(datapacks, file)
+                .map(id -> new StructureTemplateIndexEntry(id, "file/" + datapacks.relativize(file).getName(0)))
+                .ifPresent(entries::add));
+        } catch (IOException exception) {
+            LOGGER.warn("Failed to scan world datapack structure index: {}", exception.getMessage());
+        }
+        return entries;
     }
 
     private static Optional<Identifier> structureId(Path datapacks, Path file) {

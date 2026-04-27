@@ -32,12 +32,12 @@ import fr.hardel.asset_editor.client.compose.components.page.structure.Structure
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureViewMode
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureAssembly
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureSceneState
+import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureTemplate
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
-import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -45,19 +45,19 @@ import net.minecraft.resources.Identifier
 fun StructureMainPage(context: StudioContext) {
     val destination = rememberCurrentElementDestination(context) ?: return
     val worldgen = rememberServerData(StudioDataSlots.STRUCTURE_WORLDGEN)
-    val templates = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATES)
+    val templateIndex = rememberServerData(StudioDataSlots.STRUCTURE_TEMPLATE_INDEX)
     val elementId = destination.elementId
 
     val isWorldgen = remember(worldgen, elementId) {
         worldgen.any { it.id().toString() == elementId }
     }
-    val isTemplate = remember(templates, elementId) {
-        templates.any { it.id().toString() == elementId }
+    val isTemplate = remember(templateIndex, elementId) {
+        templateIndex.any { it.id().toString() == elementId }
     }
 
     when {
         isWorldgen -> StructureViewerPage(context)
-        isTemplate -> StructurePiecePage(context, templates)
+        isTemplate -> StructurePiecePage(context)
         else -> StructureMessageScreen(I18n.get("structure:viewer.empty"))
     }
 }
@@ -92,11 +92,11 @@ private fun StructureViewerPage(context: StudioContext) {
 }
 
 @Composable
-private fun StructurePiecePage(context: StudioContext, templates: List<StructureTemplateSnapshot>) {
+private fun StructurePiecePage(context: StudioContext) {
     val destination = rememberCurrentElementDestination(context) ?: return
-    val template = remember(templates, destination.elementId) {
-        templates.firstOrNull { it.id().toString() == destination.elementId }
-    } ?: return
+    val templateId = Identifier.tryParse(destination.elementId)
+        ?: return StructureMessageScreen(I18n.get("structure:viewer.empty"))
+    val template = rememberStructureTemplate(templateId) ?: return StructureLoadingScreen()
 
     val subject = remember(template) { StructureSceneSubject.Template(template) }
 
