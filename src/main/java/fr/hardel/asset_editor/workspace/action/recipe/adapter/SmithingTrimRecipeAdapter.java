@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -9,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class SmithingTrimRecipeAdapter extends RecipeAdapter<SmithingTrimRecipe> {
@@ -47,6 +49,15 @@ public final class SmithingTrimRecipeAdapter extends RecipeAdapter<SmithingTrimR
             ? ingredients.get(2).orElse(original.additionIngredient().orElseThrow())
             : original.additionIngredient().orElseThrow();
 
+        return new SmithingTrimRecipe(template, base, addition, original.pattern);
+    }
+
+    @Override
+    protected SmithingTrimRecipe doApplyPattern(SmithingTrimRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 3, helper);
+        Ingredient template = grid.get(0).orElse(original.templateIngredient().orElseThrow());
+        Ingredient base = grid.get(1).orElse(original.baseIngredient());
+        Ingredient addition = grid.get(2).orElse(original.additionIngredient().orElseThrow());
         return new SmithingTrimRecipe(template, base, addition, original.pattern);
     }
 

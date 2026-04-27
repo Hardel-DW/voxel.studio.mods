@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
@@ -65,6 +66,11 @@ public final class RecipeAdapterRegistry {
 
     public static Recipe<?> rebuild(Recipe<?> recipe, List<Optional<Ingredient>> ingredients) {
         return get(recipe).rebuild(recipe, ingredients);
+    }
+
+    public static @Nullable Recipe<?> applyPattern(Recipe<?> recipe, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        if (isUnsupported(recipe)) return null;
+        return get(recipe).applyPattern(recipe, slots, helper);
     }
 
     public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {

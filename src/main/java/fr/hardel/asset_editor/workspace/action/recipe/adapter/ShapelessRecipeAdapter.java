@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -41,6 +42,14 @@ public final class ShapelessRecipeAdapter extends RecipeAdapter<ShapelessRecipe>
         List<Ingredient> compacted = ingredients.stream()
             .flatMap(Optional::stream)
             .toList();
+        if (compacted.isEmpty()) return original;
+        return new ShapelessRecipe(original.group(), original.category(), original.result.copy(), compacted);
+    }
+
+    @Override
+    protected ShapelessRecipe doApplyPattern(ShapelessRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Ingredient> compacted = compactSlots(slots, helper);
+        if (compacted.isEmpty()) return original;
         return new ShapelessRecipe(original.group(), original.category(), original.result.copy(), compacted);
     }
 

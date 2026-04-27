@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -45,6 +46,12 @@ public final class CookingRecipeAdapter<T extends AbstractCookingRecipe> extends
             ? original.input()
             : ingredients.getFirst().orElse(original.input());
 
+        return factory.create(original.group(), original.category(), input, original.result().copy(), original.experience(), original.cookingTime());
+    }
+
+    @Override
+    protected T doApplyPattern(T original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        Ingredient input = indexedSlots(slots, 1, helper).getFirst().orElse(original.input());
         return factory.create(original.group(), original.category(), input, original.result().copy(), original.experience(), original.cookingTime());
     }
 

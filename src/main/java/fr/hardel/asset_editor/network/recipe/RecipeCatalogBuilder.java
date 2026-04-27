@@ -53,13 +53,27 @@ public final class RecipeCatalogBuilder {
 
     private static Map<String, List<String>> resolveSlots(RecipeDisplay display, ContextMap context) {
         return switch (display) {
-            case ShapedCraftingRecipeDisplay shaped -> indexedSlots(shaped.ingredients(), context);
+            case ShapedCraftingRecipeDisplay shaped -> shapedGridSlots(shaped, context);
             case ShapelessCraftingRecipeDisplay shapeless -> indexedSlots(shapeless.ingredients(), context);
             case FurnaceRecipeDisplay furnace -> singleSlot(furnace.ingredient(), context);
             case SmithingRecipeDisplay smithing -> smithingSlots(smithing, context);
             case StonecutterRecipeDisplay stonecutter -> singleSlot(stonecutter.input(), context);
             default -> Map.of();
         };
+    }
+
+    private static Map<String, List<String>> shapedGridSlots(ShapedCraftingRecipeDisplay shaped, ContextMap context) {
+        Map<String, List<String>> slots = new LinkedHashMap<>();
+        int width = shaped.width();
+        int height = shaped.height();
+        List<SlotDisplay> ingredients = shaped.ingredients();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                List<String> items = resolveSlotItems(ingredients.get(y * width + x), context);
+                if (!items.isEmpty()) slots.put(String.valueOf(y * 3 + x), items);
+            }
+        }
+        return slots;
     }
 
     private static Map<String, List<String>> indexedSlots(List<SlotDisplay> ingredients, ContextMap context) {

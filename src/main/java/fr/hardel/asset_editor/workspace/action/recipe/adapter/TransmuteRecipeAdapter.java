@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -44,6 +45,14 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     protected TransmuteRecipe doRebuild(TransmuteRecipe original, List<Optional<Ingredient>> ingredients) {
         Ingredient input = !ingredients.isEmpty() ? ingredients.get(0).orElse(original.input) : original.input;
         Ingredient material = ingredients.size() > 1 ? ingredients.get(1).orElse(original.material) : original.material;
+        return new TransmuteRecipe(original.group(), original.category(), input, material, original.result);
+    }
+
+    @Override
+    protected TransmuteRecipe doApplyPattern(TransmuteRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 2, helper);
+        Ingredient input = grid.get(0).orElse(original.input);
+        Ingredient material = grid.get(1).orElse(original.material);
         return new TransmuteRecipe(original.group(), original.category(), input, material, original.result);
     }
 

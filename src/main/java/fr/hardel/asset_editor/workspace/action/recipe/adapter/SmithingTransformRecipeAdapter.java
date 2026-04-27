@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.crafting.TransmuteResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class SmithingTransformRecipeAdapter extends RecipeAdapter<SmithingTransformRecipe> {
@@ -41,6 +43,15 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
         Optional<Ingredient> template = !ingredients.isEmpty() ? ingredients.get(0) : original.templateIngredient();
         Ingredient base = ingredients.size() > 1 ? ingredients.get(1).orElse(original.baseIngredient()) : original.baseIngredient();
         Optional<Ingredient> addition = ingredients.size() > 2 ? ingredients.get(2) : original.additionIngredient();
+        return new SmithingTransformRecipe(template, base, addition, original.result);
+    }
+
+    @Override
+    protected SmithingTransformRecipe doApplyPattern(SmithingTransformRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 3, helper);
+        Optional<Ingredient> template = grid.get(0);
+        Ingredient base = grid.get(1).orElse(original.baseIngredient());
+        Optional<Ingredient> addition = grid.get(2);
         return new SmithingTransformRecipe(template, base, addition, original.result);
     }
 

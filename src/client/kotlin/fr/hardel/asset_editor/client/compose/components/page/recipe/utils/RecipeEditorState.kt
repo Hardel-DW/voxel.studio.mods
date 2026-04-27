@@ -10,5 +10,6 @@ data class RecipeEditorState(
     val resultCountEnabled: Boolean,
     val onResultCountChange: (Int) -> Unit,
     val onResultItemChange: () -> Unit,
-    val onAction: (EditorAction<*>) -> Unit
+    val onAction: (EditorAction<*>) -> Unit,
+    val onSlotEdit: (SlotEdit) -> Unit
 )

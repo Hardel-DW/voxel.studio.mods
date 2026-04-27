@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.crafting.StonecutterRecipe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRecipe> {
@@ -38,6 +40,12 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
             ? original.input()
             : ingredients.getFirst().orElse(original.input());
 
+        return new StonecutterRecipe(original.group(), input, original.result().copy());
+    }
+
+    @Override
+    protected StonecutterRecipe doApplyPattern(StonecutterRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        Ingredient input = indexedSlots(slots, 1, helper).getFirst().orElse(original.input());
         return new StonecutterRecipe(original.group(), input, original.result().copy());
     }
 

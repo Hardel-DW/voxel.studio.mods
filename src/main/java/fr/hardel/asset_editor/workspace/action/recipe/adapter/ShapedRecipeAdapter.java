@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
@@ -37,10 +38,7 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
         ItemStack result,
         boolean showNotification
     ) {
-        List<Optional<Ingredient>> ingredients = expandIngredients(recipe);
-        BoundingBox box = computeBoundingBox(ingredients);
-        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, box);
-        return new ShapedRecipe(group, category, packPattern(shrunk, box.width()), result, showNotification);
+        return buildShaped(group, category, expandIngredients(recipe), result, showNotification);
     }
 
     private static List<Optional<Ingredient>> expandIngredients(ShapedRecipe recipe) {
@@ -61,6 +59,19 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
         return expanded;
     }
 
+    private static List<Optional<Ingredient>> padTo9(List<Optional<Ingredient>> ingredients) {
+        List<Optional<Ingredient>> padded = new ArrayList<>(9);
+        for (int i = 0; i < 9; i++) {
+            padded.add(i < ingredients.size() ? ingredients.get(i) : Optional.empty());
+        }
+        return padded;
+    }
+
+    private static ShapedRecipe buildShaped(String group, CraftingBookCategory category, List<Optional<Ingredient>> grid9, ItemStack result, boolean showNotification) {
+        BoundingBox box = computeBoundingBox(grid9);
+        return new ShapedRecipe(group, category, packPattern(extractRegion(grid9, box), box.width()), result, showNotification);
+    }
+
     @Override
     protected ItemStack doExtractResult(ShapedRecipe recipe) {
         return recipe.result.copy();
@@ -68,17 +79,9 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     protected ShapedRecipe doRebuild(ShapedRecipe original, List<Optional<Ingredient>> ingredients) {
-        List<Optional<Ingredient>> padded = new ArrayList<>(ingredients.subList(0, Math.min(ingredients.size(), 9)));
-        while (padded.size() < 9) {
-            padded.add(Optional.empty());
-        }
-
-        if (padded.stream().noneMatch(Optional::isPresent)) return original;
-
-        BoundingBox box = computeBoundingBox(padded);
-        List<Optional<Ingredient>> shrunk = extractRegion(padded, box);
-        ShapedRecipePattern pattern = packPattern(shrunk, box.width());
-        return new ShapedRecipe(original.group(), original.category(), pattern, original.result.copy(), original.showNotification());
+        List<Optional<Ingredient>> grid9 = padTo9(ingredients);
+        if (grid9.stream().noneMatch(Optional::isPresent)) return original;
+        return buildShaped(original.group(), original.category(), grid9, original.result.copy(), original.showNotification());
     }
 
     @Override
@@ -105,16 +108,7 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
 
     @Override
     protected ShapedRecipe doSetResultCount(ShapedRecipe recipe, int count) {
-        List<Optional<Ingredient>> ingredients = doExtractIngredients(recipe);
-        BoundingBox box = computeBoundingBox(ingredients);
-        List<Optional<Ingredient>> shrunk = extractRegion(ingredients, box);
-        return new ShapedRecipe(
-            recipe.group(),
-            recipe.category(),
-            packPattern(shrunk, box.width()),
-            recipe.result.copyWithCount(count),
-            recipe.showNotification()
-        );
+        return buildShaped(recipe.group(), recipe.category(), expandIngredients(recipe), recipe.result.copyWithCount(count), recipe.showNotification());
     }
 
     @Override
@@ -136,21 +130,20 @@ public final class ShapedRecipeAdapter extends RecipeAdapter<ShapedRecipe> {
     }
 
     @Override
+    protected ShapedRecipe doApplyPattern(ShapedRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 9, helper);
+        if (grid.stream().noneMatch(Optional::isPresent)) return original;
+        return buildShaped(original.group(), original.category(), grid, original.result.copy(), original.showNotification());
+    }
+
+    @Override
     public boolean supportsResultCount() {
         return true;
     }
 
     @Override
     public Recipe<?> buildFromGeneric(List<Optional<Ingredient>> ingredients, ItemStack result) {
-        List<Optional<Ingredient>> grid = new ArrayList<>(9);
-        for (int i = 0; i < 9; i++) {
-            grid.add(i < ingredients.size() ? ingredients.get(i) : Optional.empty());
-        }
-
-        BoundingBox box = computeBoundingBox(grid);
-        List<Optional<Ingredient>> shrunk = extractRegion(grid, box);
-        ShapedRecipePattern pattern = packPattern(shrunk, box.width());
-        return new ShapedRecipe("", CraftingBookCategory.MISC, pattern, result, true);
+        return buildShaped("", CraftingBookCategory.MISC, padTo9(ingredients), result, true);
     }
 
     private static ShapedRecipePattern packPattern(List<Optional<Ingredient>> ingredients, int width) {

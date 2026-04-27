@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
@@ -10,6 +11,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +50,10 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
         return doRebuild(recipeType.cast(recipe), ingredients);
     }
 
+    public final @Nullable Recipe<?> applyPattern(Recipe<?> recipe, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        return doApplyPattern(recipeType.cast(recipe), slots, helper);
+    }
+
     public final @Nullable Recipe<?> setResultCount(Recipe<?> recipe, int count) {
         return doSetResultCount(recipeType.cast(recipe), count);
     }
@@ -79,6 +85,8 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
     protected abstract ItemStack doExtractResult(T recipe);
 
     protected abstract T doRebuild(T original, List<Optional<Ingredient>> ingredients);
+
+    protected abstract @Nullable T doApplyPattern(T original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper);
 
     protected @Nullable T doSetResultCount(T recipe, int count) {
         return null;
@@ -134,5 +142,25 @@ public abstract class RecipeAdapter<T extends Recipe<?>> {
     private static int clampResultCount(Holder<Item> item, int count) {
         int maxCount = Math.min(new ItemStack(item).getMaxStackSize(), 99);
         return Math.max(1, Math.min(count, maxCount));
+    }
+
+    protected static List<Optional<Ingredient>> indexedSlots(Map<Integer, List<Identifier>> slots, int size, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            result.add(toIngredient(slots.get(i), helper));
+        }
+        return result;
+    }
+
+    protected static List<Ingredient> compactSlots(Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        return slots.entrySet().stream()
+            .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
+            .sorted(Map.Entry.comparingByKey())
+            .map(entry -> helper.toIngredient(entry.getValue()))
+            .toList();
+    }
+
+    private static Optional<Ingredient> toIngredient(@Nullable List<Identifier> items, RecipeIngredientHelper helper) {
+        return items == null || items.isEmpty() ? Optional.empty() : Optional.of(helper.toIngredient(items));
     }
 }
