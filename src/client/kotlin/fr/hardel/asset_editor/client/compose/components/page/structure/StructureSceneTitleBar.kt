@@ -2,7 +2,9 @@ package fr.hardel.asset_editor.client.compose.components.page.structure
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,7 +17,8 @@ import fr.hardel.asset_editor.client.compose.StudioTypography
 fun StructureSceneTitleBar(
     title: String,
     metrics: List<Pair<String, String>>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailing: (@Composable () -> Unit)? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -34,6 +37,12 @@ fun StructureSceneTitleBar(
             metrics.forEachIndexed { index, (value, label) ->
                 if (index > 0) OverlayDivider()
                 OverlayMetric(value, label)
+            }
+            if (trailing != null) {
+                Spacer(Modifier.width(4.dp))
+                OverlayDivider()
+                Spacer(Modifier.width(4.dp))
+                trailing()
             }
         }
     }

@@ -36,17 +36,23 @@ public final class StructureAssemblyResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureAssemblyResolver.class);
 
-    public static Optional<StructureAssemblySnapshot> resolve(MinecraftServer server, Identifier structureId) {
+    public static Optional<StructureAssemblySnapshot> resolve(MinecraftServer server, Identifier structureId, StructureAssemblyParameters explicitParameters) {
         ServerLevel overworld = server.overworld();
         if (overworld == null) {
             return Optional.empty();
         }
+
         Optional<Structure> structure = lookupStructure(server, structureId);
         if (structure.isEmpty()) {
             return Optional.empty();
         }
+
+        StructureAssemblyParameters parameters = explicitParameters != null
+            ? explicitParameters
+            : new StructureAssemblyParameters(overworld.getSeed(), 0, 0);
+
         try {
-            return assemble(server, overworld, structureId, structure.get());
+            return assemble(server, overworld, structureId, structure.get(), parameters);
         } catch (Exception exception) {
             LOGGER.warn("Failed to assemble worldgen structure {}", structureId, exception);
             return Optional.empty();
@@ -64,8 +70,9 @@ public final class StructureAssemblyResolver {
         MinecraftServer server,
         ServerLevel overworld,
         Identifier structureId,
-        Structure structure) {
-        Optional<PiecesContainer> container = generatePieces(server, overworld, structure);
+        Structure structure,
+        StructureAssemblyParameters parameters) {
+        Optional<PiecesContainer> container = generatePieces(server, overworld, structure, parameters);
         if (container.isEmpty()) {
             return Optional.empty();
         }
@@ -76,11 +83,10 @@ public final class StructureAssemblyResolver {
             absorbPiece(server, piece, pieceIndex, accumulator);
             pieceIndex++;
         }
-
-        return accumulator.toSnapshot(structureId, pieceIndex);
+        return accumulator.toSnapshot(structureId, parameters, pieceIndex);
     }
 
-    private static Optional<PiecesContainer> generatePieces(MinecraftServer server, ServerLevel overworld, Structure structure) {
+    private static Optional<PiecesContainer> generatePieces(MinecraftServer server, ServerLevel overworld, Structure structure, StructureAssemblyParameters parameters) {
         RegistryAccess access = server.registryAccess();
         Predicate<Holder<Biome>> anyBiome = biome -> true;
         Structure.GenerationContext context = new Structure.GenerationContext(
@@ -89,10 +95,11 @@ public final class StructureAssemblyResolver {
             overworld.getChunkSource().getGenerator().getBiomeSource(),
             overworld.getChunkSource().randomState(),
             server.getStructureManager(),
-            overworld.getSeed(),
-            new ChunkPos(0, 0),
+            parameters.seed(),
+            new ChunkPos(parameters.chunkX(), parameters.chunkZ()),
             overworld,
             anyBiome);
+
         return structure.findValidGenerationPoint(context)
             .map(stub -> stub.getPiecesBuilder().build())
             .filter(c -> !c.isEmpty());
@@ -103,6 +110,7 @@ public final class StructureAssemblyResolver {
         if (pieceTemplate == null) {
             return;
         }
+
         StructureTemplateSnapshot template = StructureTemplateRepository.get()
             .resolve(server, pieceTemplate.templateId())
             .orElse(null);
@@ -123,11 +131,7 @@ public final class StructureAssemblyResolver {
         Rotation rotation = pieceTemplate.rotation();
         BlockPos origin = pieceTemplate.position();
         for (StructureBlockVoxel voxel : template.voxels()) {
-            BlockPos rotated = StructureTemplate.transform(
-                new BlockPos(voxel.x(), voxel.y(), voxel.z()),
-                Mirror.NONE,
-                rotation,
-                BlockPos.ZERO);
+            BlockPos rotated = StructureTemplate.transform(new BlockPos(voxel.x(), voxel.y(), voxel.z()), Mirror.NONE, rotation, BlockPos.ZERO);
             int wx = origin.getX() + rotated.getX();
             int wy = origin.getY() + rotated.getY();
             int wz = origin.getZ() + rotated.getZ();
@@ -142,6 +146,7 @@ public final class StructureAssemblyResolver {
             if (piece instanceof PoolElementStructurePiece pool && pool.element instanceof SinglePoolElement single) {
                 return Optional.of(new PieceTemplate(single.getTemplateLocation(), pool.position, pool.rotation));
             }
+
             if (piece instanceof TemplateStructurePiece template) {
                 return Optional.of(new PieceTemplate(
                     template.makeTemplateLocation(),
@@ -196,14 +201,16 @@ public final class StructureAssemblyResolver {
             }
         }
 
-        Optional<StructureAssemblySnapshot> toSnapshot(Identifier structureId, int pieceCount) {
+        Optional<StructureAssemblySnapshot> toSnapshot(Identifier structureId, StructureAssemblyParameters parameters, int pieceCount) {
             if (voxels.isEmpty()) {
                 return Optional.empty();
             }
+
             int dx = minX, dy = minY, dz = minZ;
             List<StructureAssemblyVoxel> normalizedVoxels = voxels.stream()
                 .map(v -> new StructureAssemblyVoxel(v.blockId(), v.blockStateId(), v.x() - dx, v.y() - dy, v.z() - dz, v.pieceIndex(), v.finalStateId()))
                 .toList();
+
             List<StructurePieceBox> normalizedBoxes = pieceBoxes.stream()
                 .map(b -> new StructurePieceBox(
                     b.templateId(),
@@ -211,20 +218,13 @@ public final class StructureAssemblyResolver {
                     b.minX() - dx, b.minY() - dy, b.minZ() - dz,
                     b.maxX() - dx, b.maxY() - dy, b.maxZ() - dz))
                 .toList();
+
             List<StructureBlockCount> blockCounts = aggregatedCounts.entrySet().stream()
                 .sorted(Map.Entry.<Identifier, Integer> comparingByValue().reversed().thenComparing(entry -> entry.getKey().toString()))
                 .map(entry -> new StructureBlockCount(entry.getKey(), entry.getValue()))
                 .toList();
-            return Optional.of(new StructureAssemblySnapshot(
-                structureId,
-                maxX - minX + 1,
-                maxY - minY + 1,
-                maxZ - minZ + 1,
-                pieceCount,
-                totalBlocks,
-                blockCounts,
-                normalizedVoxels,
-                normalizedBoxes));
+
+            return Optional.of(new StructureAssemblySnapshot(structureId, parameters, maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1, pieceCount, totalBlocks, blockCounts, normalizedVoxels, normalizedBoxes));
         }
     }
 

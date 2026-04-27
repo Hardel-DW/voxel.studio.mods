@@ -7,17 +7,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
-public record StructureAssemblySnapshot(
-    Identifier id,
-    int sizeX,
-    int sizeY,
-    int sizeZ,
-    int pieceCount,
-    int totalBlocks,
-    List<StructureBlockCount> blockCounts,
-    List<StructureAssemblyVoxel> voxels,
-    List<StructurePieceBox> pieceBoxes
-) {
+public record StructureAssemblySnapshot(Identifier id, StructureAssemblyParameters parameters, int sizeX, int sizeY, int sizeZ, int pieceCount, int totalBlocks, List<StructureBlockCount> blockCounts, List<StructureAssemblyVoxel> voxels, List<StructurePieceBox> pieceBoxes) {
     public StructureAssemblySnapshot {
         blockCounts = List.copyOf(blockCounts == null ? List.of() : blockCounts);
         voxels = List.copyOf(voxels == null ? List.of() : voxels);
@@ -26,6 +16,7 @@ public record StructureAssemblySnapshot(
 
     public static final StreamCodec<ByteBuf, StructureAssemblySnapshot> STREAM_CODEC = StreamCodec.composite(
         Identifier.STREAM_CODEC, StructureAssemblySnapshot::id,
+        StructureAssemblyParameters.STREAM_CODEC, StructureAssemblySnapshot::parameters,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeX,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeY,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeZ,

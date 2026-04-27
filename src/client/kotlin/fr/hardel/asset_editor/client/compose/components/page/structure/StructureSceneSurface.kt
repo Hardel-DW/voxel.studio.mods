@@ -30,7 +30,7 @@ fun StructureSceneSurface(
         buildVoxels(subject, filters)
     }
 
-    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight) {
+    val staticKey = remember(subject, filters.showJigsaws, filters.highlight) {
         buildStaticKey(subject, filters)
     }
 
@@ -110,6 +110,12 @@ private fun buildRequest(
 private fun buildStaticKey(subject: StructureSceneSubject, filters: StructureSceneFilters): String = buildString {
     append(if (subject is StructureSceneSubject.Assembly) "asm" else "tpl").append('|')
     append(subject.id).append('|')
+    if (subject is StructureSceneSubject.Assembly) {
+        val params = subject.assembly.parameters()
+        append(params.seed()).append(':')
+        append(params.chunkX()).append(':')
+        append(params.chunkZ()).append('|')
+    }
     append(filters.showJigsaws).append('|')
     append(filters.highlight.orEmpty())
 }

@@ -205,8 +205,9 @@ public final class AssetEditorNetworking {
 
     private static void handleStructureAssemblyRequest(StructureAssemblyRequestPayload payload, ServerPlayNetworking.Context context) {
         context.server().execute(() -> {
-            var snapshot = StructureAssemblyResolver.resolve(context.server(), payload.structureId());
-            ServerPlayNetworking.send(context.player(), new StructureAssemblyResponsePayload(payload.structureId(), snapshot));
+            var explicit = payload.parameters().orElse(null);
+            var snapshot = StructureAssemblyResolver.resolve(context.server(), payload.structureId(), explicit);
+            ServerPlayNetworking.send(context.player(), new StructureAssemblyResponsePayload(payload.structureId(), payload.parameters(), snapshot));
         });
     }
 
