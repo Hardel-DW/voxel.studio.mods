@@ -9,7 +9,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.scene.GridBounds
 import fr.hardel.asset_editor.client.compose.components.ui.scene.IsometricGrid
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCanvas
-import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DState
+import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DStateMemory
 import fr.hardel.asset_editor.network.structure.StructurePieceBox
 import kotlin.math.max
 import net.minecraft.resources.Identifier
@@ -25,7 +25,10 @@ fun StructureSceneArea(
     showPoolBoxes: Boolean = false,
     onPieceSelected: ((Identifier) -> Unit)? = null
 ) {
-    val state = remember(subject.id) { Scene3DState(defaultCamera(subject)) }
+    val stateKey = remember(subject.id) { subject.id.toString() }
+    val state = remember(stateKey) {
+        Scene3DStateMemory.obtain(stateKey) { defaultCamera(subject) }
+    }
     val bounds = remember(subject.id, subject.sizeX, subject.sizeY, subject.sizeZ) {
         GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ)
     }
@@ -38,7 +41,7 @@ fun StructureSceneArea(
     }
 
     val filters = StructureSceneFilters(
-        displayedStage = if (subject.stageCount > 0) selectedStage else Int.MAX_VALUE,
+        displayedStage = if (subject.stageCount > 0) selectedStage else 1,
         sliceY = sliceY,
         showJigsaws = showJigsaws,
         highlight = highlight
@@ -50,6 +53,7 @@ fun StructureSceneArea(
         state = state,
         inputKey = subject.id,
         modifier = modifier,
+        zoomOnCursor = StructureUiState.zoomOnCursor,
         overlay = {
             IsometricGrid(state = state, bounds = bounds, modifier = Modifier.fillMaxSize())
         },

@@ -14,8 +14,8 @@ import kotlin.math.sin
 
 private const val INERTIA_DAMPING = 7.5f
 private const val MIN_VELOCITY = 1f
-private const val MIN_ZOOM = 0.02f
-private const val MAX_ZOOM = 2048f
+private const val MIN_ZOOM = 0.005f
+private const val MAX_ZOOM = 8192f
 private const val MAX_PITCH = 89f
 
 data class Scene3DFrame(val image: ImageBitmap, val camera: Scene3DCamera)
@@ -60,18 +60,13 @@ class Scene3DState(initialCamera: Scene3DCamera) {
         velPanY = deltaY / deltaSeconds
     }
 
-    /**
-     * Minecraft-style world-aware translation: [forward]/[right] move along the camera's horizontal
-     * axes (XZ plane, ignoring pitch tilt), [up] moves along the world Y axis. Inputs are world-step
-     * units; the resulting screen pan factors in zoom and pitch so the visual feel stays consistent.
-     */
     fun applyKeyboardMove(forward: Float, right: Float, up: Float, deltaSeconds: Float) {
         if (forward == 0f && right == 0f && up == 0f) return
         val pitchRad = Math.toRadians(camera.pitch.toDouble()).toFloat()
         val sinPitch = sin(pitchRad)
         val cosPitch = cos(pitchRad)
         val deltaX = -right * camera.zoom
-        val deltaY = (forward * sinPitch + up * cosPitch) * camera.zoom
+        val deltaY = (up * cosPitch - forward * sinPitch) * camera.zoom
         applyPan(deltaX, deltaY, deltaSeconds)
     }
 
@@ -87,6 +82,11 @@ class Scene3DState(initialCamera: Scene3DCamera) {
             panX = localX - applied * (localX - cur.panX),
             panY = localY - applied * (localY - cur.panY)
         )
+    }
+
+    fun applyZoomCentered(factor: Float) {
+        val center = Offset(viewport.width * 0.5f, viewport.height * 0.5f)
+        applyZoom(factor, center)
     }
 
     fun tickInertia(deltaSeconds: Float) {

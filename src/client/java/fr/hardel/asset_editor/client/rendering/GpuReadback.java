@@ -5,14 +5,14 @@ import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.textures.GpuTexture;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 
-/**
- * Asynchronous read-back of an RGBA8 GPU texture into an ARGB {@code int[]} array.
- * The source bytes are packed as {@code 0xAARRGGBB}; {@code flipY} reverses the row
- * order so the result matches the top-left origin expected by Skia / Compose images.
- */
+/** Async read-back of an RGBA8 GPU texture into an ARGB {@code int[]}; result arrays come from a small pool. */
 public final class GpuReadback {
+
+    private static final int POOL_MAX_ENTRIES = 4;
+    private static final ConcurrentLinkedDeque<int[]> arrayPool = new ConcurrentLinkedDeque<>();
 
     public static void readArgb(
         GpuDevice device,
@@ -40,8 +40,19 @@ public final class GpuReadback {
         }, 0);
     }
 
+    public static void recycle(int[] argb) {
+        if (argb == null) return;
+        if (arrayPool.size() < POOL_MAX_ENTRIES) arrayPool.offer(argb);
+    }
+
+    private static int[] borrow(int size) {
+        int[] candidate = arrayPool.poll();
+        if (candidate != null && candidate.length == size) return candidate;
+        return new int[size];
+    }
+
     private static int[] packArgb(ByteBuffer pixels, int width, int height, boolean flipY) {
-        int[] argb = new int[width * height];
+        int[] argb = borrow(width * height);
         for (int srcY = 0; srcY < height; srcY++) {
             int dstY = flipY ? height - 1 - srcY : srcY;
             int srcRow = srcY * width;

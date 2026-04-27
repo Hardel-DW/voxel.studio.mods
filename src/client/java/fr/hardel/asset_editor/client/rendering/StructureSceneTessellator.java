@@ -26,39 +26,42 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * CPU-side mesh build for the structure scene. Voxels are tessellated per Y level in two
- * variants: {@code stack} sees the full structure for occlusion (hidden faces culled), {@code expose}
- * truncates above the layer so the slice top reveals interior faces.
- */
+/** CPU mesh build per (pieceIndex, y) cell: {@code stack} = full occlusion, {@code expose} = truncated for slice reveal. */
 final class StructureSceneTessellator {
 
     static final StaticMesh EMPTY_STATIC = new StaticMesh(Map.of(), Map.of());
 
     static StaticMesh tessellateStatic(StructureSceneRenderer.Request request) {
-        Map<Integer, List<StructureSceneRenderer.Voxel>> byY = new HashMap<>();
-        for (StructureSceneRenderer.Voxel v : request.voxels()) {
-            byY.computeIfAbsent(v.y(), k -> new ArrayList<>()).add(v);
-        }
-        if (byY.isEmpty()) return EMPTY_STATIC;
+        Map<Cell, List<StructureSceneRenderer.Voxel>> grouped = groupByPieceAndY(request.voxels());
+        if (grouped.isEmpty()) return EMPTY_STATIC;
 
         StructureBlockView fullLevel = new StructureBlockView(request.voxels(), request.sizeY(), Integer.MAX_VALUE);
-        Map<Integer, List<CompiledLayer>> stackByY = new HashMap<>();
-        Map<Integer, List<CompiledLayer>> exposeByY = new HashMap<>();
-
         BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
         RandomSource random = RandomSource.create();
         List<BlockModelPart> parts = new ArrayList<>();
 
-        for (Map.Entry<Integer, List<StructureSceneRenderer.Voxel>> entry : byY.entrySet()) {
-            int y = entry.getKey();
-            List<StructureSceneRenderer.Voxel> voxelsAtY = entry.getValue();
-            stackByY.put(y, tessellateLayer(voxelsAtY, fullLevel, dispatcher, random, parts));
-            StructureBlockView truncated = new StructureBlockView(request.voxels(), request.sizeY(), y);
-            exposeByY.put(y, tessellateLayer(voxelsAtY, truncated, dispatcher, random, parts));
+        Map<Cell, List<CompiledLayer>> stack = new HashMap<>();
+        Map<Cell, List<CompiledLayer>> expose = new HashMap<>();
+        Map<Integer, StructureBlockView> truncatedByY = new HashMap<>();
+
+        for (Map.Entry<Cell, List<StructureSceneRenderer.Voxel>> entry : grouped.entrySet()) {
+            Cell cell = entry.getKey();
+            List<StructureSceneRenderer.Voxel> bucket = entry.getValue();
+            stack.put(cell, tessellateLayer(bucket, fullLevel, dispatcher, random, parts));
+            BlockAndTintGetter truncated = truncatedByY.computeIfAbsent(cell.y,
+                y -> new StructureBlockView(request.voxels(), request.sizeY(), y));
+            expose.put(cell, tessellateLayer(bucket, truncated, dispatcher, random, parts));
         }
 
-        return new StaticMesh(stackByY, exposeByY);
+        return new StaticMesh(stack, expose);
+    }
+
+    private static Map<Cell, List<StructureSceneRenderer.Voxel>> groupByPieceAndY(List<StructureSceneRenderer.Voxel> voxels) {
+        Map<Cell, List<StructureSceneRenderer.Voxel>> grouped = new HashMap<>();
+        for (StructureSceneRenderer.Voxel v : voxels) {
+            grouped.computeIfAbsent(new Cell(v.pieceIndex(), v.y()), k -> new ArrayList<>()).add(v);
+        }
+        return grouped;
     }
 
     private static List<CompiledLayer> tessellateLayer(
@@ -121,19 +124,21 @@ final class StructureSceneTessellator {
         return state == null ? Blocks.AIR.defaultBlockState() : state;
     }
 
-    static final class StaticMesh implements AutoCloseable {
-        final Map<Integer, List<CompiledLayer>> stackByY;
-        final Map<Integer, List<CompiledLayer>> exposeByY;
+    record Cell(int pieceIndex, int y) {}
 
-        StaticMesh(Map<Integer, List<CompiledLayer>> stackByY, Map<Integer, List<CompiledLayer>> exposeByY) {
-            this.stackByY = stackByY;
-            this.exposeByY = exposeByY;
+    static final class StaticMesh implements AutoCloseable {
+        final Map<Cell, List<CompiledLayer>> stackByCell;
+        final Map<Cell, List<CompiledLayer>> exposeByCell;
+
+        StaticMesh(Map<Cell, List<CompiledLayer>> stackByCell, Map<Cell, List<CompiledLayer>> exposeByCell) {
+            this.stackByCell = stackByCell;
+            this.exposeByCell = exposeByCell;
         }
 
         @Override
         public void close() {
-            closeAll(stackByY.values());
-            closeAll(exposeByY.values());
+            closeAll(stackByCell.values());
+            closeAll(exposeByCell.values());
         }
 
         private static void closeAll(Iterable<List<CompiledLayer>> groups) {

@@ -60,6 +60,8 @@ fun StructureSceneScaffold(
             showPoolToggle = showStageControls,
             showPoolBoxes = showPoolBoxes,
             onShowPoolBoxesChange = { showPoolBoxes = it },
+            zoomOnCursor = StructureUiState.zoomOnCursor,
+            onZoomOnCursorChange = { StructureUiState.zoomOnCursor = it },
             onReset = { StructureCameraReset.requestReset() },
             modifier = Modifier
                 .align(Alignment.BottomCenter)

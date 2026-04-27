@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.function.Consumer;
 
+import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.Cell;
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.CompiledLayer;
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.StaticMesh;
 
@@ -28,6 +29,10 @@ final class StructureSceneFrameDrawer {
     private static final int MAX_HEIGHT = 4096;
     private static final float NEAR_PLANE = -32768.0F;
     private static final float FAR_PLANE = 32768.0F;
+    private static final int DRAW_BUFFER_INITIAL_CAPACITY = 524288;
+
+    private static final ThreadLocal<ByteBufferBuilder> drawBuilder =
+        ThreadLocal.withInitial(() -> new ByteBufferBuilder(DRAW_BUFFER_INITIAL_CAPACITY));
 
     static void drawAndReadback(
         StructureSceneRenderer.Request request,
@@ -72,16 +77,22 @@ final class StructureSceneFrameDrawer {
     }
 
     private static void drawScene(StaticMesh staticMesh, StructureSceneRenderer.Request request, int width, int height) {
-        if (staticMesh.stackByY.isEmpty() && staticMesh.exposeByY.isEmpty()) return;
+        if (staticMesh.stackByCell.isEmpty() && staticMesh.exposeByCell.isEmpty()) return;
+
+        int sliceY = request.sliceY();
+        if (sliceY < 0) return;
+
+        int displayedStage = Math.max(0, request.displayedStage());
+        if (displayedStage == 0) return;
 
         Matrix4fStack mvm = RenderSystem.getModelViewStack();
         mvm.pushMatrix();
         applyCameraToMvm(mvm, request, width, height);
         try {
-            int sliceY = request.sliceY();
-            if (sliceY < 0) return;
-            for (int y = 0; y < sliceY; y++) drawAll(staticMesh.stackByY.get(y));
-            drawAll(staticMesh.exposeByY.get(sliceY));
+            for (int p = 0; p < displayedStage; p++) {
+                for (int y = 0; y < sliceY; y++) drawAll(staticMesh.stackByCell.get(new Cell(p, y)));
+                drawAll(staticMesh.exposeByCell.get(new Cell(p, sliceY)));
+            }
         } finally {
             mvm.popMatrix();
         }
@@ -95,16 +106,16 @@ final class StructureSceneFrameDrawer {
     private static void drawLayer(CompiledLayer layer) {
         int size = layer.vertexBytes.remaining();
         if (size == 0) return;
-        ByteBufferBuilder builder = new ByteBufferBuilder(size);
+        ByteBufferBuilder builder = drawBuilder.get();
+        long ptr = builder.reserve(size);
+        ByteBuffer target = MemoryUtil.memByteBuffer(ptr, size);
+        target.put(layer.vertexBytes.duplicate());
+        ByteBufferBuilder.Result result = builder.build();
+        if (result == null) return;
         try {
-            long ptr = builder.reserve(size);
-            ByteBuffer target = MemoryUtil.memByteBuffer(ptr, size);
-            target.put(layer.vertexBytes.duplicate());
-            ByteBufferBuilder.Result result = builder.build();
-            if (result == null) return;
             layer.renderType.draw(new MeshData(result, layer.drawState));
         } finally {
-            builder.close();
+            result.close();
         }
     }
 

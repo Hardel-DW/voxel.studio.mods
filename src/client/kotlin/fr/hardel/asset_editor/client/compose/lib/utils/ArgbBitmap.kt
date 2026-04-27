@@ -2,6 +2,7 @@ package fr.hardel.asset_editor.client.compose.lib.utils
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import fr.hardel.asset_editor.client.rendering.GpuReadback
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorType
@@ -39,5 +40,6 @@ fun argbPixelsToImageBitmap(argbPixels: IntArray, width: Int, height: Int): Imag
         return Image.makeRaster(info, pixels, width * 4).toComposeImageBitmap()
     } finally {
         releaseBytes(pixels)
+        GpuReadback.recycle(argbPixels)
     }
 }

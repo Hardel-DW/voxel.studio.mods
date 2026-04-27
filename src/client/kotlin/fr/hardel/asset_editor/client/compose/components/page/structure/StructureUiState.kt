@@ -18,6 +18,7 @@ enum class StructureViewMode(val id: String) {
 
 object StructureUiState {
     var viewMode: StructureViewMode by mutableStateOf(StructureViewMode.PIECES)
+    var zoomOnCursor: Boolean by mutableStateOf(true)
 }
 
 object StructureCameraReset {

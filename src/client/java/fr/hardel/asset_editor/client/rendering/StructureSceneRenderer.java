@@ -15,12 +15,7 @@ import java.util.function.Consumer;
 
 import fr.hardel.asset_editor.client.rendering.StructureSceneTessellator.StaticMesh;
 
-/**
- * Off-screen scene renderer for the Structure viewer. Static voxels are cached per Y level
- * (stack/expose variants) so the slice slider is free at draw time. Tessellation runs in a
- * background thread via {@link BackgroundTessQueue}; the GPU draw + read-back happens inside
- * {@link #tick()} on the render thread.
- */
+/** Off-screen renderer for the Structure viewer; slice and displayed stage are draw-time filters, no rebuild needed. */
 public final class StructureSceneRenderer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StructureSceneRenderer.class);
@@ -42,7 +37,7 @@ public final class StructureSceneRenderer {
 
     public record Camera(float yaw, float pitch, float zoom, float panX, float panY) {}
 
-    public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, boolean highlighted) {}
+    public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, int pieceIndex, boolean highlighted) {}
 
     public record Request(
         String key, String staticKey,
@@ -50,6 +45,7 @@ public final class StructureSceneRenderer {
         int sizeX, int sizeY, int sizeZ,
         List<Voxel> voxels,
         int sliceY,
+        int displayedStage,
         Camera camera
     ) {}
 

@@ -20,6 +20,8 @@ private val RECENTER_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, 
 fun StructureBottomOverlay(
     showJigsaws: Boolean,
     onShowJigsawsChange: (Boolean) -> Unit,
+    zoomOnCursor: Boolean,
+    onZoomOnCursorChange: (Boolean) -> Unit,
     onReset: () -> Unit,
     modifier: Modifier = Modifier,
     showStageControls: Boolean = false,
@@ -58,6 +60,12 @@ fun StructureBottomOverlay(
                 onCheckedChange = onShowPoolBoxesChange
             )
         }
+        Spacer(Modifier.width(12.dp))
+        OverlayCheckbox(
+            label = I18n.get("structure:overlay.zoom_on_cursor"),
+            checked = zoomOnCursor,
+            onCheckedChange = onZoomOnCursorChange
+        )
         Spacer(Modifier.width(12.dp))
         OverlayDivider()
         Spacer(Modifier.width(8.dp))

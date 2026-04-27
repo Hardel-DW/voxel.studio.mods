@@ -26,11 +26,11 @@ fun StructureSceneSurface(
 ) {
     val pendingCameras = remember(subject.id) { boundedCameraCache() }
 
-    val voxels = remember(subject, filters.showJigsaws, filters.highlight, filters.displayedStage) {
+    val voxels = remember(subject, filters.showJigsaws, filters.highlight) {
         buildVoxels(subject, filters)
     }
 
-    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight, filters.displayedStage) {
+    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight) {
         buildStaticKey(subject, filters)
     }
 
@@ -43,7 +43,7 @@ fun StructureSceneSurface(
         onDispose(subscription::run)
     }
 
-    LaunchedEffect(subject.id, staticKey, filters.sliceY) {
+    LaunchedEffect(subject.id, staticKey, filters.sliceY, filters.displayedStage) {
         snapshotFlow {
             val viewport = state.viewport
             if (viewport.width < 16 || viewport.height < 16) return@snapshotFlow null
@@ -69,7 +69,6 @@ private fun StructureSceneRenderer.Request.cameraSnapshot(): Scene3DCamera =
 private fun buildVoxels(subject: StructureSceneSubject, filters: StructureSceneFilters): List<StructureSceneRenderer.Voxel> {
     val out = ArrayList<StructureSceneRenderer.Voxel>()
     subject.forEachVoxel { blockId, blockStateId, x, y, z, stage, finalStateId ->
-        if (stage >= filters.displayedStage) return@forEachVoxel
         var resolvedBlockId = blockId
         var resolvedStateId = blockStateId
         if (!filters.showJigsaws && blockId == JIGSAW_ID) {
@@ -79,7 +78,7 @@ private fun buildVoxels(subject: StructureSceneSubject, filters: StructureSceneF
         }
 
         val highlighted = filters.highlight != null && resolvedBlockId.toString().contains(filters.highlight, ignoreCase = true)
-        out.add(StructureSceneRenderer.Voxel(resolvedBlockId, resolvedStateId, x, y, z, highlighted))
+        out.add(StructureSceneRenderer.Voxel(resolvedBlockId, resolvedStateId, x, y, z, stage, highlighted))
     }
     return out
 }
@@ -92,7 +91,7 @@ private fun buildRequest(
     camera: Scene3DCamera,
     viewport: IntSize
 ): StructureSceneRenderer.Request {
-    val key = sceneKey(staticKey, filters.sliceY, camera, viewport)
+    val key = sceneKey(staticKey, filters.sliceY, filters.displayedStage, camera, viewport)
     return StructureSceneRenderer.Request(
         key,
         staticKey,
@@ -103,6 +102,7 @@ private fun buildRequest(
         subject.sizeZ,
         voxels,
         filters.sliceY,
+        filters.displayedStage,
         StructureSceneRenderer.Camera(camera.yaw, camera.pitch, camera.zoom, camera.panX, camera.panY)
     )
 }
@@ -110,7 +110,6 @@ private fun buildRequest(
 private fun buildStaticKey(subject: StructureSceneSubject, filters: StructureSceneFilters): String = buildString {
     append(if (subject is StructureSceneSubject.Assembly) "asm" else "tpl").append('|')
     append(subject.id).append('|')
-    append(filters.displayedStage).append('|')
     append(filters.showJigsaws).append('|')
     append(filters.highlight.orEmpty())
 }
@@ -118,11 +117,13 @@ private fun buildStaticKey(subject: StructureSceneSubject, filters: StructureSce
 private fun sceneKey(
     staticKey: String,
     sliceY: Int,
+    displayedStage: Int,
     camera: Scene3DCamera,
     viewport: IntSize
 ): String = buildString {
     append(staticKey).append('|')
     append(sliceY).append('|')
+    append(displayedStage).append('|')
     append(viewport.width).append('x').append(viewport.height).append('|')
     append(encode(camera.yaw)).append(':')
     append(encode(camera.pitch)).append(':')
