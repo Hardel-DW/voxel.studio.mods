@@ -4,6 +4,7 @@
     "package": "fr.hardel.asset_editor.mixin.client",
     "compatibilityLevel": "JAVA_21",
     "client": [
+        "FramerateLimitTrackerMixin",
         "GameRendererMixin",
         "TextureAtlasAccessor"
     ],

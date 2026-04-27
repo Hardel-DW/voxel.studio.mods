@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.window
 
+import fr.hardel.asset_editor.client.StudioActivityTracker
 import fr.hardel.asset_editor.client.splash.SplashAssets
 import java.awt.Color
 import java.awt.Component
@@ -97,12 +98,14 @@ abstract class StageWindow(
     protected fun showWindow() {
         val current = frame ?: return
         if (!current.isVisible) current.isVisible = true
+        StudioActivityTracker.markVisible()
         current.toFront()
         current.requestFocus()
         WindowsTitleBar.apply(current, titleBarColor)
     }
 
     protected fun hideWindow() {
+        StudioActivityTracker.markHidden()
         frame?.isVisible = false
     }
 
@@ -160,11 +163,25 @@ abstract class StageWindow(
         }
 
         createdFrame.addWindowListener(object : WindowAdapter() {
+            override fun windowOpened(event: WindowEvent) = StudioActivityTracker.markVisible()
+
+            override fun windowClosing(event: WindowEvent) = StudioActivityTracker.markHidden()
+
             override fun windowClosed(event: WindowEvent) {
+                StudioActivityTracker.markHidden()
                 if (frame === createdFrame) frame = null
             }
 
-            override fun windowActivated(event: WindowEvent) = onWindowFocused()
+            override fun windowActivated(event: WindowEvent) {
+                StudioActivityTracker.markFocused()
+                onWindowFocused()
+            }
+
+            override fun windowDeactivated(event: WindowEvent) = StudioActivityTracker.markUnfocused()
+
+            override fun windowIconified(event: WindowEvent) = StudioActivityTracker.markHidden()
+
+            override fun windowDeiconified(event: WindowEvent) = StudioActivityTracker.markVisible()
         })
 
         frame = createdFrame
