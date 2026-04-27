@@ -77,7 +77,7 @@ final class StructureSceneFrameDrawer {
     }
 
     private static void drawScene(StaticMesh staticMesh, StructureSceneRenderer.Request request, int width, int height) {
-        if (staticMesh.stackByCell.isEmpty() && staticMesh.exposeByCell.isEmpty()) return;
+        if (staticMesh.stackByCell.isEmpty() && staticMesh.exposeByCell.isEmpty() && staticMesh.linesByPiece.isEmpty()) return;
 
         int sliceY = request.sliceY();
         if (sliceY < 0) return;
@@ -92,6 +92,12 @@ final class StructureSceneFrameDrawer {
             for (int p = 0; p < displayedStage; p++) {
                 for (int y = 0; y < sliceY; y++) drawAll(staticMesh.stackByCell.get(new Cell(p, y)));
                 drawAll(staticMesh.exposeByCell.get(new Cell(p, sliceY)));
+            }
+            if (request.showPoolBoxes() && !staticMesh.linesByPiece.isEmpty()) {
+                for (int p = 0; p < displayedStage; p++) {
+                    CompiledLayer lines = staticMesh.linesByPiece.get(p);
+                    if (lines != null) drawLayer(lines);
+                }
             }
         } finally {
             mvm.popMatrix();

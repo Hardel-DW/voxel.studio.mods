@@ -39,13 +39,17 @@ public final class StructureSceneRenderer {
 
     public record Voxel(Identifier blockId, int blockStateId, int x, int y, int z, int pieceIndex, boolean highlighted) {}
 
+    public record PieceBox(int pieceIndex, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {}
+
     public record Request(
         String key, String staticKey,
         int width, int height,
         int sizeX, int sizeY, int sizeZ,
         List<Voxel> voxels,
+        List<PieceBox> pieceBoxes,
         int sliceY,
         int displayedStage,
+        boolean showPoolBoxes,
         Camera camera
     ) {}
 
@@ -87,7 +91,7 @@ public final class StructureSceneRenderer {
     private static void render(Request request) {
         staticTess.drainCompletedTo(StructureSceneRenderer::installStatic);
 
-        boolean wantStatic = !request.voxels().isEmpty();
+        boolean wantStatic = !request.voxels().isEmpty() || !request.pieceBoxes().isEmpty();
         StaticMesh staticMesh = wantStatic ? staticCache.get(request.staticKey().hashCode()) : StructureSceneTessellator.EMPTY_STATIC;
 
         if (wantStatic && staticMesh == null) {
