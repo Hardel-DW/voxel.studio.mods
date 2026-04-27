@@ -31,13 +31,11 @@ import java.util.Map;
 // Backface culling at draw time prevents z-fighting when both pieces are visible.
 final class StructureSceneTessellator {
 
-    static final StaticMesh EMPTY_STATIC = new StaticMesh(Map.of(), Map.of(), Map.of());
+    static final StaticMesh EMPTY_STATIC = new StaticMesh(Map.of(), Map.of());
 
     static StaticMesh tessellateStatic(StructureSceneRenderer.Request request) {
-        Map<Integer, CompiledLayer> linesByPiece = StructureSceneLineTessellator.tessellate(request.pieceBoxes());
-
         Map<Cell, List<StructureSceneRenderer.Voxel>> grouped = groupByPieceAndY(request.voxels());
-        if (grouped.isEmpty()) return new StaticMesh(Map.of(), Map.of(), linesByPiece);
+        if (grouped.isEmpty()) return EMPTY_STATIC;
 
         Map<Integer, Map<Long, BlockState>> stateMapByPiece = new HashMap<>();
         for (StructureSceneRenderer.Voxel v : request.voxels()) {
@@ -68,7 +66,7 @@ final class StructureSceneTessellator {
             expose.put(cell, tessellateLayer(bucket, pieceTruncated, dispatcher, random, parts));
         }
 
-        return new StaticMesh(stack, expose, linesByPiece);
+        return new StaticMesh(stack, expose);
     }
 
     private static Map<Cell, List<StructureSceneRenderer.Voxel>> groupByPieceAndY(List<StructureSceneRenderer.Voxel> voxels) {
@@ -144,21 +142,16 @@ final class StructureSceneTessellator {
     static final class StaticMesh implements AutoCloseable {
         final Map<Cell, List<CompiledLayer>> stackByCell;
         final Map<Cell, List<CompiledLayer>> exposeByCell;
-        final Map<Integer, CompiledLayer> linesByPiece;
 
-        StaticMesh(Map<Cell, List<CompiledLayer>> stackByCell,
-                   Map<Cell, List<CompiledLayer>> exposeByCell,
-                   Map<Integer, CompiledLayer> linesByPiece) {
+        StaticMesh(Map<Cell, List<CompiledLayer>> stackByCell, Map<Cell, List<CompiledLayer>> exposeByCell) {
             this.stackByCell = stackByCell;
             this.exposeByCell = exposeByCell;
-            this.linesByPiece = linesByPiece;
         }
 
         @Override
         public void close() {
             closeAll(stackByCell.values());
             closeAll(exposeByCell.values());
-            for (CompiledLayer l : linesByPiece.values()) l.close();
         }
 
         private static void closeAll(Iterable<List<CompiledLayer>> groups) {

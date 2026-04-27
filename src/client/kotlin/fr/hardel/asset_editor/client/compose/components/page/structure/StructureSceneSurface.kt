@@ -10,7 +10,6 @@ import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DState
 import fr.hardel.asset_editor.client.compose.lib.StructureSceneBridge
 import fr.hardel.asset_editor.client.rendering.StructureSceneRenderer
-import fr.hardel.asset_editor.network.structure.StructurePieceBox
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import net.minecraft.core.registries.BuiltInRegistries
@@ -23,26 +22,20 @@ private val JIGSAW_ID = Identifier.withDefaultNamespace("jigsaw")
 fun StructureSceneSurface(
     state: Scene3DState,
     subject: StructureSceneSubject,
-    filters: StructureSceneFilters,
-    poolBoxes: List<StructurePieceBox>,
-    showPoolBoxes: Boolean
+    filters: StructureSceneFilters
 ) {
     val pendingCameras = remember(subject.id) { boundedCameraCache() }
-    val latestKey = remember(subject.id) { java.util.concurrent.atomic.AtomicReference<String?>(null) }
 
     val voxels = remember(subject, filters.showJigsaws, filters.highlight) {
         buildVoxels(subject, filters)
     }
 
-    val rendererBoxes = remember(poolBoxes) { buildPieceBoxes(poolBoxes) }
-
-    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight, rendererBoxes) {
-        buildStaticKey(subject, filters, rendererBoxes)
+    val staticKey = remember(subject.id, filters.showJigsaws, filters.highlight) {
+        buildStaticKey(subject, filters)
     }
 
     DisposableEffect(subject.id) {
         val subscription = StructureSceneBridge.subscribe { key ->
-            if (key != latestKey.get()) return@subscribe
             val image = StructureSceneBridge.getImage(key) ?: return@subscribe
             val camera = pendingCameras.remove(key) ?: state.camera
             state.publishFrame(image, camera)
@@ -50,16 +43,15 @@ fun StructureSceneSurface(
         onDispose(subscription::run)
     }
 
-    LaunchedEffect(subject.id, staticKey, filters.sliceY, filters.displayedStage, showPoolBoxes) {
+    LaunchedEffect(subject.id, staticKey, filters.sliceY, filters.displayedStage) {
         snapshotFlow {
             val viewport = state.viewport
             if (viewport.width < 16 || viewport.height < 16) return@snapshotFlow null
-            buildRequest(subject, voxels, rendererBoxes, staticKey, filters, showPoolBoxes, state.camera, viewport)
+            buildRequest(subject, voxels, staticKey, filters, state.camera, viewport)
         }
             .distinctUntilChanged { a, b -> a?.key() == b?.key() }
             .collectLatest { request ->
                 if (request == null) return@collectLatest
-                latestKey.set(request.key())
                 val cached = StructureSceneBridge.getImage(request.key())
                 if (cached != null) {
                     state.publishFrame(cached, request.cameraSnapshot())
@@ -91,20 +83,15 @@ private fun buildVoxels(subject: StructureSceneSubject, filters: StructureSceneF
     return out
 }
 
-private fun buildPieceBoxes(boxes: List<StructurePieceBox>): List<StructureSceneRenderer.PieceBox> =
-    boxes.map { StructureSceneRenderer.PieceBox(it.pieceIndex(), it.minX(), it.minY(), it.minZ(), it.maxX(), it.maxY(), it.maxZ()) }
-
 private fun buildRequest(
     subject: StructureSceneSubject,
     voxels: List<StructureSceneRenderer.Voxel>,
-    pieceBoxes: List<StructureSceneRenderer.PieceBox>,
     staticKey: String,
     filters: StructureSceneFilters,
-    showPoolBoxes: Boolean,
     camera: Scene3DCamera,
     viewport: IntSize
 ): StructureSceneRenderer.Request {
-    val key = sceneKey(staticKey, filters.sliceY, filters.displayedStage, showPoolBoxes, camera, viewport)
+    val key = sceneKey(staticKey, filters.sliceY, filters.displayedStage, camera, viewport)
     return StructureSceneRenderer.Request(
         key,
         staticKey,
@@ -114,38 +101,29 @@ private fun buildRequest(
         subject.sizeY,
         subject.sizeZ,
         voxels,
-        pieceBoxes,
         filters.sliceY,
         filters.displayedStage,
-        showPoolBoxes,
         StructureSceneRenderer.Camera(camera.yaw, camera.pitch, camera.zoom, camera.panX, camera.panY)
     )
 }
 
-private fun buildStaticKey(
-    subject: StructureSceneSubject,
-    filters: StructureSceneFilters,
-    pieceBoxes: List<StructureSceneRenderer.PieceBox>
-): String = buildString {
+private fun buildStaticKey(subject: StructureSceneSubject, filters: StructureSceneFilters): String = buildString {
     append(if (subject is StructureSceneSubject.Assembly) "asm" else "tpl").append('|')
     append(subject.id).append('|')
     append(filters.showJigsaws).append('|')
-    append(filters.highlight.orEmpty()).append('|')
-    append('b').append(pieceBoxes.size)
+    append(filters.highlight.orEmpty())
 }
 
 private fun sceneKey(
     staticKey: String,
     sliceY: Int,
     displayedStage: Int,
-    showPoolBoxes: Boolean,
     camera: Scene3DCamera,
     viewport: IntSize
 ): String = buildString {
     append(staticKey).append('|')
     append(sliceY).append('|')
     append(displayedStage).append('|')
-    append(if (showPoolBoxes) 'p' else '_').append('|')
     append(viewport.width).append('x').append(viewport.height).append('|')
     append(encode(camera.yaw)).append(':')
     append(encode(camera.pitch)).append(':')

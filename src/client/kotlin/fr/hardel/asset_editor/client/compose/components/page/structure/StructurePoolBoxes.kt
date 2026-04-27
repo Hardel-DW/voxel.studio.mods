@@ -1,14 +1,55 @@
 package fr.hardel.asset_editor.client.compose.components.page.structure
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.ui.scene.GridBounds
-import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DProjection
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DState
-import fr.hardel.asset_editor.client.compose.components.ui.scene.SceneTrig
 import fr.hardel.asset_editor.network.structure.StructurePieceBox
-import androidx.compose.ui.unit.IntSize
 
+private val EDGES = intArrayOf(
+    0, 1, 1, 2, 2, 3, 3, 0,
+    4, 5, 5, 6, 6, 7, 7, 4,
+    0, 4, 1, 5, 2, 6, 3, 7
+)
+
+@Composable
+fun StructurePoolBoxes(
+    state: Scene3DState,
+    boxes: List<StructurePieceBox>,
+    bounds: GridBounds,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val viewport = state.viewport
+        if (viewport.width <= 0 || viewport.height <= 0) return@Canvas
+        val camera = state.frame?.camera ?: state.camera
+        val trig = Scene3DProjection.trig(camera)
+        val color = StudioColors.Amber400
+
+        for (box in boxes) {
+            val corners = projectCorners(box, bounds, camera, viewport, trig)
+            for (i in 0 until EDGES.size step 2) {
+                drawLine(
+                    color = color,
+                    start = corners[EDGES[i]],
+                    end = corners[EDGES[i + 1]],
+                    strokeWidth = 1.5f,
+                    cap = StrokeCap.Round
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Returns the [StructurePieceBox] whose projected 2D bounding rect contains [point], picking the
+ * smallest area in case of overlap (heuristic: the smaller projection is usually the foreground piece).
+ */
 fun pickPieceBoxAt(
     state: Scene3DState,
     boxes: List<StructurePieceBox>,
@@ -46,9 +87,9 @@ fun pickPieceBoxAt(
 private fun projectCorners(
     box: StructurePieceBox,
     bounds: GridBounds,
-    camera: Scene3DCamera,
-    viewport: IntSize,
-    trig: SceneTrig
+    camera: fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera,
+    viewport: androidx.compose.ui.unit.IntSize,
+    trig: fr.hardel.asset_editor.client.compose.components.ui.scene.SceneTrig
 ): Array<Offset> {
     val cx = bounds.sizeX * 0.5f
     val cy = bounds.sizeY * 0.5f

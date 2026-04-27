@@ -51,13 +51,7 @@ fun StructureSceneArea(
         highlight = highlight
     )
 
-    StructureSceneSurface(
-        state = state,
-        subject = subject,
-        filters = filters,
-        poolBoxes = pieceBoxes,
-        showPoolBoxes = showPoolBoxes
-    )
+    StructureSceneSurface(state = state, subject = subject, filters = filters)
 
     Scene3DCanvas(
         state = state,
@@ -67,6 +61,9 @@ fun StructureSceneArea(
         overlay = {
             IsometricGrid(state = state, bounds = bounds, modifier = Modifier.fillMaxSize())
         },
+        foreground = if (showPoolBoxes && visibleBoxes.isNotEmpty()) {
+            { StructurePoolBoxes(state = state, boxes = visibleBoxes, bounds = bounds, modifier = Modifier.fillMaxSize()) }
+        } else null,
         onClick = if (showPoolBoxes && visibleBoxes.isNotEmpty() && onPieceSelected != null) {
             { offset -> pickPieceBoxAt(state, visibleBoxes, bounds, offset)?.let { onPieceSelected(it.templateId()) } }
         } else null
