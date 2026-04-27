@@ -17,10 +17,16 @@ import fr.hardel.asset_editor.network.structure.StructureAssemblyParameters
 import net.minecraft.resources.Identifier
 
 private val RELOAD_ICON: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/reload.svg")
+private val LOCATE_ICON: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/locate.svg")
 private val SETTINGS_ICON: Identifier = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/settings.svg")
 
 @Composable
-fun StructureVariantControls(state: StructureVariantState, current: StructureAssemblyParameters) {
+fun StructureVariantControls(
+    state: StructureVariantState,
+    current: StructureAssemblyParameters,
+    locateEnabled: Boolean,
+    onLocate: () -> Unit
+) {
     var popoverOpen by remember { mutableStateOf(false) }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -29,6 +35,14 @@ fun StructureVariantControls(state: StructureVariantState, current: StructureAss
             iconSize = 12,
             boxSize = 24,
             onClick = { state.reroll(current.chunkX(), current.chunkZ()) }
+        )
+        Spacer(Modifier.width(4.dp))
+        OverlayIconButton(
+            icon = LOCATE_ICON,
+            iconSize = 12,
+            boxSize = 24,
+            enabled = locateEnabled,
+            onClick = onLocate
         )
         Spacer(Modifier.width(4.dp))
         Box {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,8 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_CONCEPT_ID
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyState
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLocateMemory
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLocateState
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureInspector
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLoadingScreen
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureMessageScreen
@@ -37,6 +40,8 @@ import fr.hardel.asset_editor.client.compose.components.page.structure.rememberS
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureSceneState
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureTemplate
 import fr.hardel.asset_editor.client.compose.components.page.structure.rememberStructureVariantState
+import fr.hardel.asset_editor.client.compose.components.ui.StudioToast
+import fr.hardel.asset_editor.client.compose.components.ui.rememberToastState
 import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
@@ -88,25 +93,59 @@ private fun StructureViewerPage(context: StudioContext, entry: StructureWorldgen
 @Composable
 private fun AssemblyScene(context: StudioContext, assembly: StructureAssemblySnapshot, variantState: StructureVariantState) {
     val subject = remember(assembly) { StructureSceneSubject.Assembly(assembly) }
-    StructureSceneWithInspector(
-        subject = subject,
-        initialShowJigsaws = false,
-        title = assembly.id().path,
-        metrics = listOf(
-            "${assembly.sizeX()}x${assembly.sizeY()}x${assembly.sizeZ()}" to I18n.get("structure:overlay.size"),
-            assembly.pieceCount().toString() to I18n.get("structure:overlay.pieces"),
-            assembly.totalBlocks().toString() to I18n.get("structure:overlay.blocks")
-        ),
-        trailingTitleSlot = {
-            StructureVariantControls(state = variantState, current = assembly.parameters())
-        },
-        onSelectPiece = { templateId ->
-            StructureUiState.viewMode = StructureViewMode.PIECES
-            context.navigationMemory().openElement(
-                ElementEditorDestination(STRUCTURE_CONCEPT_ID, templateId.toString(), context.studioDefaultEditorTab(STRUCTURE_CONCEPT_ID))
-            )
+    val toastState = rememberToastState()
+    val locateState = StructureLocateMemory.state(assembly.id())
+    val locating = locateState === StructureLocateState.Searching
+
+    LaunchedEffect(assembly.id(), locateState) {
+        when (locateState) {
+            is StructureLocateState.Found -> {
+                val params = locateState.parameters
+                variantState.apply(params.seed(), params.chunkX(), params.chunkZ())
+                toastState.show("structure:locate.found", params.chunkX() * 16, params.chunkZ() * 16)
+                StructureLocateMemory.acknowledge(assembly.id())
+            }
+            StructureLocateState.NotFound -> {
+                toastState.show("structure:locate.not_found")
+                StructureLocateMemory.acknowledge(assembly.id())
+            }
+            else -> Unit
         }
-    )
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        StructureSceneWithInspector(
+            subject = subject,
+            initialShowJigsaws = false,
+            title = assembly.id().path,
+            metrics = listOf(
+                "${assembly.sizeX()}x${assembly.sizeY()}x${assembly.sizeZ()}" to I18n.get("structure:overlay.size"),
+                assembly.pieceCount().toString() to I18n.get("structure:overlay.pieces"),
+                assembly.totalBlocks().toString() to I18n.get("structure:overlay.blocks")
+            ),
+            trailingTitleSlot = {
+                StructureVariantControls(
+                    state = variantState,
+                    current = assembly.parameters(),
+                    locateEnabled = !locating,
+                    onLocate = {
+                        toastState.show("structure:locate.searching")
+                        StructureLocateMemory.request(assembly.id())
+                    }
+                )
+            },
+            onSelectPiece = { templateId ->
+                StructureUiState.viewMode = StructureViewMode.PIECES
+                context.navigationMemory().openElement(
+                    ElementEditorDestination(STRUCTURE_CONCEPT_ID, templateId.toString(), context.studioDefaultEditorTab(STRUCTURE_CONCEPT_ID))
+                )
+            }
+        )
+        StudioToast(
+            state = toastState,
+            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp)
+        )
+    }
 }
 
 @Composable

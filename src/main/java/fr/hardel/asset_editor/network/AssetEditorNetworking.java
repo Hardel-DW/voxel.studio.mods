@@ -17,6 +17,9 @@ import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.structure.StructureAssemblyRequestPayload;
 import fr.hardel.asset_editor.network.structure.StructureAssemblyResolver;
 import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateRequestPayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateResponsePayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateService;
 import fr.hardel.asset_editor.network.structure.StructureReplaceBlocksPayload;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.network.structure.StructureTemplateRepository;
@@ -78,6 +81,10 @@ public final class AssetEditorNetworking {
         PayloadTypeRegistry.playC2S().register(StructureAssemblyRequestPayload.TYPE, StructureAssemblyRequestPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(StructureAssemblyResponsePayload.TYPE, StructureAssemblyResponsePayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(StructureAssemblyRequestPayload.TYPE, AssetEditorNetworking::handleStructureAssemblyRequest);
+
+        PayloadTypeRegistry.playC2S().register(StructureLocateRequestPayload.TYPE, StructureLocateRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StructureLocateResponsePayload.TYPE, StructureLocateResponsePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureLocateRequestPayload.TYPE, AssetEditorNetworking::handleStructureLocateRequest);
 
         PayloadTypeRegistry.playC2S().register(ReloadRequestPayload.TYPE, ReloadRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ReloadRequestPayload.TYPE, AssetEditorNetworking::handleReloadRequest);
@@ -208,6 +215,13 @@ public final class AssetEditorNetworking {
             var explicit = payload.parameters().orElse(null);
             var snapshot = StructureAssemblyResolver.resolve(context.server(), payload.structureId(), explicit);
             ServerPlayNetworking.send(context.player(), new StructureAssemblyResponsePayload(payload.structureId(), payload.parameters(), snapshot));
+        });
+    }
+
+    private static void handleStructureLocateRequest(StructureLocateRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var parameters = StructureLocateService.locate(context.player(), payload.structureId());
+            ServerPlayNetworking.send(context.player(), new StructureLocateResponsePayload(payload.structureId(), parameters));
         });
     }
 
