@@ -7,15 +7,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import fr.hardel.asset_editor.client.compose.components.ui.scene.GridBounds
 import fr.hardel.asset_editor.client.compose.components.ui.scene.IsometricGrid
-import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCamera
 import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DCanvas
-import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DStateMemory
+import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DState
 import fr.hardel.asset_editor.network.structure.StructurePieceBox
-import kotlin.math.max
 import net.minecraft.resources.Identifier
 
 @Composable
 fun StructureSceneArea(
+    state: Scene3DState,
     subject: StructureSceneSubject,
     selectedStage: Int,
     showJigsaws: Boolean,
@@ -25,10 +24,6 @@ fun StructureSceneArea(
     showPoolBoxes: Boolean = false,
     onPieceSelected: ((Identifier) -> Unit)? = null
 ) {
-    val stateKey = remember(subject.id) { subject.id.toString() }
-    val state = remember(stateKey) {
-        Scene3DStateMemory.obtain(stateKey) { defaultCamera(subject) }
-    }
     val bounds = remember(subject.id, subject.sizeX, subject.sizeY, subject.sizeZ) {
         GridBounds(subject.sizeX, subject.sizeY, subject.sizeZ)
     }
@@ -40,7 +35,7 @@ fun StructureSceneArea(
 
     LaunchedEffect(state, subject.id) {
         StructureCameraReset.requests.collect {
-            state.snapTo(defaultCamera(subject))
+            state.snapToDefaultFor(subject)
         }
     }
 
@@ -73,16 +68,4 @@ fun StructureSceneArea(
 private fun pieceBoxesOf(subject: StructureSceneSubject): List<StructurePieceBox> = when (subject) {
     is StructureSceneSubject.Assembly -> subject.assembly.pieceBoxes()
     is StructureSceneSubject.Template -> emptyList()
-}
-
-private fun defaultCamera(subject: StructureSceneSubject): Scene3DCamera {
-    val longest = max(8, max(subject.sizeX, subject.sizeZ))
-    val zoom = (480f / longest).coerceIn(0.05f, 64f)
-    return Scene3DCamera(
-        yaw = 35f,
-        pitch = 28f,
-        zoom = zoom,
-        panX = 0f,
-        panY = subject.sizeY * zoom * 0.15f
-    )
 }

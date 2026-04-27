@@ -13,10 +13,13 @@ public record StructureAssemblySnapshot(
     int sizeY,
     int sizeZ,
     int pieceCount,
+    int totalBlocks,
+    List<StructureBlockCount> blockCounts,
     List<StructureAssemblyVoxel> voxels,
     List<StructurePieceBox> pieceBoxes
 ) {
     public StructureAssemblySnapshot {
+        blockCounts = List.copyOf(blockCounts == null ? List.of() : blockCounts);
         voxels = List.copyOf(voxels == null ? List.of() : voxels);
         pieceBoxes = List.copyOf(pieceBoxes == null ? List.of() : pieceBoxes);
     }
@@ -27,6 +30,8 @@ public record StructureAssemblySnapshot(
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeY,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::sizeZ,
         ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::pieceCount,
+        ByteBufCodecs.VAR_INT, StructureAssemblySnapshot::totalBlocks,
+        StructureBlockCount.STREAM_CODEC.apply(ByteBufCodecs.list()), StructureAssemblySnapshot::blockCounts,
         StructureAssemblyVoxel.STREAM_CODEC.apply(ByteBufCodecs.list()), StructureAssemblySnapshot::voxels,
         StructurePieceBox.STREAM_CODEC.apply(ByteBufCodecs.list()), StructureAssemblySnapshot::pieceBoxes,
         StructureAssemblySnapshot::new);

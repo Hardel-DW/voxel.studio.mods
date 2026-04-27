@@ -92,6 +92,8 @@ public final class StructureAssemblyResolver {
 
         List<StructureAssemblyVoxel> voxels = new ArrayList<>();
         List<StructurePieceBox> pieceBoxes = new ArrayList<>();
+        Map<Identifier, Integer> aggregatedCounts = new HashMap<>();
+        int totalBlocks = 0;
         int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
         int pieceIndex = 0;
@@ -124,6 +126,11 @@ public final class StructureAssemblyResolver {
             Rotation rotation = pool.rotation;
             BoundingBox box = pool.getBoundingBox();
             pieceBoxes.add(new StructurePieceBox(templateId, pieceIndex, box.minX(), box.minY(), box.minZ(), box.maxX(), box.maxY(), box.maxZ()));
+
+            for (StructureBlockCount count : template.blockCounts()) {
+                aggregatedCounts.merge(count.blockId(), count.count(), Integer::sum);
+                totalBlocks += count.count();
+            }
 
             for (StructureBlockVoxel voxel : template.voxels()) {
                 BlockPos rotatedPos = StructureTemplate.transform(
@@ -164,12 +171,19 @@ public final class StructureAssemblyResolver {
                 b.maxX() - finalMinX, b.maxY() - finalMinY, b.maxZ() - finalMinZ))
             .toList();
 
+        List<StructureBlockCount> blockCounts = aggregatedCounts.entrySet().stream()
+            .sorted(Map.Entry.<Identifier, Integer>comparingByValue().reversed().thenComparing(entry -> entry.getKey().toString()))
+            .map(entry -> new StructureBlockCount(entry.getKey(), entry.getValue()))
+            .toList();
+
         return Optional.of(new StructureAssemblySnapshot(
             structureId,
             maxX - minX + 1,
             maxY - minY + 1,
             maxZ - minZ + 1,
             pieceIndex,
+            totalBlocks,
+            blockCounts,
             normalized,
             normalizedBoxes
         ));
