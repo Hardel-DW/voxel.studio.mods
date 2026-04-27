@@ -1,15 +1,11 @@
 package fr.hardel.asset_editor.client.compose.components.ui
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
-import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 
 @Composable
@@ -63,30 +58,17 @@ fun LoadingHero(
                     color = StudioColors.Zinc100,
                     textAlign = TextAlign.Start
                 )
-                AnimatedContent(
-                    targetState = subtitle,
-                    transitionSpec = {
-                        (fadeIn(animationSpec = StudioMotion.tabFadeSpec()))
-                            .togetherWith(fadeOut(animationSpec = StudioMotion.popupExitSpec()))
-                    },
-                    label = "loading-subtitle"
-                ) { current ->
-                    Text(
-                        text = current,
-                        style = StudioTypography.regular(12),
-                        color = StudioColors.Zinc400,
-                        textAlign = TextAlign.Start
-                    )
-                }
+                Text(
+                    text = subtitle,
+                    style = StudioTypography.regular(12),
+                    color = StudioColors.Zinc400,
+                    textAlign = TextAlign.Start
+                )
             }
         }
     }
 }
 
-/**
- * Indeterminate ring spinner. Track + sweeping arc with rounded caps.
- * Public so other waiting states (buttons, dialogs) can reuse it.
- */
 @Composable
 fun Spinner(
     modifier: Modifier = Modifier,

@@ -23,7 +23,6 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_CONCEPT_ID
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureInspector
-import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLoadingPhase
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLoadingScreen
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureMessageScreen
 import fr.hardel.asset_editor.client.compose.components.page.structure.StructureSceneScaffold
@@ -70,7 +69,7 @@ private fun StructureViewerPage(context: StudioContext) {
         ?: return StructureMessageScreen(I18n.get("structure:viewer.empty"))
 
     val assembly = rememberStructureAssembly(structureId)
-        ?: return StructureLoadingScreen(phase = StructureLoadingPhase.Preparing)
+        ?: return StructureLoadingScreen()
 
     val subject = remember(assembly) { StructureSceneSubject.Assembly(assembly) }
 
@@ -131,10 +130,11 @@ private fun StructureSceneWithInspector(
         modifier = Modifier
             .fillMaxSize()
             .background(StudioColors.Zinc950)
-            .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             StructureSceneScaffold(
@@ -167,10 +167,11 @@ private fun StructureSceneWithInspector(
 
         AnimatedVisibility(
             visible = !sceneReady,
+            modifier = Modifier.matchParentSize(),
             enter = fadeIn(animationSpec = StudioMotion.tabFadeSpec()),
             exit = fadeOut(animationSpec = StudioMotion.collapseExitSpec())
         ) {
-            StructureLoadingScreen(phase = StructureLoadingPhase.Rendering)
+            StructureLoadingScreen()
         }
     }
 }

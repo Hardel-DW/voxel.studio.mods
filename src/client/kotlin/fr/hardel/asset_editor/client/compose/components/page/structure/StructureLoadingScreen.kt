@@ -6,18 +6,10 @@ import fr.hardel.asset_editor.client.compose.components.ui.LoadingHero
 import net.minecraft.client.resources.language.I18n
 
 @Composable
-fun StructureLoadingScreen(
-    phase: StructureLoadingPhase = StructureLoadingPhase.Preparing,
-    modifier: Modifier = Modifier
-) {
+fun StructureLoadingScreen(modifier: Modifier = Modifier) {
     LoadingHero(
         title = I18n.get("structure:loading.title"),
-        subtitle = I18n.get(phase.subtitleKey),
+        subtitle = I18n.get("structure:loading.subtitle"),
         modifier = modifier
     )
-}
-
-enum class StructureLoadingPhase(val subtitleKey: String) {
-    Preparing("structure:loading.subtitle.preparing"),
-    Rendering("structure:loading.subtitle.rendering")
 }
