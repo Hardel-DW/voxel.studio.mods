@@ -59,7 +59,7 @@ fun FallbackEditor(state: RecipePageState, modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 16.dp)
             ) {
                 RecipeTemplateRegistry.Render(
-                    kind = RecipeTreeData.getTemplateKind(s.model.type),
+                    kind = RecipeTreeData.getRecipeSerializer(s.model.type),
                     element = s.model,
                     interactive = true,
                     onSlotPointerDown = { slot, button ->

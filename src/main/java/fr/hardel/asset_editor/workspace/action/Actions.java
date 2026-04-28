@@ -226,6 +226,11 @@ public final class Actions {
         RemoveResultComponentAction.CODEC,
         RemoveResultComponentAction.class);
 
+    public static final Action<Object, SetEntryDataAction> SET_ENTRY_DATA = EditorActionRegistry.registerGlobal(
+        "set_entry_data",
+        SetEntryDataAction.CODEC,
+        SetEntryDataAction.class);
+
     public static void register() {
         // Static fields are initialized on class load — this method triggers that.
     }

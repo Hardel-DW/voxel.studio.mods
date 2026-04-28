@@ -1,4 +1,4 @@
 {
   "recipe_types": ["minecraft:smoking"],
-  "template_kind": "minecraft:smelting"
+  "recipe_serializer": "minecraft:smelting"
 }

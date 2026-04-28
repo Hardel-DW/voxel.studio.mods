@@ -15,7 +15,7 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
-import fr.hardel.asset_editor.data.component.StudioComponentTypeDef
+import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -25,9 +25,9 @@ data class AddComponentEntry(val id: Identifier, val displayName: String, val de
 fun AddComponentModal(
     visible: Boolean,
     onDismiss: () -> Unit,
-    definitions: List<StudioComponentTypeDef>,
+    definitions: List<StudioCodecTypeDef>,
     excludedIds: Set<Identifier>,
-    onPick: (StudioComponentTypeDef) -> Unit
+    onPick: (StudioCodecTypeDef) -> Unit
 ) {
     var query by remember(visible) { mutableStateOf("") }
 

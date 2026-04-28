@@ -56,7 +56,7 @@ public final class RecipeEntryLoader implements PreparableReloadListener {
                     entryId,
                     definition.recipeTypes(),
                     definition.special(),
-                    definition.templateKind(),
+                    definition.recipeSerializer(),
                     definition.showRecipeTypesInAdvanced()
                 ));
             } catch (Exception e) {

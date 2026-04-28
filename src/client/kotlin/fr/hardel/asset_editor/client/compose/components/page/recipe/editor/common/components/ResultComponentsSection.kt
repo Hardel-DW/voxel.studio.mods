@@ -45,7 +45,7 @@ import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
-import fr.hardel.asset_editor.data.component.StudioComponentTypeDef
+import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveResultComponentAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultComponentAction
@@ -161,7 +161,7 @@ fun ResultComponentsSection(
 @Composable
 private fun UnifiedRow(
     row: RowSource,
-    defsById: Map<Identifier, StudioComponentTypeDef>,
+    defsById: Map<Identifier, StudioCodecTypeDef>,
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     onAction: (EditorAction<*>) -> Unit,
@@ -263,7 +263,7 @@ private fun validate(type: DataComponentType<*>, json: JsonElement): Boolean {
     return codec.parse(ops, json).isSuccess
 }
 
-private fun buildTransientIds(defs: List<StudioComponentTypeDef>): Set<Identifier> {
+private fun buildTransientIds(defs: List<StudioCodecTypeDef>): Set<Identifier> {
     val out = mutableSetOf<Identifier>()
     for (def in defs) {
         val type = BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(def.id())

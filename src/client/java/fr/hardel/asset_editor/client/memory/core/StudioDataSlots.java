@@ -3,7 +3,7 @@ package fr.hardel.asset_editor.client.memory.core;
 import fr.hardel.asset_editor.network.data.StudioDataKeys;
 import fr.hardel.asset_editor.network.recipe.RecipeCatalogEntry;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagGroup;
-import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
+import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryDefinition;
 import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry;
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
@@ -23,8 +23,11 @@ public final class StudioDataSlots {
     public static final ServerDataStore.DataSlot<RecipeEntryDefinition> RECIPE_ENTRIES =
         ServerDataStore.register(StudioDataKeys.RECIPE_ENTRIES);
 
-    public static final ServerDataStore.DataSlot<StudioComponentTypeDef> COMPONENT_TYPES =
+    public static final ServerDataStore.DataSlot<StudioCodecTypeDef> COMPONENT_TYPES =
         ServerDataStore.register(StudioDataKeys.COMPONENT_TYPES);
+
+    public static final ServerDataStore.DataSlot<StudioCodecTypeDef> CODEC_TYPES =
+        ServerDataStore.register(StudioDataKeys.CODEC_TYPES);
 
     public static final ServerDataStore.DataSlot<StructureTemplateIndexEntry> STRUCTURE_TEMPLATE_INDEX =
         ServerDataStore.register(StudioDataKeys.STRUCTURE_TEMPLATE_INDEX);

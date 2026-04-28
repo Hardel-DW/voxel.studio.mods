@@ -16,6 +16,6 @@
     "minecraft:crafting_special_tippedarrow",
     "minecraft:crafting_transmute"
   ],
-  "template_kind": "minecraft:crafting",
+  "recipe_serializer": "minecraft:crafting",
   "show_recipe_types_in_advanced": true
 }

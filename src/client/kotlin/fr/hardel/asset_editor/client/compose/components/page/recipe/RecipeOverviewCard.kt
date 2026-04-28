@@ -93,7 +93,7 @@ fun RecipeOverviewCard(
             }
 
             RecipeTemplateRegistry.Render(
-                kind = RecipeTreeData.getTemplateKind(element.visual.type),
+                kind = RecipeTreeData.getRecipeSerializer(element.visual.type),
                 element = element.visual,
                 modifier = Modifier.weight(1f)
             )

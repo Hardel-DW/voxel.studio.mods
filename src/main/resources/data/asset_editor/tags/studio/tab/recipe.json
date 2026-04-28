@@ -1,6 +1,6 @@
 {
   "values": [
     "asset_editor:main",
-    "asset_editor:pools"
+    "asset_editor:data"
   ]
 }

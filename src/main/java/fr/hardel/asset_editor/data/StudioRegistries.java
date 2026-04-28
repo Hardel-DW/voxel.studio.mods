@@ -11,10 +11,10 @@ import net.minecraft.resources.ResourceKey;
 public final class StudioRegistries {
 
     public static final ResourceKey<Registry<StudioEditorTabDef>> STUDIO_TAB = ResourceKey.createRegistryKey(
-        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_tab"));
+        Identifier.fromNamespaceAndPath(AssetEditor.STUDIO_NAMESPACE, "tab"));
 
     public static final ResourceKey<Registry<StudioConceptDef>> STUDIO_CONCEPT = ResourceKey.createRegistryKey(
-        Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_concept"));
+        Identifier.fromNamespaceAndPath(AssetEditor.STUDIO_NAMESPACE, "concept"));
 
     public static void register() {
         DynamicRegistries.registerSynced(STUDIO_TAB, StudioEditorTabDef.CODEC);

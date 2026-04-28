@@ -2,8 +2,9 @@ package fr.hardel.asset_editor.network.data;
 
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
+import fr.hardel.asset_editor.data.codec.CodecTypeLoader;
+import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef;
 import fr.hardel.asset_editor.data.component.ComponentTypeLoader;
-import fr.hardel.asset_editor.data.component.StudioComponentTypeDef;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry;
@@ -32,8 +33,11 @@ public final class StudioDataKeys {
     public static final ServerDataKey<RecipeEntryDefinition> RECIPE_ENTRIES = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "recipe_entries"), RecipeEntryDefinition.STREAM_CODEC, server -> RecipeEntryLoader.entries()));
 
-    public static final ServerDataKey<StudioComponentTypeDef> COMPONENT_TYPES = ServerDataKeys.register(
-        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "component_types"), StudioComponentTypeDef.STREAM_CODEC, server -> List.copyOf(ComponentTypeLoader.definitions().values())));
+    public static final ServerDataKey<StudioCodecTypeDef> COMPONENT_TYPES = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "component_types"), StudioCodecTypeDef.STREAM_CODEC, server -> List.copyOf(ComponentTypeLoader.definitions().values())));
+
+    public static final ServerDataKey<StudioCodecTypeDef> CODEC_TYPES = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "codec_types"), StudioCodecTypeDef.STREAM_CODEC, server -> List.copyOf(CodecTypeLoader.definitions().values())));
 
     public static final ServerDataKey<StructureTemplateIndexEntry> STRUCTURE_TEMPLATE_INDEX = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_template_index"), StructureTemplateIndexEntry.STREAM_CODEC, StructureTemplateCatalog::buildIndex));

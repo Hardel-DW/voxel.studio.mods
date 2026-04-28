@@ -19,10 +19,10 @@ public final class StudioResourceLoaders {
             Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_recipe_entries"),
             new RecipeEntryLoader());
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
-            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_codec_types"),
+            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_codec"),
             new CodecTypeLoader());
         ResourceLoader.get(PackType.SERVER_DATA).registerReloader(
-            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_component_types"),
+            Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "studio_codec_components"),
             new ComponentTypeLoader());
     }
 

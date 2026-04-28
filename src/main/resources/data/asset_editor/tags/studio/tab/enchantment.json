@@ -5,6 +5,7 @@
     "asset_editor:slots",
     "asset_editor:items",
     "asset_editor:exclusive",
-    "asset_editor:technical"
+    "asset_editor:technical",
+    "asset_editor:data"
   ]
 }

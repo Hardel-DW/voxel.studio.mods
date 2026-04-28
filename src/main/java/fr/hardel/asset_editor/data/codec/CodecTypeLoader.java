@@ -22,7 +22,8 @@ import java.util.concurrent.Executor;
 public final class CodecTypeLoader implements PreparableReloadListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodecTypeLoader.class);
-    private static final FileToIdConverter LISTER = FileToIdConverter.json("codec_types");
+    private static final FileToIdConverter LISTER = FileToIdConverter.json("codec");
+    private static final String COMPONENTS_PREFIX = "components/";
 
     private static volatile Map<Identifier, StudioCodecTypeDef> definitions = Map.of();
 
@@ -67,6 +68,7 @@ public final class CodecTypeLoader implements PreparableReloadListener {
         for (Map.Entry<Identifier, Resource> entry : LISTER.listMatchingResources(manager).entrySet()) {
             Identifier location = entry.getKey();
             Identifier codecId = LISTER.fileToId(location);
+            if (codecId.getPath().startsWith(COMPONENTS_PREFIX)) continue;
 
             try (Reader reader = entry.getValue().openAsReader()) {
                 JsonElement element = StrictJsonParser.parse(reader);

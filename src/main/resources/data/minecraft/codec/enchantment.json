@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "fields": [
+    {
+      "key": "description",
+      "widget": { "type": "text_component" }
+    },
+    {
+      "key": "exclusive_set",
+      "optional": true,
+      "widget": {
+        "type": "holder_set",
+        "registry": "minecraft:enchantment"
+      }
+    },
+    {
+      "key": "supported_items",
+      "widget": {
+        "type": "holder_set",
+        "registry": "minecraft:item"
+      }
+    },
+    {
+      "key": "primary_items",
+      "optional": true,
+      "widget": {
+        "type": "holder_set",
+        "registry": "minecraft:item"
+      }
+    },
+    {
+      "key": "weight",
+      "widget": {
+        "type": "integer",
+        "min": 1,
+        "max": 1024
+      }
+    },
+    {
+      "key": "max_level",
+      "widget": {
+        "type": "integer",
+        "min": 1,
+        "max": 255
+      }
+    },
+    {
+      "key": "min_cost",
+      "widget": { "type": "reference", "id": "minecraft:enchantment_cost" }
+    },
+    {
+      "key": "max_cost",
+      "widget": { "type": "reference", "id": "minecraft:enchantment_cost" }
+    },
+    {
+      "key": "anvil_cost",
+      "widget": {
+        "type": "integer",
+        "min": 0
+      }
+    },
+    {
+      "key": "slots",
+      "widget": {
+        "type": "list",
+        "item": { "type": "reference", "id": "minecraft:equipment_slot_group" }
+      }
+    },
+    {
+      "key": "effects",
+      "optional": true,
+      "widget": { "type": "raw_json" }
+    }
+  ]
+}

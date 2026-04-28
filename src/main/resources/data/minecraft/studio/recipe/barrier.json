@@ -1,4 +1,4 @@
 {
   "special": true,
-  "template_kind": "minecraft:crafting"
+  "recipe_serializer": "minecraft:crafting"
 }

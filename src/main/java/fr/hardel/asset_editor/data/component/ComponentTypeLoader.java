@@ -6,6 +6,7 @@ import com.mojang.serialization.JsonOps;
 import fr.hardel.asset_editor.data.codec.CodecTypeLoader;
 import fr.hardel.asset_editor.data.codec.CodecWidget;
 import fr.hardel.asset_editor.data.codec.CodecWidgetResolver;
+import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -25,15 +26,15 @@ import java.util.concurrent.Executor;
 public final class ComponentTypeLoader implements PreparableReloadListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComponentTypeLoader.class);
-    private static final FileToIdConverter LISTER = FileToIdConverter.json("components_types");
+    private static final FileToIdConverter LISTER = FileToIdConverter.json("codec/components");
 
-    private static volatile Map<Identifier, StudioComponentTypeDef> definitions = Map.of();
+    private static volatile Map<Identifier, StudioCodecTypeDef> definitions = Map.of();
 
-    public static Map<Identifier, StudioComponentTypeDef> definitions() {
+    public static Map<Identifier, StudioCodecTypeDef> definitions() {
         return definitions;
     }
 
-    public static StudioComponentTypeDef get(Identifier id) {
+    public static StudioCodecTypeDef get(Identifier id) {
         return definitions.get(id);
     }
 
@@ -45,8 +46,8 @@ public final class ComponentTypeLoader implements PreparableReloadListener {
             .thenAcceptAsync(this::apply, applyExecutor);
     }
 
-    private Map<Identifier, StudioComponentTypeDef> prepare(ResourceManager manager) {
-        Map<Identifier, StudioComponentTypeDef> result = new LinkedHashMap<>();
+    private Map<Identifier, StudioCodecTypeDef> prepare(ResourceManager manager) {
+        Map<Identifier, StudioCodecTypeDef> result = new LinkedHashMap<>();
         Map<Identifier, CodecWidget> codecTypes = CodecTypeLoader.loadWidgets(manager);
 
         for (Map.Entry<Identifier, Resource> entry : LISTER.listMatchingResources(manager).entrySet()) {
@@ -60,7 +61,7 @@ public final class ComponentTypeLoader implements PreparableReloadListener {
                     .getOrThrow();
                 widget = CodecWidgetResolver.resolve(widget, codecTypes);
 
-                result.put(componentId, new StudioComponentTypeDef(componentId, widget));
+                result.put(componentId, new StudioCodecTypeDef(componentId, widget));
             } catch (Exception e) {
                 LOGGER.error("Failed to load component type from {} in pack {}", location, entry.getValue().sourcePackId(), e);
             }
@@ -69,7 +70,7 @@ public final class ComponentTypeLoader implements PreparableReloadListener {
         return Map.copyOf(result);
     }
 
-    private void apply(Map<Identifier, StudioComponentTypeDef> data) {
+    private void apply(Map<Identifier, StudioCodecTypeDef> data) {
         definitions = data;
         LOGGER.info("Loaded {} studio component type definitions", definitions.size());
     }

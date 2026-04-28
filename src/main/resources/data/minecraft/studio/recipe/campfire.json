@@ -1,4 +1,4 @@
 {
   "recipe_types": ["minecraft:campfire_cooking"],
-  "template_kind": "minecraft:smelting"
+  "recipe_serializer": "minecraft:smelting"
 }
