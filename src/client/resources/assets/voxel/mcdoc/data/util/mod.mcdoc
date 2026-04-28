@@ -1,0 +1,191 @@
+use super::loot::function::CopyNameSource
+use super::loot::EntityTarget
+use super::loot::BlockEntityTarget
+use super::enchantment::LevelBasedValue
+use ::java::data::worldgen::attribute::NumericalEnvironmentAttribute
+
+type MinMaxBounds<T> = (
+	T |
+	struct {
+		min?: T,
+		max?: T,
+	} |
+)
+
+// Since 1.17
+type IntRange = (
+	int |
+	struct {
+		/// Clamps to an integer.
+		min?: NumberProvider,
+		/// Clamps to an integer.
+		max?: NumberProvider,
+	} |
+)
+
+// Until 1.17
+type RandomValueBounds = (
+	float |
+	struct {
+		min: float,
+		max: float,
+	} |
+)
+
+// Until 1.17
+struct IntLimiter {
+	min?: int,
+	max?: int,
+}
+
+// Until 1.17
+type RandomIntGenerator = (
+	int |
+	struct {
+		type?: RandomIntGeneratorType,
+		...minecraft:random_int_generator[[type]],
+	} |
+)
+
+enum(string) RandomIntGeneratorType {
+	Uniform = "uniform",
+	Binomial = "binomial",
+	Constant = "constant",
+}
+
+dispatch minecraft:random_int_generator[uniform,%none] to struct UniformIntGenerator {
+	min?: int,
+	max?: int,
+}
+
+dispatch minecraft:random_int_generator[binomial] to struct BinomialIntGenerator {
+	n: int @ 0..,
+	p: float @ 0..1,
+}
+
+dispatch minecraft:random_int_generator[constant] to struct ConstantIntGenerator {
+	value: int,
+}
+
+// TODO: Determine why we're not using a generic for this
+// Since 1.17
+type NumberProvider = (
+	float |
+	struct {
+		type?: #[id="loot_number_provider_type"] string,
+		...minecraft:number_provider[[type]],
+	} |
+)
+
+dispatch minecraft:number_provider[uniform,%none] to struct UniformNumberProvider {
+	min?: NumberProvider,
+	max?: NumberProvider,
+}
+
+dispatch minecraft:number_provider[binomial] to struct BinomialNumberProvider {
+	n: NumberProvider,
+	p: NumberProvider,
+}
+
+dispatch minecraft:number_provider[constant] to struct ConstantNumberProvider {
+	value: float,
+}
+
+#[since="26.1"]
+dispatch minecraft:number_provider[environment_attribute] to struct EnvironmentAttributeNumberProvider {
+	attribute: NumericalEnvironmentAttribute,
+}
+
+dispatch minecraft:number_provider[score] to struct ScoreNumberProvider {
+	target: ScoreProvider,
+	score: #[objective] string,
+	scale?: float,
+}
+
+dispatch minecraft:number_provider[storage] to struct StorageNumberProvider {
+	storage: #[id="storage"] string,
+	path: #[nbt_path=minecraft:storage[[source]]] string,
+}
+
+dispatch minecraft:number_provider[enchantment_level] to struct EnchantmentLevelProvider {
+	amount: LevelBasedValue,
+}
+
+#[since="26.1"]
+dispatch minecraft:number_provider[sum] to struct SumNumberProvider {
+	summands: [NumberProvider],
+}
+
+type ScoreProvider = (
+	EntityTarget |
+	struct {
+		type: #[id="loot_score_provider_type"] string,
+		...minecraft:score_provider[[type]],
+	} |
+)
+
+dispatch minecraft:score_provider[context] to struct ContextScoreProvider {
+	target: EntityTarget,
+}
+
+dispatch minecraft:score_provider[fixed] to struct FixedScoreProvider {
+	name: #[score_holder] string,
+}
+
+type NbtProvider = (
+	NbtContextTarget |
+	struct {
+		type: #[id="loot_nbt_provider_type"] string,
+		...minecraft:nbt_provider[[type]],
+	} |
+)
+
+
+dispatch minecraft:nbt_provider[context] to struct ContextNbtProvider {
+	target: NbtContextTarget,
+}
+
+type NbtContextTarget = (
+	#[until="1.21.9"] NbtProviderSource |
+	#[since="1.21.9"] EntityTarget |
+	#[since="1.21.9"] BlockEntityTarget |
+)
+
+enum(string) NbtProviderSource {
+	This = "this",
+	#[until="1.21"] Killer = "killer",
+	#[since="1.21"] Attacker = "attacker",
+	#[until="1.21"] DirectKiller = "direct_killer",
+	#[since="1.21"] DirectAttacker = "direct_attacker",
+	#[until="1.21"] KillerPlayer = "killer_player",
+	#[since="1.21"] AttackingPlayer = "attacking_player",
+	BlockEntity = "block_entity",
+}
+
+dispatch minecraft:nbt_provider[storage] to struct StorageNbtProvider {
+	source: #[id="storage"] string,
+}
+
+/// Server sound events use a static registry, so can't be modified via data packs.
+/// Custom sound events can be defined inline, referencing a client sound_id.
+type SoundEventRef = (
+	#[id="sound_event"] string |
+	#[until="1.19.3"] #[id="weighed_sound_event"] string |
+	#[since="1.19.3"] struct WeightedSoundEvent {
+		sound_id: #[id(registry="weighed_sound_event", empty="allowed")] string,
+		// TODO: What is "variable range"?
+		/// Range in blocks. If the player is further than this range from the source of the sound, the sound will be inaudible. If omitted, the sound will have a variable range.
+		range?: float
+	} |
+)
+
+enum(string) MoonPhase {
+	FullMoon = "full_moon",
+	WaningGibbous = "waning_gibbous",
+	ThirdQuarter = "third_quarter",
+	WaningCrescent = "waning_crescent",
+	NewMoon = "new_moon",
+	WaxingCrescent = "waxing_crescent",
+	FirstQuarter = "first_quarter",
+	WaxingGibbous = "waxing_gibbous",
+}

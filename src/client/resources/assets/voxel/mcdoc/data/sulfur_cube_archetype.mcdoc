@@ -1,0 +1,14 @@
+use ::java::world::entity::mob::ModernAttributeModifier
+
+dispatch minecraft:resource[sulfur_cube_archetype] to struct SulfurCubeArchetype {
+	items: (#[id(registry="item",tags="allowed")] string | [#[id="item"] string]),
+	/// Defaults to `false`.
+	buoyant?: boolean,
+	attribute_modifiers: [AttributeEntry],
+}
+
+struct AttributeEntry {
+	/// Attribute type to modify.
+	attribute: #[id="attribute"] string,
+	...ModernAttributeModifier,
+}

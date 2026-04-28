@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -15,7 +14,6 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
-import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
@@ -25,29 +23,29 @@ data class AddComponentEntry(val id: Identifier, val displayName: String, val de
 fun AddComponentModal(
     visible: Boolean,
     onDismiss: () -> Unit,
-    definitions: List<StudioCodecTypeDef>,
+    componentIds: List<Identifier>,
     excludedIds: Set<Identifier>,
-    onPick: (StudioCodecTypeDef) -> Unit
+    onPick: (Identifier) -> Unit
 ) {
     var query by remember(visible) { mutableStateOf("") }
 
-    val entries = remember(definitions, excludedIds) {
-        definitions
-            .filter { it.id() !in excludedIds }
-            .map { def ->
-                val name = StudioTranslation.resolve("component", def.id())
-                val descKey = "component:${def.id()}.desc"
+    val entries = remember(componentIds, excludedIds) {
+        componentIds
+            .filter { it !in excludedIds }
+            .map { id ->
+                val name = StudioTranslation.resolve("component", id)
+                val descKey = "component:${id}.desc"
                 val desc = if (I18n.exists(descKey)) I18n.get(descKey) else null
-                AddComponentEntry(def.id(), name, desc) to def
+                AddComponentEntry(id, name, desc)
             }
-            .sortedBy { it.first.displayName }
+            .sortedBy { it.displayName }
     }
 
     val filtered = remember(entries, query) {
         if (query.isBlank()) entries
         else {
             val needle = query.lowercase()
-            entries.filter { (entry, _) ->
+            entries.filter { entry ->
                 entry.displayName.lowercase().contains(needle) ||
                     entry.id.toString().lowercase().contains(needle)
             }
@@ -69,15 +67,12 @@ fun AddComponentModal(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier
             ) {
-                items(
-                    items = filtered,
-                    key = { (entry, _) -> entry.id.toString() }
-                ) { (entry, def) ->
+                items(items = filtered, key = { it.id.toString() }) { entry ->
                     CommandPaletteItem(
                         label = entry.displayName,
                         description = entry.description ?: entry.id.toString(),
                         onClick = {
-                            onPick(def)
+                            onPick(entry.id)
                             onDismiss()
                         },
                         key = entry.id

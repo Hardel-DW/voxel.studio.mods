@@ -1,0 +1,61 @@
+
+dispatch minecraft:resource[test_environment] to struct TestEnvironment {
+	type: #[id="test_environment_definition_type"] string,
+	...minecraft:test_environment_definition[[type]],
+}
+
+dispatch minecraft:test_environment_definition[all_of] to struct AllOffTestEnvironment {
+	definitions: [TestEnvironment],
+}
+
+dispatch minecraft:test_environment_definition[function] to struct FunctionTestEnvironment {
+	setup?: #[id="function"] string,
+	teardown?: #[id="function"] string,
+}
+
+dispatch minecraft:test_environment_definition[game_rules] to struct GameRulesTestEnvironment {
+	#[until="1.21.11"]
+	bool_rules: [BoolGameRule],
+	#[until="1.21.11"]
+	int_rules: [IntGameRule],
+	#[since="1.21.11"]
+	rules: struct GameRuleMap {
+		[#[id="game_rule"] string]: minecraft:game_rule[[%key]],
+	},
+}
+
+struct BoolGameRule {
+	rule: #[game_rule(type="boolean")] string,
+	value: boolean,
+}
+
+struct IntGameRule {
+	rule: #[game_rule(type="int")] string,
+	value: int,
+}
+
+#[until="26.1"]
+dispatch minecraft:test_environment_definition[time_of_day] to struct TimeOfDayTestEnvironment {
+	time: int @ 0..
+}
+
+#[since="26.1"]
+dispatch minecraft:test_environment_definition[clock_time] to struct ClockTimeTestEnvironment {
+	clock: #[id="world_clock"] string,
+	time: int @ 0..,
+}
+
+dispatch minecraft:test_environment_definition[weather] to struct WeatherTestEnvironment {
+	weather: Weather,
+}
+
+enum(string) Weather {
+	Clear = "clear",
+	Rain = "rain",
+	Thunder = "thunder",
+}
+
+#[since="26.1"]
+dispatch minecraft:test_environment_definition[timeline_attributes] to struct TimelineAttributesTestEnvironment {
+	timelines: [#[id="timeline"] string],
+}

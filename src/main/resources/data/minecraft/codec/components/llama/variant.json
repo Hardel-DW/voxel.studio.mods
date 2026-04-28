@@ -1,9 +1,0 @@
-{
-  "type": "enum",
-  "values": [
-    "creamy",
-    "white",
-    "brown",
-    "gray"
-  ]
-}

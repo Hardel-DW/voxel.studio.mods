@@ -1,0 +1,38 @@
+use ::java::data::util::NumberProvider
+use ::java::data::predicate::Predicate
+use ::java::data::item_modifier::ItemModifier
+use ::java::world::item::ItemStackTemplate
+use ::java::world::item::TradeCost
+
+dispatch minecraft:resource[villager_trade] to struct VillagerTrade {
+	// TODO: Provide a link to a gist with the full explanation. 
+	/// Price item required by the merchant. \
+	/// The count is affected by various factors, including offered item, demand and player reputation.
+	wants: TradeCost,
+	/// Second item required by the merchant. \
+	/// The count is not affected by any factors.
+	additional_wants?: TradeCost,
+	/// Item being offered by the merchant.
+	gives: ItemStackTemplate,
+	/// Modifiers applied to the `gives` item. \
+	/// Does **not** support `reference` item modifier. \
+	/// Some modifiers can affect the price through the `additional_trade_cost` transient component. \
+	/// The `additional_trade_cost` component is not saved on the offered item.
+	given_item_modifiers?: [ItemModifier],
+	/// Maximum number of uses of this trade before the villager has to restock. Defaults to `4`. \
+	/// Clamps to a positive integer.
+	max_uses?: NumberProvider,
+	/// How much demand & reputation each affect the price, is serialized as `priceMultiplier`. Defaults to `0.0`. \
+	/// Clamps to a non-negative float.
+	reputation_discount?: NumberProvider,
+	/// Amount to increase the merchant's XP score by that determines their trade tier. Defaults to `1`. \
+	/// Clamps to a non-negative integer.
+	xp?: NumberProvider,
+	/// Check whether the trade should be offered by the merchant. \
+	/// Does **not** support the `reference` predicate.
+	merchant_predicate?: Predicate,
+	// TODO: Provide a better explanation
+	// The "stored_enchantments" component on any item can affect the price
+	/// If the offered enchanted book has the specified enchantments, the price will be affected by doubling the `additional_trade_cost` transient component.
+	double_trade_price_enchantments?: (#[id(registry="enchantment",tags="allowed")] string | [#[id="enchantment"] string]),
+}

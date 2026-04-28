@@ -1,0 +1,27 @@
+use ::java::util::Rotation
+use ::java::util::text::Text
+
+dispatch minecraft:block_entity[test_instance_block] to struct TestInstanceBlock {
+	...super::BlockEntity,
+	data?: struct TestInstanceBlockData {
+		test?: #[id="test_instance"] string,
+		size: int[] @ 3,
+		rotation: Rotation,
+		ignore_entities: boolean,
+		status: TestInstanceBlockStatus,
+		error_message?: Text,
+	},
+	#[since="1.21.9"]
+	errors?: [struct ErrorMarker {
+		pos: int[] @ 3,
+		text: Text,
+	}]
+}
+
+dispatch minecraft:block[test_instance_block] to minecraft:block_entity[test_instance_block]
+
+enum(string) TestInstanceBlockStatus {
+	Cleared = "cleared",
+	Running = "running",
+	Finished = "finished",
+}

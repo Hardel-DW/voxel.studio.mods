@@ -1,8 +1,0 @@
-{
-  "type": "enum",
-  "values": [
-    "small",
-    "medium",
-    "large"
-  ]
-}

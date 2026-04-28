@@ -29,7 +29,6 @@ import net.minecraft.core.registries.Registries
 fun RecipeLayout(context: StudioContext) {
     val conceptId = context.studioConceptId(Registries.RECIPE) ?: return
     val recipeEntryDef = rememberServerData(StudioDataSlots.RECIPE_ENTRIES)
-    rememberServerData(StudioDataSlots.COMPONENT_TYPES)
     val dataReady = recipeEntryDef.isNotEmpty()
     val conceptUi = rememberConceptUi(context, conceptId)
     val entries = if (dataReady) rememberRecipeEntries(context) else emptyList()

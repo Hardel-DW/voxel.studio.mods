@@ -1,0 +1,90 @@
+type Profile = (
+	#[until="1.21.9"] #[canonical]
+	struct {
+		/// Username of a player profile.
+		name?: string,
+		/// UUID of the owner. Used to update the other tags when the chunk loads or the holder logs in, in case the owner's name has changed.
+		id?: int[] @ 4,
+		/// Resolved textures hosted on the minecraft CDN.
+		properties?: (
+			#[canonical] [ProfileProperty] |
+			ProfilePropertyMap |
+		)
+	} |
+	#[since="1.21.9"] #[canonical]
+	struct {
+		/// Username of a player profile.
+		/// If `id` doesn't exist, this field is used to fetch the current skin of the profile.
+		name?: string,
+		/// UUID of the player profile.
+		/// If `name` doesn't exist, this field is used to fetch the current skin of the profile.
+		id?: int[] @ 4,
+		/// Resolved textures hosted on the minecraft CDN.
+		properties?: (
+			#[until="1.21.11"] #[canonical] [ProfileProperty] |
+			#[since="1.21.11"] #[canonical] [ProfileProperty] @ 0..16 |
+			ProfilePropertyMap |
+		),
+		/// Skin texture override.
+		texture?: #[id="texture"] string,
+		/// Cape texture override.
+		cape?: #[id="texture"] string,
+		/// Elytra texture override.
+		/// If this texture is not present either as override or in player profile, the cape texture is used.
+		/// If the cape texture is also not present, the default elytra texture is used.
+		elytra?: #[id="texture"] string,
+		/// Model type override.
+		model?: PlayerModelType,
+	} |
+	string |
+)
+
+struct ProfileProperty {
+	// TODO: Provide better doc for this
+	/// Usually `textures`.
+	name: (
+		#[until="1.21.11"] string |
+		#[since="1.21.11"] string @ 0..64 |
+	),
+	// TODO: Consider providing specific tooling for this.
+	/// Base64 encoded JSON value of the texture index.
+	value: (
+		#[until="1.21.11"] string |
+		#[since="1.21.11"] string @ 0..32767 |
+	),
+	/// Verifies the hash of the resulting texture.
+	signature?: (
+		#[until="1.21.11"] string |
+		#[since="1.21.11"] string @ 0..1024 |
+	),
+}
+
+struct ProfilePropertyMap {
+	// TODO: Consider providing specific tooling for this.
+	// TODO: since 1.21.11 only allows a maximum of 16 keys.
+	/// The key is usually `textures`.
+	/// Base64 encoded JSON value of the texture index.
+	[string]: [string]
+}
+
+enum(string) HumanoidArm {
+	Left = "left",
+	Right = "right",
+}
+
+enum(string) PlayerModelType {
+	// regular ID = "wide"
+	// legacy services ID = "default"
+	Wide = "wide",
+	Slim = "slim",
+}
+
+enum(string) PlayerModelPart {
+	Cape = "cape",
+	Jacket = "jacket",
+	LeftSleeve = "left_sleeve",
+	RightSleeve = "right_sleeve",
+	LeftPantsLeg = "left_pants_leg",
+	RightPantsLeg = "right_pants_leg",
+	Hat = "hat",
+}

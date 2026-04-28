@@ -23,10 +23,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
+import com.google.gson.JsonNull
 import com.google.gson.JsonParser
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocEditor
 import fr.hardel.asset_editor.client.compose.components.ui.Button
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
 import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
@@ -35,9 +36,9 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
-import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
+import fr.hardel.asset_editor.client.mcdoc.McdocService
+import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.workspace.action.SetEntryDataAction
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
@@ -50,13 +51,11 @@ fun <T : Any> RegistryDataEditorPage(
 ) {
     val dialogs = rememberRegistryDialogState()
     val entry = rememberCurrentRegistryEntry(context, workspace) ?: return
-    val codecTypes = rememberServerData(StudioDataSlots.CODEC_TYPES)
-    val codecDef = remember(codecTypes, workspace.registryId()) {
-        codecTypes.firstOrNull { it.id() == workspace.registryId() }
-    }
+    val registryId = workspace.registryId()
+    val rootType = remember(registryId) { rootTypeFor(registryId) }
 
-    if (codecDef == null) {
-        EmptyCodecState(workspace.registryId())
+    if (rootType == null) {
+        EmptyCodecState(registryId)
         return
     }
 
@@ -78,8 +77,8 @@ fun <T : Any> RegistryDataEditorPage(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = if (dirty) 96.dp else 24.dp)
         ) {
-            WidgetEditor(
-                widget = codecDef.widget(),
+            McdocEditor(
+                type = rootType,
                 value = parsedJson,
                 onValueChange = { newValue: JsonElement ->
                     jsonText = newValue.toString()
@@ -113,6 +112,12 @@ fun <T : Any> RegistryDataEditorPage(
     }
 
     RegistryPageDialogs(context, dialogs)
+}
+
+private fun rootTypeFor(registryId: Identifier): McdocType? {
+    val key = registryId.path
+    val entry = McdocService.current().dispatch().resolve("minecraft:resource", key).orElse(null) ?: return null
+    return entry.target()
 }
 
 @Composable

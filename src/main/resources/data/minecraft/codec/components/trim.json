@@ -1,7 +1,0 @@
-{
-  "type": "object",
-  "fields": [
-    { "key": "material", "widget": { "type": "holder", "registry": "minecraft:trim_material" } },
-    { "key": "pattern", "widget": { "type": "holder", "registry": "minecraft:trim_pattern" } }
-  ]
-}

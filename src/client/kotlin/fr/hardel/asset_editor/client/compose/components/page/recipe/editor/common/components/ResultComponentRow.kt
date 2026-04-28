@@ -43,13 +43,13 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocEditor
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHead
+import fr.hardel.asset_editor.client.compose.components.mcdoc.isInlineable
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.components.codec.WidgetEditor
-import fr.hardel.asset_editor.client.compose.components.codec.WidgetHead
-import fr.hardel.asset_editor.client.compose.components.codec.isInlineable
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
-import fr.hardel.asset_editor.data.codec.CodecWidget
+import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import kotlinx.coroutines.delay
 import net.minecraft.resources.Identifier
 
@@ -62,7 +62,7 @@ private const val SAVE_DEBOUNCE_MS = 250L
 @Composable
 fun ResultComponentRow(
     componentId: Identifier,
-    widget: CodecWidget?,
+    componentType: McdocType?,
     initialValue: JsonElement?,
     isPending: Boolean,
     expanded: Boolean,
@@ -86,9 +86,8 @@ fun ResultComponentRow(
 
     LaunchedEffect(draft, locallyChanged, isPending) {
         val current = draft
-        val initialPendingUnit = isPending && widget is CodecWidget.UnitWidget
         val shouldSave = current != null && when {
-            isPending -> locallyChanged || initialPendingUnit
+            isPending -> locallyChanged
             else -> locallyChanged && current != initialValue
         }
         if (shouldSave) {
@@ -97,8 +96,8 @@ fun ResultComponentRow(
         }
     }
 
-    val inlineHead = widget != null && isInlineable(widget)
-    val canExpand = widget != null && !inlineHead
+    val inlineHead = componentType != null && isInlineable(componentType)
+    val canExpand = componentType != null && !inlineHead
     val rowInteraction = remember { MutableInteractionSource() }
     val rowHovered by rowInteraction.collectIsHoveredAsState()
 
@@ -177,10 +176,10 @@ fun ResultComponentRow(
                 )
             }
 
-            if (inlineHead) {
+            if (inlineHead && componentType != null) {
                 Spacer(Modifier.width(12.dp))
-                WidgetHead(
-                    widget = widget,
+                McdocHead(
+                    type = componentType,
                     value = draft,
                     onValueChange = {
                         draft = it
@@ -194,7 +193,7 @@ fun ResultComponentRow(
             DeleteButton(onClick = onDelete)
         }
 
-        if (canExpand) {
+        if (canExpand && componentType != null) {
             AnimatedVisibility(
                 visible = expanded,
                 enter = standardCollapseEnter(),
@@ -205,8 +204,8 @@ fun ResultComponentRow(
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp)
                 ) {
-                    WidgetEditor(
-                        widget = widget,
+                    McdocEditor(
+                        type = componentType,
                         value = draft,
                         onValueChange = {
                             draft = it

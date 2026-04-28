@@ -1,0 +1,79 @@
+#[since="1.21.11"]
+dispatch minecraft:resource[timeline] to struct Timeline {
+	/// When not present, the timeline will not repeat.
+	period_ticks?: int @ 1..,
+	/// The world clock this timeline is tied to.
+	#[since="26.1"]
+	clock: #[id="world_clock"] string,
+	#[since="26.1"]
+	time_markers?: TimeMarkerMap,
+	tracks?: EnvironmentAttributeTrackMap,
+}
+
+struct TimeMarkerMap {
+	// TODO: tie the time markers to the world clock
+	/// Time marker ID must be unique within the world clock.
+	[#[id] string]: (int @ 0.. | TimeMarker),
+}
+
+struct TimeMarker {
+	ticks: int @ 0..,
+	/// Whether the time marker shows up in command suggestions. \
+	/// The time marker is still available in commands even if it is not suggested. \
+	/// Defaults to `false`.
+	show_in_commands?: boolean,
+}
+
+struct EnvironmentAttributeTrackMap {
+	[#[id="environment_attribute"] string]: minecraft:environment_attribute[[%key]][attribute_track],
+}
+
+type AttributeTrackBase = struct {
+	/// Defaults to `linear`.
+	/// For visualization, check out: https://easings.net/
+	ease?: EasingType,
+}
+
+type EasingType = (SimpleEasingType | CubicBezierEase)
+
+struct CubicBezierEase {
+	// EasingType.CubicBezierControls::validate() - only x1 and x2 are validated
+	/// `[x1, y1, x2, y2]`
+	/// For an easy GUI, check out: https://cubic-bezier.com/
+	cubic_bezier: [float @ 0..1, float, float @ 0..1, float],
+}
+
+enum(string) SimpleEasingType {
+	Constant = "constant",
+	Linear = "linear",
+	InBack = "in_back",
+	InBounce = "in_bounce",
+	InCirc = "in_circ",
+	InCubic = "in_cubic",
+	InElastic = "in_elastic",
+	InExpo = "in_expo",
+	InQuad = "in_quad",
+	InQuart = "in_quart",
+	InQuint = "in_quint",
+	InSine = "in_sine",
+	InOutBack = "in_out_back",
+	InOutBounce = "in_out_bounce",
+	InOutCirc = "in_out_circ",
+	InOutCubic = "in_out_cubic",
+	InOutElastic = "in_out_elastic",
+	InOutExpo = "in_out_expo",
+	InOutQuad = "in_out_quad",
+	InOutQuart = "in_out_quart",
+	InOutQuint = "in_out_quint",
+	InOutSine = "in_out_sine",
+	OutBack = "out_back",
+	OutBounce = "out_bounce",
+	OutCirc = "out_circ",
+	OutCubic = "out_cubic",
+	OutElastic = "out_elastic",
+	OutExpo = "out_expo",
+	OutQuad = "out_quad",
+	OutQuart = "out_quart",
+	OutQuint = "out_quint",
+	OutSine = "out_sine",
+}

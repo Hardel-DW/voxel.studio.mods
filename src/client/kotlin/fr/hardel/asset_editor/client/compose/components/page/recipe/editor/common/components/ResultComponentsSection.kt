@@ -37,15 +37,14 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocDefaults
 import fr.hardel.asset_editor.client.compose.components.ui.CollapsibleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
-import fr.hardel.asset_editor.client.compose.components.codec.defaultJsonFor
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
-import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
-import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
-import fr.hardel.asset_editor.data.codec.StudioCodecTypeDef
+import fr.hardel.asset_editor.client.mcdoc.McdocService
+import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.workspace.action.EditorAction
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveResultComponentAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultComponentAction
@@ -60,6 +59,7 @@ import net.minecraft.world.item.crafting.Recipe
 
 private val buttonShape = RoundedCornerShape(10.dp)
 private val PLUS = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
+private const val DATA_COMPONENT_REGISTRY = "minecraft:data_component"
 
 private data class PatchEntry(
     val componentId: Identifier,
@@ -85,9 +85,8 @@ fun ResultComponentsSection(
     val recipe = workspaceEntry?.data ?: return
     if (!RecipeAdapterRegistry.supportsResultComponents(recipe)) return
 
-    val definitions = rememberServerData(StudioDataSlots.COMPONENT_TYPES)
-    val defsById = remember(definitions) { definitions.associateBy { it.id() } }
-    val transientIds = remember(definitions) { buildTransientIds(definitions) }
+    val componentIds = remember { availableComponentIds() }
+    val transientIds = remember { unsupportedComponentIds(componentIds) }
 
     val entries = remember(recipe) { extractPatchEntries(recipe) }
     val patchIds = remember(entries) { entries.map { it.componentId }.toSet() }
@@ -98,7 +97,6 @@ fun ResultComponentsSection(
     }
 
     val expandedMap = remember { mutableStateMapOf<Identifier, Boolean>() }
-
     var addModalVisible by remember { mutableStateOf(false) }
 
     val rows = remember(entries, pendingIds.toList(), patchIds) {
@@ -124,7 +122,6 @@ fun ResultComponentsSection(
                 key(row.componentId.toString()) {
                     UnifiedRow(
                         row = row,
-                        defsById = defsById,
                         expanded = expandedMap[row.componentId] ?: (row is RowSource.Pending),
                         onExpandChange = { expandedMap[row.componentId] = it },
                         onAction = onAction,
@@ -147,12 +144,12 @@ fun ResultComponentsSection(
     AddComponentModal(
         visible = addModalVisible,
         onDismiss = { addModalVisible = false },
-        definitions = definitions,
+        componentIds = componentIds,
         excludedIds = excluded,
-        onPick = { def ->
-            if (def.id() !in pendingIds) {
-                pendingIds.add(def.id())
-                expandedMap[def.id()] = true
+        onPick = { id ->
+            if (id !in pendingIds) {
+                pendingIds.add(id)
+                expandedMap[id] = true
             }
         }
     )
@@ -161,15 +158,13 @@ fun ResultComponentsSection(
 @Composable
 private fun UnifiedRow(
     row: RowSource,
-    defsById: Map<Identifier, StudioCodecTypeDef>,
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     onAction: (EditorAction<*>) -> Unit,
     onCancelPending: () -> Unit
 ) {
     val id = row.componentId
-    val def = defsById[id]
-    val widget = def?.widget()
+    val componentType = remember(id) { typeForComponent(id) }
     val type = when (row) {
         is RowSource.Existing -> row.entry.type
         is RowSource.Pending -> BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(id)
@@ -178,12 +173,12 @@ private fun UnifiedRow(
     val isPending = row is RowSource.Pending
     val initialValue = when (row) {
         is RowSource.Existing -> row.entry.valueJson
-        is RowSource.Pending -> widget?.let { defaultJsonFor(it) }
+        is RowSource.Pending -> componentType?.let { McdocDefaults.defaultFor(it) }
     }
 
     ResultComponentRow(
         componentId = id,
-        widget = widget,
+        componentType = componentType,
         initialValue = initialValue,
         isPending = isPending,
         expanded = expanded,
@@ -237,6 +232,34 @@ private fun AddButton(onClick: () -> Unit) {
     }
 }
 
+private fun availableComponentIds(): List<Identifier> {
+    val keys = McdocService.current().dispatch().entries(DATA_COMPONENT_REGISTRY).keys
+    return keys.asSequence()
+        .filter { !it.startsWith("%") }
+        .mapNotNull { dispatchKeyToIdentifier(it) }
+        .toList()
+}
+
+private fun dispatchKeyToIdentifier(key: String): Identifier? {
+    if (key.contains(':')) return Identifier.tryParse(key)
+    return Identifier.tryParse("minecraft:$key")
+}
+
+private fun typeForComponent(id: Identifier): McdocType? =
+    McdocService.current().dispatch()
+        .resolve(DATA_COMPONENT_REGISTRY, id.path)
+        .map { it.target() }
+        .orElse(null)
+
+private fun unsupportedComponentIds(componentIds: List<Identifier>): Set<Identifier> {
+    val out = mutableSetOf<Identifier>()
+    for (id in componentIds) {
+        val type = BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(id)
+        if (type != null && type.codec() == null) out.add(id)
+    }
+    return out
+}
+
 private fun extractPatchEntries(recipe: Recipe<*>): List<PatchEntry> {
     val result = RecipeAdapterRegistry.extractResult(recipe)
     if (result.isEmpty) return emptyList()
@@ -261,13 +284,4 @@ private fun validate(type: DataComponentType<*>, json: JsonElement): Boolean {
     val registries = Minecraft.getInstance().connection?.registryAccess() ?: return false
     val ops = registries.createSerializationContext(JsonOps.INSTANCE)
     return codec.parse(ops, json).isSuccess
-}
-
-private fun buildTransientIds(defs: List<StudioCodecTypeDef>): Set<Identifier> {
-    val out = mutableSetOf<Identifier>()
-    for (def in defs) {
-        val type = BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(def.id())
-        if (type != null && type.codec() == null) out.add(def.id())
-    }
-    return out
 }
