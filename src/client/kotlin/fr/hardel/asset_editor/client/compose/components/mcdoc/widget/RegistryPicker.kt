@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.codec.widget.common
+package fr.hardel.asset_editor.client.compose.components.mcdoc.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -35,7 +35,6 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
@@ -47,7 +46,7 @@ import net.minecraft.resources.ResourceKey
 
 enum class RegistryPickerMode { ELEMENTS, TAGS }
 
-private val triggerShape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius)
+private val triggerShape = RoundedCornerShape(topEnd = McdocTokens.Radius, bottomEnd = McdocTokens.Radius)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
@@ -60,12 +59,12 @@ fun RegistryTrigger(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val border by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.BorderStrong else CodecTokens.Border,
+        targetValue = if (hovered) McdocTokens.BorderStrong else McdocTokens.Border,
         animationSpec = StudioMotion.hoverSpec(),
         label = "registry-trigger-border"
     )
     val bg by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
+        targetValue = if (hovered) McdocTokens.HoverBg else McdocTokens.InputBg,
         animationSpec = StudioMotion.hoverSpec(),
         label = "registry-trigger-bg"
     )
@@ -73,27 +72,27 @@ fun RegistryTrigger(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .height(CodecTokens.RowHeight)
+            .height(McdocTokens.RowHeight)
             .clip(triggerShape)
             .background(bg, triggerShape)
             .border(1.dp, border, triggerShape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = CodecTokens.PaddingX)
+            .padding(horizontal = McdocTokens.PaddingX)
     ) {
         Text(
             text = label ?: placeholder,
             style = StudioTypography.regular(13).copy(
                 fontFamily = if (label != null) FontFamily.Monospace else FontFamily.Default
             ),
-            color = if (label != null) CodecTokens.Text else CodecTokens.TextMuted,
+            color = if (label != null) McdocTokens.Text else McdocTokens.TextMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))
-        SvgIcon(CHEVRON, 12.dp, tint = CodecTokens.TextDimmed)
+        SvgIcon(CHEVRON, 12.dp, tint = McdocTokens.TextDimmed)
     }
 }
 
@@ -129,14 +128,14 @@ fun RegistryCommandPalette(
         onValueChange = { query = it },
         title = I18n.get(
             when (mode) {
-                RegistryPickerMode.ELEMENTS -> "codec:picker.elements"
-                RegistryPickerMode.TAGS -> "codec:picker.tags"
+                RegistryPickerMode.ELEMENTS -> "mcdoc:picker.elements"
+                RegistryPickerMode.TAGS -> "mcdoc:picker.tags"
             }
         ),
-        placeholder = I18n.get("codec:picker.search")
+        placeholder = I18n.get("mcdoc:picker.search")
     ) {
         if (filtered.isEmpty()) {
-            CommandPaletteEmpty(I18n.get("codec:picker.empty"))
+            CommandPaletteEmpty(I18n.get("mcdoc:picker.empty"))
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(items = filtered, key = { it.first.toString() }) { (id, name) ->
@@ -155,7 +154,7 @@ fun RegistryCommandPalette(
                                         .width(6.dp)
                                         .height(6.dp)
                                         .clip(RoundedCornerShape(3.dp))
-                                        .background(CodecTokens.Selected)
+                                        .background(McdocTokens.Selected)
                                 )
                             }
                         } else null

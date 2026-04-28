@@ -10,3 +10,4 @@
 - [Server](pages/Server.md) - Server-authoritative architecture, networking, mutation flow, pack sync, and lifecycle.
 - [Debug](pages/Debug.md) - The various debug pages and how they work and how to use them.
 - [Compose And Components](pages/Compose.md) - Compose and components path and related rules.
+- [Mcdoc](pages/Mcdoc.md) - Mcdoc pipeline (lex → parse → resolve → simplify → render) and Compose editor mapping.

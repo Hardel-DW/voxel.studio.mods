@@ -37,7 +37,7 @@ import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocDefaults
+import fr.hardel.asset_editor.client.compose.components.mcdoc.defaultFor
 import fr.hardel.asset_editor.client.compose.components.ui.CollapsibleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -173,7 +173,7 @@ private fun UnifiedRow(
     val isPending = row is RowSource.Pending
     val initialValue = when (row) {
         is RowSource.Existing -> row.entry.valueJson
-        is RowSource.Pending -> componentType?.let { McdocDefaults.defaultFor(it) }
+        is RowSource.Pending -> componentType?.let { defaultFor(it) }
     }
 
     ResultComponentRow(

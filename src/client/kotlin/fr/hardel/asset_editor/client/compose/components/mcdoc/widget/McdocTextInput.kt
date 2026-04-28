@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.codec.widget.common
+package fr.hardel.asset_editor.client.compose.components.mcdoc.widget
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,12 +26,11 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 
-private val defaultInputShape = RoundedCornerShape(topEnd = CodecTokens.Radius, bottomEnd = CodecTokens.Radius)
+private val defaultInputShape = RoundedCornerShape(topEnd = McdocTokens.Radius, bottomEnd = McdocTokens.Radius)
 
 @Composable
-internal fun CodecTextInput(
+internal fun McdocTextInput(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -39,7 +38,8 @@ internal fun CodecTextInput(
     monospace: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     normalize: (String) -> String = { it },
-    shape: RoundedCornerShape = defaultInputShape
+    shape: RoundedCornerShape = defaultInputShape,
+    error: String? = null
 ) {
     var focused by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf(TextFieldValue(value)) }
@@ -50,23 +50,27 @@ internal fun CodecTextInput(
         }
     }
 
-    val borderColor = if (focused) CodecTokens.BorderStrong else CodecTokens.Border
+    val borderColor = when {
+        error != null -> McdocTokens.Error
+        focused -> McdocTokens.BorderStrong
+        else -> McdocTokens.Border
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(CodecTokens.RowHeight)
+            .height(McdocTokens.RowHeight)
             .clip(shape)
-            .background(CodecTokens.InputBg, shape)
+            .background(McdocTokens.InputBg, shape)
             .border(1.dp, borderColor, shape)
-            .padding(horizontal = CodecTokens.PaddingX),
+            .padding(horizontal = McdocTokens.PaddingX),
         contentAlignment = Alignment.CenterStart
     ) {
         if (text.text.isEmpty()) {
             Text(
                 text = placeholder,
                 style = StudioTypography.regular(13),
-                color = CodecTokens.TextMuted
+                color = McdocTokens.TextMuted
             )
         }
         BasicTextField(
@@ -81,10 +85,10 @@ internal fun CodecTextInput(
                 onValueChange(normalized)
             },
             textStyle = StudioTypography.regular(13).copy(
-                color = CodecTokens.Text,
+                color = McdocTokens.Text,
                 fontFamily = if (monospace) FontFamily.Monospace else FontFamily.Default
             ),
-            cursorBrush = SolidColor(CodecTokens.Text),
+            cursorBrush = SolidColor(McdocTokens.Text),
             singleLine = true,
             keyboardOptions = keyboardOptions,
             modifier = Modifier

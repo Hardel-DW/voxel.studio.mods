@@ -56,17 +56,22 @@ public final class Simplifier {
             case MappedType m -> simplify(m.child(), value, visiting, depth);
             case StructType s -> flattenStruct(s, value, visiting, depth);
             case UnionType u -> simplifyUnion(u, value, visiting, depth);
+            case PrimitiveArrayType p -> primitiveArrayAsList(p);
             case AnyType a -> a;
             case BooleanType b -> b;
             case UnsafeType u -> u;
             case NumericType n -> n;
-            case PrimitiveArrayType p -> p;
             case StringType s -> s;
             case LiteralType l -> l;
             case ListType l -> l;
             case TupleType t -> t;
             case EnumType e -> e;
         };
+    }
+
+    private static ListType primitiveArrayAsList(PrimitiveArrayType p) {
+        NumericType element = new NumericType(p.kind().elementKind(), p.valueRange(), Attributes.EMPTY);
+        return new ListType(element, p.lengthRange(), p.attributes());
     }
 
     private McdocType simplifyReference(ReferenceType ref, JsonElement value, Set<Path> visiting, int depth) {

@@ -40,49 +40,25 @@ import com.google.gson.JsonElement
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.AddFieldButton
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldControlShape
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.FieldRowHeight
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.IndentBox
-import fr.hardel.asset_editor.client.compose.components.codec.widget.common.RemoveIconButton
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocBody
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocDefaults
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHead
+import fr.hardel.asset_editor.client.compose.components.mcdoc.Body
+import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
 import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocBody
 import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocHead
-import fr.hardel.asset_editor.client.compose.components.mcdoc.orNull
 import fr.hardel.asset_editor.client.compose.components.mcdoc.rememberSimplified
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.FieldRowHeight
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.IndentBox
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RemoveIconButton
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.ListType
-import kotlin.jvm.optionals.getOrNull
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
-
-@Composable
-fun ListHead(
-    type: ListType,
-    value: JsonElement?,
-    onValueChange: (JsonElement) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val size = (value as? JsonArray)?.size() ?: 0
-    val maxSize = type.lengthRange().getOrNull()?.max()?.orNull()?.toInt()
-    val canAdd = maxSize == null || size < maxSize
-
-    AddFieldButton(
-        label = I18n.get("codec:list.add"),
-        enabled = canAdd,
-        onClick = { onValueChange(addItem(type, value)) },
-        modifier = modifier.fillMaxWidth(),
-        shape = FieldControlShape
-    )
-}
+private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
 @Composable
 fun ListBody(
@@ -96,11 +72,11 @@ fun ListBody(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(CodecTokens.Gap)
+        verticalArrangement = Arrangement.spacedBy(McdocTokens.Gap)
     ) {
         items.forEachIndexed { index, item ->
             key(index) {
-                ListItemRow(
+                ListItem(
                     index = index,
                     itemType = type.item(),
                     value = item,
@@ -110,11 +86,6 @@ fun ListBody(
             }
         }
     }
-}
-
-private fun addItem(type: ListType, value: JsonElement?): JsonArray {
-    val current = (value as? JsonArray) ?: JsonArray()
-    return current.deepCopy().also { it.add(McdocDefaults.defaultFor(type.item())) }
 }
 
 private fun List<JsonElement>.replaceAt(index: Int, value: JsonElement): JsonArray {
@@ -130,7 +101,7 @@ private fun List<JsonElement>.removeAt(index: Int): JsonArray {
 }
 
 @Composable
-private fun ListItemRow(
+private fun ListItem(
     index: Int,
     itemType: McdocType,
     value: JsonElement,
@@ -141,34 +112,25 @@ private fun ListItemRow(
     val complex = hasMcdocBody(simplified, value)
 
     if (!complex) {
-        PrimitiveItemRow(simplifiedType = simplified, value = value, onChange = onChange, onRemove = onRemove)
+        InlineItemRow(simplifiedType = simplified, value = value, onChange = onChange, onRemove = onRemove)
         return
     }
 
     var expanded by remember(index) { mutableStateOf(true) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        EntryHeaderBar(
-            index = index,
-            expanded = expanded,
-            onToggle = { expanded = !expanded },
-            onRemove = onRemove
-        )
-        AnimatedVisibility(
-            visible = expanded,
-            enter = standardCollapseEnter(),
-            exit = standardCollapseExit()
-        ) {
+        EntryHeader(index = index, expanded = expanded, onToggle = { expanded = !expanded }, onRemove = onRemove)
+        AnimatedVisibility(visible = expanded, enter = standardCollapseEnter(), exit = standardCollapseExit()) {
             IndentBox {
-                if (hasMcdocHead(simplified)) McdocHead(simplified, value, onChange)
-                McdocBody(simplified, value, onChange)
+                if (hasMcdocHead(simplified)) Head(simplified, value, onChange)
+                Body(simplified, value, onChange)
             }
         }
     }
 }
 
 @Composable
-private fun PrimitiveItemRow(
+private fun InlineItemRow(
     simplifiedType: McdocType,
     value: JsonElement,
     onChange: (JsonElement) -> Unit,
@@ -176,33 +138,26 @@ private fun PrimitiveItemRow(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(CodecTokens.Gap),
+        horizontalArrangement = Arrangement.spacedBy(McdocTokens.Gap),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Box(modifier = Modifier.weight(1f)) {
-            McdocHead(simplifiedType, value, onChange)
-        }
+        Box(modifier = Modifier.weight(1f)) { Head(simplifiedType, value, onChange) }
         RemoveIconButton(onClick = onRemove)
     }
 }
 
 @Composable
-private fun EntryHeaderBar(
-    index: Int,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    onRemove: () -> Unit
-) {
+private fun EntryHeader(index: Int, expanded: Boolean, onToggle: () -> Unit, onRemove: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
-    val shape = RoundedCornerShape(CodecTokens.Radius)
+    val shape = RoundedCornerShape(McdocTokens.Radius)
     val bg by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.LabelBg,
+        targetValue = if (hovered) McdocTokens.HoverBg else McdocTokens.LabelBg,
         animationSpec = StudioMotion.hoverSpec(),
         label = "list-entry-bg"
     )
     val borderColor by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.BorderStrong else CodecTokens.Border,
+        targetValue = if (hovered) McdocTokens.BorderStrong else McdocTokens.Border,
         animationSpec = StudioMotion.hoverSpec(),
         label = "list-entry-border"
     )
@@ -218,38 +173,37 @@ private fun EntryHeaderBar(
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onToggle)
-            .padding(start = CodecTokens.PaddingX, end = 4.dp)
+            .padding(start = McdocTokens.PaddingX, end = 4.dp)
     ) {
         SvgIcon(
             location = CHEVRON,
             size = 12.dp,
-            tint = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed,
+            tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (expanded) 0f else -90f)
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            text = I18n.get("codec:list.entry", index + 1),
+            text = I18n.get("mcdoc:list.entry", index + 1),
             style = StudioTypography.medium(12),
-            color = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed,
+            color = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
-        BarTrashIcon(onClick = onRemove)
+        EntryTrash(onClick = onRemove)
     }
 }
 
 @Composable
-private fun BarTrashIcon(onClick: () -> Unit) {
+private fun EntryTrash(onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
-    val shape = RoundedCornerShape(CodecTokens.Radius)
+    val shape = RoundedCornerShape(McdocTokens.Radius)
     val bg by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.Remove else Color.Transparent,
+        targetValue = if (hovered) McdocTokens.Remove else Color.Transparent,
         animationSpec = StudioMotion.hoverSpec(),
         label = "list-trash-bg"
     )
-    val trashIcon = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -260,6 +214,6 @@ private fun BarTrashIcon(onClick: () -> Unit) {
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
-        SvgIcon(location = trashIcon, size = 12.dp, tint = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed)
+        SvgIcon(location = TRASH, size = 12.dp, tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed)
     }
 }

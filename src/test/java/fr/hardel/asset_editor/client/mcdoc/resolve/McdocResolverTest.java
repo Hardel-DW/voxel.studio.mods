@@ -29,7 +29,7 @@ class McdocResolverTest {
         List<Module> modules = parseAllModules();
         assertTrue(modules.size() > 200, "expected >200 modules");
 
-        ResolveResult result = new McdocResolver().resolve(modules);
+        ResolveResult result = new McdocResolver("1.21.11").resolve(modules);
 
         if (result.hasErrors()) {
             System.err.println("Resolve errors (" + result.errors().size() + " total):");

@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.client.mcdoc.parser.ParseResult;
 import fr.hardel.asset_editor.client.mcdoc.resolve.McdocResolver;
 import fr.hardel.asset_editor.client.mcdoc.resolve.ResolveResult;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.minecraft.SharedConstants;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
@@ -103,12 +104,13 @@ public final class McdocResourceLoader implements PreparableReloadListener {
     }
 
     private void apply(List<Module> modules) {
-        ResolveResult resolved = new McdocResolver().resolve(modules);
+        String version = SharedConstants.getCurrentVersion().name();
+        ResolveResult resolved = new McdocResolver(version).resolve(modules);
         for (var error : resolved.errors()) {
             LOGGER.warn("mcdoc resolve error in {}: {}", error.module(), error.message());
         }
         McdocService.replace(new McdocService(resolved.symbols(), resolved.dispatch()));
-        LOGGER.info("mcdoc loaded: {} modules, {} symbols, {} dispatch registries",
-            modules.size(), resolved.symbols().size(), resolved.dispatch().registries().size());
+        LOGGER.info("mcdoc loaded for {}: {} modules, {} symbols, {} dispatch registries",
+            version, modules.size(), resolved.symbols().size(), resolved.dispatch().registries().size());
     }
 }

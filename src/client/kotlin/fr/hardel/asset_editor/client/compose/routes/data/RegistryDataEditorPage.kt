@@ -5,32 +5,35 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
 import com.google.gson.JsonParser
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocEditor
-import fr.hardel.asset_editor.client.compose.components.ui.Button
-import fr.hardel.asset_editor.client.compose.components.ui.ButtonSize
-import fr.hardel.asset_editor.client.compose.components.ui.ButtonVariant
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
+import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditor
+import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditorState
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
@@ -40,9 +43,14 @@ import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.client.mcdoc.McdocService
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.workspace.action.SetEntryDataAction
+import kotlinx.coroutines.delay
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+
+private const val SAVE_DEBOUNCE_MS = 400L
+private const val CODE_PARSE_DEBOUNCE_MS = 200L
+private val PRETTY_GSON = GsonBuilder().setPrettyPrinting().create()
 
 @Composable
 fun <T : Any> RegistryDataEditorPage(
@@ -60,53 +68,91 @@ fun <T : Any> RegistryDataEditorPage(
     }
 
     val registries = Minecraft.getInstance().connection?.registryAccess() ?: return
-    val initialJson = remember(entry.id()) { workspace.definition().encode(entry, registries) }
-    var jsonText by remember(entry.id()) { mutableStateOf(initialJson) }
-    var dirty by remember(entry.id()) { mutableStateOf(false) }
-    var localError by remember(entry.id()) { mutableStateOf<String?>(null) }
+    val initial = remember(entry.id()) {
+        runCatching { JsonParser.parseString(workspace.definition().encode(entry, registries)) }
+            .getOrElse { JsonNull.INSTANCE }
+    }
+    var current by remember(entry.id()) { mutableStateOf<JsonElement>(initial) }
+    var lastSaved by remember(entry.id()) { mutableStateOf(initial) }
+    val codeState = remember(entry.id()) { CodeEditorState(PRETTY_GSON.toJson(initial)) }
 
-    val parsedJson = remember(jsonText) {
-        runCatching { JsonParser.parseString(jsonText) }.getOrNull()
+    LaunchedEffect(current, entry.id()) {
+        if (current == lastSaved) return@LaunchedEffect
+        delay(SAVE_DEBOUNCE_MS)
+        if (current == lastSaved) return@LaunchedEffect
+        context.dispatchRegistryAction(workspace, entry.id(), SetEntryDataAction(current.toString()), dialogs)
+        lastSaved = current
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+    LaunchedEffect(current) {
+        val codeJson = runCatching { JsonParser.parseString(codeState.fullText()) }.getOrNull()
+        if (codeJson == current) return@LaunchedEffect
+        val pretty = PRETTY_GSON.toJson(current)
+        if (codeState.fullText() != pretty) {
+            codeState.selectAll()
+            codeState.insert(pretty)
+        }
+    }
+
+    LaunchedEffect(codeState.documentVersion) {
+        delay(CODE_PARSE_DEBOUNCE_MS)
+        val parsed = runCatching { JsonParser.parseString(codeState.fullText()) }.getOrNull() ?: return@LaunchedEffect
+        if (parsed != current) current = parsed
+    }
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        Box(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(0.62f)
+                .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 32.dp, end = 32.dp, top = 24.dp, bottom = if (dirty) 96.dp else 24.dp)
+                .padding(horizontal = 32.dp, vertical = 24.dp)
         ) {
-            McdocEditor(
-                type = rootType,
-                value = parsedJson,
-                onValueChange = { newValue: JsonElement ->
-                    jsonText = newValue.toString()
-                    dirty = true
-                    localError = null
-                }
-            )
+            Column(modifier = Modifier.widthIn(max = McdocTokens.MaxContentWidth)) {
+                McdocRoot(
+                    type = rootType,
+                    value = current,
+                    onValueChange = { current = it }
+                )
+            }
         }
 
-        localError?.let { ErrorBanner(it, modifier = Modifier.align(Alignment.TopCenter)) }
+        Spacer(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(McdocTokens.Border)
+        )
 
-        if (dirty) {
-            DirtyBar(
-                onSave = {
-                    if (parsedJson == null) {
-                        localError = "studio:data.invalid_json"
-                        return@DirtyBar
-                    }
-                    context.dispatchRegistryAction(workspace, entry.id(), SetEntryDataAction(jsonText), dialogs)
-                    dirty = false
-                    localError = null
-                },
-                onDiscard = {
-                    jsonText = initialJson
-                    dirty = false
-                    localError = null
-                },
-                modifier = Modifier.align(Alignment.BottomCenter)
+        Column(
+            modifier = Modifier
+                .weight(0.38f)
+                .widthIn(min = 280.dp, max = 420.dp)
+                .fillMaxHeight()
+                .background(McdocTokens.PopupBg)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ) {
+                Text(
+                    text = I18n.get("mcdoc:code_panel.title"),
+                    style = StudioTypography.medium(12),
+                    color = McdocTokens.TextDimmed
+                )
+            }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 1.dp)
+                    .background(McdocTokens.Border)
+            )
+            CodeEditor(
+                state = codeState,
+                modifier = Modifier.weight(1f).fillMaxWidth()
             )
         }
     }
@@ -115,8 +161,7 @@ fun <T : Any> RegistryDataEditorPage(
 }
 
 private fun rootTypeFor(registryId: Identifier): McdocType? {
-    val key = registryId.path
-    val entry = McdocService.current().dispatch().resolve("minecraft:resource", key).orElse(null) ?: return null
+    val entry = McdocService.current().dispatch().resolve("minecraft:resource", registryId.path).orElse(null) ?: return null
     return entry.target()
 }
 
@@ -133,64 +178,3 @@ private fun EmptyCodecState(registryId: Identifier) {
         )
     }
 }
-
-@Composable
-private fun ErrorBanner(messageKey: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .padding(16.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(StudioColors.Red500.copy(alpha = 0.15f))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = I18n.get(messageKey),
-            style = StudioTypography.medium(12),
-            color = StudioColors.Red500
-        )
-    }
-}
-
-@Composable
-private fun DirtyBar(
-    onSave: () -> Unit,
-    onDiscard: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(StudioColors.Zinc950.copy(alpha = 0.85f))
-            .padding(horizontal = 32.dp, vertical = 16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = I18n.get("studio:data.dirty_indicator"),
-                style = StudioTypography.regular(12),
-                color = StudioColors.Zinc400
-            )
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = onDiscard,
-                    variant = ButtonVariant.GHOST_BORDER,
-                    size = ButtonSize.SM,
-                    text = I18n.get("studio:data.discard")
-                )
-                Button(
-                    onClick = onSave,
-                    variant = ButtonVariant.SHIMMER,
-                    size = ButtonSize.SM,
-                    text = I18n.get("studio:data.save")
-                )
-            }
-        }
-    }
-}
-

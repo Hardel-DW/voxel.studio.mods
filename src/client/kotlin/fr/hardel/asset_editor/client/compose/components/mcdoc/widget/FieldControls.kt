@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.codec.widget.common
+package fr.hardel.asset_editor.client.compose.components.mcdoc.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import net.minecraft.resources.Identifier
 
@@ -74,11 +73,11 @@ fun InlineFieldActionButton(
                 enabled = enabled,
                 onClick = onClick
             )
-            .padding(horizontal = if (label == null) 0.dp else CodecTokens.PaddingX)
+            .padding(horizontal = if (label == null) 0.dp else McdocTokens.PaddingX)
     ) {
         SvgIcon(icon, 12.dp, tint = colors.icon)
         if (label != null) {
-            Spacer(Modifier.width(CodecTokens.GapLg))
+            Spacer(Modifier.width(McdocTokens.GapLg))
             Text(text = label, style = StudioTypography.regular(12), color = colors.text)
         }
     }
@@ -129,7 +128,7 @@ fun ToggleIconButton(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val bg by animateColorAsState(
-        targetValue = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
+        targetValue = if (hovered) McdocTokens.HoverBg else McdocTokens.InputBg,
         animationSpec = StudioMotion.hoverSpec(),
         label = "toggle-bg"
     )
@@ -140,7 +139,7 @@ fun ToggleIconButton(
             .size(FieldRowHeight)
             .clip(shape)
             .background(bg, shape)
-            .border(1.dp, CodecTokens.Border, shape)
+            .border(1.dp, McdocTokens.Border, shape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onToggle)
@@ -148,7 +147,7 @@ fun ToggleIconButton(
         SvgIcon(
             CHEVRON,
             12.dp,
-            tint = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed,
+            tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (expanded) 0f else -90f)
         )
     }
@@ -164,31 +163,31 @@ private data class ActionColors(
 private fun actionColors(tone: FieldActionTone, hovered: Boolean, enabled: Boolean): ActionColors {
     if (!enabled) {
         return ActionColors(
-            background = CodecTokens.LabelBg,
-            border = CodecTokens.Border.copy(alpha = 0.5f),
-            icon = CodecTokens.TextMuted,
-            text = CodecTokens.TextMuted
+            background = McdocTokens.LabelBg,
+            border = McdocTokens.Border.copy(alpha = 0.5f),
+            icon = McdocTokens.TextMuted,
+            text = McdocTokens.TextMuted
         )
     }
 
     return when (tone) {
         FieldActionTone.ADD -> ActionColors(
-            background = if (hovered) CodecTokens.Add.copy(alpha = 0.10f) else CodecTokens.LabelBg,
-            border = if (hovered) CodecTokens.Add.copy(alpha = 0.55f) else CodecTokens.Border,
-            icon = if (hovered) CodecTokens.Add else CodecTokens.TextDimmed,
-            text = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed
+            background = if (hovered) McdocTokens.Add.copy(alpha = 0.10f) else McdocTokens.LabelBg,
+            border = if (hovered) McdocTokens.Add.copy(alpha = 0.55f) else McdocTokens.Border,
+            icon = if (hovered) McdocTokens.Add else McdocTokens.TextDimmed,
+            text = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed
         )
         FieldActionTone.REMOVE -> ActionColors(
-            background = if (hovered) CodecTokens.Remove else Color.Transparent,
-            border = if (hovered) CodecTokens.RemoveBorder else CodecTokens.Border,
-            icon = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed,
-            text = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed
+            background = if (hovered) McdocTokens.Remove else Color.Transparent,
+            border = if (hovered) McdocTokens.RemoveBorder else McdocTokens.Border,
+            icon = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
+            text = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed
         )
         FieldActionTone.NEUTRAL -> ActionColors(
-            background = if (hovered) CodecTokens.HoverBg else CodecTokens.InputBg,
-            border = CodecTokens.Border,
-            icon = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed,
-            text = if (hovered) CodecTokens.Text else CodecTokens.TextDimmed
+            background = if (hovered) McdocTokens.HoverBg else McdocTokens.InputBg,
+            border = McdocTokens.Border,
+            icon = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
+            text = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed
         )
     }
 }

@@ -79,6 +79,10 @@ public final class DispatchRegistry {
             }
         }
 
+        public void registerKey(String registry, String key, Entry entry) {
+            map.computeIfAbsent(registry, ignored -> new LinkedHashMap<>()).put(key, entry);
+        }
+
         public DispatchRegistry build() {
             Map<String, Map<String, Entry>> copy = new HashMap<>();
             map.forEach((reg, ents) -> copy.put(reg, Map.copyOf(ents)));

@@ -43,8 +43,8 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocEditor
-import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHead
+import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
 import fr.hardel.asset_editor.client.compose.components.mcdoc.isInlineable
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
@@ -178,7 +178,7 @@ fun ResultComponentRow(
 
             if (inlineHead && componentType != null) {
                 Spacer(Modifier.width(12.dp))
-                McdocHead(
+                Head(
                     type = componentType,
                     value = draft,
                     onValueChange = {
@@ -204,7 +204,7 @@ fun ResultComponentRow(
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 4.dp)
                 ) {
-                    McdocEditor(
+                    McdocRoot(
                         type = componentType,
                         value = draft,
                         onValueChange = {

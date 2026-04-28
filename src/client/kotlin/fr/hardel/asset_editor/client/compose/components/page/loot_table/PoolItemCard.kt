@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioText
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.ItemSprite
 import net.minecraft.client.resources.language.I18n
@@ -246,10 +247,5 @@ private fun extractEntryInfo(entry: LootPoolEntryContainer): EntryInfo {
     }
 }
 
-private fun humanize(id: Identifier?): String {
-    if (id == null) return "Unknown"
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
-    }
-}
+private fun humanize(id: Identifier?): String =
+    if (id == null) "Unknown" else StudioText.humanize(id)

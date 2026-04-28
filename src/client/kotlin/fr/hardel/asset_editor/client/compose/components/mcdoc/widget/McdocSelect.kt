@@ -1,4 +1,4 @@
-package fr.hardel.asset_editor.client.compose.components.codec.widget.common
+package fr.hardel.asset_editor.client.compose.components.mcdoc.widget
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -45,7 +45,6 @@ import androidx.compose.ui.window.PopupProperties
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
-import fr.hardel.asset_editor.client.compose.components.codec.CodecTokens
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.popupEnterTransform
 import net.minecraft.resources.Identifier
@@ -55,13 +54,13 @@ data class SelectOption(val value: String, val label: String)
 private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
-fun CodecSelect(
+fun McdocSelect(
     options: List<SelectOption>,
     selected: String?,
     onSelect: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "Select…",
-    shape: RoundedCornerShape = RoundedCornerShape(CodecTokens.Radius)
+    shape: RoundedCornerShape = RoundedCornerShape(McdocTokens.Radius)
 ) {
     var open by remember { mutableStateOf(false) }
     val selectedOption = options.firstOrNull { it.value == selected }
@@ -100,12 +99,12 @@ private fun SelectTrigger(
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
     val border by animateColorAsState(
-        targetValue = if (open || hovered) CodecTokens.BorderStrong else CodecTokens.Border,
+        targetValue = if (open || hovered) McdocTokens.BorderStrong else McdocTokens.Border,
         animationSpec = StudioMotion.hoverSpec(),
         label = "select-border"
     )
     val bg by animateColorAsState(
-        targetValue = if (hovered || open) CodecTokens.HoverBg else CodecTokens.InputBg,
+        targetValue = if (hovered || open) McdocTokens.HoverBg else McdocTokens.InputBg,
         animationSpec = StudioMotion.hoverSpec(),
         label = "select-bg"
     )
@@ -114,19 +113,19 @@ private fun SelectTrigger(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(CodecTokens.RowHeight)
+            .height(McdocTokens.RowHeight)
             .clip(shape)
             .background(bg, shape)
             .border(1.dp, border, shape)
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = CodecTokens.PaddingX)
+            .padding(horizontal = McdocTokens.PaddingX)
     ) {
         Text(
             text = label ?: placeholder,
             style = StudioTypography.regular(13),
-            color = if (label != null) CodecTokens.Text else CodecTokens.TextMuted,
+            color = if (label != null) McdocTokens.Text else McdocTokens.TextMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
@@ -135,7 +134,7 @@ private fun SelectTrigger(
         SvgIcon(
             location = CHEVRON,
             size = 12.dp,
-            tint = CodecTokens.TextDimmed,
+            tint = McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (open) 180f else 0f)
         )
     }
@@ -150,10 +149,10 @@ private fun SelectPopup(
 ) {
     val anim = remember { Animatable(0f) }
     LaunchedEffect(Unit) { anim.animateTo(1f, StudioMotion.popupEnterSpec()) }
-    val popupShape = RoundedCornerShape(CodecTokens.RadiusLg)
+    val popupShape = RoundedCornerShape(McdocTokens.RadiusLg)
 
     Popup(
-        offset = IntOffset(0, (CodecTokens.RowHeight.value + 4).toInt()),
+        offset = IntOffset(0, (McdocTokens.RowHeight.value + 4).toInt()),
         onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {
@@ -168,8 +167,8 @@ private fun SelectPopup(
                     translateY = 8.dp
                 )
                 .clip(popupShape)
-                .background(CodecTokens.PopupBg, popupShape)
-                .border(1.dp, CodecTokens.Border, popupShape)
+                .background(McdocTokens.PopupBg, popupShape)
+                .border(1.dp, McdocTokens.Border, popupShape)
                 .padding(6.dp)
         ) {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -189,20 +188,20 @@ private fun SelectPopup(
 private fun SelectItem(label: String, selected: Boolean, onClick: () -> Unit) {
     val interaction = remember { MutableInteractionSource() }
     val hovered by interaction.collectIsHoveredAsState()
-    val itemShape = RoundedCornerShape(CodecTokens.Radius)
+    val itemShape = RoundedCornerShape(McdocTokens.Radius)
     val bg by animateColorAsState(
         targetValue = when {
-            hovered -> CodecTokens.HoverBg
-            selected -> CodecTokens.Selected.copy(alpha = 0.32f)
+            hovered -> McdocTokens.HoverBg
+            selected -> McdocTokens.Selected.copy(alpha = 0.32f)
             else -> Color.Transparent
         },
         animationSpec = StudioMotion.hoverSpec(),
         label = "select-item-bg"
     )
     val fg = when {
-        hovered -> CodecTokens.Text
-        selected -> CodecTokens.Text
-        else -> CodecTokens.TextDimmed
+        hovered -> McdocTokens.Text
+        selected -> McdocTokens.Text
+        else -> McdocTokens.TextDimmed
     }
 
     Row(
@@ -214,7 +213,7 @@ private fun SelectItem(label: String, selected: Boolean, onClick: () -> Unit) {
             .hoverable(interaction)
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
-            .padding(horizontal = CodecTokens.PaddingX, vertical = 7.dp)
+            .padding(horizontal = McdocTokens.PaddingX, vertical = 7.dp)
     ) {
         Text(
             text = label,

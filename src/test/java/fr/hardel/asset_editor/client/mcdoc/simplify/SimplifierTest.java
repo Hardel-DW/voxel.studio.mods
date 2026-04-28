@@ -37,7 +37,7 @@ class SimplifierTest {
     @BeforeAll
     static void setup() throws IOException {
         List<Module> modules = parseAllModules();
-        resolved = new McdocResolver().resolve(modules);
+        resolved = new McdocResolver("1.21.11").resolve(modules);
         assertFalse(resolved.hasErrors(), "resolve should not produce errors");
     }
 

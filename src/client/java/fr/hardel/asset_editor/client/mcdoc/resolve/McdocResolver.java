@@ -30,13 +30,18 @@ public final class McdocResolver {
     private final DispatchRegistry.Builder dispatch = DispatchRegistry.builder();
     private final Map<Path, ResolutionContext> contexts = new HashMap<>();
     private final List<ResolveError> errors = new ArrayList<>();
+    private final VersionFilter filter;
+
+    public McdocResolver(String currentVersion) {
+        this.filter = new VersionFilter(currentVersion);
+    }
 
     public ResolveResult resolve(Collection<Module> modules) {
         modules.forEach(this::buildContext);
         modules.forEach(this::registerDeclarations);
         modules.forEach(this::registerDispatches);
         modules.forEach(this::applyInjections);
-        return new ResolveResult(symbols.build(), dispatch.build(), Map.copyOf(contexts), List.copyOf(errors));
+        return new ResolveResult(filter.filter(symbols.build()), filter.filter(dispatch.build()), List.copyOf(errors));
     }
 
     private void buildContext(Module module) {
