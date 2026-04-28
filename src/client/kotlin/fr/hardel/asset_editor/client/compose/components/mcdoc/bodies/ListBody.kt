@@ -37,7 +37,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Body
@@ -47,6 +46,7 @@ import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocHead
 import fr.hardel.asset_editor.client.compose.components.mcdoc.rememberSimplified
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.FieldRowHeight
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.IndentBox
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocIcons
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RemoveIconButton
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
@@ -55,10 +55,6 @@ import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.ListType
 import net.minecraft.client.resources.language.I18n
-import net.minecraft.resources.Identifier
-
-private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
-private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
 
 @Composable
 fun ListBody(
@@ -176,7 +172,7 @@ private fun EntryHeader(index: Int, expanded: Boolean, onToggle: () -> Unit, onR
             .padding(start = McdocTokens.PaddingX, end = 4.dp)
     ) {
         SvgIcon(
-            location = CHEVRON,
+            location = McdocIcons.ChevronDown,
             size = 12.dp,
             tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (expanded) 0f else -90f)
@@ -214,6 +210,6 @@ private fun EntryTrash(onClick: () -> Unit) {
             .pointerHoverIcon(PointerIcon.Hand)
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
     ) {
-        SvgIcon(location = TRASH, size = 12.dp, tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed)
+        SvgIcon(location = McdocIcons.Trash, size = 12.dp, tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed)
     }
 }

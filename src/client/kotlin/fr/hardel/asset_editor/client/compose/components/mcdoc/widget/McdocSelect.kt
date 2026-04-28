@@ -42,16 +42,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.popupEnterTransform
-import net.minecraft.resources.Identifier
 
 data class SelectOption(val value: String, val label: String)
-
-private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
 fun McdocSelect(
@@ -132,7 +128,7 @@ private fun SelectTrigger(
         )
         Spacer(Modifier.width(8.dp))
         SvgIcon(
-            location = CHEVRON,
+            location = McdocIcons.ChevronDown,
             size = 12.dp,
             tint = McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (open) 180f else 0f)

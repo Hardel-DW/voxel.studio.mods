@@ -28,8 +28,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
 import com.google.gson.JsonParser
+import com.mojang.serialization.JsonOps
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
+import net.minecraft.core.HolderLookup
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditor
@@ -39,7 +42,6 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
-import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import fr.hardel.asset_editor.client.mcdoc.McdocService
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.workspace.action.SetEntryDataAction
@@ -74,12 +76,16 @@ fun <T : Any> RegistryDataEditorPage(
     }
     var current by remember(entry.id()) { mutableStateOf<JsonElement>(initial) }
     var lastSaved by remember(entry.id()) { mutableStateOf(initial) }
+    var validationError by remember(entry.id()) { mutableStateOf<String?>(null) }
     val codeState = remember(entry.id()) { CodeEditorState(PRETTY_GSON.toJson(initial)) }
 
     LaunchedEffect(current, entry.id()) {
         if (current == lastSaved) return@LaunchedEffect
         delay(SAVE_DEBOUNCE_MS)
         if (current == lastSaved) return@LaunchedEffect
+        val error = validate(workspace, current, registries)
+        validationError = error
+        if (error != null) return@LaunchedEffect
         context.dispatchRegistryAction(workspace, entry.id(), SetEntryDataAction(current.toString()), dialogs)
         lastSaved = current
     }
@@ -103,7 +109,7 @@ fun <T : Any> RegistryDataEditorPage(
     Row(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
-                .weight(0.62f)
+                .weight(0.55f)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 32.dp, vertical = 24.dp)
@@ -126,8 +132,8 @@ fun <T : Any> RegistryDataEditorPage(
 
         Column(
             modifier = Modifier
-                .weight(0.38f)
-                .widthIn(min = 280.dp, max = 420.dp)
+                .weight(0.45f)
+                .widthIn(min = 360.dp, max = 640.dp)
                 .fillMaxHeight()
                 .background(McdocTokens.PopupBg)
         ) {
@@ -143,6 +149,13 @@ fun <T : Any> RegistryDataEditorPage(
                     style = StudioTypography.medium(12),
                     color = McdocTokens.TextDimmed
                 )
+                if (validationError != null) {
+                    Text(
+                        text = I18n.get("mcdoc:code_panel.invalid"),
+                        style = StudioTypography.regular(11),
+                        color = McdocTokens.Error
+                    )
+                }
             }
             Spacer(
                 modifier = Modifier
@@ -163,6 +176,16 @@ fun <T : Any> RegistryDataEditorPage(
 private fun rootTypeFor(registryId: Identifier): McdocType? {
     val entry = McdocService.current().dispatch().resolve("minecraft:resource", registryId.path).orElse(null) ?: return null
     return entry.target()
+}
+
+private fun <T : Any> validate(
+    workspace: ClientWorkspaceRegistry<T>,
+    json: JsonElement,
+    registries: HolderLookup.Provider
+): String? {
+    val ops = registries.createSerializationContext(JsonOps.INSTANCE)
+    val result = workspace.definition().codec().parse(ops, json)
+    return result.error().map { it.message() }.orElse(null)
 }
 
 @Composable

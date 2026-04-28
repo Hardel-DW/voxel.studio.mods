@@ -19,14 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.AnchorBelowPopup
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -42,7 +38,7 @@ fun ErrorIndicator(message: String, modifier: Modifier = Modifier) {
             .onPointerEvent(PointerEventType.Exit) { hovered = false }
     ) {
         if (hovered) {
-            Popup(popupPositionProvider = PopupBelowAnchor(6)) {
+            Popup(popupPositionProvider = AnchorBelowPopup(6)) {
                 Box(
                     modifier = Modifier
                         .widthIn(max = 320.dp)
@@ -58,15 +54,3 @@ fun ErrorIndicator(message: String, modifier: Modifier = Modifier) {
     }
 }
 
-private class PopupBelowAnchor(private val gapPx: Int) : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        val x = anchorBounds.left.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
-        val y = (anchorBounds.bottom + gapPx).coerceAtMost((windowSize.height - popupContentSize.height).coerceAtLeast(0))
-        return IntOffset(x, y)
-    }
-}

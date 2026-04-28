@@ -31,7 +31,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
@@ -47,7 +46,6 @@ import net.minecraft.resources.ResourceKey
 enum class RegistryPickerMode { ELEMENTS, TAGS }
 
 private val triggerShape = RoundedCornerShape(topEnd = McdocTokens.Radius, bottomEnd = McdocTokens.Radius)
-private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
 fun RegistryTrigger(
@@ -92,7 +90,7 @@ fun RegistryTrigger(
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))
-        SvgIcon(CHEVRON, 12.dp, tint = McdocTokens.TextDimmed)
+        SvgIcon(McdocIcons.ChevronDown, 12.dp, tint = McdocTokens.TextDimmed)
     }
 }
 

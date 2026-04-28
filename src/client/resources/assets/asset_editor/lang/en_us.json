@@ -846,6 +846,7 @@
     "mcdoc:error.length": "Length out of range {0}",
     "mcdoc:error.regex": "Invalid format",
     "mcdoc:code_panel.title": "JSON",
+    "mcdoc:code_panel.invalid": "Invalid JSON — not saved",
     "registry:minecraft.attribute": "Attribute",
     "registry:minecraft.enchantment": "Enchantment",
 

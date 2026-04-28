@@ -10,8 +10,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
+import fr.hardel.asset_editor.client.compose.components.mcdoc.TagsMode
 import fr.hardel.asset_editor.client.compose.components.mcdoc.idRegistry
 import fr.hardel.asset_editor.client.compose.components.mcdoc.matchRegex
+import fr.hardel.asset_editor.client.compose.components.mcdoc.tagsMode
 import fr.hardel.asset_editor.client.compose.components.mcdoc.toPlaceholder
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTextInput
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryCommandPalette
@@ -33,7 +35,7 @@ fun StringHead(
 ) {
     val registry = idRegistry(type.attributes())
     if (registry != null) {
-        IdentifierHead(registry, value, onValueChange, modifier)
+        IdentifierHead(registry, tagsMode(type.attributes()), value, onValueChange, modifier)
         return
     }
     val current = remember(value) { (value as? JsonPrimitive)?.asString.orEmpty() }
@@ -56,19 +58,20 @@ fun StringHead(
 @Composable
 private fun IdentifierHead(
     registry: String,
+    tags: TagsMode,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
     modifier: Modifier
 ) {
-    val current = remember(value) {
-        runCatching { (value as? JsonPrimitive)?.asString?.let(Identifier::tryParse) }.getOrNull()
-    }
+    val raw = remember(value) { (value as? JsonPrimitive)?.asString.orEmpty() }
+    val ref = remember(raw, tags) { IdentifierRef.parse(raw, tags) }
     var open by remember { mutableStateOf(false) }
     val registryId = remember(registry) { Identifier.tryParse(registry) }
+    val pickerMode = if (ref.isTag) RegistryPickerMode.TAGS else RegistryPickerMode.ELEMENTS
 
     Box(modifier = modifier.fillMaxWidth()) {
         RegistryTrigger(
-            label = current?.toString(),
+            label = ref.display,
             placeholder = I18n.get("mcdoc:widget.unset"),
             onClick = { open = !open },
             modifier = Modifier.fillMaxWidth()
@@ -77,16 +80,35 @@ private fun IdentifierHead(
             RegistryCommandPalette(
                 visible = open,
                 registryId = registryId,
-                mode = RegistryPickerMode.ELEMENTS,
-                selected = current,
+                mode = pickerMode,
+                selected = ref.identifier,
                 onPick = { id ->
-                    onValueChange(JsonPrimitive(id.toString()))
+                    onValueChange(JsonPrimitive(encodePicked(id, pickerMode, tags)))
                     open = false
                 },
                 onDismiss = { open = false }
             )
         }
     }
+}
+
+private data class IdentifierRef(val identifier: Identifier?, val display: String?, val isTag: Boolean) {
+    companion object {
+        fun parse(raw: String, tags: TagsMode): IdentifierRef {
+            if (raw.isEmpty()) return IdentifierRef(null, null, tags == TagsMode.IMPLICIT || tags == TagsMode.REQUIRED)
+            val explicitTag = raw.startsWith("#")
+            val isTag = explicitTag || tags == TagsMode.IMPLICIT || tags == TagsMode.REQUIRED
+            val body = if (explicitTag) raw.substring(1) else raw
+            val identifier = runCatching { Identifier.tryParse(body) }.getOrNull()
+            val display = if (isTag && !explicitTag) "#$raw" else raw
+            return IdentifierRef(identifier, display, isTag)
+        }
+    }
+}
+
+private fun encodePicked(id: Identifier, mode: RegistryPickerMode, tags: TagsMode): String = when {
+    mode == RegistryPickerMode.TAGS && tags != TagsMode.IMPLICIT -> "#$id"
+    else -> id.toString()
 }
 
 private fun stringError(text: String, regex: String?, lengthRange: NumericRange?): String? {

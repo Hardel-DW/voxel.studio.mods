@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.mcdoc.simplify;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -68,6 +69,8 @@ public final class Simplifier {
             case EnumType e -> e;
         };
     }
+
+    private static final int SCORE_DISQUALIFIED = Integer.MIN_VALUE;
 
     private static ListType primitiveArrayAsList(PrimitiveArrayType p) {
         NumericType element = new NumericType(p.kind().elementKind(), p.valueRange(), Attributes.EMPTY);
@@ -165,7 +168,7 @@ public final class Simplifier {
         }
     }
 
-    private UnionType simplifyUnion(UnionType u, JsonElement value, Set<Path> visiting, int depth) {
+    private McdocType simplifyUnion(UnionType u, JsonElement value, Set<Path> visiting, int depth) {
         List<McdocType> flat = new ArrayList<>();
         for (McdocType member : u.members()) {
             McdocType simplified = simplify(member, value, visiting, depth + 1);
@@ -175,7 +178,79 @@ public final class Simplifier {
                 flat.add(simplified);
             }
         }
+        if (flat.size() == 1) return mergeAttrs(flat.get(0), u.attributes());
         return new UnionType(flat, u.attributes());
+    }
+
+    /** Picks the union member best matching the runtime JSON value, or 0 when ambiguous / no signal. */
+    public static int selectMemberIndex(List<McdocType> members, JsonElement value) {
+        if (members.isEmpty() || value == null || value.isJsonNull()) return 0;
+        int bestIndex = 0;
+        int bestScore = SCORE_DISQUALIFIED;
+        for (int i = 0; i < members.size(); i++) {
+            int score = scoreMember(members.get(i), value);
+            if (score > bestScore) {
+                bestScore = score;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
+    }
+
+    private static int scoreMember(McdocType member, JsonElement value) {
+        return switch (member) {
+            case StructType s -> scoreStruct(s, value);
+            case LiteralType l -> matchesLiteral(l.value(), value) ? 3 : SCORE_DISQUALIFIED;
+            case BooleanType b -> isPrimitiveBoolean(value) ? 1 : SCORE_DISQUALIFIED;
+            case NumericType n -> isPrimitiveNumber(value) ? 1 : SCORE_DISQUALIFIED;
+            case StringType s -> isPrimitiveString(value) ? 1 : SCORE_DISQUALIFIED;
+            case EnumType e -> isPrimitiveString(value) || isPrimitiveNumber(value) ? 1 : SCORE_DISQUALIFIED;
+            case ListType l -> value instanceof JsonArray ? 1 : SCORE_DISQUALIFIED;
+            case TupleType t -> value instanceof JsonArray ? 1 : SCORE_DISQUALIFIED;
+            case PrimitiveArrayType p -> value instanceof JsonArray ? 1 : SCORE_DISQUALIFIED;
+            case AnyType a -> -10;
+            case UnsafeType u -> -10;
+            default -> SCORE_DISQUALIFIED;
+        };
+    }
+
+    private static int scoreStruct(StructType s, JsonElement value) {
+        if (!(value instanceof JsonObject obj)) return SCORE_DISQUALIFIED;
+        int present = 0;
+        int missingRequired = 0;
+        for (StructField field : s.fields()) {
+            if (!(field instanceof StructPairField pair)) continue;
+            if (!(pair.key() instanceof StringKey strKey)) continue;
+            String name = strKey.name();
+            JsonElement child = obj.get(name);
+            if (child != null && pair.type() instanceof LiteralType lit && !matchesLiteral(lit.value(), child)) {
+                return SCORE_DISQUALIFIED;
+            }
+            if (child != null) present++;
+            else if (!pair.optional()) missingRequired++;
+        }
+        return present - missingRequired;
+    }
+
+    private static boolean matchesLiteral(LiteralValue literal, JsonElement value) {
+        if (!(value instanceof JsonPrimitive prim)) return false;
+        return switch (literal) {
+            case StringLiteral sl -> prim.isString() && sl.value().equals(prim.getAsString());
+            case BooleanLiteral bl -> prim.isBoolean() && bl.value() == prim.getAsBoolean();
+            case NumericLiteral nl -> prim.isNumber() && nl.value() == prim.getAsDouble();
+        };
+    }
+
+    private static boolean isPrimitiveString(JsonElement value) {
+        return value instanceof JsonPrimitive p && p.isString();
+    }
+
+    private static boolean isPrimitiveNumber(JsonElement value) {
+        return value instanceof JsonPrimitive p && p.isNumber();
+    }
+
+    private static boolean isPrimitiveBoolean(JsonElement value) {
+        return value instanceof JsonPrimitive p && p.isBoolean();
     }
 
     private static Map<String, McdocType> bindTypeParams(List<TypeParam> params, List<McdocType> args) {

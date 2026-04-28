@@ -10,10 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.gson.JsonArray
 import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
 import fr.hardel.asset_editor.client.compose.components.mcdoc.defaultFor
 import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocHead
@@ -23,6 +20,7 @@ import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.SelectOption
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.*
+import fr.hardel.asset_editor.client.mcdoc.simplify.Simplifier
 
 @Composable
 fun UnionHead(
@@ -64,31 +62,8 @@ fun UnionHead(
     }
 }
 
-internal fun selectMember(members: List<McdocType>, value: JsonElement?): Int {
-    if (value == null || value.isJsonNull) return 0
-    val byShape = members.indexOfFirst { matchesShape(it, value) }
-    return if (byShape >= 0) byShape else 0
-}
-
-private fun matchesShape(type: McdocType, value: JsonElement): Boolean = when (type) {
-    is StructType -> value is JsonObject
-    is ListType, is TupleType, is PrimitiveArrayType -> value is JsonArray
-    is BooleanType -> value is JsonPrimitive && runCatching { value.asBoolean }.isSuccess
-    is NumericType -> value is JsonPrimitive && value.isNumber
-    is StringType, is EnumType -> value is JsonPrimitive && value.isString
-    is LiteralType -> matchesLiteral(type.value(), value)
-    is AnyType, is UnsafeType -> true
-    else -> false
-}
-
-private fun matchesLiteral(literal: LiteralValue, value: JsonElement): Boolean {
-    if (value !is JsonPrimitive) return false
-    return when (literal) {
-        is StringLiteral -> value.isString && value.asString == literal.value()
-        is BooleanLiteral -> runCatching { value.asBoolean == literal.value() }.getOrDefault(false)
-        is NumericLiteral -> value.isNumber && runCatching { value.asDouble == literal.value() }.getOrDefault(false)
-    }
-}
+internal fun selectMember(members: List<McdocType>, value: JsonElement?): Int =
+    Simplifier.selectMemberIndex(members, value)
 
 private fun memberLabel(member: McdocType, index: Int, all: List<McdocType>): String {
     val raw = baseLabel(member, index)

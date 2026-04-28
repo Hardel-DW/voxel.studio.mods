@@ -34,7 +34,9 @@ public final class McdocParser {
     private final List<Token> tokens;
     private final Path modulePath;
     private final List<ParseError> errors = new ArrayList<>();
+    private final List<TopLevelStatement> hoistedDeclarations = new ArrayList<>();
     private int cursor;
+    private int parameterizedAliasDepth;
 
     public McdocParser(List<Token> tokens, Path modulePath) {
         this.tokens = tokens;
@@ -51,6 +53,7 @@ public final class McdocParser {
                 synchronizeToTopLevel();
             }
         }
+        statements.addAll(hoistedDeclarations);
         return new ParseResult(new Module(modulePath, statements), errors);
     }
 
@@ -220,8 +223,14 @@ public final class McdocParser {
         Token name = expectIdentOrFail("type alias name");
         List<TypeParam> typeParams = checkOptionalTypeParamBlock();
         expect(EQUALS, "'='");
-        McdocType target = parseType();
-        return new TypeAliasStatement(name.text(), typeParams, target, prelim.doc(), prelim.attributes());
+        boolean parameterized = !typeParams.isEmpty();
+        if (parameterized) parameterizedAliasDepth++;
+        try {
+            McdocType target = parseType();
+            return new TypeAliasStatement(name.text(), typeParams, target, prelim.doc(), prelim.attributes());
+        } finally {
+            if (parameterized) parameterizedAliasDepth--;
+        }
     }
 
     // ---- Prelim (doc + attributes) ----
@@ -477,17 +486,23 @@ public final class McdocParser {
 
     private McdocType parseStructTypeInline() {
         advance();
-        if (check(IDENTIFIER)) advance();
+        Optional<String> name = check(IDENTIFIER) ? Optional.of(advance().text()) : Optional.empty();
         List<StructField> fields = parseStructBlock();
-        return new StructType(fields, Attributes.EMPTY);
+        StructType type = new StructType(fields, Attributes.EMPTY);
+        if (name.isEmpty() || parameterizedAliasDepth > 0) return type;
+        hoistedDeclarations.add(new StructStatement(name, type, Optional.empty(), Attributes.EMPTY));
+        return new ReferenceType(modulePath.append(name.get()), Attributes.EMPTY);
     }
 
     private McdocType parseEnumTypeInline() {
         advance();
         EnumKind kind = parseEnumKindParen();
-        if (check(IDENTIFIER)) advance();
+        Optional<String> name = check(IDENTIFIER) ? Optional.of(advance().text()) : Optional.empty();
         List<EnumField> fields = parseEnumBlock();
-        return new EnumType(kind, fields, Attributes.EMPTY);
+        EnumType type = new EnumType(kind, fields, Attributes.EMPTY);
+        if (name.isEmpty() || parameterizedAliasDepth > 0) return type;
+        hoistedDeclarations.add(new EnumStatement(name.get(), type, Optional.empty(), Attributes.EMPTY));
+        return new ReferenceType(modulePath.append(name.get()), Attributes.EMPTY);
     }
 
     // ---- Struct block ----

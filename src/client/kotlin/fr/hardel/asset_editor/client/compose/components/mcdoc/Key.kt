@@ -2,9 +2,16 @@ package fr.hardel.asset_editor.client.compose.components.mcdoc
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -18,24 +25,71 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
 import fr.hardel.asset_editor.client.compose.StudioText
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.AnchorBelowPopup
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocIcons
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
+import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+
+@Composable
+fun CollapsibleKey(
+    label: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+    deprecated: Boolean = false,
+    minWidth: Dp = McdocTokens.LabelMinWidth
+) {
+    val displayLabel = StudioText.humanize(label)
+    val baseStyle = StudioTypography.medium(12)
+    val style = if (deprecated) baseStyle.copy(textDecoration = TextDecoration.LineThrough) else baseStyle
+    val shape = RoundedCornerShape(topStart = McdocTokens.Radius, bottomStart = McdocTokens.Radius)
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .height(McdocTokens.RowHeight)
+            .widthIn(min = minWidth)
+            .clip(shape)
+            .background(if (hovered) McdocTokens.HoverBg else McdocTokens.LabelBg, shape)
+            .border(1.dp, if (hovered) McdocTokens.BorderStrong else McdocTokens.Border, shape)
+            .hoverable(interaction)
+            .pointerHoverIcon(PointerIcon.Hand)
+            .clickable(interactionSource = interaction, indication = null, onClick = onToggle)
+            .padding(horizontal = McdocTokens.PaddingX)
+    ) {
+        SvgIcon(
+            location = McdocIcons.ChevronDown,
+            size = 10.dp,
+            tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
+            modifier = Modifier.rotate(if (expanded) 0f else -90f)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = displayLabel,
+            style = style,
+            color = McdocTokens.Text,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -93,7 +147,7 @@ fun Key(
             modifier = textModifier
         )
         if (doc != null && hovered) {
-            Popup(popupPositionProvider = AnchorBelow(6)) {
+            Popup(popupPositionProvider = AnchorBelowPopup(6)) {
                 Box(
                     modifier = Modifier
                         .widthIn(max = 360.dp)
@@ -109,17 +163,3 @@ fun Key(
     }
 }
 
-private class AnchorBelow(private val gapPx: Int) : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize
-    ): IntOffset {
-        val x = anchorBounds.left.coerceIn(0, (windowSize.width - popupContentSize.width).coerceAtLeast(0))
-        val yBelow = anchorBounds.bottom + gapPx
-        val yAbove = anchorBounds.top - popupContentSize.height - gapPx
-        val y = if (yBelow + popupContentSize.height <= windowSize.height) yBelow else yAbove
-        return IntOffset(x, y.coerceAtLeast(0))
-    }
-}

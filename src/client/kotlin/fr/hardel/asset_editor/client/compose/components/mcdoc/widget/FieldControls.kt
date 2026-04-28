@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
@@ -38,10 +37,6 @@ enum class FieldActionTone { ADD, REMOVE, NEUTRAL }
 
 val FieldControlShape = RoundedCornerShape(FieldRowRadius)
 private val RightControlShape = RoundedCornerShape(topEnd = FieldRowRadius, bottomEnd = FieldRowRadius)
-
-private val PLUS = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/plus.svg")
-private val TRASH = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/trash.svg")
-private val CHEVRON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/chevron-down.svg")
 
 @Composable
 fun InlineFieldActionButton(
@@ -93,7 +88,7 @@ fun AddFieldButton(
 ) {
     InlineFieldActionButton(
         label = label,
-        icon = PLUS,
+        icon = McdocIcons.Plus,
         tone = FieldActionTone.ADD,
         onClick = onClick,
         modifier = modifier,
@@ -110,7 +105,7 @@ fun RemoveIconButton(
 ) {
     InlineFieldActionButton(
         label = null,
-        icon = TRASH,
+        icon = McdocIcons.Trash,
         tone = FieldActionTone.REMOVE,
         onClick = onClick,
         modifier = modifier.size(FieldRowHeight),
@@ -145,7 +140,7 @@ fun ToggleIconButton(
             .clickable(interactionSource = interaction, indication = null, onClick = onToggle)
     ) {
         SvgIcon(
-            CHEVRON,
+            McdocIcons.ChevronDown,
             12.dp,
             tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             modifier = Modifier.rotate(if (expanded) 0f else -90f)

@@ -3,7 +3,6 @@ package fr.hardel.asset_editor.client.compose.components.mcdoc
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
-import fr.hardel.asset_editor.client.compose.components.mcdoc.bodies.AnyBody
 import fr.hardel.asset_editor.client.compose.components.mcdoc.bodies.ListBody
 import fr.hardel.asset_editor.client.compose.components.mcdoc.bodies.StructBody
 import fr.hardel.asset_editor.client.compose.components.mcdoc.bodies.TupleBody
@@ -23,7 +22,6 @@ fun Body(
         is ListType -> ListBody(type, value, onValueChange, modifier)
         is TupleType -> TupleBody(type, value, onValueChange, modifier)
         is UnionType -> UnionBody(type, value, onValueChange, modifier)
-        is AnyType, is UnsafeType -> AnyBody(value, onValueChange, modifier)
         else -> Unit
     }
 }

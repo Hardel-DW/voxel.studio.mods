@@ -81,8 +81,7 @@ fun defaultFor(type: McdocType): JsonElement = when (type) {
     is StructType -> defaultForStruct(type)
     is UnionType -> defaultForUnion(type)
     is AnyType, is UnsafeType -> JsonObject()
-    is ReferenceType, is DispatcherType, is IndexedType,
-    is ConcreteType, is TemplateType, is MappedType -> JsonObject()
+    is ReferenceType, is DispatcherType, is IndexedType, is ConcreteType, is TemplateType, is MappedType -> JsonNull.INSTANCE
 }
 
 private fun defaultNumber(type: NumericType): Number {
@@ -133,11 +132,18 @@ fun deprecatedSince(attributes: Attributes): String? = readStringAttribute(attri
 fun since(attributes: Attributes): String? = readStringAttribute(attributes, "since", null)
 fun until(attributes: Attributes): String? = readStringAttribute(attributes, "until", null)
 
-fun isTagged(attributes: Attributes): Boolean {
-    val attr = attributes.get("id").getOrNull() ?: return false
-    val value = attr.value().getOrNull() as? Attribute.TreeValue ?: return false
-    val tags = value.named()["tags"] ?: return false
-    return readStringFromValue(tags) != null
+enum class TagsMode { NONE, ALLOWED, IMPLICIT, REQUIRED }
+
+fun tagsMode(attributes: Attributes): TagsMode {
+    val attr = attributes.get("id").getOrNull() ?: return TagsMode.NONE
+    val value = attr.value().getOrNull() as? Attribute.TreeValue ?: return TagsMode.NONE
+    val tags = value.named()["tags"] ?: return TagsMode.NONE
+    return when (readStringFromValue(tags)) {
+        "allowed" -> TagsMode.ALLOWED
+        "implicit" -> TagsMode.IMPLICIT
+        "required" -> TagsMode.REQUIRED
+        else -> TagsMode.NONE
+    }
 }
 
 private fun readStringAttribute(attributes: Attributes, name: String, treeKey: String?): String? {

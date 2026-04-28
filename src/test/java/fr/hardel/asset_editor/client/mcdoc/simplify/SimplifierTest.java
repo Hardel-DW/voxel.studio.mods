@@ -106,6 +106,69 @@ class SimplifierTest {
         assertTrue(nestedFields.contains("pack_format"), "expected 'pack_format': " + nestedFields);
     }
 
+    @Test
+    void hoistsNamedInlineStructFromDispatch() {
+        SymbolTable.Symbol trimMaterial = resolved.symbols().get(
+            new Path(true, List.of("java", "data", "trim", "TrimMaterial"))
+        ).orElseThrow(() -> new AssertionError("TrimMaterial should be hoisted as a module-level symbol"));
+        assertInstanceOf(StructSymbol.class, trimMaterial);
+
+        Simplifier simplifier = new Simplifier(resolved.symbols(), resolved.dispatch());
+        JsonObject value = new JsonObject();
+        value.addProperty("asset_name", "emerald");
+        McdocType simplified = simplifier.simplifyByDispatch("minecraft:data_component", "trim", value);
+        assertInstanceOf(StructType.class, simplified);
+        StructType trim = (StructType) simplified;
+
+        StructPairField material = trim.fields().stream()
+            .filter(StructPairField.class::isInstance).map(StructPairField.class::cast)
+            .filter(f -> f.key() instanceof StringKey k && k.name().equals("material"))
+            .findFirst().orElseThrow();
+
+        McdocType materialSimplified = simplifier.simplify(material.type(), value);
+        assertInstanceOf(UnionType.class, materialSimplified,
+            "Trim.material should remain a union for the dropdown, got " + materialSimplified.getClass().getSimpleName());
+        UnionType union = (UnionType) materialSimplified;
+        boolean hasResolvedStruct = union.members().stream()
+            .anyMatch(m -> m instanceof StructType s && pairFieldNames(s).contains("asset_name"));
+        assertTrue(hasResolvedStruct,
+            "TrimMaterial should appear as a fully resolved struct member (asset_name field), got: " + union.members());
+
+        int active = Simplifier.selectMemberIndex(union.members(), value);
+        assertInstanceOf(StructType.class, union.members().get(active),
+            "active member for a JsonObject value should be the struct, not the string");
+    }
+
+    @Test
+    void selectsUnionMemberByLiteralKeyDiscriminator() {
+        Simplifier simplifier = new Simplifier(resolved.symbols(), resolved.dispatch());
+        McdocType textType = new ReferenceType(
+            new Path(true, List.of("java", "util", "text", "Text")),
+            fr.hardel.asset_editor.client.mcdoc.ast.Attributes.EMPTY
+        );
+
+        JsonObject translated = new JsonObject();
+        translated.addProperty("translate", "enchantment.minecraft.aqua_affinity");
+        McdocType simplified = simplifier.simplify(textType, translated);
+        assertInstanceOf(UnionType.class, simplified, "Text should simplify to a union of variants");
+        UnionType union = (UnionType) simplified;
+
+        int translatedIndex = Simplifier.selectMemberIndex(union.members(), translated);
+        assertInstanceOf(StructType.class, union.members().get(translatedIndex));
+        assertTrue(pairFieldNames((StructType) union.members().get(translatedIndex)).contains("translate"),
+            "Text({translate:...}) should select the TranslatedText member");
+
+        JsonObject normal = new JsonObject();
+        normal.addProperty("text", "hello");
+        int normalIndex = Simplifier.selectMemberIndex(union.members(), normal);
+        assertTrue(pairFieldNames((StructType) union.members().get(normalIndex)).contains("text"),
+            "Text({text:...}) should select the NormalText member");
+
+        int stringIndex = Simplifier.selectMemberIndex(union.members(), new JsonPrimitive("hi"));
+        assertInstanceOf(StringType.class, union.members().get(stringIndex),
+            "Text(\"hi\") should select the StringType member");
+    }
+
     private static List<String> pairFieldNames(StructType s) {
         List<String> names = new ArrayList<>();
         for (StructField f : s.fields()) {
