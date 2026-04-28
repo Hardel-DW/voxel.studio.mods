@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
 import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.crafting.Recipe
+import net.minecraft.world.item.crafting.SmithingTrimRecipe
 
 fun loadWorkspaceRecipeEntries(
     entries: List<ElementEntry<Recipe<*>>>
@@ -63,7 +64,11 @@ private fun ElementEntry<Recipe<*>>.toRuntimeEntry(): RecipeRuntimeEntry? {
         if (items.isNotEmpty()) index.toString() to items else null
     }.toMap()
 
-    val resultItemId = BuiltInRegistries.ITEM.getKey(result.item).toString()
+    val resultItemId = when {
+        !result.isEmpty -> BuiltInRegistries.ITEM.getKey(result.item).toString()
+        recipe is SmithingTrimRecipe -> firstIngredientItem(recipe.baseIngredient())
+        else -> ""
+    }
 
     return RecipeRuntimeEntry(
         id = id(),
@@ -81,10 +86,16 @@ private fun ElementEntry<Recipe<*>>.toRuntimeEntry(): RecipeRuntimeEntry? {
 }
 
 private fun resolveIngredientItems(ingredient: Ingredient): List<String> =
+    ingredientItemIds(ingredient)
+        .distinct()
+        .limit(RecipeCatalogEntry.MAX_INGREDIENT_OPTIONS.toLong())
+        .toList()
+
+private fun firstIngredientItem(ingredient: Ingredient): String =
+    ingredientItemIds(ingredient).findFirst().orElse("")
+
+private fun ingredientItemIds(ingredient: Ingredient) =
     ingredient.values.stream()
         .map { holder -> holder.unwrapKey().map(ResourceKey<*>::identifier).orElse(null) }
         .filter { it != null }
         .map { it.toString() }
-        .distinct()
-        .limit(16)
-        .toList()
