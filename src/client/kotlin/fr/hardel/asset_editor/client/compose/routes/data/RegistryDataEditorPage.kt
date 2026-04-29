@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import net.minecraft.core.HolderLookup
+import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHistory
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.compose.components.ui.GridBackground
@@ -44,6 +46,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.dispatchRegistryAction
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentRegistryEntry
 import fr.hardel.asset_editor.client.compose.lib.rememberRegistryDialogState
+import fr.hardel.asset_editor.client.compose.lib.shortcut.StudioShortcutBus
+import java.awt.event.KeyEvent
 import fr.hardel.asset_editor.client.mcdoc.McdocService
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.workspace.action.SetEntryDataAction
@@ -87,10 +91,16 @@ fun <T : Any> RegistryDataEditorPage(
         runCatching { JsonParser.parseString(workspace.definition().encode(entry, registries)) }
             .getOrElse { JsonNull.INSTANCE }
     }
-    var current by remember(entry.id()) { mutableStateOf<JsonElement>(initial) }
+    val history = remember(entry.id()) { McdocHistory(initial) }
+    val current = history.current
     var lastSaved by remember(entry.id()) { mutableStateOf(initial) }
     var validationError by remember(entry.id()) { mutableStateOf<String?>(null) }
     val codeState = remember(entry.id()) { CodeEditorState(PRETTY_GSON.toJson(initial)) }
+
+    DisposableEffect(history) {
+        val handle = StudioShortcutBus.register { event -> handleHistoryShortcut(event, history) }
+        onDispose { handle.close() }
+    }
 
     LaunchedEffect(current, entry.id()) {
         if (current == lastSaved) return@LaunchedEffect
@@ -116,7 +126,7 @@ fun <T : Any> RegistryDataEditorPage(
     LaunchedEffect(codeState.documentVersion) {
         delay(CODE_PARSE_DEBOUNCE_MS)
         val parsed = runCatching { JsonParser.parseString(codeState.fullText()) }.getOrNull() ?: return@LaunchedEffect
-        if (parsed != current) current = parsed
+        if (parsed != current) history.replace(parsed)
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -131,7 +141,7 @@ fun <T : Any> RegistryDataEditorPage(
                 McdocRoot(
                     type = rootType,
                     value = current,
-                    onValueChange = { current = it }
+                    onValueChange = { history.replace(it) }
                 )
             }
         }
@@ -184,6 +194,16 @@ fun <T : Any> RegistryDataEditorPage(
     }
 
     RegistryPageDialogs(context, dialogs)
+}
+
+private fun handleHistoryShortcut(event: KeyEvent, history: McdocHistory): Boolean {
+    if (event.id != KeyEvent.KEY_PRESSED) return false
+    if (!event.isControlDown) return false
+    return when (event.keyCode) {
+        KeyEvent.VK_Z -> if (event.isShiftDown) history.redo() else history.undo()
+        KeyEvent.VK_Y -> history.redo()
+        else -> false
+    }
 }
 
 private fun rootTypeFor(registryId: Identifier): McdocType? {

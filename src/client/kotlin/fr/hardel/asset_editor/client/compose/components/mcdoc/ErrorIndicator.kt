@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,13 +31,19 @@ import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 fun ErrorIndicator(message: String, modifier: Modifier = Modifier) {
     var hovered by remember { mutableStateOf(false) }
     Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(8.dp)
+            .size(14.dp)
             .clip(CircleShape)
-            .background(McdocTokens.Error, CircleShape)
+            .border(1.5.dp, McdocTokens.Error, CircleShape)
             .onPointerEvent(PointerEventType.Enter) { hovered = true }
             .onPointerEvent(PointerEventType.Exit) { hovered = false }
     ) {
+        Text(
+            text = "!",
+            style = StudioTypography.bold(10),
+            color = McdocTokens.Error
+        )
         if (hovered) {
             Popup(popupPositionProvider = AnchorBelowPopup(6)) {
                 Box(
@@ -53,4 +60,3 @@ fun ErrorIndicator(message: String, modifier: Modifier = Modifier) {
         }
     }
 }
-

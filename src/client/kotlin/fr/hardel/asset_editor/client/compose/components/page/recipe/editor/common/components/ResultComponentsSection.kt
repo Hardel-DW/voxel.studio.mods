@@ -32,12 +32,15 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
+import com.google.gson.JsonNull
+import com.google.gson.JsonObject
 import com.mojang.serialization.JsonOps
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.mcdoc.defaultFor
+import fr.hardel.asset_editor.client.compose.components.mcdoc.isFlagStruct
 import fr.hardel.asset_editor.client.compose.components.ui.CollapsibleSection
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
@@ -147,7 +150,10 @@ fun ResultComponentsSection(
         componentIds = componentIds,
         excludedIds = excluded,
         onPick = { id ->
-            if (id !in pendingIds) {
+            if (id in pendingIds || id in patchIds) return@AddComponentModal
+            if (isFlagComponent(id)) {
+                onAction(SetResultComponentAction(id, JsonObject().toString()))
+            } else {
                 pendingIds.add(id)
                 expandedMap[id] = true
             }
@@ -250,6 +256,12 @@ private fun typeForComponent(id: Identifier): McdocType? =
         .resolve(DATA_COMPONENT_REGISTRY, id.path)
         .map { it.target() }
         .orElse(null)
+
+private fun isFlagComponent(id: Identifier): Boolean {
+    val type = typeForComponent(id) ?: return false
+    val resolved = McdocService.current().simplifier().simplify(type, JsonNull.INSTANCE)
+    return isFlagStruct(resolved)
+}
 
 private fun unsupportedComponentIds(componentIds: List<Identifier>): Set<Identifier> {
     val out = mutableSetOf<Identifier>()

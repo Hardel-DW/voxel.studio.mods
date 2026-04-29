@@ -27,7 +27,7 @@ fun NumericHead(
     val keyboard = KeyboardOptions(keyboardType = if (isInt) KeyboardType.Number else KeyboardType.Decimal)
     val current = remember(value) { numericText(value, isInt) }
     val range = type.valueRange().getOrNull()
-    val error = remember(current, range) { numericError(current, isInt, range) }
+    val error = remember(current, isInt) { unparseableError(current, isInt) }
 
     NumberStepper(
         value = current,
@@ -69,9 +69,8 @@ private fun numericText(value: JsonElement?, isInt: Boolean): String {
 internal fun parseNumeric(text: String, isInt: Boolean): Number? =
     if (isInt) text.toLongOrNull() else text.toDoubleOrNull()
 
-private fun numericError(text: String, isInt: Boolean, range: NumericRange?): String? {
+private fun unparseableError(text: String, isInt: Boolean): String? {
     if (text.isEmpty()) return null
-    val parsed = parseNumeric(text, isInt) ?: return I18n.get("mcdoc:error.invalid_number")
-    if (range == null || range.contains(parsed.toDouble())) return null
-    return I18n.get("mcdoc:error.out_of_range").replace("{0}", range.toPlaceholder())
+    if (parseNumeric(text, isInt) != null) return null
+    return I18n.get("mcdoc:error.invalid_number")
 }

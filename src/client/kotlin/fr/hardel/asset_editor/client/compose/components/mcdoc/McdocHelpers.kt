@@ -134,6 +134,7 @@ private fun defaultForUnion(type: UnionType): JsonElement =
 
 fun idRegistry(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "id", "registry")
 fun idPrefix(attributes: Attributes): String? = readTreeKeyOnly(attributes, "id", "prefix")
+fun idIsDefinition(attributes: Attributes): Boolean = readTreeKeyBoolean(attributes, "id", "definition") == true
 fun matchRegex(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "match_regex", null)
 fun deprecatedSince(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "deprecated", null)
 fun since(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "since", null)
@@ -168,6 +169,13 @@ private fun readTreeKeyOnly(attributes: Attributes, name: String, treeKey: Strin
     return readTreeString(tree, treeKey)
 }
 
+private fun readTreeKeyBoolean(attributes: Attributes, name: String, treeKey: String): Boolean? {
+    val attr = attributes.get(name).getOrNull() ?: return null
+    val tree = attr.value().getOrNull() as? Attribute.TreeValue ?: return null
+    val node = tree.named()[treeKey] ?: return null
+    return readBooleanFromValue(node)
+}
+
 private fun readTreeString(tree: Attribute.TreeValue, key: String?): String? {
     val node = if (key == null) tree.positional().firstOrNull() else tree.named()[key]
     return node?.let(::readStringFromValue)
@@ -178,10 +186,21 @@ private fun readStringFromValue(value: Attribute.AttributeValue): String? = when
     is Attribute.TreeValue -> null
 }
 
+private fun readBooleanFromValue(value: Attribute.AttributeValue): Boolean? = when (value) {
+    is Attribute.TypeValue -> readBooleanFromType(value.type())
+    is Attribute.TreeValue -> null
+}
+
 private fun readStringFromType(type: McdocType): String? {
     if (type !is LiteralType) return null
     val literal = type.value()
     return if (literal is StringLiteral) literal.value() else null
+}
+
+private fun readBooleanFromType(type: McdocType): Boolean? {
+    if (type !is LiteralType) return null
+    val literal = type.value()
+    return if (literal is BooleanLiteral) literal.value() else null
 }
 
 internal fun OptionalDouble.orNull(): Double? = if (isPresent) asDouble else null

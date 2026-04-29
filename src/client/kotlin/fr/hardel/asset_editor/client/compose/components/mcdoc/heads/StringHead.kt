@@ -11,19 +11,18 @@ import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
 import fr.hardel.asset_editor.client.compose.components.mcdoc.TagsMode
+import fr.hardel.asset_editor.client.compose.components.mcdoc.idIsDefinition
 import fr.hardel.asset_editor.client.compose.components.mcdoc.idRegistry
-import fr.hardel.asset_editor.client.compose.components.mcdoc.matchRegex
 import fr.hardel.asset_editor.client.compose.components.mcdoc.tagsMode
-import fr.hardel.asset_editor.client.compose.components.mcdoc.toPlaceholder
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTextInput
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryCommandPalette
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryPickerMode
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryTrigger
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.StringType
-import fr.hardel.asset_editor.client.mcdoc.ast.NumericRange
-import kotlin.jvm.optionals.getOrNull
+import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
 
 @Composable
 fun StringHead(
@@ -34,14 +33,11 @@ fun StringHead(
     onClear: (() -> Unit)? = null
 ) {
     val registry = idRegistry(type.attributes())
-    if (registry != null) {
+    if (registry != null && !idIsDefinition(type.attributes()) && isPickableRegistry(registry)) {
         IdentifierHead(registry, tagsMode(type.attributes()), value, onValueChange, modifier)
         return
     }
     val current = remember(value) { (value as? JsonPrimitive)?.asString.orEmpty() }
-    val regex = matchRegex(type.attributes())
-    val lengthRange = type.lengthRange().getOrNull()
-    val error = remember(current, regex, lengthRange) { stringError(current, regex, lengthRange) }
 
     McdocTextInput(
         value = current,
@@ -50,8 +46,7 @@ fun StringHead(
             else onValueChange(JsonPrimitive(next))
         },
         placeholder = "",
-        modifier = modifier,
-        error = error
+        modifier = modifier
     )
 }
 
@@ -111,13 +106,9 @@ private fun encodePicked(id: Identifier, mode: RegistryPickerMode, tags: TagsMod
     else -> id.toString()
 }
 
-private fun stringError(text: String, regex: String?, lengthRange: NumericRange?): String? {
-    if (lengthRange != null && !lengthRange.contains(text.length.toDouble())) {
-        return I18n.get("mcdoc:error.length").replace("{0}", lengthRange.toPlaceholder())
-    }
-    if (regex != null) {
-        val matches = runCatching { Regex(regex).matches(text) }.getOrDefault(true)
-        if (!matches) return I18n.get("mcdoc:error.regex")
-    }
-    return null
+private fun isPickableRegistry(registry: String): Boolean {
+    val id = Identifier.tryParse(registry) ?: return false
+    val key = ResourceKey.createRegistryKey<Any>(id)
+    val registries = Minecraft.getInstance().connection?.registryAccess() ?: return false
+    return registries.lookup(key).isPresent
 }

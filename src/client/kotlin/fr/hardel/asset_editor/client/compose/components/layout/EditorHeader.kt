@@ -21,8 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +48,7 @@ import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
 import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
 import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
@@ -167,42 +171,66 @@ fun EditorHeader(
                     }
                 }
 
-                if (editorDestination != null && tabs.size > 1) {
-                    val regularTabs = tabs.filter { it != DATA_TAB_ID }
-                    val hasDataTab = DATA_TAB_ID in tabs
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 24.dp)
-                            .offset(y = 8.dp)
-                    ) {
-                        regularTabs.forEach { tabId ->
-                            EditorHeaderTabItem(
-                                label = I18n.get(context.studioTabTitleKey(conceptId, tabId)),
-                                active = tabId == editorDestination.tabId,
-                                onClick = {
-                                    context.navigationMemory().replaceCurrentTab(
-                                        editorDestination.copy(tabId = tabId)
-                                    )
-                                }
-                            )
-                        }
-                        if (hasDataTab) {
-                            Spacer(Modifier.weight(1f))
-                            DataEditorIconButton(
-                                active = editorDestination.tabId == DATA_TAB_ID,
-                                onClick = {
-                                    context.navigationMemory().replaceCurrentTab(
-                                        editorDestination.copy(tabId = DATA_TAB_ID)
-                                    )
-                                }
-                            )
-                        }
-                    }
+                if (editorDestination != null) {
+                    EditorTabsStrip(
+                        context = context,
+                        conceptId = conceptId,
+                        tabs = tabs,
+                        editorDestination = editorDestination
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun EditorTabsStrip(
+    context: StudioContext,
+    conceptId: Identifier,
+    tabs: List<Identifier>,
+    editorDestination: ElementEditorDestination
+) {
+    val regularTabs = remember(tabs) { tabs.filter { it != DATA_TAB_ID } }
+    val hasDataTab = DATA_TAB_ID in tabs
+    val showRegularTabs = regularTabs.size > 1
+    if (!showRegularTabs && !hasDataTab) return
+
+    var lastNonDataTab by remember(editorDestination.elementId) { mutableStateOf<Identifier?>(null) }
+    LaunchedEffect(editorDestination.tabId) {
+        if (editorDestination.tabId != DATA_TAB_ID) lastNonDataTab = editorDestination.tabId
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 24.dp)
+            .offset(y = 8.dp)
+    ) {
+        if (showRegularTabs) {
+            regularTabs.forEach { tabId ->
+                EditorHeaderTabItem(
+                    label = I18n.get(context.studioTabTitleKey(conceptId, tabId)),
+                    active = tabId == editorDestination.tabId,
+                    onClick = {
+                        context.navigationMemory().replaceCurrentTab(editorDestination.copy(tabId = tabId))
+                    }
+                )
+            }
+        }
+        if (hasDataTab) {
+            Spacer(Modifier.weight(1f))
+            DataEditorIconButton(
+                active = editorDestination.tabId == DATA_TAB_ID,
+                onClick = {
+                    val targetTab = if (editorDestination.tabId == DATA_TAB_ID) {
+                        lastNonDataTab ?: regularTabs.firstOrNull() ?: return@DataEditorIconButton
+                    } else DATA_TAB_ID
+                    context.navigationMemory().replaceCurrentTab(editorDestination.copy(tabId = targetTab))
+                }
+            )
         }
     }
 }

@@ -45,12 +45,16 @@ import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
+import fr.hardel.asset_editor.client.compose.components.mcdoc.isFlagStruct
 import fr.hardel.asset_editor.client.compose.components.mcdoc.isInlineable
+import fr.hardel.asset_editor.client.compose.components.mcdoc.rememberSimplified
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
+import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import kotlinx.coroutines.delay
+import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 
 private val rowShape = RoundedCornerShape(8.dp)
@@ -96,7 +100,9 @@ fun ResultComponentRow(
         }
     }
 
-    val inlineHead = componentType != null && isInlineable(componentType)
+    val simplifiedType = if (componentType != null) rememberSimplified(componentType, draft) else null
+    val flagOnly = simplifiedType != null && isFlagStruct(simplifiedType)
+    val inlineHead = componentType != null && (isInlineable(componentType) || flagOnly)
     val canExpand = componentType != null && !inlineHead
     val rowInteraction = remember { MutableInteractionSource() }
     val rowHovered by rowInteraction.collectIsHoveredAsState()
@@ -176,24 +182,32 @@ fun ResultComponentRow(
                 )
             }
 
-            if (inlineHead && componentType != null) {
+            if (inlineHead) {
                 Spacer(Modifier.width(12.dp))
-                Head(
-                    type = componentType,
-                    value = draft,
-                    onValueChange = {
-                        draft = it
-                        locallyChanged = true
-                    },
-                    modifier = Modifier.widthIn(max = 360.dp)
-                )
+                if (flagOnly) {
+                    Text(
+                        text = I18n.get("mcdoc:widget.flag"),
+                        style = StudioTypography.regular(12),
+                        color = McdocTokens.TextDimmed
+                    )
+                } else {
+                    Head(
+                        type = componentType,
+                        value = draft,
+                        onValueChange = {
+                            draft = it
+                            locallyChanged = true
+                        },
+                        modifier = Modifier.widthIn(max = 360.dp)
+                    )
+                }
                 Spacer(Modifier.width(12.dp))
             }
 
             DeleteButton(onClick = onDelete)
         }
 
-        if (canExpand && componentType != null) {
+        if (canExpand) {
             AnimatedVisibility(
                 visible = expanded,
                 enter = standardCollapseEnter(),
