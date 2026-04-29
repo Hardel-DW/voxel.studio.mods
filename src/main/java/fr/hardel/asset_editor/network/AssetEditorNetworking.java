@@ -124,8 +124,8 @@ public final class AssetEditorNetworking {
         broadcastServerData(server, key, key.provider().apply(server));
     }
 
-    private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
-        ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, snapshot, modifiedVsReference));
+    private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, String errorDetail, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
+        ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, errorDetail, snapshot, modifiedVsReference));
     }
 
     private static void handlePackWorkspaceRequest(PackWorkspaceRequestPayload payload, ServerPlayNetworking.Context context) {
@@ -145,13 +145,13 @@ public final class AssetEditorNetworking {
             ServerPlayer player = context.player();
             MinecraftServer server = context.server();
             WorkspaceMutationService.MutationResult result = WORKSPACE_MUTATION.mutate(player, server, payload);
-            if (result instanceof WorkspaceMutationService.MutationResult.Failure(String errorCode)) {
-                sendMutationResult(player, payload.actionId(), payload.packId(), false, errorCode, null, false);
+            if (result instanceof WorkspaceMutationService.MutationResult.Failure(String errorCode, String errorDetail)) {
+                sendMutationResult(player, payload.actionId(), payload.packId(), false, errorCode, errorDetail, null, false);
                 return;
             }
 
             var success = (WorkspaceMutationService.MutationResult.Success) result;
-            sendMutationResult(player, payload.actionId(), success.packId(), true, "", success.snapshot(), success.modifiedVsReference());
+            sendMutationResult(player, payload.actionId(), success.packId(), true, "", "", success.snapshot(), success.modifiedVsReference());
             WORKSPACE_BROADCAST.broadcastMutation(server, player, success.packId(), success.snapshot(), success.modifiedVsReference());
         });
     }

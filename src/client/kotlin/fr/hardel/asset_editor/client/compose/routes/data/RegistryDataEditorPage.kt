@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
@@ -35,6 +36,7 @@ import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import net.minecraft.core.HolderLookup
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
+import fr.hardel.asset_editor.client.compose.components.ui.GridBackground
 import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditor
 import fr.hardel.asset_editor.client.compose.components.ui.editor.CodeEditorState
 import fr.hardel.asset_editor.client.compose.lib.RegistryPageDialogs
@@ -60,12 +62,23 @@ fun <T : Any> RegistryDataEditorPage(
     workspace: ClientWorkspaceRegistry<T>
 ) {
     val dialogs = rememberRegistryDialogState()
-    val entry = rememberCurrentRegistryEntry(context, workspace) ?: return
+    val entry = rememberCurrentRegistryEntry(context, workspace)
+    if (entry == null) {
+        DataEditorEmptyState(
+            title = I18n.get("studio:data.empty.no_entry.title"),
+            subtitle = I18n.get("studio:data.empty.no_entry.subtitle")
+        )
+        return
+    }
+
     val registryId = workspace.registryId()
     val rootType = remember(registryId) { rootTypeFor(registryId) }
 
     if (rootType == null) {
-        EmptyCodecState(registryId)
+        DataEditorEmptyState(
+            title = I18n.get("studio:data.empty.no_codec.title"),
+            subtitle = I18n.get("studio:data.empty.no_codec.subtitle").replace("{0}", registryId.toString())
+        )
         return
     }
 
@@ -189,15 +202,35 @@ private fun <T : Any> validate(
 }
 
 @Composable
-private fun EmptyCodecState(registryId: Identifier) {
+private fun DataEditorEmptyState(
+    title: String,
+    subtitle: String
+) {
     Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(StudioColors.Zinc950)
     ) {
-        Text(
-            text = I18n.get("studio:data.empty_codec").replace("{0}", registryId.toString()),
-            style = StudioTypography.regular(13),
-            color = StudioColors.Zinc500
-        )
+        GridBackground()
+        Column(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .widthIn(max = 480.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                style = StudioTypography.semiBold(20),
+                color = StudioColors.Zinc100,
+                textAlign = TextAlign.Start
+            )
+            Text(
+                text = subtitle,
+                style = StudioTypography.regular(13),
+                color = StudioColors.Zinc400,
+                textAlign = TextAlign.Start
+            )
+        }
     }
 }

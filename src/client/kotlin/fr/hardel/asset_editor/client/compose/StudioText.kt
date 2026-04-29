@@ -5,13 +5,15 @@ import net.minecraft.resources.Identifier
 
 object StudioText {
 
+    private val CAMEL_BOUNDARY = Regex("(?<=[a-z0-9])(?=[A-Z])")
+
     fun humanize(text: String?): String {
         if (text.isNullOrBlank()) return ""
-        return text.split('_')
+        return CAMEL_BOUNDARY.replace(text, " ")
+            .replace('_', ' ')
+            .split(' ')
             .filter { it.isNotBlank() }
-            .joinToString(" ") { word ->
-                word.replaceFirstChar { it.titlecase(Locale.ROOT) }
-            }
+            .joinToString(" ") { word -> word.replaceFirstChar { it.titlecase(Locale.ROOT) } }
     }
 
     fun humanize(id: Identifier?): String {

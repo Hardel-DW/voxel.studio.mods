@@ -3,6 +3,8 @@ package fr.hardel.asset_editor.network.data;
 import fr.hardel.asset_editor.AssetEditor;
 import fr.hardel.asset_editor.data.compendium.CompendiumTagLoader;
 import fr.hardel.asset_editor.data.recipe.RecipeEntryLoader;
+import fr.hardel.asset_editor.network.registry.RegistryIdSnapshot;
+import fr.hardel.asset_editor.network.registry.UnsyncedRegistryCatalog;
 import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
 import fr.hardel.asset_editor.network.structure.StructureTemplateIndexEntry;
 import fr.hardel.asset_editor.network.structure.StructureTemplateSnapshot;
@@ -36,6 +38,9 @@ public final class StudioDataKeys {
 
     public static final ServerDataKey<StructureWorldgenSnapshot> STRUCTURE_WORLDGEN = ServerDataKeys.register(
         ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "structure_worldgen"), StructureWorldgenSnapshot.STREAM_CODEC, StructureWorldgenCatalog::build));
+
+    public static final ServerDataKey<RegistryIdSnapshot> UNSYNCED_REGISTRY_IDS = ServerDataKeys.register(
+        ServerDataKey.of(Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "unsynced_registry_ids"), RegistryIdSnapshot.STREAM_CODEC, UnsyncedRegistryCatalog::build));
 
     public static void init() {
         // Force class loading to register all keys

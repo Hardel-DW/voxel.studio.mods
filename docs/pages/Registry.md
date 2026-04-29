@@ -37,3 +37,48 @@ At flush time, we compare vanilla tags vs current. We rebuild the inverse map (t
 - `exclude` contains only the **removed** members
 
 We write to data/<namespace>/tags/<registry>/<tag>.json in the selected pack.
+
+### Validation strategy
+
+Every action that mutates entry data (`SetEntryDataAction` and friends) is validated by the workspace's `Codec<T>`. Validation has two gates:
+
+- **Server-side (authoritative).** `WorkspaceMutationService.applyMutation` runs `definition.apply(entry, action, ctx)` *before* `flushDirty`. If the codec rejects the JSON, the mutation returns `MutationResult.Failure(errorCode, errorDetail)`, the disk is never touched, and the optimistic client state is rolled back. The server's `RegistryAccess` carries every dynamic registry (built-in + synchronized + worldgen + dimension), so the codec can always resolve its references.
+
+- **Client-side (best-effort, instant feedback).** The data editor calls `validate()` on each debounced edit and skips `dispatchRegistryAction` if the codec errors. This shortcut only runs when the codec's references can be resolved from `connection.registryAccess()`, i.e. the codec touches only `BuiltInRegistries` + `SYNCHRONIZED_REGISTRIES`. If a codec reaches into a worldgen-only registry (e.g. `worldgen/template_pool`), client-side validation would always fail and would block every save, so we skip it.
+
+To keep the same `WorkspaceDefinition<T>` API for both cases, `JsonWorkspaceCodec.validateWith(typedCodec, requiredRegistries...)` wraps the typed codec with a passthrough envelope:
+
+- `requiredRegistries` lists the `ResourceKey<? extends Registry<?>>` that must all be loaded in the dynamic ops for validation to run. The wrapper inspects `RegistryOps.getter(key)` for each.
+- If any required registry is missing (or the ops is not a `RegistryOps` at all), the codec preserves the `JsonElement` as-is — the workspace data type stays as JSON and the dispatch is not blocked. This is what happens on the client for worldgen-only registries.
+- If every required registry resolves (server side), the typed codec runs and rejects malformed input.
+
+Example:
+```java
+public static final WorkspaceDefinition<JsonElement> STRUCTURE = WorkspaceDefinition.of(
+    ResourceKey.createRegistryKey(Registries.STRUCTURE.identifier()),
+    JsonWorkspaceCodec.validateWith(Structure.DIRECT_CODEC, Registries.TEMPLATE_POOL),
+    FlushAdapter.identity());
+```
+
+This keeps disk integrity intact regardless of where validation is feasible: the server is always the final word.
+
+### Validation feedback channel
+
+Validation rejections never go to the Minecraft logger:
+
+- `WorkspaceMutationService` packs `e.getMessage()` into `MutationResult.Failure.errorDetail()` (prefixed with the target id).
+- `WorkspaceSyncPayload` carries `errorDetail` alongside the i18n `errorCode`.
+- On the client, `EditorActionGateway.handleWorkspaceSync` reverts the optimistic state, pushes the i18n code into `IssueMemory` (user-facing dialog), and forwards the detail to `ClientDebugTelemetry.actionRejected(actionId, errorCode, detail)` which appears in the in-app **Debug → Logs** page.
+
+This avoids spamming the Minecraft console when the user is mid-edit on a workspace whose codec only validates server-side, while still preserving the diagnostic trail.
+
+### Workspace registry coverage
+
+| Workspace | Registry source | Codec dependencies | Client validation |
+|---|---|---|---|
+| `Workspaces.ENCHANTMENT` | `Registries.ENCHANTMENT` (synchronized) | Items, enchantment effect components (built-in) | yes |
+| `Workspaces.LOOT_TABLE` | `Registries.LOOT_TABLE` (data, no client mirror) | Items, loot condition/function types (built-in) | yes |
+| `Workspaces.RECIPE` | `Registries.RECIPE` (data, no client mirror) | Items, recipe serializers (built-in) | yes |
+| `Workspaces.STRUCTURE` | `Registries.STRUCTURE` (worldgen, server-only) | `Holder<StructureTemplatePool>` via `RegistryFileCodec(Registries.TEMPLATE_POOL, ...)` | no — passthrough; server validates |
+
+Adding a new workspace whose codec touches a worldgen-only registry follows the `STRUCTURE` pattern: `WorkspaceDefinition<JsonElement>` keyed by an untyped `ResourceKey.createRegistryKey(...)`, codec wrapped in `JsonWorkspaceCodec.validateWith(...)`, identity flush adapter. Optionally push the missing registry's element ids via `UnsyncedRegistryCatalog` so the mcdoc picker can autocomplete them client-side.

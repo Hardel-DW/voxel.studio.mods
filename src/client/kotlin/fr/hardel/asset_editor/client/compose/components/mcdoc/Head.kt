@@ -29,7 +29,7 @@ fun Head(
         is BooleanType -> BooleanHead(value, onValueChange, modifier, onClear)
         is StringType -> StringHead(type, value, onValueChange, modifier, onClear)
         is EnumType -> EnumHead(type, value, onValueChange, modifier, onClear)
-        is LiteralType -> LiteralHead(type, modifier)
+        is LiteralType -> LiteralHead(type, value, onValueChange, modifier)
         is StructType -> StructHead(type, value, onValueChange, onClear, modifier)
         is ListType -> ListHead(type, value, onValueChange, modifier)
         is TupleType -> TupleHead(type, value, onValueChange, modifier)

@@ -113,4 +113,9 @@ fun registerStudioRoutes() {
         tabId = dataTabId,
         render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.RECIPE) }
     )
+    StudioUiRegistry.registerPage(
+        registryId = STRUCTURE_REGISTRY_ID,
+        tabId = dataTabId,
+        render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.STRUCTURE) }
+    )
 }

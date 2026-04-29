@@ -38,6 +38,9 @@ import fr.hardel.asset_editor.client.compose.components.ui.CommandPalette
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteEmpty
 import fr.hardel.asset_editor.client.compose.components.ui.CommandPaletteItem
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
+import fr.hardel.asset_editor.client.compose.lib.rememberServerData
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
+import fr.hardel.asset_editor.network.registry.RegistryIdSnapshot
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -104,7 +107,12 @@ fun RegistryCommandPalette(
     onDismiss: () -> Unit
 ) {
     var query by remember(visible, registryId, mode) { mutableStateOf("") }
-    val ids = remember(registryId, mode) { enumerateRegistry(registryId, mode) }
+    val syncedIds = remember(registryId, mode) { enumerateRegistry(registryId, mode) }
+    val unsyncedSnapshots = rememberServerData(StudioDataSlots.UNSYNCED_REGISTRY_IDS)
+    val ids = remember(syncedIds, unsyncedSnapshots, registryId, mode) {
+        if (syncedIds.isNotEmpty() || mode != RegistryPickerMode.ELEMENTS) syncedIds
+        else RegistryIdSnapshot.idsFor(unsyncedSnapshots, registryId)
+    }
     val registryKey = remember(registryId) { ResourceKey.createRegistryKey<Any>(registryId) }
     val enriched = remember(ids, registryKey) {
         ids.map { id -> id to StudioTranslation.resolve(registryKey, id) }

@@ -1,13 +1,17 @@
 package fr.hardel.asset_editor.workspace.flush;
 
+import com.google.gson.JsonElement;
+import fr.hardel.asset_editor.workspace.JsonWorkspaceCodec;
 import fr.hardel.asset_editor.workspace.flush.adapter.EnchantmentFlushAdapter;
 import fr.hardel.asset_editor.workspace.flush.adapter.LootTableFlushAdapter;
 import fr.hardel.asset_editor.workspace.flush.adapter.RecipeFlushAdapter;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinitions;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 public final class Workspaces {
@@ -29,10 +33,16 @@ public final class Workspaces {
         Recipe.CODEC,
         RecipeFlushAdapter.INSTANCE);
 
+    public static final WorkspaceDefinition<JsonElement> STRUCTURE = WorkspaceDefinition.of(
+        ResourceKey.createRegistryKey(Registries.STRUCTURE.identifier()),
+        JsonWorkspaceCodec.validateWith(Structure.DIRECT_CODEC, Registries.TEMPLATE_POOL),
+        FlushAdapter.identity());
+
     public static void register() {
         WorkspaceDefinitions.register(ENCHANTMENT);
         WorkspaceDefinitions.register(LOOT_TABLE);
         WorkspaceDefinitions.register(RECIPE);
+        WorkspaceDefinitions.register(STRUCTURE);
     }
 
     private Workspaces() {}

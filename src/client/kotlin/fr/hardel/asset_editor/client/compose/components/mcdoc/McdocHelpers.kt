@@ -19,8 +19,6 @@ import java.util.OptionalInt
 import java.util.OptionalLong
 import kotlin.jvm.optionals.getOrNull
 
-// ---- Simplification cache + structural predicates ----
-
 @Composable
 fun rememberSimplified(type: McdocType, value: JsonElement?): McdocType =
     remember(type, value) {
@@ -42,7 +40,10 @@ private fun bindDispatcher(d: DispatcherType, key: String): DispatcherType {
     return if (changed) DispatcherType(d.registry(), newIndices, d.attributes()) else d
 }
 
-fun hasMcdocHead(type: McdocType): Boolean = type !is StructType
+fun hasMcdocHead(type: McdocType): Boolean = when (type) {
+    is StructType -> type.fields().isEmpty()
+    else -> true
+}
 
 fun hasMcdocBody(type: McdocType, value: JsonElement?): Boolean = when (type) {
     is StructType -> type.fields().isNotEmpty()
@@ -51,6 +52,8 @@ fun hasMcdocBody(type: McdocType, value: JsonElement?): Boolean = when (type) {
     is UnionType -> type.members().isNotEmpty()
     else -> false
 }
+
+fun isFlagStruct(type: McdocType): Boolean = type is StructType && type.fields().isEmpty()
 
 fun isStructural(type: McdocType): Boolean = when (type) {
     is StructType, is ListType, is TupleType, is UnionType -> true
@@ -67,22 +70,27 @@ fun isInlineable(type: McdocType): Boolean = when (type) {
     else -> false
 }
 
-// ---- Default JsonElement skeletons ("+ Add" buttons fill the absent value with this) ----
-
-fun defaultFor(type: McdocType): JsonElement = when (type) {
-    is BooleanType -> JsonPrimitive(false)
-    is NumericType -> JsonPrimitive(defaultNumber(type))
-    is StringType -> JsonPrimitive("")
-    is LiteralType -> defaultForLiteral(type)
-    is EnumType -> defaultForEnum(type)
-    is ListType -> JsonArray()
-    is TupleType -> defaultForTuple(type)
-    is PrimitiveArrayType -> JsonArray()
-    is StructType -> defaultForStruct(type)
-    is UnionType -> defaultForUnion(type)
-    is AnyType, is UnsafeType -> JsonObject()
-    is ReferenceType, is DispatcherType, is IndexedType, is ConcreteType, is TemplateType, is MappedType -> JsonNull.INSTANCE
+fun isCompactInline(type: McdocType): Boolean = when (type) {
+    is BooleanType, is NumericType, is EnumType, is LiteralType -> true
+    is StructType -> type.fields().isEmpty()
+    else -> false
 }
+
+fun defaultFor(type: McdocType): JsonElement =
+    when (val simplified = McdocService.current().simplifier().simplify(type, JsonNull.INSTANCE)) {
+        is BooleanType -> JsonPrimitive(false)
+        is NumericType -> JsonPrimitive(defaultNumber(simplified))
+        is StringType -> JsonPrimitive("")
+        is LiteralType -> defaultForLiteral(simplified)
+        is EnumType -> defaultForEnum(simplified)
+        is ListType -> JsonArray()
+        is TupleType -> defaultForTuple(simplified)
+        is PrimitiveArrayType -> JsonArray()
+        is StructType -> defaultForStruct(simplified)
+        is UnionType -> defaultForUnion(simplified)
+        is AnyType, is UnsafeType -> JsonObject()
+        is ReferenceType, is DispatcherType, is IndexedType, is ConcreteType, is TemplateType, is MappedType -> JsonNull.INSTANCE
+    }
 
 private fun defaultNumber(type: NumericType): Number {
     val minValue = type.valueRange().getOrNull()?.min()?.orNull()
@@ -124,13 +132,12 @@ private fun defaultForStruct(type: StructType): JsonObject {
 private fun defaultForUnion(type: UnionType): JsonElement =
     type.members().firstOrNull()?.let(::defaultFor) ?: JsonNull.INSTANCE
 
-// ---- Attribute readers (#[id=...], #[match_regex=...], #[since/until/deprecated=...]) ----
-
-fun idRegistry(attributes: Attributes): String? = readStringAttribute(attributes, "id", "registry")
-fun matchRegex(attributes: Attributes): String? = readStringAttribute(attributes, "match_regex", null)
-fun deprecatedSince(attributes: Attributes): String? = readStringAttribute(attributes, "deprecated", null)
-fun since(attributes: Attributes): String? = readStringAttribute(attributes, "since", null)
-fun until(attributes: Attributes): String? = readStringAttribute(attributes, "until", null)
+fun idRegistry(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "id", "registry")
+fun idPrefix(attributes: Attributes): String? = readTreeKeyOnly(attributes, "id", "prefix")
+fun matchRegex(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "match_regex", null)
+fun deprecatedSince(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "deprecated", null)
+fun since(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "since", null)
+fun until(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "until", null)
 
 enum class TagsMode { NONE, ALLOWED, IMPLICIT, REQUIRED }
 
@@ -146,13 +153,19 @@ fun tagsMode(attributes: Attributes): TagsMode {
     }
 }
 
-private fun readStringAttribute(attributes: Attributes, name: String, treeKey: String?): String? {
+private fun readShorthandOrTreeKey(attributes: Attributes, name: String, treeKey: String?): String? {
     val attr = attributes.get(name).getOrNull() ?: return null
     return when (val value = attr.value().getOrNull()) {
         is Attribute.TypeValue -> readStringFromType(value.type())
         is Attribute.TreeValue -> readTreeString(value, treeKey)
         null -> null
     }
+}
+
+private fun readTreeKeyOnly(attributes: Attributes, name: String, treeKey: String): String? {
+    val attr = attributes.get(name).getOrNull() ?: return null
+    val tree = attr.value().getOrNull() as? Attribute.TreeValue ?: return null
+    return readTreeString(tree, treeKey)
 }
 
 private fun readTreeString(tree: Attribute.TreeValue, key: String?): String? {
@@ -170,8 +183,6 @@ private fun readStringFromType(type: McdocType): String? {
     val literal = type.value()
     return if (literal is StringLiteral) literal.value() else null
 }
-
-// ---- Java Optional → Kotlin null bridges + NumericRange formatting ----
 
 internal fun OptionalDouble.orNull(): Double? = if (isPresent) asDouble else null
 internal fun OptionalInt.orNull(): Int? = if (isPresent) asInt else null
