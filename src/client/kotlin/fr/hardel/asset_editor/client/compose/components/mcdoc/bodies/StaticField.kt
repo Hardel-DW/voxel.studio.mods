@@ -1,10 +1,8 @@
 package fr.hardel.asset_editor.client.compose.components.mcdoc.bodies
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
@@ -15,34 +13,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Body
 import fr.hardel.asset_editor.client.compose.components.mcdoc.CollapsibleKey
 import fr.hardel.asset_editor.client.compose.components.mcdoc.ErrorIndicator
-import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Key
 import fr.hardel.asset_editor.client.compose.components.mcdoc.fieldError
 import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocBody
-import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocHead
-import fr.hardel.asset_editor.client.compose.components.mcdoc.isCompactInline
 import fr.hardel.asset_editor.client.compose.components.mcdoc.isSelfClearable
 import fr.hardel.asset_editor.client.compose.components.mcdoc.isStructural
 import fr.hardel.asset_editor.client.compose.components.mcdoc.rememberSimplified
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.IndentBox
-import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RemoveIconButton
 import fr.hardel.asset_editor.client.compose.standardCollapseEnter
 import fr.hardel.asset_editor.client.compose.standardCollapseExit
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
-
-private val CompactHeadMaxWidth = 280.dp
 
 private enum class RemovePlacement { None, Inline, External }
 
@@ -57,7 +44,7 @@ fun StaticField(
     onObjectChange: (JsonElement) -> Unit
 ) {
     val fieldValue = obj.get(fieldName)
-    val simplified = rememberSimplified(fieldType, fieldValue)
+    val simplified = rememberSimplified(fieldType, fieldValue, currentKey = fieldName)
     val present = fieldValue != null && !fieldValue.isJsonNull
     val updateField = { next: JsonElement -> onObjectChange(obj.deepCopy().apply { add(fieldName, next) }) }
     val removeField: () -> Unit = { onObjectChange(obj.deepCopy().apply { remove(fieldName) }) }
@@ -80,7 +67,7 @@ fun StaticField(
             } else {
                 Key(label = fieldName, doc = doc, deprecated = deprecated)
             }
-            HeadSlot(simplified, fieldValue, updateField, onClear, errorMessage != null)
+            HeadSlot(simplified, fieldValue, updateField, onClear, showError = errorMessage != null)
             if (placement == RemovePlacement.External) RemoveIconButton(onClick = removeField)
             if (errorMessage != null) {
                 Spacer(Modifier.widthIn(min = 6.dp))
@@ -94,47 +81,6 @@ fun StaticField(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun RowScope.HeadSlot(
-    simplified: McdocType,
-    fieldValue: JsonElement?,
-    updateField: (JsonElement) -> Unit,
-    onClear: (() -> Unit)?,
-    error: Boolean
-) {
-    if (!hasMcdocHead(simplified) && simplified !is McdocType.StructType) {
-        Spacer(Modifier.weight(1f))
-        return
-    }
-    if (isCompactInline(simplified)) {
-        Box(modifier = Modifier.widthIn(max = CompactHeadMaxWidth).errorOverlay(error)) {
-            Head(simplified, fieldValue, updateField, onClear = onClear)
-        }
-        Spacer(Modifier.weight(1f))
-        return
-    }
-    Box(modifier = Modifier.weight(1f).errorOverlay(error)) {
-        Head(simplified, fieldValue, updateField, onClear = onClear)
-    }
-}
-
-private fun Modifier.errorOverlay(error: Boolean): Modifier {
-    if (!error) return this
-    return drawWithContent {
-        drawContent()
-        val stroke = 1.dp.toPx()
-        val radius = McdocTokens.Radius.toPx()
-        val inset = stroke / 2f
-        drawRoundRect(
-            color = McdocTokens.Error,
-            topLeft = Offset(inset, inset),
-            size = Size(size.width - stroke, size.height - stroke),
-            cornerRadius = CornerRadius(radius, radius),
-            style = Stroke(width = stroke)
-        )
     }
 }
 

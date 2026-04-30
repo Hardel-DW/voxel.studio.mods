@@ -11,8 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonElement
+import com.google.gson.JsonNull
 import fr.hardel.asset_editor.client.compose.components.mcdoc.Head
-import fr.hardel.asset_editor.client.compose.components.mcdoc.defaultFor
+import fr.hardel.asset_editor.client.compose.components.mcdoc.getChange
 import fr.hardel.asset_editor.client.compose.components.mcdoc.hasMcdocHead
 import fr.hardel.asset_editor.client.compose.components.mcdoc.rememberSimplified
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocSelect
@@ -50,7 +51,10 @@ fun UnionHead(
                 selected = activeIndex.toString(),
                 onSelect = { picked ->
                     val newIndex = picked.toIntOrNull() ?: return@McdocSelect
-                    if (newIndex != activeIndex) onValueChange(defaultFor(members[newIndex]))
+                    if (newIndex != activeIndex) {
+                        val source = value?.takeUnless { it.isJsonNull } ?: JsonNull.INSTANCE
+                        onValueChange(getChange(members[newIndex], members[activeIndex], source))
+                    }
                 }
             )
         }

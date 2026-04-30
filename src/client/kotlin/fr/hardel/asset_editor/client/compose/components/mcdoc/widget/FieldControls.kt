@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.compose.components.mcdoc.widget
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,7 +7,6 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -23,17 +21,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import net.minecraft.resources.Identifier
 
-enum class FieldActionTone { ADD, REMOVE, NEUTRAL }
+enum class FieldActionTone { ADD, REMOVE }
 
 val FieldControlShape = RoundedCornerShape(FieldRowRadius)
 private val RightControlShape = RoundedCornerShape(topEnd = FieldRowRadius, bottomEnd = FieldRowRadius)
@@ -113,41 +109,6 @@ fun RemoveIconButton(
     )
 }
 
-@Composable
-fun ToggleIconButton(
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: RoundedCornerShape = FieldControlShape
-) {
-    val interaction = remember { MutableInteractionSource() }
-    val hovered by interaction.collectIsHoveredAsState()
-    val bg by animateColorAsState(
-        targetValue = if (hovered) McdocTokens.HoverBg else McdocTokens.InputBg,
-        animationSpec = StudioMotion.hoverSpec(),
-        label = "toggle-bg"
-    )
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .size(FieldRowHeight)
-            .clip(shape)
-            .background(bg, shape)
-            .border(1.dp, McdocTokens.Border, shape)
-            .hoverable(interaction)
-            .pointerHoverIcon(PointerIcon.Hand)
-            .clickable(interactionSource = interaction, indication = null, onClick = onToggle)
-    ) {
-        SvgIcon(
-            McdocIcons.ChevronDown,
-            12.dp,
-            tint = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
-            modifier = Modifier.rotate(if (expanded) 0f else -90f)
-        )
-    }
-}
-
 private data class ActionColors(
     val background: Color,
     val border: Color,
@@ -175,12 +136,6 @@ private fun actionColors(tone: FieldActionTone, hovered: Boolean, enabled: Boole
         FieldActionTone.REMOVE -> ActionColors(
             background = if (hovered) McdocTokens.Remove else Color.Transparent,
             border = if (hovered) McdocTokens.RemoveBorder else McdocTokens.Border,
-            icon = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
-            text = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed
-        )
-        FieldActionTone.NEUTRAL -> ActionColors(
-            background = if (hovered) McdocTokens.HoverBg else McdocTokens.InputBg,
-            border = McdocTokens.Border,
             icon = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed,
             text = if (hovered) McdocTokens.Text else McdocTokens.TextDimmed
         )

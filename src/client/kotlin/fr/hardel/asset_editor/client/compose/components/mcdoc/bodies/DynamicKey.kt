@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
-import fr.hardel.asset_editor.client.compose.components.mcdoc.bindDynamicKey
 import fr.hardel.asset_editor.client.compose.components.mcdoc.defaultFor
 import fr.hardel.asset_editor.client.compose.components.mcdoc.idPrefix
 import fr.hardel.asset_editor.client.compose.components.mcdoc.idRegistry
@@ -69,8 +68,7 @@ fun DynamicKey(
             enabled = canAdd,
             onClick = {
                 val key = composedKey ?: return@AddFieldButton
-                val bound = bindDynamicKey(valueType, key)
-                onObjectChange(obj.deepCopy().apply { add(key, defaultFor(bound)) })
+                onObjectChange(obj.deepCopy().apply { add(key, defaultFor(valueType, currentKey = key)) })
                 pending = null
             },
             shape = FieldControlShape

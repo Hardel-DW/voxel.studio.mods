@@ -13,32 +13,17 @@ import fr.hardel.asset_editor.client.mcdoc.ast.Attributes
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.*
 import fr.hardel.asset_editor.client.mcdoc.ast.NumericRange
-import fr.hardel.asset_editor.client.mcdoc.ast.TypeChildren
+import fr.hardel.asset_editor.client.mcdoc.simplify.Simplifier
 import java.util.OptionalDouble
 import java.util.OptionalInt
 import java.util.OptionalLong
 import kotlin.jvm.optionals.getOrNull
 
 @Composable
-fun rememberSimplified(type: McdocType, value: JsonElement?): McdocType =
-    remember(type, value) {
-        McdocService.current().simplifier().simplify(type, value ?: JsonNull.INSTANCE)
+fun rememberSimplified(type: McdocType, value: JsonElement?, currentKey: String? = null): McdocType =
+    remember(type, value, currentKey) {
+        McdocService.current().simplifier().simplify(type, value ?: JsonNull.INSTANCE, currentKey)
     }
-
-fun bindDynamicKey(type: McdocType, key: String): McdocType =
-    TypeChildren.walk(type) { t -> if (t is DispatcherType) bindDispatcher(t, key) else t }
-
-private fun bindDispatcher(d: DispatcherType, key: String): DispatcherType {
-    var changed = false
-    val newIndices = d.parallelIndices().map { idx ->
-        val accessor = (idx as? DynamicIndex)?.accessors()?.singleOrNull()
-        if (accessor is KeywordAccessor && accessor.keyword() == "key") {
-            changed = true
-            StaticIndex(key) as Index
-        } else idx
-    }
-    return if (changed) DispatcherType(d.registry(), newIndices, d.attributes()) else d
-}
 
 fun hasMcdocHead(type: McdocType): Boolean = when (type) {
     is StructType -> type.fields().isEmpty()
@@ -76,8 +61,8 @@ fun isCompactInline(type: McdocType): Boolean = when (type) {
     else -> false
 }
 
-fun defaultFor(type: McdocType): JsonElement =
-    when (val simplified = McdocService.current().simplifier().simplify(type, JsonNull.INSTANCE)) {
+fun defaultFor(type: McdocType, currentKey: String? = null): JsonElement =
+    when (val simplified = McdocService.current().simplifier().simplify(type, JsonNull.INSTANCE, currentKey)) {
         is BooleanType -> JsonPrimitive(false)
         is NumericType -> JsonPrimitive(defaultNumber(simplified))
         is StringType -> JsonPrimitive("")
@@ -89,7 +74,7 @@ fun defaultFor(type: McdocType): JsonElement =
         is StructType -> defaultForStruct(simplified)
         is UnionType -> defaultForUnion(simplified)
         is AnyType, is UnsafeType -> JsonObject()
-        is ReferenceType, is DispatcherType, is IndexedType, is ConcreteType, is TemplateType, is MappedType -> JsonNull.INSTANCE
+        is ReferenceType, is DispatcherType, is IndexedType, is ConcreteType, is TemplateType -> JsonNull.INSTANCE
     }
 
 private fun defaultNumber(type: NumericType): Number {
@@ -132,13 +117,99 @@ private fun defaultForStruct(type: StructType): JsonObject {
 private fun defaultForUnion(type: UnionType): JsonElement =
     type.members().firstOrNull()?.let(::defaultFor) ?: JsonNull.INSTANCE
 
+/**
+ * Computes the JSON value when switching from [oldType] holding [oldValue] to [newType].
+ * Tries to preserve user data via four wrap/unwrap heuristics:
+ * - `T → [T]`     : wrap into a single-item array
+ * - `[T] → T`     : unwrap when the array has at least one item of compatible type
+ * - `T → {k: T}`  : wrap into a struct under the first compatible required field
+ * - `{k: T} → T`  : extract from a struct field of compatible type
+ *
+ * Falls back to [defaultFor] when no preservation is possible. Mirrors the
+ * `getChange` behaviour from misode/Spyglass (`McdocHelpers.ts`).
+ */
+fun getChange(newType: McdocType, oldType: McdocType, oldValue: JsonElement): JsonElement {
+    val simplifier = McdocService.current().simplifier()
+    val newSimplified = simplifier.simplify(newType, JsonNull.INSTANCE)
+    val oldSimplified = simplifier.simplify(oldType, oldValue)
+
+    wrapIntoList(newSimplified, oldSimplified, oldValue, simplifier)?.let { return it }
+    unwrapFromList(newSimplified, oldSimplified, oldValue, simplifier)?.let { return it }
+    wrapIntoStruct(newSimplified, oldSimplified, oldValue, simplifier)?.let { return it }
+    unwrapFromStruct(newSimplified, oldSimplified, oldValue, simplifier)?.let { return it }
+
+    return defaultFor(newType)
+}
+
+private fun wrapIntoList(newType: McdocType, oldType: McdocType, oldValue: JsonElement, simplifier: Simplifier): JsonElement? {
+    if (newType !is ListType) return null
+    val itemSimplified = simplifier.simplify(newType.item(), JsonNull.INSTANCE)
+    val candidates = if (itemSimplified is UnionType) itemSimplified.members() else listOf(itemSimplified)
+    if (candidates.none { quickEqualTypes(oldType, it) }) return null
+    return JsonArray().apply { add(oldValue) }
+}
+
+private fun unwrapFromList(newType: McdocType, oldType: McdocType, oldValue: JsonElement, simplifier: Simplifier): JsonElement? {
+    if (oldType !is ListType || oldValue !is JsonArray || oldValue.size() == 0) return null
+    val itemSimplified = simplifier.simplify(oldType.item(), JsonNull.INSTANCE)
+    if (itemSimplified is UnionType) return null
+    if (!quickEqualTypes(newType, itemSimplified)) return null
+    return oldValue.get(0)
+}
+
+private fun wrapIntoStruct(newType: McdocType, oldType: McdocType, oldValue: JsonElement, simplifier: Simplifier): JsonElement? {
+    if (newType !is StructType) return null
+    for (field in newType.fields()) {
+        if (field !is StructPairField || field.optional()) continue
+        val key = field.key() as? StringKey ?: continue
+        val fieldSimplified = simplifier.simplify(field.type(), JsonNull.INSTANCE)
+        if (fieldSimplified is UnionType) continue
+        if (!quickEqualTypes(fieldSimplified, oldType)) continue
+        return JsonObject().apply { add(key.name(), oldValue) }
+    }
+    return null
+}
+
+private fun unwrapFromStruct(newType: McdocType, oldType: McdocType, oldValue: JsonElement, simplifier: Simplifier): JsonElement? {
+    if (oldType !is StructType || oldValue !is JsonObject) return null
+    for (field in oldType.fields()) {
+        if (field !is StructPairField) continue
+        val key = field.key() as? StringKey ?: continue
+        val fieldSimplified = simplifier.simplify(field.type(), JsonNull.INSTANCE)
+        if (fieldSimplified is UnionType) continue
+        if (!quickEqualTypes(fieldSimplified, newType)) continue
+        return oldValue.get(key.name()) ?: continue
+    }
+    return null
+}
+
+private fun quickEqualTypes(a: McdocType, b: McdocType): Boolean {
+    if (a === b) return true
+    if (a::class != b::class) return false
+    if (a is LiteralType && b is LiteralType) return literalsEqual(a.value(), b.value())
+    if (a is StructType && b is StructType) return firstStructKeyEquals(a, b)
+    return true
+}
+
+private fun literalsEqual(a: LiteralValue, b: LiteralValue): Boolean = when {
+    a is StringLiteral && b is StringLiteral -> a.value() == b.value()
+    a is BooleanLiteral && b is BooleanLiteral -> a.value() == b.value()
+    a is NumericLiteral && b is NumericLiteral -> a.value() == b.value()
+    else -> false
+}
+
+private fun firstStructKeyEquals(a: StructType, b: StructType): Boolean {
+    val keyA = (a.fields().firstOrNull() as? StructPairField)?.key()
+    val keyB = (b.fields().firstOrNull() as? StructPairField)?.key()
+    if (keyA == null && keyB == null) return true
+    if (keyA == null || keyB == null) return false
+    return keyA is StringKey && keyB is StringKey && keyA.name() == keyB.name()
+}
+
 fun idRegistry(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "id", "registry")
 fun idPrefix(attributes: Attributes): String? = readTreeKeyOnly(attributes, "id", "prefix")
 fun idIsDefinition(attributes: Attributes): Boolean = readTreeKeyBoolean(attributes, "id", "definition") == true
 fun matchRegex(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "match_regex", null)
-fun deprecatedSince(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "deprecated", null)
-fun since(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "since", null)
-fun until(attributes: Attributes): String? = readShorthandOrTreeKey(attributes, "until", null)
 
 enum class TagsMode { NONE, ALLOWED, IMPLICIT, REQUIRED }
 

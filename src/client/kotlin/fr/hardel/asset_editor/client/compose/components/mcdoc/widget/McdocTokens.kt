@@ -15,6 +15,7 @@ object McdocTokens {
     val PaddingX = 10.dp
     val PaddingXSm = 6.dp
     val MaxContentWidth = 880.dp
+    val CompactHeadMaxWidth = 280.dp
 
     val LabelBg = StudioColors.Zinc925
     val InputBg = StudioColors.Zinc900

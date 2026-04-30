@@ -47,13 +47,17 @@ fun StructBody(
         }
 
         for (extraKey in extraKeys) {
-            val matched = matchDynamicField(extraKey, dynamicFields) ?: continue
-            DynamicField(
-                key = extraKey,
-                valueType = matched.type(),
-                obj = obj,
-                onObjectChange = onValueChange
-            )
+            val matched = matchDynamicField(extraKey, dynamicFields)
+            if (matched != null) {
+                DynamicField(
+                    key = extraKey,
+                    valueType = matched.type(),
+                    obj = obj,
+                    onObjectChange = onValueChange
+                )
+            } else {
+                UnknownField(key = extraKey, obj = obj, onObjectChange = onValueChange)
+            }
         }
 
         for (field in dynamicFields) {
@@ -71,7 +75,7 @@ fun StructBody(
 private fun matchDynamicField(key: String, defs: List<StructPairField>): StructPairField? {
     val prefixed = defs.firstOrNull { def -> keyPrefix(def)?.let(key::startsWith) == true }
     if (prefixed != null) return prefixed
-    return defs.firstOrNull { def -> keyPrefix(def) == null } ?: defs.firstOrNull()
+    return defs.firstOrNull { def -> keyPrefix(def) == null }
 }
 
 private fun keyPrefix(def: StructPairField): String? =

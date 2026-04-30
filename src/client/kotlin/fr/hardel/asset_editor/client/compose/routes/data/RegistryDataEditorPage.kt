@@ -35,6 +35,7 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistry
 import net.minecraft.core.HolderLookup
+import fr.hardel.asset_editor.client.compose.components.mcdoc.HistorySource
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHistory
 import fr.hardel.asset_editor.client.compose.components.mcdoc.McdocRoot
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTokens
@@ -102,6 +103,15 @@ fun <T : Any> RegistryDataEditorPage(
         onDispose { handle.close() }
     }
 
+    DisposableEffect(history, codeState) {
+        codeState.externalUndo = { history.undo() }
+        codeState.externalRedo = { history.redo() }
+        onDispose {
+            codeState.externalUndo = null
+            codeState.externalRedo = null
+        }
+    }
+
     LaunchedEffect(current, entry.id()) {
         if (current == lastSaved) return@LaunchedEffect
         delay(SAVE_DEBOUNCE_MS)
@@ -114,19 +124,17 @@ fun <T : Any> RegistryDataEditorPage(
     }
 
     LaunchedEffect(current) {
-        val codeJson = runCatching { JsonParser.parseString(codeState.fullText()) }.getOrNull()
-        if (codeJson == current) return@LaunchedEffect
+        if (history.lastSource == HistorySource.Code) return@LaunchedEffect
         val pretty = PRETTY_GSON.toJson(current)
-        if (codeState.fullText() != pretty) {
-            codeState.selectAll()
-            codeState.insert(pretty)
-        }
+        if (codeState.fullText() == pretty) return@LaunchedEffect
+        codeState.selectAll()
+        codeState.insert(pretty)
     }
 
     LaunchedEffect(codeState.documentVersion) {
         delay(CODE_PARSE_DEBOUNCE_MS)
         val parsed = runCatching { JsonParser.parseString(codeState.fullText()) }.getOrNull() ?: return@LaunchedEffect
-        if (parsed != current) history.replace(parsed)
+        if (parsed != current) history.replace(parsed, source = HistorySource.Code)
     }
 
     Row(modifier = Modifier.fillMaxSize()) {

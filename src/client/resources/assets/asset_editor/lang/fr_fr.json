@@ -850,6 +850,7 @@
     "mcdoc:error.enum_mismatch": "Valeur hors liste autorisée",
     "mcdoc:error.type_mismatch": "Type attendu : {0}",
     "mcdoc:error.tuple_arity": "Attend {0} éléments",
+    "mcdoc:error.unknown_key": "Clé inconnue « {0} »",
     "mcdoc:code_panel.title": "JSON",
     "registry:minecraft.attribute": "Attribut",
     "registry:minecraft.enchantment": "Enchantement",

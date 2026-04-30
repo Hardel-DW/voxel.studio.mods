@@ -18,7 +18,10 @@ import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.McdocTextIn
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryCommandPalette
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryPickerMode
 import fr.hardel.asset_editor.client.compose.components.mcdoc.widget.RegistryTrigger
+import fr.hardel.asset_editor.client.compose.lib.rememberServerData
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.StringType
+import fr.hardel.asset_editor.client.memory.core.StudioDataSlots
+import fr.hardel.asset_editor.network.registry.RegistryIdSnapshot
 import net.minecraft.client.Minecraft
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
@@ -33,8 +36,10 @@ fun StringHead(
     onClear: (() -> Unit)? = null
 ) {
     val registry = idRegistry(type.attributes())
-    if (registry != null && !idIsDefinition(type.attributes()) && isPickableRegistry(registry)) {
-        IdentifierHead(registry, tagsMode(type.attributes()), value, onValueChange, modifier)
+    val registryId = remember(registry) { registry?.let(Identifier::tryParse) }
+    val isDefinition = idIsDefinition(type.attributes())
+    if (registryId != null && !isDefinition && rememberPickable(registryId)) {
+        IdentifierHead(registryId, tagsMode(type.attributes()), value, onValueChange, modifier)
         return
     }
     val current = remember(value) { (value as? JsonPrimitive)?.asString.orEmpty() }
@@ -52,7 +57,7 @@ fun StringHead(
 
 @Composable
 private fun IdentifierHead(
-    registry: String,
+    registryId: Identifier,
     tags: TagsMode,
     value: JsonElement?,
     onValueChange: (JsonElement) -> Unit,
@@ -61,7 +66,6 @@ private fun IdentifierHead(
     val raw = remember(value) { (value as? JsonPrimitive)?.asString.orEmpty() }
     val ref = remember(raw, tags) { IdentifierRef.parse(raw, tags) }
     var open by remember { mutableStateOf(false) }
-    val registryId = remember(registry) { Identifier.tryParse(registry) }
     val pickerMode = if (ref.isTag) RegistryPickerMode.TAGS else RegistryPickerMode.ELEMENTS
 
     Box(modifier = modifier.fillMaxWidth()) {
@@ -71,19 +75,17 @@ private fun IdentifierHead(
             onClick = { open = !open },
             modifier = Modifier.fillMaxWidth()
         )
-        if (registryId != null) {
-            RegistryCommandPalette(
-                visible = open,
-                registryId = registryId,
-                mode = pickerMode,
-                selected = ref.identifier,
-                onPick = { id ->
-                    onValueChange(JsonPrimitive(encodePicked(id, pickerMode, tags)))
-                    open = false
-                },
-                onDismiss = { open = false }
-            )
-        }
+        RegistryCommandPalette(
+            visible = open,
+            registryId = registryId,
+            mode = pickerMode,
+            selected = ref.identifier,
+            onPick = { id ->
+                onValueChange(JsonPrimitive(encodePicked(id, pickerMode, tags)))
+                open = false
+            },
+            onDismiss = { open = false }
+        )
     }
 }
 
@@ -106,9 +108,12 @@ private fun encodePicked(id: Identifier, mode: RegistryPickerMode, tags: TagsMod
     else -> id.toString()
 }
 
-private fun isPickableRegistry(registry: String): Boolean {
-    val id = Identifier.tryParse(registry) ?: return false
-    val key = ResourceKey.createRegistryKey<Any>(id)
-    val registries = Minecraft.getInstance().connection?.registryAccess() ?: return false
-    return registries.lookup(key).isPresent
+@Composable
+private fun rememberPickable(registryId: Identifier): Boolean {
+    val unsynced = rememberServerData(StudioDataSlots.UNSYNCED_REGISTRY_IDS)
+    return remember(registryId, unsynced) {
+        val registries = Minecraft.getInstance().connection?.registryAccess()
+        val syncedHit = registries?.lookup(ResourceKey.createRegistryKey<Any>(registryId))?.isPresent == true
+        syncedHit || RegistryIdSnapshot.idsFor(unsynced, registryId).isNotEmpty()
+    }
 }

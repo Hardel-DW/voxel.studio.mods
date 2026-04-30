@@ -57,7 +57,7 @@ mcdoc/
 │                            • `rememberSimplified` (Compose cache for `Simplifier.simplify`)
 │                            • type predicates (`hasMcdocHead`/`Body`, `isStructural`, `isInlineable`, `isSelfClearable`)
 │                            • `defaultFor(type)` → JsonElement skeleton for "+ Add" buttons
-│                            • attribute readers: `idRegistry`, `matchRegex`, `since`, `until`, `deprecatedSince`, `isTagged`
+│                            • attribute readers: `idRegistry`, `idPrefix`, `idIsDefinition`, `matchRegex`, `tagsMode`
 │                            • Java `Optional*` → Kotlin null bridges + `NumericRange.toPlaceholder()`
 ├── heads/                — one head per type, single-line editor surface
 │   ├── AnyHead.kt        — Any/Unsafe → raw JSON edit
@@ -81,7 +81,7 @@ mcdoc/
 │   └── UnionBody.kt      — body of the active union member
 └── widget/               — design system primitives shared across heads/bodies (and reused by other pages)
     ├── DocTooltip.kt     — `?` badge + hover popup
-    ├── FieldControls.kt  — AddFieldButton, RemoveIconButton, ToggleIconButton, InlineFieldActionButton, FieldActionTone
+    ├── FieldControls.kt  — AddFieldButton, RemoveIconButton, InlineFieldActionButton, FieldActionTone (ADD/REMOVE)
     ├── FieldRow.kt       — FieldLabel + IndentBox
     ├── McdocSelect.kt    — dropdown with popup
     ├── McdocTextInput.kt — single-line text field with `error: String?` for validation feedback

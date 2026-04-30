@@ -21,6 +21,8 @@ import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.StringType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.StructType
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.TupleType
 import fr.hardel.asset_editor.client.mcdoc.ast.NumericRange
+import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.jvm.optionals.getOrNull
 import net.minecraft.client.resources.language.I18n
 
@@ -61,8 +63,8 @@ private fun stringError(type: StringType, value: JsonElement): String? {
     val text = prim.asString
     rangeError(type.lengthRange().getOrNull(), text.length.toDouble(), lengthMessage = true)?.let { return it }
     matchRegex(type.attributes())?.let { regex ->
-        val matches = runCatching { Regex(regex).matches(text) }.getOrDefault(true)
-        if (!matches) return I18n.get("mcdoc:error.regex")
+        val compiled = compiledRegex(regex) ?: return@let
+        if (!compiled.matches(text)) return I18n.get("mcdoc:error.regex")
     }
     if (idRegistry(type.attributes()) != null && !idIsDefinition(type.attributes())) {
         resourceLocationError(text, type.attributes())?.let { return it }
@@ -124,6 +126,12 @@ private fun rangeError(range: NumericRange?, candidate: Double?, lengthMessage: 
 
 private fun typeMismatch(expected: String): String =
     I18n.get("mcdoc:error.type_mismatch").replace("{0}", expected)
+
+private val regexCache = ConcurrentHashMap<String, Optional<Regex>>()
+
+private fun compiledRegex(pattern: String): Regex? =
+    regexCache.computeIfAbsent(pattern) { Optional.ofNullable(runCatching { Regex(it) }.getOrNull()) }
+        .getOrNull()
 
 private val LegalResourceLocationChars: Set<Char> =
     (('a'..'z') + ('0'..'9') + setOf('_', '-', '.')).toSet()

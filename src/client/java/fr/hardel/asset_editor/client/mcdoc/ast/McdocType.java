@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.mcdoc.ast;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public sealed interface McdocType permits
@@ -21,8 +20,7 @@ public sealed interface McdocType permits
     McdocType.DispatcherType,
     McdocType.IndexedType,
     McdocType.ConcreteType,
-    McdocType.TemplateType,
-    McdocType.MappedType {
+    McdocType.TemplateType {
 
     Attributes attributes();
 
@@ -207,10 +205,4 @@ public sealed interface McdocType permits
         }
     }
 
-    record MappedType(McdocType child, Map<String, McdocType> mapping, Attributes attributes) implements McdocType {
-        public MappedType { mapping = Map.copyOf(mapping); }
-        @Override public MappedType withAttributes(Attributes attributes) {
-            return new MappedType(child, mapping, attributes);
-        }
-    }
 }

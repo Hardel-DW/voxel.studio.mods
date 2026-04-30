@@ -25,11 +25,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -38,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import fr.hardel.asset_editor.client.compose.StudioMotion
 import fr.hardel.asset_editor.client.compose.StudioTypography
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun NumberStepper(
     value: String,
@@ -50,6 +55,7 @@ fun NumberStepper(
 ) {
     var focused by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf(TextFieldValue(value)) }
+    var pointerFocus by remember { mutableStateOf(false) }
 
     LaunchedEffect(value, focused) {
         if (!focused && value != text.text) text = TextFieldValue(value)
@@ -105,9 +111,13 @@ fun NumberStepper(
                 keyboardOptions = keyboardOptions,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onPointerEvent(PointerEventType.Press, PointerEventPass.Initial) { pointerFocus = true }
+                    .onPointerEvent(PointerEventType.Release, PointerEventPass.Initial) { pointerFocus = false }
                     .onFocusChanged {
                         focused = it.isFocused
-                        if (focused) text = text.copy(selection = TextRange(0, text.text.length))
+                        if (focused && !pointerFocus) {
+                            text = text.copy(selection = TextRange(0, text.text.length))
+                        }
                     }
             )
         }

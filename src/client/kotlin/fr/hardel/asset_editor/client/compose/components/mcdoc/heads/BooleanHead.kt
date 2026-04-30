@@ -33,15 +33,28 @@ fun BooleanHead(
     modifier: Modifier = Modifier,
     onClear: (() -> Unit)? = null
 ) {
-    val current = (value as? JsonPrimitive)?.let { runCatching { it.asBoolean }.getOrNull() }
+    val current = (value as? JsonPrimitive)?.takeIf { it.isBoolean }?.asBoolean
     Row(modifier = modifier.height(McdocTokens.RowHeight)) {
         ToggleSegment(label = "true", selected = current == true) {
-            if (current == true) onClear?.invoke() else onValueChange(JsonPrimitive(true))
+            pickBoolean(current, true, onValueChange, onClear)
         }
         ToggleSegment(label = "false", selected = current == false) {
-            if (current == false) onClear?.invoke() else onValueChange(JsonPrimitive(false))
+            pickBoolean(current, false, onValueChange, onClear)
         }
     }
+}
+
+private fun pickBoolean(
+    current: Boolean?,
+    target: Boolean,
+    onValueChange: (JsonElement) -> Unit,
+    onClear: (() -> Unit)?
+) {
+    if (current == target && onClear != null) {
+        onClear()
+        return
+    }
+    onValueChange(JsonPrimitive(target))
 }
 
 @Composable

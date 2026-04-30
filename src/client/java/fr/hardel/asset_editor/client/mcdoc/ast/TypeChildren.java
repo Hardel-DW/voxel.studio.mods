@@ -2,9 +2,7 @@ package fr.hardel.asset_editor.client.mcdoc.ast;
 
 import fr.hardel.asset_editor.client.mcdoc.ast.McdocType.*;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.UnaryOperator;
 
 public final class TypeChildren {
@@ -20,7 +18,6 @@ public final class TypeChildren {
             case ConcreteType c -> new ConcreteType(f.apply(c.child()), c.typeArgs().stream().map(f).toList(), c.attributes());
             case IndexedType i -> new IndexedType(f.apply(i.child()), i.parallelIndices(), i.attributes());
             case TemplateType t -> new TemplateType(f.apply(t.child()), t.typeParams(), t.attributes());
-            case MappedType m -> mapMappedChildren(m, f);
             case AnyType a -> a;
             case BooleanType b -> b;
             case UnsafeType u -> u;
@@ -61,9 +58,4 @@ public final class TypeChildren {
         };
     }
 
-    private static MappedType mapMappedChildren(MappedType m, UnaryOperator<McdocType> f) {
-        Map<String, McdocType> mapping = new LinkedHashMap<>();
-        m.mapping().forEach((k, v) -> mapping.put(k, f.apply(v)));
-        return new MappedType(f.apply(m.child()), mapping, m.attributes());
-    }
 }

@@ -37,7 +37,11 @@ public final class Simplifier {
     }
 
     public McdocType simplify(McdocType type, JsonElement value) {
-        return simplify(type, value, new HashSet<>(), 0);
+        return simplify(type, value, null, new HashSet<>(), 0);
+    }
+
+    public McdocType simplify(McdocType type, JsonElement value, String currentKey) {
+        return simplify(type, value, currentKey, new HashSet<>(), 0);
     }
 
     public McdocType simplifyByDispatch(String registry, String key, JsonElement value) {
@@ -46,17 +50,16 @@ public final class Simplifier {
             .orElseGet(UnsafeType::new);
     }
 
-    private McdocType simplify(McdocType type, JsonElement value, Set<Path> visiting, int depth) {
+    private McdocType simplify(McdocType type, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
         if (depth > MAX_DEPTH) return new UnsafeType();
         return switch (type) {
-            case ReferenceType ref -> simplifyReference(ref, value, visiting, depth);
-            case DispatcherType d -> resolveDispatcher(d.registry(), d.parallelIndices(), value, visiting, depth, d.attributes());
-            case IndexedType i -> simplifyIndexed(i, value, visiting, depth);
-            case ConcreteType c -> simplifyConcrete(c, value, visiting, depth);
-            case TemplateType t -> simplify(t.child(), value, visiting, depth);
-            case MappedType m -> simplify(m.child(), value, visiting, depth);
-            case StructType s -> flattenStruct(s, value, visiting, depth);
-            case UnionType u -> simplifyUnion(u, value, visiting, depth);
+            case ReferenceType ref -> simplifyReference(ref, value, currentKey, visiting, depth);
+            case DispatcherType d -> resolveDispatcher(d.registry(), d.parallelIndices(), value, currentKey, visiting, depth, d.attributes());
+            case IndexedType i -> simplifyIndexed(i, value, currentKey, visiting, depth);
+            case ConcreteType c -> simplifyConcrete(c, value, currentKey, visiting, depth);
+            case TemplateType t -> simplify(t.child(), value, currentKey, visiting, depth);
+            case StructType s -> flattenStruct(s, value, currentKey, visiting, depth);
+            case UnionType u -> simplifyUnion(u, value, currentKey, visiting, depth);
             case PrimitiveArrayType p -> primitiveArrayAsList(p);
             case AnyType a -> a;
             case BooleanType b -> b;
@@ -77,7 +80,7 @@ public final class Simplifier {
         return new ListType(element, p.lengthRange(), p.attributes());
     }
 
-    private McdocType simplifyReference(ReferenceType ref, JsonElement value, Set<Path> visiting, int depth) {
+    private McdocType simplifyReference(ReferenceType ref, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
         Path path = ref.path();
         if (!path.absolute()) return mergeAttrs(new UnsafeType(), ref.attributes());
         if (visiting.contains(path)) return mergeAttrs(new UnsafeType(), ref.attributes());
@@ -87,7 +90,7 @@ public final class Simplifier {
 
         Set<Path> nextVisiting = plus(visiting, path);
         McdocType expanded = symbolToType(found.get());
-        McdocType simplified = simplify(expanded, value, nextVisiting, depth + 1);
+        McdocType simplified = simplify(expanded, value, currentKey, nextVisiting, depth + 1);
         return mergeAttrs(simplified, ref.attributes());
     }
 
@@ -99,7 +102,7 @@ public final class Simplifier {
         };
     }
 
-    private McdocType simplifyConcrete(ConcreteType c, JsonElement value, Set<Path> visiting, int depth) {
+    private McdocType simplifyConcrete(ConcreteType c, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
         if (c.child() instanceof ReferenceType ref) {
             Optional<Symbol> sym = symbols.get(ref.path());
             if (sym.isPresent() && sym.get() instanceof AliasSymbol alias) {
@@ -107,37 +110,74 @@ public final class Simplifier {
                 Map<String, McdocType> bindings = bindTypeParams(alias.typeParams(), c.typeArgs());
                 McdocType bound = TypeArgSubstitutor.substitute(alias.target(), bindings);
                 Set<Path> nextVisiting = plus(visiting, ref.path());
-                return mergeAttrs(simplify(bound, value, nextVisiting, depth + 1), ref.attributes());
+                return mergeAttrs(simplify(bound, value, currentKey, nextVisiting, depth + 1), ref.attributes());
             }
         }
-        return simplify(c.child(), value, visiting, depth + 1);
+        return simplify(c.child(), value, currentKey, visiting, depth + 1);
     }
 
-    private McdocType simplifyIndexed(IndexedType i, JsonElement value, Set<Path> visiting, int depth) {
-        McdocType resolvedChild = simplify(i.child(), value, visiting, depth + 1);
-        if (resolvedChild instanceof DispatcherType d) {
-            return resolveDispatcher(d.registry(), i.parallelIndices(), value, visiting, depth, i.attributes());
+    private McdocType simplifyIndexed(IndexedType i, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
+        McdocType resolvedChild = simplify(i.child(), value, currentKey, visiting, depth + 1);
+        return applyIndices(resolvedChild, i.parallelIndices(), value, currentKey, visiting, depth, i.attributes());
+    }
+
+    private McdocType applyIndices(McdocType type, List<Index> indices, JsonElement value, String currentKey, Set<Path> visiting, int depth, Attributes attributes) {
+        if (type instanceof DispatcherType d) {
+            return resolveDispatcher(d.registry(), indices, value, currentKey, visiting, depth, attributes);
         }
-        return new UnsafeType();
+        if (type instanceof StructType s) {
+            return resolveStructIndex(s, indices, value, currentKey, visiting, depth, attributes);
+        }
+        if (type instanceof UnionType u) {
+            List<McdocType> results = new ArrayList<>(u.members().size());
+            for (McdocType member : u.members()) {
+                McdocType indexed = applyIndices(member, indices, value, currentKey, visiting, depth, Attributes.EMPTY);
+                if (!(indexed instanceof UnsafeType)) results.add(indexed);
+            }
+            if (results.isEmpty()) return mergeAttrs(new UnsafeType(), attributes);
+            if (results.size() == 1) return mergeAttrs(results.get(0), attributes);
+            return new UnionType(results, attributes);
+        }
+        return mergeAttrs(new UnsafeType(), attributes);
     }
 
-    private McdocType resolveDispatcher(String registry, List<Index> indices, JsonElement value, Set<Path> visiting, int depth, Attributes attributes) {
-        if (indices.isEmpty()) return mergeAttrs(new UnsafeType(), attributes);
-        String key = extractKey(indices.get(0), value);
-        if (key == null) return mergeAttrs(new UnsafeType(), attributes);
-        Optional<DispatchRegistry.Entry> entry = dispatch.resolve(registry, key);
-        if (entry.isEmpty()) return mergeAttrs(new UnsafeType(), attributes);
-        return mergeAttrs(simplify(entry.get().target(), value, visiting, depth + 1), attributes);
+    private McdocType resolveStructIndex(StructType s, List<Index> indices, JsonElement value, String currentKey, Set<Path> visiting, int depth, Attributes attributes) {
+        for (Index index : indices) {
+            String key = extractKey(index, value, currentKey);
+            if (key == null) continue;
+            for (StructField field : s.fields()) {
+                if (field instanceof StructPairField pair
+                    && pair.key() instanceof StringKey sk
+                    && sk.name().equals(key)) {
+                    return mergeAttrs(simplify(pair.type(), value, currentKey, visiting, depth + 1), attributes);
+                }
+            }
+        }
+        return mergeAttrs(new UnsafeType(), attributes);
     }
 
-    private static String extractKey(Index index, JsonElement value) {
+    private McdocType resolveDispatcher(String registry, List<Index> indices, JsonElement value, String currentKey, Set<Path> visiting, int depth, Attributes attributes) {
+        for (Index index : indices) {
+            String key = extractKey(index, value, currentKey);
+            if (key == null) continue;
+            Optional<DispatchRegistry.Entry> entry = dispatch.resolve(registry, key);
+            if (entry.isEmpty()) continue;
+            return mergeAttrs(simplify(entry.get().target(), value, currentKey, visiting, depth + 1), attributes);
+        }
+        return mergeAttrs(new UnsafeType(), attributes);
+    }
+
+    private static String extractKey(Index index, JsonElement value, String currentKey) {
         return switch (index) {
             case StaticIndex s -> s.value();
-            case DynamicIndex d -> extractDynamicKey(d.accessors(), value);
+            case DynamicIndex d -> extractDynamicKey(d.accessors(), value, currentKey);
         };
     }
 
-    private static String extractDynamicKey(List<DynamicAccessor> accessors, JsonElement value) {
+    private static String extractDynamicKey(List<DynamicAccessor> accessors, JsonElement value, String currentKey) {
+        if (accessors.size() == 1 && accessors.get(0) instanceof KeywordAccessor kw && "key".equals(kw.keyword())) {
+            return currentKey;
+        }
         JsonElement current = value;
         for (DynamicAccessor a : accessors) {
             if (!(a instanceof FieldAccessor field)) return null;
@@ -149,11 +189,11 @@ public final class Simplifier {
         return null;
     }
 
-    private StructType flattenStruct(StructType s, JsonElement value, Set<Path> visiting, int depth) {
+    private StructType flattenStruct(StructType s, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
         List<StructField> flat = new ArrayList<>();
         for (StructField field : s.fields()) {
             if (field instanceof StructSpreadField spread) {
-                appendSpreadFields(flat, spread, value, visiting, depth);
+                appendSpreadFields(flat, spread, value, currentKey, visiting, depth);
             } else {
                 flat.add(field);
             }
@@ -161,17 +201,17 @@ public final class Simplifier {
         return new StructType(flat, s.attributes());
     }
 
-    private void appendSpreadFields(List<StructField> sink, StructSpreadField spread, JsonElement value, Set<Path> visiting, int depth) {
-        McdocType expanded = simplify(spread.type(), value, visiting, depth + 1);
+    private void appendSpreadFields(List<StructField> sink, StructSpreadField spread, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
+        McdocType expanded = simplify(spread.type(), value, currentKey, visiting, depth + 1);
         if (expanded instanceof StructType nested) {
             sink.addAll(nested.fields());
         }
     }
 
-    private McdocType simplifyUnion(UnionType u, JsonElement value, Set<Path> visiting, int depth) {
+    private McdocType simplifyUnion(UnionType u, JsonElement value, String currentKey, Set<Path> visiting, int depth) {
         List<McdocType> flat = new ArrayList<>();
         for (McdocType member : u.members()) {
-            McdocType simplified = simplify(member, value, visiting, depth + 1);
+            McdocType simplified = simplify(member, value, currentKey, visiting, depth + 1);
             if (simplified instanceof UnionType nested) {
                 flat.addAll(nested.members());
             } else {
