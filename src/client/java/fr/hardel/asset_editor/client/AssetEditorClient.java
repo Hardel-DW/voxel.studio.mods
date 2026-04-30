@@ -5,6 +5,7 @@ import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.event.ClientTickHandler;
 import fr.hardel.asset_editor.client.event.StudioKeybinding;
 import fr.hardel.asset_editor.client.event.StudioReloadListener;
+import fr.hardel.asset_editor.client.mcdoc.loader.McdocResourceLoader;
 import fr.hardel.asset_editor.client.memory.core.StudioDataSlots;
 import fr.hardel.asset_editor.client.network.ClientNetworkHandler;
 import fr.hardel.asset_editor.client.splash.SplashAssets;
@@ -28,6 +29,7 @@ public class AssetEditorClient implements ClientModInitializer {
         ClientTickHandler.register();
         ClientNetworkHandler.register();
         StudioReloadListener.register();
+        McdocResourceLoader.register();
         ComposeDownloadHud.register();
         ComposeBootstrap.tryLinkFromCache();
         SplashAssets.preloadAsync();

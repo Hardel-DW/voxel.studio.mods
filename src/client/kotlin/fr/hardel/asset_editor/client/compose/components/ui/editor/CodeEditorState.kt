@@ -53,6 +53,16 @@ class CodeEditorState(initialText: String = "") {
      */
     var indentUnit: String by mutableStateOf("    ")
 
+    /**
+     * Optional external undo/redo handlers. When set, Ctrl+Z / Ctrl+Y delegate
+     * to these instead of the internal [EditorUndoStack]. Pages that own a
+     * higher-level history (e.g. [fr.hardel.asset_editor.client.compose.components.mcdoc.McdocHistory])
+     * route the editor's keybinding into their snapshot history so a single
+     * Ctrl+Z reverts the data change, not just the formatting tweak.
+     */
+    var externalUndo: (() -> Unit)? = null
+    var externalRedo: (() -> Unit)? = null
+
     val length: Int get() = buffer.length
     val lineCount: Int get() = buffer.lineCount
 
@@ -324,6 +334,7 @@ class CodeEditorState(initialText: String = "") {
     }
 
     fun undo() {
+        externalUndo?.let { it(); return }
         val op = undo.popUndo() ?: return
         when (op) {
             is EditOp.Insert -> {
@@ -344,6 +355,7 @@ class CodeEditorState(initialText: String = "") {
     }
 
     fun redo() {
+        externalRedo?.let { it(); return }
         val op = undo.popRedo() ?: return
         when (op) {
             is EditOp.Insert -> {

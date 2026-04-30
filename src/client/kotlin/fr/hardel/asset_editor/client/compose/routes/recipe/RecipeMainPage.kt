@@ -18,12 +18,12 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememb
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.rememberRecipeEntry
 import fr.hardel.asset_editor.client.compose.lib.*
 import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
-import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.applySlotEdit
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.SlotEdit
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.SlotEditKind
 import fr.hardel.asset_editor.client.compose.components.ui.StudioToast
 import fr.hardel.asset_editor.client.compose.components.ui.rememberToastState
-import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction
-import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
+import fr.hardel.asset_editor.workspace.action.recipe.SetCraftingPatternAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultCountAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetResultItemAction
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.RecipeAdapterRegistry
@@ -118,27 +118,25 @@ fun RecipeMainPage(context: StudioContext) {
         },
         onAction = { action ->
             if (targetId == null || workspaceEntry == null) return@RecipeEditorState
-
-            val currentSlots = editingSlots ?: model.slots
-            val updatedSlots = applySlotEdit(currentSlots, action)
-            if (updatedSlots != null) {
-                if (action is RemoveIngredientAction && updatedSlots === currentSlots) {
-                    toastState.show("recipe:toast.min_ingredient")
-                    return@RecipeEditorState
-                }
-                editingSlots = updatedSlots
-            }
-
-            if (action is AddIngredientAction) {
-                paintMode = PaintMode.PAINTING
-            } else if (action is RemoveIngredientAction) {
-                paintMode = PaintMode.ERASING
-            }
-
             context.dispatchRegistryAction(
                 workspace = ClientWorkspaceRegistries.RECIPE,
                 target = targetId,
                 action = action,
+                dialogs = dialogs
+            )
+        },
+        onSlotEdit = { edit ->
+            if (targetId == null || workspaceEntry == null) return@RecipeEditorState
+            if (edit.slots.isEmpty()) {
+                toastState.show("recipe:toast.min_ingredient")
+                return@RecipeEditorState
+            }
+            editingSlots = edit.slots
+            paintMode = if (edit.kind == SlotEditKind.PAINT) PaintMode.PAINTING else PaintMode.ERASING
+            context.dispatchRegistryAction(
+                workspace = ClientWorkspaceRegistries.RECIPE,
+                target = targetId,
+                action = SetCraftingPatternAction(edit.toServerSlots()),
                 dialogs = dialogs
             )
         }

@@ -55,6 +55,17 @@ public final class EditorActionRegistry {
         return type;
     }
 
+    public static <A extends EditorAction<Object>> Action<Object, A> registerGlobal(String path, StreamCodec<ByteBuf, A> codec, Class<A> actionClass) {
+        if (BY_CLASS.containsKey(actionClass))
+            throw new IllegalStateException("Duplicate action class: " + actionClass.getName());
+
+        Identifier id = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, path);
+        Action<Object, A> type = new Action<>(id, actionClass, codec);
+        Registry.register(REGISTRY, id, type);
+        BY_CLASS.put(actionClass, type);
+        return type;
+    }
+
     public static Action<?, ?> get(Identifier id) {
         if (id == null)
             return null;

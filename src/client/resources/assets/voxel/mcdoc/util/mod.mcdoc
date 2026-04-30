@@ -1,0 +1,50 @@
+// Some aliases for common utils.
+
+// TODO - Add exports for all utilities to this file and refactor existing imports
+
+type BlockState = block_state::BlockState
+type DyeColorByte = color::DyeColorByte
+type DyeColorInt = color::DyeColorInt
+type DyeColor = color::DyeColor
+type EffectId = effect::EffectId
+type Particle = particle::Particle
+
+type Filterable<T> = (
+	struct FilteredText {
+		raw: T,
+		/// Shown only to players with chat filtering enabled.
+		filtered?: T,
+	} |
+	T |
+)
+
+struct GlobalPos {
+	/// Coordinates of the location in [x, y, z]
+	pos: int[] @ 3,
+	/// Dimension of the location
+	dimension: #[id="dimension"] string,
+}
+
+type InclusiveRange<T> = (
+	T |
+	[T] @ 2 |
+	struct ExplicitInclusiveRange {
+		min_inclusive: T,
+		max_inclusive: T,
+	} |
+)
+
+// package net.minecraft.util.random
+type WeightedEntry<T> = struct {
+	weight: int @ 0..,
+	data: T,
+}
+type WeightedList<T> = [WeightedEntry<T>]
+type NonEmptyWeightedList<T> = [WeightedEntry<T>] @ 1..
+
+enum(string) Rotation {
+	None = "none",
+	Clockwise90 = "clockwise_90",
+	Clockwise180 = "180",
+	CounterClockwise90 = "counterclockwise_90",
+}

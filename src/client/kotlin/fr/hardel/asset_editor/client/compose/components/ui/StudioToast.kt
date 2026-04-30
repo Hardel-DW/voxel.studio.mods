@@ -38,16 +38,20 @@ private const val DISMISS_DELAY_MS = 4000L
 class StudioToastState {
     var message by mutableStateOf<String?>(null)
         private set
+    var args by mutableStateOf<Array<out Any>>(emptyArray())
+        private set
     var trigger by mutableIntStateOf(0)
         private set
 
-    fun show(translationKey: String) {
+    fun show(translationKey: String, vararg args: Any) {
         message = translationKey
+        this.args = args
         trigger++
     }
 
     fun dismiss() {
         message = null
+        args = emptyArray()
     }
 }
 
@@ -83,7 +87,7 @@ fun StudioToast(state: StudioToastState, modifier: Modifier = Modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             SvgIcon(WARNING_ICON, 16.dp, StudioColors.Amber400, modifier = Modifier.size(16.dp))
             Text(
-                text = I18n.get(message),
+                text = if (state.args.isEmpty()) I18n.get(message) else I18n.get(message, *state.args),
                 style = StudioTypography.regular(12),
                 color = StudioColors.Zinc300,
                 modifier = Modifier.padding(start = 10.dp)

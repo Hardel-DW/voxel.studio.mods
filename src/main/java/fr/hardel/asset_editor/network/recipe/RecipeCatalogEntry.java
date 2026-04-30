@@ -11,6 +11,8 @@ import java.util.Map;
 
 public record RecipeCatalogEntry(Identifier id, String type, Map<String, List<String>> slots, String resultItemId, int resultCount) {
 
+    public static final int MAX_INGREDIENT_OPTIONS = 16;
+
     private static final StreamCodec<ByteBuf, Map<String, List<String>>> SLOTS_CODEC =
         ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()));
 

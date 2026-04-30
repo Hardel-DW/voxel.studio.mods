@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.world.item.Item;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -66,6 +68,11 @@ public final class RecipeAdapterRegistry {
         return get(recipe).rebuild(recipe, ingredients);
     }
 
+    public static @Nullable Recipe<?> applyPattern(Recipe<?> recipe, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        if (isUnsupported(recipe)) return null;
+        return get(recipe).applyPattern(recipe, slots, helper);
+    }
+
     public static @Nullable Recipe<?> convert(Recipe<?> source, Identifier targetSerializer, boolean preserveIngredients) {
         RecipeAdapter<?> targetAdapter = getBySerializer(targetSerializer);
         if (targetAdapter == null || isUnsupported(source))
@@ -99,6 +106,15 @@ public final class RecipeAdapterRegistry {
 
     public static boolean supportsResultItem(Recipe<?> recipe) {
         return get(recipe).supportsResultItem();
+    }
+
+    public static @Nullable Recipe<?> setResultComponents(Recipe<?> recipe, DataComponentPatch patch) {
+        return get(recipe).setResultComponents(recipe, patch);
+    }
+
+    public static boolean supportsResultComponents(Recipe<?> recipe) {
+        if (isUnsupported(recipe)) return false;
+        return get(recipe).supportsResultComponents();
     }
 
     public static Map<String, Object> extractProperties(Recipe<?> recipe) {

@@ -4,6 +4,11 @@ import fr.hardel.asset_editor.client.bootstrap.ComposeBootstrap;
 import fr.hardel.asset_editor.client.bootstrap.StudioWindowFacade;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeDownloadHud;
 import fr.hardel.asset_editor.client.bootstrap.ui.ComposeInstallConfirmScreen;
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyMemory;
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLocateMemory;
+import fr.hardel.asset_editor.client.compose.components.ui.scene.Scene3DStateMemory;
+import fr.hardel.asset_editor.client.compose.lib.HighQualityBlockCache;
+import fr.hardel.asset_editor.client.compose.lib.StructureSceneBridge;
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
 import fr.hardel.asset_editor.client.memory.core.ServerDataStore;
 import fr.hardel.asset_editor.client.memory.session.SessionMemory;
@@ -30,6 +35,11 @@ public final class ClientTickHandler {
             ClientMemoryHolder.session().clear();
             ServerDataStore.clearAll();
             ClientMemoryHolder.debug().resetForWorldClose();
+            StructureAssemblyMemory.invalidateAll();
+            StructureLocateMemory.invalidateAll();
+            Scene3DStateMemory.INSTANCE.clear();
+            StructureSceneBridge.dispose();
+            HighQualityBlockCache.dispose();
             StudioWindowFacade.notifyWorldClosed();
         }
 

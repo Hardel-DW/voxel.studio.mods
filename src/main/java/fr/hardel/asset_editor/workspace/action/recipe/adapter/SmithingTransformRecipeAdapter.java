@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -12,6 +14,7 @@ import net.minecraft.world.item.crafting.TransmuteResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class SmithingTransformRecipeAdapter extends RecipeAdapter<SmithingTransformRecipe> {
@@ -44,6 +47,15 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
     }
 
     @Override
+    protected SmithingTransformRecipe doApplyPattern(SmithingTransformRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 3, helper);
+        Optional<Ingredient> template = grid.get(0);
+        Ingredient base = grid.get(1).orElse(original.baseIngredient());
+        Optional<Ingredient> addition = grid.get(2);
+        return new SmithingTransformRecipe(template, base, addition, original.result);
+    }
+
+    @Override
     protected SmithingTransformRecipe doSetResultCount(SmithingTransformRecipe recipe, int count) {
         return new SmithingTransformRecipe(
             recipe.templateIngredient(),
@@ -59,6 +71,17 @@ public final class SmithingTransformRecipeAdapter extends RecipeAdapter<Smithing
             recipe.baseIngredient(),
             recipe.additionIngredient(),
             replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
+    }
+
+    @Override
+    protected SmithingTransformRecipe doSetResultComponents(SmithingTransformRecipe recipe, DataComponentPatch patch) {
+        ItemStack validation = validatedResultStack(recipe.result.item(), recipe.result.count(), patch);
+        if (validation == null) return null;
+        return new SmithingTransformRecipe(
+            recipe.templateIngredient(),
+            recipe.baseIngredient(),
+            recipe.additionIngredient(),
+            new TransmuteResult(recipe.result.item(), recipe.result.count(), patch));
     }
 
     @Override

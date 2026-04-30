@@ -35,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioText
 import fr.hardel.asset_editor.client.compose.StudioTypography
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableFlattener
 import fr.hardel.asset_editor.client.compose.components.ui.ContentRow
@@ -301,28 +302,11 @@ private fun OverviewRow(
     }
 }
 
-private fun humanizeLeaf(id: Identifier): String {
-    val leaf = id.path.substringAfterLast('/')
-    return leaf.split('_').joinToString(" ") { part ->
-        if (part.isEmpty()) part else part.replaceFirstChar { it.titlecase(Locale.ROOT) }
-    }
-}
+private fun humanizeLeaf(id: Identifier): String = StudioText.humanize(id)
 
-private fun parentPath(id: Identifier): String {
-    val parts = id.path.split("/")
-    if (parts.size <= 1)
-        return ""
-    return parts.dropLast(1).joinToString(" / ") { part ->
-        part.split('_').joinToString(" ") { word ->
-            if (word.isEmpty()) word else word.replaceFirstChar { it.titlecase(Locale.ROOT) }
-        }
-    }
-}
+private fun parentPath(id: Identifier): String = StudioText.pathParents(id)
 
-/**
- * Deterministic hue from a string key — port of TSX stringToColor.
- * hash = charCode + ((hash << 5) - hash), then abs(hash) % 360
- */
+
 private fun pathColor(id: Identifier): Color {
     val parts = id.path.split("/")
     val firstFolder = if (parts.size > 1) parts[0] else ""

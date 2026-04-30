@@ -1,7 +1,6 @@
 package fr.hardel.asset_editor.client.rendering;
 
 import com.mojang.blaze3d.ProjectionType;
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.CommandEncoder;
 import com.mojang.blaze3d.systems.GpuDevice;
@@ -32,7 +31,8 @@ import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -54,9 +54,16 @@ public final class HighQualityBlockRenderer {
 
     public record Result(int[] argbPixels, int width, int height) {}
 
+    private static final int RESULT_CACHE_CAPACITY = 256;
+
     private static final Queue<Key> pendingQueue = new ConcurrentLinkedQueue<>();
     private static final Set<Key> pendingSet = ConcurrentHashMap.newKeySet();
-    private static final Map<Key, Result> results = new ConcurrentHashMap<>();
+    private static final Map<Key, Result> results = Collections.synchronizedMap(new LinkedHashMap<Key, Result>(RESULT_CACHE_CAPACITY + 1, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<Key, Result> eldest) {
+            return size() > RESULT_CACHE_CAPACITY;
+        }
+    });
     private static final CopyOnWriteArrayList<Consumer<Key>> listeners = new CopyOnWriteArrayList<>();
 
     public static void request(Identifier itemId, int size) {
@@ -76,6 +83,12 @@ public final class HighQualityBlockRenderer {
     public static Runnable subscribe(Consumer<Key> listener) {
         listeners.add(listener);
         return () -> listeners.remove(listener);
+    }
+
+    public static void dispose() {
+        pendingQueue.clear();
+        pendingSet.clear();
+        synchronized (results) { results.clear(); }
     }
 
     public static void tryRenderPending() {
@@ -168,34 +181,13 @@ public final class HighQualityBlockRenderer {
 
     private static void readback(GpuDevice device, GpuTexture colorTexture, GpuTextureView colorView, Key key) {
         int size = key.size();
-        int bufferSize = size * size * 4;
-        GpuBuffer readbackBuffer = device.createBuffer(() -> "HQBlock/Readback", GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_MAP_READ, bufferSize);
-
-        device.createCommandEncoder().copyTextureToBuffer(colorTexture, readbackBuffer, 0, () -> {
-            try (GpuBuffer.MappedView view = device.createCommandEncoder().mapBuffer(readbackBuffer, true, false)) {
-                ByteBuffer pixels = view.data();
-                int[] result = new int[size * size];
-                for (int srcY = 0; srcY < size; srcY++) {
-                    int dstY = size - 1 - srcY;
-                    for (int x = 0; x < size; x++) {
-                        int srcOffset = (srcY * size + x) * 4;
-                        int r = pixels.get(srcOffset) & 0xFF;
-                        int g = pixels.get(srcOffset + 1) & 0xFF;
-                        int b = pixels.get(srcOffset + 2) & 0xFF;
-                        int a = pixels.get(srcOffset + 3) & 0xFF;
-                        result[dstY * size + x] = (a << 24) | (r << 16) | (g << 8) | b;
-                    }
-                }
-                results.put(key, new Result(result, size, size));
+        GpuReadback.readArgb(device, colorTexture, "HQBlock/Readback", size, size, true,
+            () -> { colorView.close(); colorTexture.close(); },
+            argb -> {
+                results.put(key, new Result(argb, size, size));
                 pendingSet.remove(key);
-                for (Consumer<Key> listener : listeners)
-                    listener.accept(key);
-            } finally {
-                readbackBuffer.close();
-                colorView.close();
-                colorTexture.close();
-            }
-        }, 0);
+                for (Consumer<Key> listener : listeners) listener.accept(key);
+            });
     }
 
     private HighQualityBlockRenderer() {}

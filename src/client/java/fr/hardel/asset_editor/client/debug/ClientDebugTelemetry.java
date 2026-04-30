@@ -26,10 +26,16 @@ public final class ClientDebugTelemetry {
                 "action", action.toString(), "reason", reason));
     }
 
-    public static void actionRejected(UUID actionId, String errorCode) {
+    public static void actionRejected(UUID actionId, String errorCode, String detail) {
+        LinkedHashMap<String, String> data = new LinkedHashMap<>();
+        data.put("actionId", actionId.toString());
+        data.put("errorCode", errorCode);
+        if (detail != null && !detail.isBlank())
+            data.put("detail", detail);
+
         logLevel(DebugLogMemory.Level.WARN, DebugLogMemory.Category.ACTION,
             I18n.get("debug:telemetry.action_rejected"),
-            Map.of("actionId", actionId.toString(), "errorCode", errorCode));
+            data);
     }
 
     public static void sync(String message, Map<String, ?> data) {

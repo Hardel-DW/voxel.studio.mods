@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -11,6 +13,7 @@ import net.minecraft.world.item.crafting.StonecutterRecipe;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRecipe> {
@@ -41,6 +44,12 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     }
 
     @Override
+    protected StonecutterRecipe doApplyPattern(StonecutterRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        Ingredient input = indexedSlots(slots, 1, helper).getFirst().orElse(original.input());
+        return new StonecutterRecipe(original.group(), input, original.result().copy());
+    }
+
+    @Override
     protected StonecutterRecipe doSetProperty(StonecutterRecipe recipe, String key, Object value) {
         return switch (key) {
             case GROUP -> new StonecutterRecipe((String) value, recipe.input(), recipe.result().copy());
@@ -56,6 +65,13 @@ public final class StonecutterRecipeAdapter extends RecipeAdapter<StonecutterRec
     @Override
     protected StonecutterRecipe doSetResultItem(StonecutterRecipe recipe, Holder<Item> item) {
         return new StonecutterRecipe(recipe.group(), recipe.input(), replaceResultStack(item, recipe.result().getCount(), recipe.result().getComponentsPatch()));
+    }
+
+    @Override
+    protected StonecutterRecipe doSetResultComponents(StonecutterRecipe recipe, DataComponentPatch patch) {
+        ItemStack updated = validatedResultStack(recipe.result().getItemHolder(), recipe.result().getCount(), patch);
+        if (updated == null) return null;
+        return new StonecutterRecipe(recipe.group(), recipe.input(), updated);
     }
 
     @Override

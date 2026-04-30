@@ -10,11 +10,12 @@ import fr.hardel.asset_editor.workspace.action.enchantment.ToggleDisabledEffectA
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleExclusiveAction;
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleSlotAction;
 import fr.hardel.asset_editor.workspace.action.enchantment.ToggleTagAction;
-import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.ConvertRecipeTypeAction;
-import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction;
 import fr.hardel.asset_editor.workspace.action.recipe.RemoveItemEverywhereAction;
+import fr.hardel.asset_editor.workspace.action.recipe.RemoveResultComponentAction;
 import fr.hardel.asset_editor.workspace.action.recipe.ReplaceItemEverywhereAction;
+import fr.hardel.asset_editor.workspace.action.recipe.SetCraftingPatternAction;
+import fr.hardel.asset_editor.workspace.action.recipe.SetResultComponentAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingExperienceAction;
 import fr.hardel.asset_editor.workspace.action.recipe.SetCookingTimeAction;
@@ -147,17 +148,11 @@ public final class Actions {
         SetEntryCountMaxAction.class);
 
     // Recipe
-    public static final Action<Recipe<?>, AddIngredientAction> ADD_INGREDIENT = EditorActionRegistry.register(
+    public static final Action<Recipe<?>, SetCraftingPatternAction> SET_CRAFTING_PATTERN = EditorActionRegistry.register(
         Workspaces.RECIPE,
-        "recipe/add_ingredient",
-        AddIngredientAction.CODEC,
-        AddIngredientAction.class);
-
-    public static final Action<Recipe<?>, RemoveIngredientAction> REMOVE_INGREDIENT = EditorActionRegistry.register(
-        Workspaces.RECIPE,
-        "recipe/remove_ingredient",
-        RemoveIngredientAction.CODEC,
-        RemoveIngredientAction.class);
+        "recipe/set_crafting_pattern",
+        SetCraftingPatternAction.CODEC,
+        SetCraftingPatternAction.class);
 
     public static final Action<Recipe<?>, RemoveItemEverywhereAction> REMOVE_ITEM_EVERYWHERE = EditorActionRegistry.register(
         Workspaces.RECIPE,
@@ -218,6 +213,23 @@ public final class Actions {
         "recipe/set_show_notification",
         SetShowNotificationAction.CODEC,
         SetShowNotificationAction.class);
+
+    public static final Action<Recipe<?>, SetResultComponentAction> SET_RESULT_COMPONENT = EditorActionRegistry.register(
+        Workspaces.RECIPE,
+        "recipe/set_result_component",
+        SetResultComponentAction.CODEC,
+        SetResultComponentAction.class);
+
+    public static final Action<Recipe<?>, RemoveResultComponentAction> REMOVE_RESULT_COMPONENT = EditorActionRegistry.register(
+        Workspaces.RECIPE,
+        "recipe/remove_result_component",
+        RemoveResultComponentAction.CODEC,
+        RemoveResultComponentAction.class);
+
+    public static final Action<Object, SetEntryDataAction> SET_ENTRY_DATA = EditorActionRegistry.registerGlobal(
+        "set_entry_data",
+        SetEntryDataAction.CODEC,
+        SetEntryDataAction.class);
 
     public static void register() {
         // Static fields are initialized on class load — this method triggers that.

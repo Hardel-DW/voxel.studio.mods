@@ -1,6 +1,5 @@
 package fr.hardel.asset_editor.client.rendering;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.textures.GpuTexture;
@@ -13,7 +12,6 @@ import net.minecraft.util.Mth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -94,36 +92,12 @@ public final class NativeAtlasSnapshotService {
         GpuTexture texture = atlas.getTexture();
         GpuDevice device = RenderSystem.getDevice();
 
-        int bufferSize = width * height * 4;
-        GpuBuffer readbackBuffer = device.createBuffer(
-            () -> "AtlasSnapshot/" + atlasId,
-            GpuBuffer.USAGE_COPY_DST | GpuBuffer.USAGE_MAP_READ,
-            bufferSize
-        );
-
-        device.createCommandEncoder().copyTextureToBuffer(texture, readbackBuffer, 0, () -> {
-            try (GpuBuffer.MappedView view = device.createCommandEncoder().mapBuffer(readbackBuffer, true, false)) {
-                ByteBuffer pixels = view.data();
-                int[] argb = new int[width * height];
-
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        int offset = (y * width + x) * 4;
-                        int r = pixels.get(offset) & 0xFF;
-                        int g = pixels.get(offset + 1) & 0xFF;
-                        int b = pixels.get(offset + 2) & 0xFF;
-                        int a = pixels.get(offset + 3) & 0xFF;
-                        argb[y * width + x] = (a << 24) | (r << 16) | (g << 8) | b;
-                    }
-                }
-
+        GpuReadback.readArgb(device, texture, "AtlasSnapshot/" + atlasId, width, height, false, null,
+            argb -> {
                 currentSnapshot = new Snapshot(atlasId, width, height, argb, Map.copyOf(sprites));
                 listeners.forEach(Runnable::run);
                 LOGGER.info("Atlas snapshot captured: {} ({}x{}, {} sprites)", atlasId, width, height, sprites.size());
-            } finally {
-                readbackBuffer.close();
-            }
-        }, 0);
+            });
     }
 
     private static Map<Identifier, SpriteRegion> captureRegions(

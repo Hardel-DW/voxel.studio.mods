@@ -96,7 +96,7 @@ fun RecipeSlot(
                 }
             }
 
-            if ((count ?: item.size) > 1) {
+            if (count != null && count > 1) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -105,7 +105,7 @@ fun RecipeSlot(
                         .border(1.dp, StudioColors.Zinc600, RoundedCornerShape(4.dp))
                 ) {
                     Text(
-                        text = (count ?: item.size).toString(),
+                        text = count.toString(),
                         style = StudioTypography.regular(9),
                         color = StudioColors.Zinc300,
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)

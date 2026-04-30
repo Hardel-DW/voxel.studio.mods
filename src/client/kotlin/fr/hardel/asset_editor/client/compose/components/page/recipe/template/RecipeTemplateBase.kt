@@ -54,7 +54,7 @@ fun RecipeTemplateBase(
         }
 
         RecipeSlot(
-            item = listOf(resultItemId),
+            item = if (resultItemId.isEmpty()) emptyList() else listOf(resultItemId),
             count = resultCount,
             isResult = true,
             interactive = interactiveResult,

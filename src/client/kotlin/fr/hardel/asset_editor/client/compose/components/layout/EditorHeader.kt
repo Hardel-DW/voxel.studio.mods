@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.compose.components.layout
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,18 +11,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -32,21 +39,28 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import fr.hardel.asset_editor.AssetEditor
 import fr.hardel.asset_editor.client.compose.StudioColors
+import fr.hardel.asset_editor.client.compose.StudioMotion
+import fr.hardel.asset_editor.client.compose.StudioTranslation
 import fr.hardel.asset_editor.client.compose.StudioTypography
+import fr.hardel.asset_editor.client.compose.components.ui.SvgIcon
 import fr.hardel.asset_editor.client.compose.components.ui.tree.ConceptTreeState
 import fr.hardel.asset_editor.client.compose.components.ui.tree.TreeNodeModel
+import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
+import fr.hardel.asset_editor.client.compose.lib.ElementEditorDestination
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
-import fr.hardel.asset_editor.client.compose.StudioTranslation
+import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentDestination
 import fr.hardel.asset_editor.client.compose.lib.rememberCurrentElementDestination
 import fr.hardel.asset_editor.client.compose.lib.utils.ColorUtils
-import fr.hardel.asset_editor.client.compose.lib.ConceptOverviewDestination
-import fr.hardel.asset_editor.client.compose.lib.StudioDestination
 import net.minecraft.core.Registry
 import net.minecraft.client.resources.language.I18n
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
+
+private val DATA_TAB_ID = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "data")
+private val CODE_ICON = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "icons/code.svg")
 
 @Composable
 fun EditorHeader(
@@ -157,30 +171,100 @@ fun EditorHeader(
                     }
                 }
 
-                if (editorDestination != null && tabs.size > 1) {
-                    // nav: flex items-center gap-1 mt-6 -mb-2
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier
-                            .padding(top = 24.dp)
-                            .offset(y = 8.dp)
-                    ) {
-                        tabs.forEach { tabId ->
-                            EditorHeaderTabItem(
-                                label = I18n.get(context.studioTabTitleKey(conceptId, tabId)),
-                                active = tabId == editorDestination.tabId,
-                                onClick = {
-                                    context.navigationMemory().replaceCurrentTab(
-                                        editorDestination.copy(tabId = tabId)
-                                    )
-                                }
-                            )
-                        }
-                    }
+                if (editorDestination != null) {
+                    EditorTabsStrip(
+                        context = context,
+                        conceptId = conceptId,
+                        tabs = tabs,
+                        editorDestination = editorDestination
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EditorTabsStrip(
+    context: StudioContext,
+    conceptId: Identifier,
+    tabs: List<Identifier>,
+    editorDestination: ElementEditorDestination
+) {
+    val regularTabs = remember(tabs) { tabs.filter { it != DATA_TAB_ID } }
+    val hasDataTab = DATA_TAB_ID in tabs
+    val showRegularTabs = regularTabs.size > 1
+    if (!showRegularTabs && !hasDataTab) return
+
+    var lastNonDataTab by remember(editorDestination.elementId) { mutableStateOf<Identifier?>(null) }
+    LaunchedEffect(editorDestination.tabId) {
+        if (editorDestination.tabId != DATA_TAB_ID) lastNonDataTab = editorDestination.tabId
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 24.dp)
+            .offset(y = 8.dp)
+    ) {
+        if (showRegularTabs) {
+            regularTabs.forEach { tabId ->
+                EditorHeaderTabItem(
+                    label = I18n.get(context.studioTabTitleKey(conceptId, tabId)),
+                    active = tabId == editorDestination.tabId,
+                    onClick = {
+                        context.navigationMemory().replaceCurrentTab(editorDestination.copy(tabId = tabId))
+                    }
+                )
+            }
+        }
+        if (hasDataTab) {
+            Spacer(Modifier.weight(1f))
+            DataEditorIconButton(
+                active = editorDestination.tabId == DATA_TAB_ID,
+                onClick = {
+                    val targetTab = if (editorDestination.tabId == DATA_TAB_ID) {
+                        lastNonDataTab ?: regularTabs.firstOrNull() ?: return@DataEditorIconButton
+                    } else DATA_TAB_ID
+                    context.navigationMemory().replaceCurrentTab(editorDestination.copy(tabId = targetTab))
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DataEditorIconButton(active: Boolean, onClick: () -> Unit) {
+    val interaction = remember { MutableInteractionSource() }
+    val hovered by interaction.collectIsHoveredAsState()
+    val shape = RoundedCornerShape(8.dp)
+    val bg by animateColorAsState(
+        targetValue = when {
+            active -> StudioColors.Zinc800
+            hovered -> StudioColors.Zinc900
+            else -> Color.Transparent
+        },
+        animationSpec = StudioMotion.hoverSpec(),
+        label = "data-editor-bg"
+    )
+    val tint = when {
+        active -> StudioColors.Zinc100
+        hovered -> StudioColors.Zinc200
+        else -> StudioColors.Zinc500
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(32.dp)
+            .clip(shape)
+            .background(bg, shape)
+            .hoverable(interaction)
+            .pointerHoverIcon(PointerIcon.Hand)
+            .clickable(interactionSource = interaction, indication = null, onClick = onClick)
+    ) {
+        SvgIcon(location = CODE_ICON, size = 16.dp, tint = tint)
     }
 }
 

@@ -37,3 +37,11 @@ accessible method net/minecraft/world/level/storage/loot/LootPool <init> (Ljava/
 accessible method net/minecraft/world/level/storage/loot/entries/AlternativesEntry <init> (Ljava/util/List;Ljava/util/List;)V
 accessible method net/minecraft/world/level/storage/loot/entries/SequentialEntry <init> (Ljava/util/List;Ljava/util/List;)V
 accessible method net/minecraft/world/level/storage/loot/entries/EntryGroup <init> (Ljava/util/List;Ljava/util/List;)V
+
+# Jigsaw structure assembly preview
+accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece element Lnet/minecraft/world/level/levelgen/structure/pools/StructurePoolElement;
+accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece position Lnet/minecraft/core/BlockPos;
+accessible field net/minecraft/world/level/levelgen/structure/PoolElementStructurePiece rotation Lnet/minecraft/world/level/block/Rotation;
+
+# Template-based (non-jigsaw) structure assembly preview
+accessible method net/minecraft/world/level/levelgen/structure/TemplateStructurePiece makeTemplateLocation ()Lnet/minecraft/resources/Identifier;

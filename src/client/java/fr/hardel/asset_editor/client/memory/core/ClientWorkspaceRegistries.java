@@ -1,5 +1,6 @@
 package fr.hardel.asset_editor.client.memory.core;
 
+import com.google.gson.JsonElement;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.workspace.flush.Workspaces;
 import net.minecraft.resources.Identifier;
@@ -19,6 +20,7 @@ public final class ClientWorkspaceRegistries {
     public static final ClientWorkspaceRegistry<Enchantment> ENCHANTMENT = register(Workspaces.ENCHANTMENT);
     public static final ClientWorkspaceRegistry<LootTable> LOOT_TABLE = register(Workspaces.LOOT_TABLE);
     public static final ClientWorkspaceRegistry<Recipe<?>> RECIPE = register(Workspaces.RECIPE);
+    public static final ClientWorkspaceRegistry<JsonElement> STRUCTURE = register(Workspaces.STRUCTURE);
 
     private static <T> ClientWorkspaceRegistry<T> register(WorkspaceDefinition<T> definition) {
         ClientWorkspaceRegistry<T> registry = ClientWorkspaceRegistry.of(definition);

@@ -1,6 +1,7 @@
 package fr.hardel.asset_editor.event;
 
 import fr.hardel.asset_editor.network.AssetEditorNetworking;
+import fr.hardel.asset_editor.network.structure.StructureTemplateRepository;
 import fr.hardel.asset_editor.workspace.io.ServerPackService;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
@@ -13,6 +14,7 @@ public final class PackReloadEndEvent {
             if (!success)
                 return;
 
+            StructureTemplateRepository.get().invalidateAll();
             AssetEditorNetworking.broadcastAllServerData(server);
             PACK_SERVICE.listPacks().ifPresent(packs -> AssetEditorNetworking.broadcastPackList(server, packs));
         });

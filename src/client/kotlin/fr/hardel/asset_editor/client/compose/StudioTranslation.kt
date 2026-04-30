@@ -5,7 +5,6 @@ import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.resources.ResourceKey
-import java.util.Locale
 
 object StudioTranslation {
 
@@ -22,7 +21,7 @@ object StudioTranslation {
         if (I18n.exists(mcKey))
             return I18n.get(mcKey)
 
-        return humanize(id.path)
+        return StudioText.humanize(id)
     }
 
     @JvmStatic
@@ -37,17 +36,12 @@ object StudioTranslation {
         return resolve(domain, id)
     }
 
-    private fun humanize(raw: String?): String {
-        if (raw.isNullOrBlank())
-            return ""
+    @JvmStatic
+    fun resolveRegistry(id: Identifier): String {
+        val key = "registry:${id.namespace}.${id.path.replace('/', '.')}"
+        if (I18n.exists(key))
+            return I18n.get(key)
 
-        val clean = if (':' in raw) raw.substringAfter(':') else raw
-        val leaf = if ('/' in clean) clean.substringAfterLast('/') else clean
-        return leaf
-            .split('_')
-            .filter { it.isNotBlank() }
-            .joinToString(" ") { part ->
-                part.substring(0, 1).uppercase(Locale.ROOT) + part.substring(1)
-            }
+        return StudioText.humanize(id)
     }
 }

@@ -1,57 +1,46 @@
 package fr.hardel.asset_editor.client.compose.components.page.recipe.utils
 
 import androidx.compose.ui.input.pointer.PointerButton
-import fr.hardel.asset_editor.workspace.action.EditorAction
-import fr.hardel.asset_editor.workspace.action.recipe.AddIngredientAction
-import fr.hardel.asset_editor.workspace.action.recipe.RemoveIngredientAction
 import net.minecraft.resources.Identifier
 
-fun slotAddAction(slot: String, selectedItemId: String?): EditorAction<*>? {
-    val itemId = selectedItemId ?: return null
-    val itemIdentifier = Identifier.tryParse(itemId) ?: return null
-    val slotIndex = slot.toIntOrNull() ?: return null
-    return AddIngredientAction(slotIndex, listOf(itemIdentifier), true)
+enum class SlotEditKind { PAINT, ERASE }
+
+data class SlotEdit(val slots: Map<String, List<String>>, val kind: SlotEditKind) {
+    fun toServerSlots(): Map<Int, List<Identifier>> = slots.entries.associate { (key, items) ->
+        key.toInt() to items.mapNotNull(Identifier::tryParse)
+    }
 }
 
-fun slotRemoveAction(slot: String, currentSlots: Map<String, List<String>>): EditorAction<*>? {
-    val slotIndex = slot.toIntOrNull() ?: return null
-    val items = currentSlots[slot]?.mapNotNull { Identifier.tryParse(it) } ?: emptyList()
-    return RemoveIngredientAction(slotIndex, items)
-}
-
-fun slotPointerDownAction(
+fun pointerDownSlotEdit(
     slot: String,
     button: PointerButton,
     selectedItemId: String?,
     currentSlots: Map<String, List<String>>
-): EditorAction<*>? {
-    return when (button) {
-        PointerButton.Primary -> {
-            val itemId = selectedItemId ?: return null
-            val currentItems = currentSlots[slot].orEmpty()
-            if (currentItems.singleOrNull() == itemId) {
-                slotRemoveAction(slot, currentSlots)
-            } else {
-                slotAddAction(slot, selectedItemId)
-            }
-        }
-        PointerButton.Secondary -> slotRemoveAction(slot, currentSlots)
-        else -> null
+): SlotEdit? = when (button) {
+    PointerButton.Primary -> {
+        val itemId = selectedItemId
+        if (itemId != null && currentSlots[slot]?.singleOrNull() == itemId)
+            eraseSlot(slot, currentSlots)
+        else
+            paintSlot(slot, itemId, currentSlots)
     }
+    PointerButton.Secondary -> eraseSlot(slot, currentSlots)
+    else -> null
 }
 
-fun applySlotEdit(
-    slots: Map<String, List<String>>,
-    action: EditorAction<*>
-): Map<String, List<String>>? = when (action) {
-    is AddIngredientAction -> {
-        val items = action.items.map { it.toString() }
-        if (items.isEmpty()) null
-        else slots + (action.slot.toString() to items)
-    }
-    is RemoveIngredientAction -> {
-        val result = slots - action.slot.toString()
-        if (result.isEmpty()) slots else result
-    }
-    else -> null
+fun paintSlotEdit(slot: String, selectedItemId: String?, currentSlots: Map<String, List<String>>): SlotEdit? =
+    paintSlot(slot, selectedItemId, currentSlots)
+
+fun eraseSlotEdit(slot: String, currentSlots: Map<String, List<String>>): SlotEdit? =
+    eraseSlot(slot, currentSlots)
+
+private fun paintSlot(slot: String, itemId: String?, current: Map<String, List<String>>): SlotEdit? {
+    val item = itemId ?: return null
+    if (current[slot]?.singleOrNull() == item) return null
+    return SlotEdit(current + (slot to listOf(item)), SlotEditKind.PAINT)
+}
+
+private fun eraseSlot(slot: String, current: Map<String, List<String>>): SlotEdit? {
+    if (slot !in current) return null
+    return SlotEdit(current - slot, SlotEditKind.ERASE)
 }

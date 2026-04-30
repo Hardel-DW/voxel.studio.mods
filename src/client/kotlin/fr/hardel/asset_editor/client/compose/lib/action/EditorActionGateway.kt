@@ -123,7 +123,7 @@ class EditorActionGateway(
         }
 
         restorePending(pending)
-        ClientDebugTelemetry.actionRejected(payload.actionId(), payload.errorCode() ?: "unknown")
+        ClientDebugTelemetry.actionRejected(payload.actionId(), payload.errorCode() ?: "unknown", payload.errorDetail())
         issues.pushError(payload.errorCode())
     }
 

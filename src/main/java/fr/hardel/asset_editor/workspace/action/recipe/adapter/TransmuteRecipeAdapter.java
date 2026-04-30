@@ -1,6 +1,8 @@
 package fr.hardel.asset_editor.workspace.action.recipe.adapter;
 
+import fr.hardel.asset_editor.workspace.action.recipe.RecipeIngredientHelper;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,6 +49,14 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     }
 
     @Override
+    protected TransmuteRecipe doApplyPattern(TransmuteRecipe original, Map<Integer, List<Identifier>> slots, RecipeIngredientHelper helper) {
+        List<Optional<Ingredient>> grid = indexedSlots(slots, 2, helper);
+        Ingredient input = grid.get(0).orElse(original.input);
+        Ingredient material = grid.get(1).orElse(original.material);
+        return new TransmuteRecipe(original.group(), original.category(), input, material, original.result);
+    }
+
+    @Override
     protected Map<String, Object> extractProperties(TransmuteRecipe recipe) {
         var props = super.extractProperties(recipe);
         props.put(CATEGORY, recipe.category().getSerializedName());
@@ -77,6 +87,14 @@ public final class TransmuteRecipeAdapter extends RecipeAdapter<TransmuteRecipe>
     protected TransmuteRecipe doSetResultItem(TransmuteRecipe recipe, Holder<Item> item) {
         return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
             replaceTransmuteResult(item, recipe.result.count(), recipe.result.components()));
+    }
+
+    @Override
+    protected TransmuteRecipe doSetResultComponents(TransmuteRecipe recipe, DataComponentPatch patch) {
+        ItemStack validation = validatedResultStack(recipe.result.item(), recipe.result.count(), patch);
+        if (validation == null) return null;
+        return new TransmuteRecipe(recipe.group(), recipe.category(), recipe.input, recipe.material,
+            new TransmuteResult(recipe.result.item(), recipe.result.count(), patch));
     }
 
     @Override

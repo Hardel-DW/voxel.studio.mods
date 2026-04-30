@@ -12,6 +12,7 @@ import net.fabricmc.api.ModInitializer;
 public class AssetEditor implements ModInitializer {
 
     public static final String MOD_ID = "asset_editor";
+    public static final String STUDIO_NAMESPACE = "studio";
 
     @Override
     public void onInitialize() {

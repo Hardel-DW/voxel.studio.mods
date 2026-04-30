@@ -29,6 +29,9 @@ import fr.hardel.asset_editor.client.compose.StudioColors
 import fr.hardel.asset_editor.client.compose.components.layout.StudioEditorRoot
 import fr.hardel.asset_editor.client.compose.components.ui.FpsCounter
 import fr.hardel.asset_editor.client.compose.lib.StudioContext
+import fr.hardel.asset_editor.client.compose.lib.shortcut.StudioShortcutBus
+import java.awt.KeyboardFocusManager
+import java.awt.event.KeyEvent
 import fr.hardel.asset_editor.client.compose.lib.assets.LocalStudioAssetCache
 import fr.hardel.asset_editor.client.compose.lib.selectAsFlow
 import fr.hardel.asset_editor.client.compose.lib.utils.BrowserUtils
@@ -163,6 +166,23 @@ object VoxelStudioWindow : StageWindow(680, 440, java.awt.Color(0x101011)) {
         }.apply { setContent { WindowContent() } }
         composePanel = panel
         container.add(panel, CARD_EDITOR)
+        installShortcutDispatcher()
+    }
+
+    private var shortcutDispatcherInstalled = false
+
+    private fun installShortcutDispatcher() {
+        if (shortcutDispatcherInstalled) return
+        shortcutDispatcherInstalled = true
+        val target = frame ?: return
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher { event ->
+            if (event.id != KeyEvent.KEY_PRESSED) return@addKeyEventDispatcher false
+            val source = event.component ?: return@addKeyEventDispatcher false
+            if (SwingUtilities.getWindowAncestor(source) !== target) return@addKeyEventDispatcher false
+            if (!StudioShortcutBus.dispatch(event)) return@addKeyEventDispatcher false
+            event.consume()
+            true
+        }
     }
 
     private fun installPermissionWatcher() {

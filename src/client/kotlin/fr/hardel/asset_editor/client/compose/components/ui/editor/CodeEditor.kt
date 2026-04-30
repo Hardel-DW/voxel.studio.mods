@@ -12,10 +12,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import fr.hardel.asset_editor.client.compose.components.ui.codeblock.CODE_LINE_NUMBER_COLOR
@@ -64,6 +67,7 @@ fun CodeEditor(
     val lazyListState = rememberLazyListState()
     val horizontalScroll = rememberScrollState()
     val focusRequester = remember { FocusRequester() }
+    var focused by remember { mutableStateOf(false) }
 
     val blink = rememberInfiniteTransition(label = "caret-blink")
     val caretAlpha by blink.animateFloat(
@@ -102,7 +106,7 @@ fun CodeEditor(
         horizontalScrollState = horizontalScroll,
         focusRequester = focusRequester,
         caretOffset = state.selection.end,
-        caretAlphaProvider = { caretAlpha },
+        caretAlphaProvider = { if (focused) caretAlpha else 0f },
         onPreviewKeyEvent = { event ->
             handleEditorKeyEvent(
                 event = event,
@@ -114,7 +118,7 @@ fun CodeEditor(
                 }
             )
         },
-        modifier = modifier
+        modifier = modifier.onFocusChanged { focused = it.isFocused }
     )
 }
 

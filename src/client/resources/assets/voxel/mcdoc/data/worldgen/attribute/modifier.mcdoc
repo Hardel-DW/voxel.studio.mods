@@ -1,0 +1,81 @@
+use ::java::util::color::StringRGB
+use ::java::util::color::StringARGB
+
+type BooleanAttributeModifier = struct {
+	modifier: BooleanModifierType,
+	// All modifiers use boolean argument
+	// If this is changed in the future, use a dispatcher like float/color modifier
+	argument: boolean,
+}
+
+type FloatAttributeModifier<T> = struct {
+	modifier: FloatModifierType,
+	argument: minecraft:environment_attribute_float_modifier[[modifier]]<T>,
+}
+dispatch minecraft:environment_attribute_float_modifier[%unknown]<T> to float
+dispatch minecraft:environment_attribute_float_modifier[alpha_blend]<T> to struct FloatWithAlpha {
+	value: float,
+	/// Defaults to 1.0
+	alpha?: float @ 0..1,
+}
+dispatch minecraft:environment_attribute_float_modifier[override, %none]<T> to T
+
+type ColorAttributeModifier = struct {
+	modifier: ColorModifierType,
+	argument: minecraft:environment_attribute_color_modifier[[modifier]],
+}
+dispatch minecraft:environment_attribute_color_modifier[%unknown] to StringRGB
+dispatch minecraft:environment_attribute_color_modifier[alpha_blend] to StringARGB
+dispatch minecraft:environment_attribute_color_modifier[blend_to_gray] to BlendToGray
+dispatch minecraft:environment_attribute_color_modifier[override, %none] to StringRGB
+
+type TranslucentColorAttributeModifier = struct {
+	modifier: ColorModifierType,
+	argument: minecraft:environment_attribute_argb_color_modifier[[modifier]],
+}
+dispatch minecraft:environment_attribute_argb_color_modifier[add, subtract] to StringRGB
+dispatch minecraft:environment_attribute_argb_color_modifier[multiply] to (StringRGB | StringARGB)
+dispatch minecraft:environment_attribute_argb_color_modifier[alpha_blend] to StringARGB
+dispatch minecraft:environment_attribute_argb_color_modifier[blend_to_gray] to BlendToGray
+dispatch minecraft:environment_attribute_argb_color_modifier[override, %none] to StringARGB
+
+struct BlendToGray {
+	/// The gray color is `brightness * (0.3 * r + 0.59 * g + 0.11 * b)`.
+	brightness: float @ 0..1,
+	/// The factor to mix with.
+	factor: float @ 0..1,
+}
+
+type OverrideModifier<T> = struct {
+	modifier: "override",
+	argument: T,
+}
+
+enum(string) BooleanModifierType {
+	Override = "override",
+	And = "and",
+	Nand = "nand",
+	Or = "or",
+	Nor = "nor",
+	Xor = "xor",
+	Xnor = "xnor",
+}
+
+enum(string) FloatModifierType {
+	Override = "override",
+	Add = "add",
+	Subtract = "subtract",
+	Multiply = "multiply",
+	Minimum = "minimum",
+	Maximum = "maximum",
+	AlphaBlend = "alpha_blend",
+}
+
+enum(string) ColorModifierType {
+	Override = "override",
+	Add = "add",
+	Subtract = "subtract",
+	Multiply = "multiply",
+	AlphaBlend = "alpha_blend",
+	BlendToGray = "blend_to_gray",
+}

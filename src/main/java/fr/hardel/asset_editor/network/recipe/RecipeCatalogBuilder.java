@@ -2,10 +2,10 @@ package fr.hardel.asset_editor.network.recipe;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.display.FurnaceRecipeDisplay;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -32,34 +32,61 @@ public final class RecipeCatalogBuilder {
     }
 
     private static RecipeCatalogEntry toEntry(RecipeHolder<?> holder, ContextMap displayContext) {
-        var serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(holder.value().getSerializer());
+        Identifier serializerId = BuiltInRegistries.RECIPE_SERIALIZER.getKey(holder.value().getSerializer());
         if (serializerId == null) return null;
 
         String type = serializerId.toString();
-        Recipe<?> recipe = holder.value();
-        List<? extends RecipeDisplay> displays = recipe.display();
+        List<? extends RecipeDisplay> displays = holder.value().display();
 
         if (displays.isEmpty()) {
-            return new RecipeCatalogEntry(holder.id().identifier(), type, Map.of(), "minecraft:air", 1);
+            return new RecipeCatalogEntry(holder.id().identifier(), type, Map.of(), "", 1);
         }
 
         RecipeDisplay display = displays.getFirst();
         Map<String, List<String>> slots = resolveSlots(display, displayContext);
-        String resultItemId = resolveResultItemId(display.result(), displayContext);
+        String resultItemId = resolveResultIcon(display, displayContext);
         int resultCount = resolveResultCount(display.result(), displayContext);
 
         return new RecipeCatalogEntry(holder.id().identifier(), type, slots, resultItemId, resultCount);
     }
 
+    private static String resolveResultIcon(RecipeDisplay display, ContextMap context) {
+        String resolved = resolveResultItemId(display.result(), context);
+        if (!resolved.isEmpty()) return resolved;
+        if (display instanceof SmithingRecipeDisplay smithing) {
+            return firstSlotItem(smithing.base(), context);
+        }
+        return "";
+    }
+
+    private static String firstSlotItem(SlotDisplay slot, ContextMap context) {
+        List<String> items = resolveSlotItems(slot, context);
+        return items.isEmpty() ? "" : items.getFirst();
+    }
+
     private static Map<String, List<String>> resolveSlots(RecipeDisplay display, ContextMap context) {
         return switch (display) {
-            case ShapedCraftingRecipeDisplay shaped -> indexedSlots(shaped.ingredients(), context);
+            case ShapedCraftingRecipeDisplay shaped -> shapedGridSlots(shaped, context);
             case ShapelessCraftingRecipeDisplay shapeless -> indexedSlots(shapeless.ingredients(), context);
             case FurnaceRecipeDisplay furnace -> singleSlot(furnace.ingredient(), context);
             case SmithingRecipeDisplay smithing -> smithingSlots(smithing, context);
             case StonecutterRecipeDisplay stonecutter -> singleSlot(stonecutter.input(), context);
             default -> Map.of();
         };
+    }
+
+    private static Map<String, List<String>> shapedGridSlots(ShapedCraftingRecipeDisplay shaped, ContextMap context) {
+        Map<String, List<String>> slots = new LinkedHashMap<>();
+        int width = shaped.width();
+        int height = shaped.height();
+        List<SlotDisplay> ingredients = shaped.ingredients();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                List<String> items = resolveSlotItems(ingredients.get(y * width + x), context);
+                if (!items.isEmpty()) slots.put(String.valueOf(y * 3 + x), items);
+            }
+        }
+        return slots;
     }
 
     private static Map<String, List<String>> indexedSlots(List<SlotDisplay> ingredients, ContextMap context) {
@@ -95,15 +122,14 @@ public final class RecipeCatalogBuilder {
             .map(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem()))
             .map(Object::toString)
             .distinct()
-            .limit(16)
+            .limit(RecipeCatalogEntry.MAX_INGREDIENT_OPTIONS)
             .toList();
     }
 
     private static String resolveResultItemId(SlotDisplay result, ContextMap context) {
         ItemStack stack = result.resolveForFirstStack(context);
-        if (stack.isEmpty()) return "minecraft:air";
-        var key = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        return key.toString();
+        if (stack.isEmpty()) return "";
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
     }
 
     private static int resolveResultCount(SlotDisplay result, ContextMap context) {

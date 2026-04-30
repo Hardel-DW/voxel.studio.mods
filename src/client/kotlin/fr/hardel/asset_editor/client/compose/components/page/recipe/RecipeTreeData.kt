@@ -17,7 +17,7 @@ object RecipeTreeData {
             translationKey = translationKey,
             recipeTypes = def.recipeTypes(),
             special = def.special(),
-            templateKind = def.templateKind(),
+            recipeSerializer = def.recipeSerializer(),
             showRecipeTypesInAdvanced = def.showRecipeTypesInAdvanced()
         )
     }
@@ -28,7 +28,7 @@ object RecipeTreeData {
         val translationKey: String,
         val recipeTypes: List<Identifier>,
         val special: Boolean,
-        val templateKind: Identifier,
+        val recipeSerializer: Identifier,
         val showRecipeTypesInAdvanced: Boolean = false
     ) {
         fun folderIcon(): Identifier =
@@ -45,8 +45,8 @@ object RecipeTreeData {
             ?: RECIPE_ENTRIES.first()
 
     @JvmStatic
-    fun getTemplateKind(type: String): Identifier =
-        getEntryByRecipeType(type).templateKind
+    fun getRecipeSerializer(type: String): Identifier =
+        getEntryByRecipeType(type).recipeSerializer
 
     @JvmStatic
     fun getAllEntryIds(includeSpecial: Boolean = true): List<String> =

@@ -1,0 +1,16 @@
+dispatch minecraft:entity[evoker_fangs] to struct EvokerFangs {
+	...super::EntityBase,
+	/// Ticks until the fangs pop out of the ground.
+	Warmup?: int,
+	Owner?: (
+		#[until="1.16"] #[uuid] Owner |
+		#[since="1.16"] #[uuid] int[] @ 4 |
+	),
+}
+
+struct Owner {
+	/// Upper bits of the owner's UUID.
+	OwnerUUIDMost?: long,
+	/// Lower bits of the owner's UUID.
+	OwnerUUIDLeast?: long,
+}

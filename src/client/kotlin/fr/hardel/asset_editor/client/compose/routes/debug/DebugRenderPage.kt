@@ -197,7 +197,7 @@ fun DebugRenderPage() {
                                                 modifier = Modifier
                                                     .width(displayWidth + cellPadding * 2)
                                                     .height(rowHeight + cellPadding * 2)
-                                                    .background(StudioColors.Card, RoundedCornerShape(4.dp))
+                                                    .background(StudioColors.Zinc900, RoundedCornerShape(4.dp))
                                                     .padding(cellPadding)
                                             ) {
                                                 Canvas(

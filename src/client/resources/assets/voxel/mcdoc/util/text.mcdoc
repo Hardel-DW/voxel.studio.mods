@@ -1,0 +1,394 @@
+use ::java::util::color::RGBA
+use ::java::util::avatar::Profile
+use ::java::world::item::ItemStack
+use ::java::world::component::DataComponentPatch
+use ::java::data::dialog::Dialog
+
+type Text = (
+	string |
+	TextObject |
+	[Text] @ 1.. |
+)
+
+type TextObject = (
+	struct NormalText {
+		text: string,
+		#[since="1.20.3"]
+		type?: "text",
+		...TextBase,
+	} |
+	struct TranslatedText {
+		translate: #[translation_key] string,
+		#[since="1.19.4"]
+		fallback?: #[translation_value] string,
+		with?: [Text] @ 1..,
+		#[since="1.20.3"]
+		type?: "translatable",
+		...TextBase,
+	} |
+	struct ScoreText {
+		score: struct ScoreHolder {
+			objective: #[objective] string,
+			name: #[score_holder] string,
+		},
+		#[since="1.20.3"]
+		type?: "score",
+		...TextBase,
+	} |
+	struct SelectorText {
+		selector: #[entity] string,
+		#[since="1.17"]
+		separator?: Text,
+		#[since="1.20.3"]
+		type?: "selector",
+		...TextBase,
+	} |
+	struct KeybindText {
+		keybind: Keybind,
+		#[since="1.20.3"]
+		type?: "keybind",
+		...TextBase,
+	} |
+	struct BlockNbtText {
+		block: #[vector(dimension=3,integer=true)] string,
+		nbt: #[nbt_path=minecraft:block[%fallback]] string,
+		#[since="1.20.3"]
+		source?: "block",
+		#[since="1.20.3"]
+		type?: "nbt",
+		...TextNbtBase,
+	} |
+	struct EntityNbtText {
+		entity: #[entity(amount="multiple",type="entities")] string,
+		nbt: #[nbt_path=minecraft:entity[[entity]]] string,
+		#[since="1.20.3"]
+		source?: "entity",
+		#[since="1.20.3"]
+		type?: "nbt",
+		...TextNbtBase,
+	} |
+	struct StorageNbtText {
+		storage: #[id="storage"] string,
+		nbt: #[nbt_path=minecraft:storage[[storage]]] string,
+		#[since="1.20.3"]
+		source?: "storage",
+		#[since="1.20.3"]
+		type?: "nbt",
+		...TextNbtBase,
+	} |
+	#[since="1.21.9"]
+	struct SpriteText {
+		/// Defaults to `minecraft:blocks`.
+		atlas?: #[id="atlas"] string,
+		sprite: #[id="texture"] string,
+		...ObjectTextConfig,
+		object?: "atlas",
+		type?: "object",
+		...TextBase,
+	} |
+	#[since="1.21.9"]
+	struct PlayerHeadText {
+		player: Profile,
+		/// Whether the head layer is rendered. Defaults to `true`.
+		hat?: boolean,
+		...ObjectTextConfig,
+		object?: "player",
+		type?: "object",
+		...TextBase,
+	} |
+)
+
+struct ObjectTextConfig {
+	/// Used in places where object component cannot be displayed (for example, server log or narration).
+	#[since="26.1"]
+	fallback?: Text,
+}
+
+struct TextNbtBase {
+	interpret?: boolean,
+	/// Whether to remove colors from pretty-printed NBT structure when `interpret` is `false`.
+	/// Defaults to `false`. \
+	/// Cannot be `true` when `interpret` is `true`.
+	#[since="26.1"]
+	plain?: boolean,
+	#[since="1.17"]
+	separator?: Text,
+	...TextBase,
+}
+
+struct TextBase {
+	extra?: [Text] @ 1..,
+	...TextStyle,
+}
+
+struct TextStyle {
+	color?: (
+		#[since="1.16"] #[color="hex_rgb"] string |
+		#[color="named"] TextColor |
+	),
+	/// Overrides the shadow properties of the text.
+	/// If specified as 0, the shadow will never be displayed.
+	#[since="1.21.4"]
+	shadow_color?: RGBA,
+	#[since="1.16"]
+	font?: #[id="font"] string,
+	bold?: boolean,
+	italic?: boolean,
+	underlined?: boolean,
+	strikethrough?: boolean,
+	obfuscated?: boolean,
+	insertion?: string,
+	#[until="1.21.5"]
+	clickEvent?: ClickEvent,
+	#[since="1.21.5"]
+	click_event?: ClickEvent,
+	#[until="1.21.5"]
+	hoverEvent?: HoverEvent,
+	#[since="1.21.5"]
+	hover_event?: HoverEvent,
+}
+
+enum(string) TextColor {
+	Black = "black",
+	DarkBlue = "dark_blue",
+	DarkGreen = "dark_green",
+	DarkAqua = "dark_aqua",
+	DarkRed = "dark_red",
+	DarkPurple = "dark_purple",
+	Gold = "gold",
+	Gray = "gray",
+	DarkGray = "dark_gray",
+	Blue = "blue",
+	Green = "green",
+	Aqua = "aqua",
+	Red = "red",
+	LightPurple = "light_purple",
+	Yellow = "yellow",
+	White = "white",
+}
+
+// TODO: test if this was ever allowed in the "color" field
+enum(string) TextFormat {
+	Obfuscated = "obfuscated",
+	Bold = "bold",
+	Strikethrough = "strikethrough",
+	Underline = "underline",
+	Italic = "italic",
+	Reset = "reset",
+}
+
+struct ClickEvent {
+	action: ClickEventAction,
+	...minecraft:click_event[[action]],
+}
+
+enum(string) ClickEventAction {
+	OpenUrl = "open_url",
+	// OpenFile = "open_file", // This is restricted to only work when received from the client
+	RunCommand = "run_command",
+	SuggestCommand = "suggest_command",
+	ChangePage = "change_page",
+	CopyToClipboard = "copy_to_clipboard",
+	#[since="1.21.6"]
+	ShowDialog = "show_dialog",
+	#[since="1.21.6"]
+	Custom = "custom",
+}
+
+dispatch minecraft:click_event[open_url] to struct OpenUrl {
+	#[until="1.21.5"]
+	value: #[url] string,
+	#[since="1.21.5"]
+	url: #[url] string,
+}
+
+// TODO: In 1.19.1+ commands that send signed messages are disallowed
+dispatch minecraft:click_event[run_command] to struct RunCommand {
+	#[until="1.21.5"]
+	value: (
+		#[until="1.19.1"] #[command(slash="chat")] string |
+		#[since="1.19.1"] #[command(slash="required")] string |
+	),
+	#[since="1.21.5"]
+	command: #[command(slash="allowed")] string,
+}
+
+dispatch minecraft:click_event[suggest_command] to struct SuggestCommand {
+	#[until="1.21.5"]
+	value: #[command(slash="chat",incomplete="allowed")] string,
+	#[since="1.21.5"]
+	command: #[command(slash="chat",incomplete="allowed")] string,
+}
+
+dispatch minecraft:click_event[change_page] to struct ChangePage {
+	/// The page number to go to.
+	#[until="1.21.5"]
+	value: #[integer(min=1)] string,
+	/// The page number to go to.
+	#[since="1.21.5"]
+	page: int @ 1..,
+}
+
+dispatch minecraft:click_event[copy_to_clipboard] to struct CopyToClipboard {
+	/// The text value to copy to the clipboard.
+	value: string,
+}
+
+dispatch minecraft:click_event[show_dialog] to struct ShowDialog {
+	dialog: (#[id="dialog"] string | Dialog),
+}
+
+dispatch minecraft:click_event[custom] to struct CustomAction {
+	/// ID of a custom action.
+	/// Has no functionality on vanilla servers.
+	id: #[id] #[dispatcher_key="mcdoc:custom_event"] string,
+	payload?: mcdoc:custom_event[[id]],
+}
+
+struct HoverEvent {
+	action: HoverEventAction,
+	...minecraft:hover_event[[action]],
+}
+
+enum(string) HoverEventAction {
+	ShowText = "show_text",
+	ShowItem = "show_item",
+	ShowEntity = "show_entity",
+}
+
+dispatch minecraft:hover_event[show_text] to struct ShowText {
+	#[until="1.21.5"]
+	...struct {
+		#[deprecated="1.16"] 
+		value?: Text,
+		#[since="1.16"]
+		contents?: Text,
+	},
+	#[since="1.21.5"]
+	value: Text,
+}
+
+dispatch minecraft:hover_event[show_item] to struct ShowItem {
+	#[deprecated="1.16"] #[until="1.21.5"]
+	value?: #[nbt=ItemStack] string,
+	#[since="1.16"] #[until="1.21.5"]
+	contents?: struct ItemHoverContent {
+		id: #[id="item"] string,
+		count?: int,
+		#[until="1.20.5"]
+		tag?: #[nbt=minecraft:item[[id]]] string,
+		#[since="1.20.5"]
+		components?: DataComponentPatch,
+	},
+	#[since="1.21.5"]
+	...ItemStack,
+}
+
+dispatch minecraft:hover_event[show_entity] to struct ShowEntity {
+	#[deprecated="1.16"] #[until="1.21.5"]
+	value?: struct EntityHoverValue {
+		name?: string,
+		type?: string,
+		id?: string,
+	},
+	#[since="1.16"]
+	contents?: struct EntityHoverContent {
+		type: #[id="entity_type"] string,
+		id: #[uuid] (#[canonical] [int] @ 4 | string),
+		name?: Text,
+	},
+	#[since="1.21.5"]
+	...struct EntityTooltipInfo {
+		id: #[id="entity_type"] string,
+		uuid: #[uuid] (#[canonical] [int] @ 4 | string),
+		name?: Text,
+	}
+}
+
+enum(string) Keybind {
+	Advancements = "key.advancements",
+	Attack = "key.attack",
+	Back = "key.back",
+	Chat = "key.chat",
+	Command = "key.command",
+	#[since="1.21.11"]
+	DebugClearChat = "key.debug.clearChat",
+	#[since="1.21.11"]
+	DebugCopyLocation = "key.debug.copyLocation",
+	#[since="1.21.11"]
+	DebugCopyRecreateCommand = "key.debug.copyRecreateCommand",
+	#[since="1.21.11"]
+	DebugCrash = "key.debug.crash",
+	#[since="1.21.11"]
+	DebugOptionsMenu = "key.debug.debugOptions",
+	#[since="1.21.11"]
+	DebugDumpDynamicTextures = "key.debug.dumpDynamicTextures",
+	#[since="1.21.11"]
+	DebugDumpVersion = "key.debug.dumpVersion",
+	#[since="1.21.11"]
+	DebugFocusPause = "key.debug.focusPause",
+	#[since="1.21.11"]
+	DebugFpsCharts = "key.debug.fpsCharts",
+	#[since="26.1"]
+	DebugLightmapTexture = "key.debug.lightmapTexture",
+	#[since="1.21.11"]
+	DebugModifier = "key.debug.modifier",
+	#[since="1.21.11"]
+	DebugNetworkCharts = "key.debug.networkCharts",
+	#[since="1.21.11"]
+	DebugOverlay = "key.debug.overlay",
+	#[since="1.21.11"]
+	DebugProfiling = "key.debug.profiling",
+	#[since="1.21.11"]
+	DebugProfilingChart = "key.debug.profilingChart",
+	#[since="1.21.11"]
+	DebugReloadChunk = "key.debug.reloadChunk",
+	#[since="1.21.11"]
+	DebugReloadResourcePacks = "key.debug.reloadResourcePacks",
+	#[since="1.21.11"]
+	DebugShowAdvancedTooltips = "key.debug.showAdvancedTooltips",
+	#[since="1.21.11"]
+	DebugShowChunkBorders = "key.debug.showChunkBorders",
+	#[since="1.21.11"]
+	DebugShowHitboxes = "key.debug.showHitboxes",
+	#[since="1.21.11"]
+	DebugSpectate = "key.debug.spectate",
+	#[since="1.21.11"]
+	DebugSwitchGameMode = "key.debug.switchGameMode",
+	Drop = "key.drop",
+	Forward = "key.forward",
+	Fullscreen = "key.fullscreen",
+	Hotbar1 = "key.hotbar.1",
+	Hotbar2 = "key.hotbar.2",
+	Hotbar3 = "key.hotbar.3",
+	Hotbar4 = "key.hotbar.4",
+	Hotbar5 = "key.hotbar.5",
+	Hotbar6 = "key.hotbar.6",
+	Hotbar7 = "key.hotbar.7",
+	Hotbar8 = "key.hotbar.8",
+	Hotbar9 = "key.hotbar.9",
+	Inventory = "key.inventory",
+	Jump = "key.jump",
+	Left = "key.left",
+	LoadToolbarActivator = "key.loadToolbarActivator",
+	PickItem = "key.pickItem",
+	Playerlist = "key.playerlist",
+	#[since="1.21.6"]
+	QuickActions = "key.quickActions",
+	Right = "key.right",
+	SaveToolbarActivator = "key.saveToolbarActivator",
+	Screenshot = "key.screenshot",
+	SmoothCamera = "key.smoothCamera",
+	Sneak = "key.sneak",
+	#[since="1.21.9"]
+	SpectatorHotbar = "key.spectatorHotbar",
+	SpectatorOutlines = "key.spectatorOutlines",
+	Sprint = "key.sprint",
+	SwapOffhand = "key.swapOffhand",
+	#[since="1.21.11"]
+	ToggleGui = "key.toggleGui",
+	TogglePerspective = "key.togglePerspective",
+	#[since="1.21.11"]
+	ToggleSpectatorShaderEffects = "key.toggleSpectatorShaderEffects",
+	Use = "key.use",
+}

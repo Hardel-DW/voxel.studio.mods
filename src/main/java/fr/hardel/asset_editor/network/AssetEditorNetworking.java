@@ -14,6 +14,15 @@ import fr.hardel.asset_editor.network.workspace.ElementSeedRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceElementSnapshot;
 import fr.hardel.asset_editor.network.workspace.WorkspaceMutationRequestPayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyRequestPayload;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyResolver;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateRequestPayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateResponsePayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateService;
+import fr.hardel.asset_editor.network.structure.StructureReplaceBlocksPayload;
+import fr.hardel.asset_editor.network.structure.StructureTemplateCatalog;
+import fr.hardel.asset_editor.network.structure.StructureTemplateRepository;
 import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.WorkspaceDefinition;
 import fr.hardel.asset_editor.permission.PermissionManager;
@@ -66,6 +75,17 @@ public final class AssetEditorNetworking {
         PayloadTypeRegistry.playC2S().register(ServerDataRequestPayload.TYPE, ServerDataRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ServerDataRequestPayload.TYPE, AssetEditorNetworking::handleServerDataRequest);
 
+        PayloadTypeRegistry.playC2S().register(StructureReplaceBlocksPayload.TYPE, StructureReplaceBlocksPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureReplaceBlocksPayload.TYPE, AssetEditorNetworking::handleStructureReplaceBlocks);
+
+        PayloadTypeRegistry.playC2S().register(StructureAssemblyRequestPayload.TYPE, StructureAssemblyRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StructureAssemblyResponsePayload.TYPE, StructureAssemblyResponsePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureAssemblyRequestPayload.TYPE, AssetEditorNetworking::handleStructureAssemblyRequest);
+
+        PayloadTypeRegistry.playC2S().register(StructureLocateRequestPayload.TYPE, StructureLocateRequestPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(StructureLocateResponsePayload.TYPE, StructureLocateResponsePayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(StructureLocateRequestPayload.TYPE, AssetEditorNetworking::handleStructureLocateRequest);
+
         PayloadTypeRegistry.playC2S().register(ReloadRequestPayload.TYPE, ReloadRequestPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(ReloadRequestPayload.TYPE, AssetEditorNetworking::handleReloadRequest);
     }
@@ -91,16 +111,21 @@ public final class AssetEditorNetworking {
     }
 
     public static void broadcastAllServerData(MinecraftServer server) {
-        for (ServerDataKey<?> key : ServerDataKeys.all())
-            broadcastResolved(server, key);
+        for (ServerDataKey<?> key : ServerDataKeys.all()) {
+            if (key.automaticBroadcast()) {
+                broadcastResolved(server, key);
+            } else {
+                broadcastServerData(server, key, java.util.List.of());
+            }
+        }
     }
 
     private static <T> void broadcastResolved(MinecraftServer server, ServerDataKey<T> key) {
         broadcastServerData(server, key, key.provider().apply(server));
     }
 
-    private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
-        ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, snapshot, modifiedVsReference));
+    private static void sendMutationResult(ServerPlayer player, UUID actionId, String packId, boolean accepted, String errorCode, String errorDetail, WorkspaceElementSnapshot snapshot, boolean modifiedVsReference) {
+        ServerPlayNetworking.send(player, WorkspaceSyncPayload.mutationResult(actionId, packId, accepted, errorCode, errorDetail, snapshot, modifiedVsReference));
     }
 
     private static void handlePackWorkspaceRequest(PackWorkspaceRequestPayload payload, ServerPlayNetworking.Context context) {
@@ -120,13 +145,13 @@ public final class AssetEditorNetworking {
             ServerPlayer player = context.player();
             MinecraftServer server = context.server();
             WorkspaceMutationService.MutationResult result = WORKSPACE_MUTATION.mutate(player, server, payload);
-            if (result instanceof WorkspaceMutationService.MutationResult.Failure(String errorCode)) {
-                sendMutationResult(player, payload.actionId(), payload.packId(), false, errorCode, null, false);
+            if (result instanceof WorkspaceMutationService.MutationResult.Failure(String errorCode, String errorDetail)) {
+                sendMutationResult(player, payload.actionId(), payload.packId(), false, errorCode, errorDetail, null, false);
                 return;
             }
 
             var success = (WorkspaceMutationService.MutationResult.Success) result;
-            sendMutationResult(player, payload.actionId(), success.packId(), true, "", success.snapshot(), success.modifiedVsReference());
+            sendMutationResult(player, payload.actionId(), success.packId(), true, "", "", success.snapshot(), success.modifiedVsReference());
             WORKSPACE_BROADCAST.broadcastMutation(server, player, success.packId(), success.snapshot(), success.modifiedVsReference());
         });
     }
@@ -153,7 +178,51 @@ public final class AssetEditorNetworking {
     }
 
     private static void handleServerDataRequest(ServerDataRequestPayload payload, ServerPlayNetworking.Context context) {
-        context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key()));
+        context.server().execute(() -> resolveAndSendServerData(context.player(), context.server(), payload.key(), payload.ids()));
+    }
+
+    private static void handleStructureReplaceBlocks(StructureReplaceBlocksPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            PermissionManager permissionManager = PermissionManager.get();
+            if (permissionManager == null || !permissionManager.getEffectivePermissions(context.player()).canEdit())
+                return;
+
+            DataPackManager packManager = DataPackManager.get();
+            if (packManager == null)
+                return;
+
+            if (!net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(payload.fromBlock())
+                || !net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(payload.toBlock()))
+                return;
+
+            packManager.resolveWritablePack(payload.packId()).ifPresent(packRoot -> {
+                StructureTemplateCatalog.readRaw(context.server(), payload.structureId()).ifPresent(tag -> {
+                    if (StructureTemplateCatalog.replaceBlocks(tag, payload.fromBlock(), payload.toBlock()) <= 0)
+                        return;
+                    try {
+                        StructureTemplateCatalog.writeRaw(packRoot, payload.structureId(), tag);
+                        StructureTemplateRepository.get().invalidate(payload.structureId());
+                        broadcastPartialResolved(context.server(), StudioDataKeys.STRUCTURE_TEMPLATES, java.util.List.of(payload.structureId()));
+                    } catch (java.io.IOException ignored) {
+                    }
+                });
+            });
+        });
+    }
+
+    private static void handleStructureAssemblyRequest(StructureAssemblyRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var explicit = payload.parameters().orElse(null);
+            var snapshot = StructureAssemblyResolver.resolve(context.server(), payload.structureId(), explicit);
+            ServerPlayNetworking.send(context.player(), new StructureAssemblyResponsePayload(payload.structureId(), payload.parameters(), snapshot));
+        });
+    }
+
+    private static void handleStructureLocateRequest(StructureLocateRequestPayload payload, ServerPlayNetworking.Context context) {
+        context.server().execute(() -> {
+            var parameters = StructureLocateService.locate(context.player(), payload.structureId());
+            ServerPlayNetworking.send(context.player(), new StructureLocateResponsePayload(payload.structureId(), parameters));
+        });
     }
 
     private static void handleReloadRequest(ReloadRequestPayload payload, ServerPlayNetworking.Context context) {
@@ -166,8 +235,14 @@ public final class AssetEditorNetworking {
         });
     }
 
-    private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key) {
-        ServerPlayNetworking.send(player, ServerDataKeys.resolve(key, server));
+    private static <T> void broadcastPartialResolved(MinecraftServer server, ServerDataKey<T> key, java.util.List<net.minecraft.resources.Identifier> ids) {
+        ServerDataSyncPayload payload = ServerDataSyncPayload.createPartial(key, key.partialProvider().apply(server, ids));
+        for (ServerPlayer player : server.getPlayerList().getPlayers())
+            ServerPlayNetworking.send(player, payload);
+    }
+
+    private static void resolveAndSendServerData(ServerPlayer player, MinecraftServer server, net.minecraft.resources.Identifier key, java.util.List<net.minecraft.resources.Identifier> ids) {
+        ServerPlayNetworking.send(player, ServerDataKeys.resolve(key, ids, server));
     }
 
     private AssetEditorNetworking() {}

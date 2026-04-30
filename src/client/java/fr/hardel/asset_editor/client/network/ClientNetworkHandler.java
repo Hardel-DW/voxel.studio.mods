@@ -1,10 +1,14 @@
 package fr.hardel.asset_editor.client.network;
 
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureAssemblyMemory;
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLocateMemory;
 import fr.hardel.asset_editor.client.memory.ClientMemoryHolder;
 import fr.hardel.asset_editor.network.data.ServerDataSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackListSyncPayload;
 import fr.hardel.asset_editor.network.pack.PackWorkspaceSyncPayload;
 import fr.hardel.asset_editor.network.PermissionSyncPayload;
+import fr.hardel.asset_editor.network.structure.StructureAssemblyResponsePayload;
+import fr.hardel.asset_editor.network.structure.StructureLocateResponsePayload;
 import fr.hardel.asset_editor.network.workspace.WorkspaceSyncPayload;
 import fr.hardel.asset_editor.client.memory.session.debug.NetworkTraceMemory;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -18,6 +22,8 @@ public final class ClientNetworkHandler {
         registerInbound(WorkspaceSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> ClientMemoryHolder.dispatch().handleWorkspaceSync(payload)));
         registerInbound(PackWorkspaceSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> ClientMemoryHolder.dispatch().handlePackWorkspaceSync(payload)));
         registerInbound(ServerDataSyncPayload.TYPE, (payload, context) -> context.client().execute(() -> ClientMemoryHolder.dispatch().handleServerDataSync(payload)));
+        registerInbound(StructureAssemblyResponsePayload.TYPE, (payload, context) -> context.client().execute(() -> StructureAssemblyMemory.receiveResponse(payload)));
+        registerInbound(StructureLocateResponsePayload.TYPE, (payload, context) -> context.client().execute(() -> StructureLocateMemory.receiveResponse(payload)));
     }
 
     private static <T extends CustomPacketPayload> void registerInbound(CustomPacketPayload.Type<T> type, ClientPlayNetworking.PlayPayloadHandler<T> handler) {

@@ -1,0 +1,56 @@
+use ::java::world::component::DataComponentPatch
+use ::java::data::advancement::predicate::ItemPredicate
+use ::java::util::text::Text
+
+struct BlockEntity {
+	id?: #[id="block_entity_type"] string,
+	x?: int,
+	y?: int,
+	z?: int,
+	/// Unknown
+	/// 0 for regular block entities
+	keepPacked?: boolean,
+	#[since="1.20.5"]
+	components?: DataComponentPatch,
+}
+
+struct BlockEntityData {
+	id: #[id="block_entity_type"] string,
+	...minecraft:block_entity[[id]],
+}
+
+dispatch minecraft:block[
+	bell,
+	daylight_detector,
+	ender_chest,
+	end_portal,
+	copper_golem_statue,
+	exposed_copper_golem_statue,
+	weathered_copper_golem_statue,
+	oxidized_copper_golem_statue,
+	waxed_copper_golem_statue,
+	waxed_exposed_copper_golem_statue,
+	waxed_weathered_copper_golem_statue,
+	waxed_oxidized_copper_golem_statue,
+] to BlockEntity
+
+#[until="26.2"]
+dispatch minecraft:block[bed] to BlockEntity
+
+struct Lockable {
+	/// Name of the item that a player has to be holding to open this container.
+	/// Source is flattened to plain text and has formatting removed before the check.
+	#[until="1.21.2"]
+	Lock?: string,
+	/// Item predicate testing the item that a player has to be holding to open this container.
+	#[since="1.21.2"]
+	lock?: ItemPredicate,
+}
+
+struct Nameable {
+	/// The custom name of this block.
+	CustomName?: (
+		#[until="1.21.5"] #[text_component] string |
+		#[since="1.21.5"] Text |
+	),
+}

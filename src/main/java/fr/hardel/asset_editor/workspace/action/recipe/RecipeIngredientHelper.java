@@ -33,29 +33,6 @@ public final class RecipeIngredientHelper {
         return Ingredient.of(HolderSet.direct(holders));
     }
 
-    public Ingredient merge(Ingredient existing, List<Identifier> newItemIds) {
-        Set<Identifier> seen = new LinkedHashSet<>();
-        List<Holder<Item>> merged = new ArrayList<>();
-
-        existing.values.stream().forEach(holder -> {
-            Identifier id = holder.unwrapKey()
-                .map(ResourceKey::identifier)
-                .orElse(null);
-
-            if (id != null && seen.add(id)) {
-                merged.add(holder);
-            }
-        });
-
-        for (Identifier newId : newItemIds) {
-            if (seen.add(newId)) {
-                merged.add(resolveItem(newId));
-            }
-        }
-
-        return Ingredient.of(HolderSet.direct(merged));
-    }
-
     public @Nullable Ingredient remove(Ingredient existing, List<Identifier> toRemove) {
         Set<Identifier> removeSet = new HashSet<>(toRemove);
         List<Holder<Item>> remaining = existing.values.stream()

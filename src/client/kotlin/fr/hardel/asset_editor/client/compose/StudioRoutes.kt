@@ -5,6 +5,8 @@ import fr.hardel.asset_editor.client.compose.lib.StudioUiRegistry
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.EnchantmentLayout
 import fr.hardel.asset_editor.client.compose.components.page.loot_table.LootTableLayout
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeLayout
+import fr.hardel.asset_editor.client.compose.components.page.structure.StructureLayout
+import fr.hardel.asset_editor.client.compose.components.page.structure.STRUCTURE_REGISTRY_ID
 import fr.hardel.asset_editor.client.compose.components.page.enchantment.StudioSidebarView
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentExclusivePage
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentFindPage
@@ -14,7 +16,10 @@ import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentSlots
 import fr.hardel.asset_editor.client.compose.routes.enchantment.EnchantmentTechnicalPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTableMainPage
 import fr.hardel.asset_editor.client.compose.routes.loot.LootTablePoolsPage
+import fr.hardel.asset_editor.client.compose.routes.data.RegistryDataEditorPage
 import fr.hardel.asset_editor.client.compose.routes.recipe.RecipeMainPage
+import fr.hardel.asset_editor.client.compose.routes.structure.StructureMainPage
+import fr.hardel.asset_editor.client.memory.core.ClientWorkspaceRegistries
 import fr.hardel.asset_editor.client.memory.session.ui.ConceptUiSnapshot
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.Identifier
@@ -35,6 +40,10 @@ fun registerStudioRoutes() {
         registryId = Registries.RECIPE.identifier(),
         prefetchAtlas = true,
         render = { context -> RecipeLayout(context) }
+    )
+    StudioUiRegistry.registerLayout(
+        registryId = STRUCTURE_REGISTRY_ID,
+        render = { context -> StructureLayout(context) }
     )
 
     StudioUiRegistry.registerPage(
@@ -81,5 +90,32 @@ fun registerStudioRoutes() {
         registryId = Registries.RECIPE.identifier(),
         tabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"),
         render = { context -> RecipeMainPage(context) }
+    )
+    StudioUiRegistry.registerPage(
+        registryId = STRUCTURE_REGISTRY_ID,
+        tabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "main"),
+        render = { context -> StructureMainPage(context) }
+    )
+
+    val dataTabId = Identifier.fromNamespaceAndPath(AssetEditor.MOD_ID, "data")
+    StudioUiRegistry.registerPage(
+        registryId = Registries.ENCHANTMENT.identifier(),
+        tabId = dataTabId,
+        render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.ENCHANTMENT) }
+    )
+    StudioUiRegistry.registerPage(
+        registryId = Registries.LOOT_TABLE.identifier(),
+        tabId = dataTabId,
+        render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.LOOT_TABLE) }
+    )
+    StudioUiRegistry.registerPage(
+        registryId = Registries.RECIPE.identifier(),
+        tabId = dataTabId,
+        render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.RECIPE) }
+    )
+    StudioUiRegistry.registerPage(
+        registryId = STRUCTURE_REGISTRY_ID,
+        tabId = dataTabId,
+        render = { context -> RegistryDataEditorPage(context, ClientWorkspaceRegistries.STRUCTURE) }
     )
 }

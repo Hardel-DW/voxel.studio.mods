@@ -142,7 +142,7 @@ private fun buttonTextColor(variant: ButtonVariant, hovered: Boolean): Color = w
     ButtonVariant.AURORA -> if (hovered) StudioColors.Zinc100 else StudioColors.Zinc400
     ButtonVariant.TRANSPARENT -> StudioColors.Zinc200
     ButtonVariant.LINK -> if (hovered) Color.White else StudioColors.Zinc400
-    ButtonVariant.SHIMMER -> StudioColors.Background
+    ButtonVariant.SHIMMER -> StudioColors.Zinc900
     ButtonVariant.PATREON -> Color.White
 }
 

@@ -68,7 +68,7 @@ fun StudioPrimarySidebar(context: StudioContext, modifier: Modifier = Modifier) 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .background(StudioColors.Sidebar)
+            .background(StudioColors.Zinc925)
     ) {
         Box(
             contentAlignment = Alignment.Center,

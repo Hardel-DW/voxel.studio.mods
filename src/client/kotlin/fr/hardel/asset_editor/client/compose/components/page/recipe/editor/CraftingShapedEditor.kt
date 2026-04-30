@@ -22,6 +22,7 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.commo
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionCard
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSectionHeader
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.RecipeSelector
+import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.components.ResultComponentsSection
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeAdvancedOptions
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCategoryOption
 import fr.hardel.asset_editor.client.compose.components.page.recipe.editor.common.options.RecipeCountOption
@@ -31,9 +32,9 @@ import fr.hardel.asset_editor.client.compose.components.page.recipe.template.Cra
 import fr.hardel.asset_editor.workspace.action.recipe.adapter.ShapedRecipeAdapter
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.PaintMode
 import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.RecipePageState
-import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotAddAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotPointerDownAction
-import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.slotRemoveAction
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.eraseSlotEdit
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.paintSlotEdit
+import fr.hardel.asset_editor.client.compose.components.page.recipe.utils.pointerDownSlotEdit
 import fr.hardel.asset_editor.workspace.action.recipe.SetCategoryAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetGroupAction
 import fr.hardel.asset_editor.workspace.action.recipe.SetShowNotificationAction
@@ -83,12 +84,12 @@ fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) 
                     resultCount = s.model.resultCount,
                     interactive = true,
                     onSlotPointerDown = { slot, button ->
-                        slotPointerDownAction(slot, button, s.selectedItemId, s.model.slots)?.let(s.onAction)
+                        pointerDownSlotEdit(slot, button, s.selectedItemId, s.model.slots)?.let(s.onSlotEdit)
                     },
                     onSlotPointerEnter = { slot ->
                         when (s.paintMode.value) {
-                            PaintMode.PAINTING -> slotAddAction(slot, s.selectedItemId)?.let(s.onAction)
-                            PaintMode.ERASING -> slotRemoveAction(slot, s.model.slots)?.let(s.onAction)
+                            PaintMode.PAINTING -> paintSlotEdit(slot, s.selectedItemId, s.model.slots)?.let(s.onSlotEdit)
+                            PaintMode.ERASING -> eraseSlotEdit(slot, s.model.slots)?.let(s.onSlotEdit)
                             PaintMode.NONE -> {}
                         }
                     },
@@ -127,6 +128,11 @@ fun CraftingShapedEditor(state: RecipePageState, modifier: Modifier = Modifier) 
                         }
                     }
                 }
+
+                ResultComponentsSection(
+                    context = state.context,
+                    onAction = s.onAction
+                )
             }
         }
 

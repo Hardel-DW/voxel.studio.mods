@@ -3,6 +3,6 @@
     "minecraft:smithing_transform",
     "minecraft:smithing_trim"
   ],
-  "template_kind": "minecraft:smithing",
+  "recipe_serializer": "minecraft:smithing",
   "show_recipe_types_in_advanced": true
 }

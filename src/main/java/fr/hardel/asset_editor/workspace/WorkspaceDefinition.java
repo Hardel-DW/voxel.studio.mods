@@ -10,6 +10,7 @@ import fr.hardel.asset_editor.workspace.flush.ElementEntry;
 import fr.hardel.asset_editor.workspace.io.RegistryMutationContext;
 import fr.hardel.asset_editor.workspace.action.Action;
 import fr.hardel.asset_editor.workspace.action.EditorAction;
+import fr.hardel.asset_editor.workspace.action.SetEntryDataAction;
 import fr.hardel.asset_editor.workspace.flush.FlushAdapter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -66,11 +67,22 @@ public final class WorkspaceDefinition<T> {
     }
 
     public ElementEntry<T> apply(ElementEntry<T> entry, EditorAction<?> action, RegistryMutationContext ctx) {
+        if (action instanceof SetEntryDataAction set)
+            return applyRawJson(entry, set.json(), ctx);
+
         Action<T, ?> definition = actions.get(action.getClass());
         if (definition == null)
             throw new IllegalArgumentException("Action " + action.getClass().getName() + " is not registered for workspace " + registryId());
 
         return definition.apply(entry, action, ctx);
+    }
+
+    private ElementEntry<T> applyRawJson(ElementEntry<T> entry, String jsonString, RegistryMutationContext ctx) {
+        JsonElement json = JsonParser.parseString(jsonString);
+        var ops = ctx.registries().createSerializationContext(JsonOps.INSTANCE);
+        T data = codec.parse(ops, json)
+            .getOrThrow(message -> new IllegalArgumentException("Invalid JSON for " + entry.id() + ": " + message));
+        return entry.withData(data);
     }
 
     public WorkspaceElementSnapshot toSnapshot(ElementEntry<T> entry, HolderLookup.Provider registries) {

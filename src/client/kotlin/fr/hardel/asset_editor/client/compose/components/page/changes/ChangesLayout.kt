@@ -117,7 +117,7 @@ fun ChangesLayout(context: StudioContext, destination: ChangesDestination) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxSize().background(StudioColors.Sidebar)) {
+        Row(modifier = Modifier.fillMaxSize().background(StudioColors.Zinc925)) {
             Column(
                 modifier = Modifier
                     .width(288.dp)
